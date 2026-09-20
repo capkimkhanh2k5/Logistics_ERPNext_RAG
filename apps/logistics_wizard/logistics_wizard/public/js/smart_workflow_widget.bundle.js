@@ -15,32 +15,60 @@ $(document).ready(function() {
     let shipmentMap = null;
     let mapPolyline = null;
     let mapMarkers = [];
+    let seaOverlayLayer = null;
+    let currentAnimationId = null;
 
-    // Professional SVG Vehicle Icons
+    // Professional SVG Vehicle Icons (Top-down AIS & FlightRadar24 Silhouettes)
     function get_vehicle_svg(method) {
         if (method === 'Air') {
             return `
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.6L2.5 8l6.4 3.3L7 15l-3.3-1.1-1.2 1.3 4.2 3.8 3.8 4.2 1.3-1.2L10.7 18.7l3.7-1.9 3.3 6.4 1.2-1.2-.4-2.6Z"/>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 1.5C11.2 1.5 10.6 2.3 10.6 3.2V8.8L2.4 13.5C1.8 13.8 1.5 14.5 1.5 15.1C1.5 15.9 2.2 16.5 3 16.5H10.6V20.2L8.2 21.8C7.9 22 7.7 22.3 7.7 22.7C7.7 23.4 8.3 24 9 24H15C15.7 24 16.3 23.4 16.3 22.7C16.3 22.3 16.1 22 15.8 21.8L13.4 20.2V16.5H21C21.8 16.5 22.5 15.9 22.5 15.1C22.5 14.5 22.2 13.8 21.6 13.5L13.4 8.8V3.2C13.4 2.3 12.8 1.5 12 1.5Z" stroke="#0047AB" stroke-width="0.5"/>
                 </svg>
             `;
         } else if (method === 'Ocean') {
             return `
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0055B3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
-                    <path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/>
-                    <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/>
-                    <path d="M12 10v4"/>
-                    <path d="M12 2v3"/>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 1 C14.8 3.5 18 8 18 14 V20 C18 21.7 16.7 23 15 23 H9 C7.3 23 6 21.7 6 20 V14 C6 8 9.2 3.5 12 1 Z" fill="#0055B3" stroke="#003380" stroke-width="0.8"/>
+                    <rect x="8" y="6.5" width="8" height="2.2" rx="0.4" fill="#38BDF8"/>
+                    <rect x="8" y="9.7" width="8" height="2.2" rx="0.4" fill="#BAE6FD"/>
+                    <rect x="8" y="12.9" width="8" height="2.2" rx="0.4" fill="#38BDF8"/>
+                    <rect x="8" y="16.1" width="8" height="2.2" rx="0.4" fill="#BAE6FD"/>
+                    <rect x="8.5" y="19.2" width="7" height="2.6" rx="0.5" fill="#FFFFFF"/>
+                    <rect x="10.5" y="20" width="3" height="1" fill="#0055B3"/>
                 </svg>
             `;
         } else {
             return `
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="1" y="3" width="15" height="13" rx="2" ry="2"/>
-                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
-                    <circle cx="5.5" cy="18.5" r="2.5"/>
-                    <circle cx="18.5" cy="18.5" r="2.5"/>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="6" y="8.5" width="12" height="14" rx="1.2" fill="#EA580C" stroke="#C2410C" stroke-width="0.6"/>
+                    <line x1="7.5" y1="11.5" x2="16.5" y2="11.5" stroke="#FFEDD5" stroke-width="0.8"/>
+                    <line x1="7.5" y1="14.5" x2="16.5" y2="14.5" stroke="#FFEDD5" stroke-width="0.8"/>
+                    <line x1="7.5" y1="17.5" x2="16.5" y2="17.5" stroke="#FFEDD5" stroke-width="0.8"/>
+                    <line x1="7.5" y1="20.5" x2="16.5" y2="20.5" stroke="#FFEDD5" stroke-width="0.8"/>
+                    <rect x="7" y="1.5" width="10" height="5.8" rx="1.5" fill="#C2410C"/>
+                    <rect x="8.5" y="2.5" width="7" height="2" rx="0.5" fill="#FEF08A"/>
+                    <rect x="5.2" y="3" width="1.5" height="1" rx="0.3" fill="#C2410C"/>
+                    <rect x="17.3" y="3" width="1.5" height="1" rx="0.3" fill="#C2410C"/>
+                </svg>
+            `;
+        }
+    }
+
+    // Professional Hub Icons (Seaport ⚓ / Airport 🛫)
+    function get_hub_icon_svg(hubType) {
+        if (hubType === 'Ocean' || hubType === 'seaport' || hubType === 'port') {
+            return `
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0055B3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="5" r="3"/>
+                    <line x1="12" y1="22" x2="12" y2="8"/>
+                    <path d="M5 12H2a10 10 0 0 0 20 0h-3"/>
+                </svg>
+            `;
+        } else {
+            return `
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.6L2.5 8l6.4 3.3L7 15l-3.3-1.1-1.2 1.3 4.2 3.8 3.8 4.2 1.3-1.2L10.7 18.7l3.7-1.9 3.3 6.4 1.2-1.2-.4-2.6Z"/>
                 </svg>
             `;
         }
@@ -154,9 +182,14 @@ $(document).ready(function() {
 
             $('.lw-popup-close').on('click', function() {
                 $($(this).data('target')).hide();
+                if (currentAnimationId) {
+                    cancelAnimationFrame(currentAnimationId);
+                    currentAnimationId = null;
+                }
                 if (shipmentMap) {
                     try { shipmentMap.remove(); } catch(e) {}
                     shipmentMap = null;
+                    seaOverlayLayer = null;
                 }
             });
         }
@@ -269,9 +302,14 @@ $(document).ready(function() {
         `);
 
         $('#lw-btn-back-shipments').on('click', function() {
+            if (currentAnimationId) {
+                cancelAnimationFrame(currentAnimationId);
+                currentAnimationId = null;
+            }
             if (shipmentMap) {
                 try { shipmentMap.remove(); } catch(e) {}
                 shipmentMap = null;
+                seaOverlayLayer = null;
             }
             show_active_shipments_list();
         });
@@ -290,6 +328,276 @@ $(document).ready(function() {
         });
     }
 
+    // --------------------------------------------------------------------------
+    // High-Performance Map Utilities (Douglas-Peucker, Bearing, Interpolation)
+    // --------------------------------------------------------------------------
+
+    /**
+     * Dynamically toggles OpenSeaMap seamark navigation overlay based on shipping method.
+     */
+    function update_marine_overlay(method) {
+        const Leaflet = window.L || window.leaflet;
+        if (!Leaflet || !shipmentMap) return;
+
+        const isOcean = (method === 'Ocean' || method === 'Sea');
+        if (isOcean) {
+            if (!seaOverlayLayer) {
+                seaOverlayLayer = Leaflet.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png', {
+                    attribution: 'Map data: &copy; <a href="http://www.openseamap.org">OpenSeaMap</a> contributors',
+                    maxZoom: 18,
+                    opacity: 1.0
+                });
+            }
+            if (!shipmentMap.hasLayer(seaOverlayLayer)) {
+                seaOverlayLayer.addTo(shipmentMap);
+            }
+        } else {
+            if (seaOverlayLayer && shipmentMap.hasLayer(seaOverlayLayer)) {
+                shipmentMap.removeLayer(seaOverlayLayer);
+            }
+        }
+    }
+
+    /**
+     * Perpendicular distance between point P and line segment (P1 - P2).
+     * Handles International Date Line antimeridian wrap when |lon2 - lon1| > 180°.
+     */
+    function perpendicularDistance(p, p1, p2) {
+        let [lat, lon] = p;
+        let [lat1, lon1] = p1;
+        let [lat2, lon2] = p2;
+
+        let dLon = lon2 - lon1;
+        let dLat = lat2 - lat1;
+
+        // Normalize longitude wrap across Date Line
+        if (dLon > 180) dLon -= 360;
+        if (dLon < -180) dLon += 360;
+
+        let pLon = lon - lon1;
+        let pLat = lat - lat1;
+        if (pLon > 180) pLon -= 360;
+        if (pLon < -180) pLon += 360;
+
+        let lenSq = dLon * dLon + dLat * dLat;
+        if (lenSq === 0) {
+            return Math.hypot(pLon, pLat);
+        }
+
+        let t = Math.max(0, Math.min(1, (pLon * dLon + pLat * dLat) / lenSq));
+        let projLon = t * dLon;
+        let projLat = t * dLat;
+
+        return Math.hypot(pLon - projLon, pLat - projLat);
+    }
+
+    /**
+     * Douglas-Peucker polyline simplification algorithm in pure JavaScript.
+     * Preserves critical strait navigation while drastically reducing SVG/Canvas vertices.
+     * @param {Array<[number, number]>} points - Array of [lat, lon]
+     * @param {number} tolerance - Epsilon threshold in degrees (~0.002° ≈ 200m)
+     */
+    function douglasPeucker(points, tolerance = 0.002) {
+        if (!points || !Array.isArray(points) || points.length <= 2) return points || [];
+
+        let maxDist = 0;
+        let maxIndex = 0;
+        const end = points.length - 1;
+
+        for (let i = 1; i < end; i++) {
+            let dist = perpendicularDistance(points[i], points[0], points[end]);
+            if (dist > maxDist) {
+                maxDist = dist;
+                maxIndex = i;
+            }
+        }
+
+        if (maxDist > tolerance) {
+            let left = douglasPeucker(points.slice(0, maxIndex + 1), tolerance);
+            let right = douglasPeucker(points.slice(maxIndex), tolerance);
+            return left.slice(0, left.length - 1).concat(right);
+        } else {
+            return [points[0], points[end]];
+        }
+    }
+
+    /**
+     * Computes initial Great-Circle bearing angle from point 1 to point 2 (degrees 0..360).
+     * theta = atan2(y, x)
+     */
+    function calculateBearing(lat1, lon1, lat2, lon2) {
+        const toRad = Math.PI / 180;
+        const toDeg = 180 / Math.PI;
+        const phi1 = lat1 * toRad;
+        const phi2 = lat2 * toRad;
+        let deltaLambda = (lon2 - lon1) * toRad;
+
+        while (deltaLambda > Math.PI) deltaLambda -= 2 * Math.PI;
+        while (deltaLambda < -Math.PI) deltaLambda += 2 * Math.PI;
+
+        const y = Math.sin(deltaLambda) * Math.cos(phi2);
+        const x = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLambda);
+        const theta = Math.atan2(y, x);
+        return (theta * toDeg + 360) % 360;
+    }
+
+    /**
+     * Precalculates cumulative polyline distances along coordinate track.
+     */
+    function computePolylineMetrics(coords) {
+        const cumulative = [0];
+        let total = 0;
+        if (!coords || coords.length <= 1) {
+            return { cumulative: [0], total: 0 };
+        }
+        for (let i = 0; i < coords.length - 1; i++) {
+            let [y1, x1] = coords[i];
+            let [y2, x2] = coords[i + 1];
+            let dx = x2 - x1;
+            if (dx > 180) dx -= 360;
+            if (dx < -180) dx += 360;
+            let dy = y2 - y1;
+            let cosLat = Math.cos(((y1 + y2) / 2) * Math.PI / 180);
+            let dist = Math.hypot(dy, dx * cosLat);
+            total += dist;
+            cumulative.push(total);
+        }
+        return { cumulative, total };
+    }
+
+    /**
+     * Continuously interpolates latitude, longitude, and bearing at progress ratio (0.0 .. 1.0).
+     */
+    function interpolateAtProgress(coords, metrics, progress) {
+        if (!coords || coords.length === 0) return { point: [0, 0], bearing: 0 };
+        if (coords.length === 1) return { point: coords[0], bearing: 0 };
+
+        const p = Math.max(0, Math.min(1, progress));
+        if (metrics.total === 0) return { point: coords[0], bearing: 0 };
+
+        const targetDist = p * metrics.total;
+
+        let segmentIdx = 0;
+        for (let i = 0; i < metrics.cumulative.length - 1; i++) {
+            if (targetDist >= metrics.cumulative[i] && targetDist <= metrics.cumulative[i + 1]) {
+                segmentIdx = i;
+                break;
+            }
+        }
+        if (segmentIdx >= coords.length - 1) {
+            segmentIdx = coords.length - 2;
+        }
+
+        const segStartDist = metrics.cumulative[segmentIdx];
+        const segLen = metrics.cumulative[segmentIdx + 1] - segStartDist;
+        const t = (segLen === 0) ? 0 : Math.max(0, Math.min(1, (targetDist - segStartDist) / segLen));
+
+        const p1 = coords[segmentIdx];
+        const p2 = coords[segmentIdx + 1] || p1;
+
+        let lat = p1[0] + t * (p2[0] - p1[0]);
+        let lon1 = p1[1];
+        let lon2 = p2[1];
+        let dLon = lon2 - lon1;
+        if (dLon > 180) dLon -= 360;
+        if (dLon < -180) dLon += 360;
+        let lon = lon1 + t * dLon;
+
+        const bearing = calculateBearing(p1[0], p1[1], p2[0], p2[1]);
+        return { point: [lat, lon], bearing };
+    }
+
+    /**
+     * Animates vehicle marker smoothly along polyline using requestAnimationFrame with cubic ease-out.
+     * Features dynamic vehicle morphing (Truck 🚚 -> Ship 🚢 / Plane ✈️ -> Truck 🚚)
+     * based on multimodal progress thresholds and real-time tangent bearing rotation.
+     */
+    function animateVehicle(marker, coords, targetProgress, durationMs = 1500, legs = [], thresholds = [0, 0.05, 0.95, 1], mainMethod = 'Ocean') {
+        if (currentAnimationId) {
+            cancelAnimationFrame(currentAnimationId);
+            currentAnimationId = null;
+        }
+
+        if (!marker || !coords || coords.length === 0) return;
+
+        const metrics = computePolylineMetrics(coords);
+        const startProgress = (typeof marker._currentProgress === 'number') ? marker._currentProgress : 0;
+        const clampedTarget = Math.max(0, Math.min(1, targetProgress));
+        const startTime = performance.now();
+
+        const p1 = (thresholds && thresholds.length > 1) ? thresholds[1] : 0.05;
+        const p2 = (thresholds && thresholds.length > 2) ? thresholds[2] : 0.95;
+
+        function frame(now) {
+            const elapsed = now - startTime;
+            const rawT = durationMs <= 0 ? 1 : Math.min(1, elapsed / durationMs);
+            // Cubic ease-out: 1 - (1 - t)^3
+            const easeT = 1 - Math.pow(1 - rawT, 3);
+            const curP = startProgress + (clampedTarget - startProgress) * easeT;
+
+            const { point, bearing } = interpolateAtProgress(coords, metrics, curP);
+            marker.setLatLng(point);
+
+            // Determine active mode and styling for dynamic vehicle morphing
+            let activeMode = 'Road';
+            let activeDesc = 'Chặng 1: Vận chuyển đường bộ (First-mile Road)';
+            let borderColor = '#FF9500';
+
+            if (curP <= p1) {
+                activeMode = 'Road';
+                activeDesc = 'Chặng 1: Xe tải container vận chuyển ra Cảng/Sân bay xuất phát';
+                borderColor = '#FF9500';
+            } else if (curP <= p2) {
+                activeMode = mainMethod;
+                activeDesc = (mainMethod === 'Air') 
+                    ? 'Chặng 2: Máy bay vận tải đang bay qua không phận Quốc tế (Air Transit)'
+                    : 'Chặng 2: Tàu container đang vượt hải trình Thái Bình Dương (Ocean Transit)';
+                borderColor = (mainMethod === 'Air') ? '#007AFF' : '#0055B3';
+            } else {
+                activeMode = 'Road';
+                activeDesc = 'Chặng 3: Xe tải container giao nhận về Kho Cáp Kim Khánh Đà Nẵng (Last-mile Road)';
+                borderColor = '#FF9500';
+            }
+
+            const iconEl = marker.getElement ? marker.getElement() : null;
+            if (iconEl) {
+                // Morph vehicle icon if mode changes
+                if (marker._activeMode !== activeMode) {
+                    marker._activeMode = activeMode;
+                    const boxEl = iconEl.querySelector('.lw-vehicle-box');
+                    if (boxEl) {
+                        boxEl.style.borderColor = borderColor;
+                    }
+                    const svgEl = iconEl.querySelector('.lw-vehicle-icon-svg');
+                    if (svgEl) {
+                        svgEl.innerHTML = get_vehicle_svg(activeMode);
+                    }
+                    if (marker.getPopup && marker.getPopup()) {
+                        const vehName = (activeMode === 'Ocean') ? 'Tàu biển 🚢' : ((activeMode === 'Air') ? 'Máy bay ✈️' : 'Xe tải Container 🚚');
+                        marker.setPopupContent(`<b>Phương tiện: ${vehName}</b><br>${activeDesc}<br><small>Tiến trình toàn trình: ${(curP * 100).toFixed(1)}%</small>`);
+                    }
+                }
+
+                // Update heading orientation with bearing rotation
+                const rotEl = iconEl.querySelector('.lw-vehicle-icon-svg') || iconEl.querySelector('svg');
+                if (rotEl) {
+                    rotEl.style.transform = `rotate(${bearing}deg)`;
+                    rotEl.style.transformOrigin = 'center center';
+                }
+            }
+
+            marker._currentProgress = curP;
+
+            if (rawT < 1) {
+                currentAnimationId = requestAnimationFrame(frame);
+            } else {
+                currentAnimationId = null;
+            }
+        }
+
+        currentAnimationId = requestAnimationFrame(frame);
+    }
+
     // Initialize Leaflet Map
     function init_map(data, docname, doctype) {
         const Leaflet = window.L || window.leaflet;
@@ -298,9 +606,15 @@ $(document).ready(function() {
             return;
         }
 
+        if (currentAnimationId) {
+            cancelAnimationFrame(currentAnimationId);
+            currentAnimationId = null;
+        }
+
         if (shipmentMap) {
             try { shipmentMap.remove(); } catch(e) {}
             shipmentMap = null;
+            seaOverlayLayer = null;
         }
 
         // Clean slate
@@ -312,87 +626,185 @@ $(document).ready(function() {
             zoomControl: true,
             attributionControl: true
         }).setView([20.0, 150.0], 3);
+        window._lw_shipment_map = shipmentMap;
 
-        // OpenStreetMap / Wikimedia tile layer (NO API KEY REQUIRED, NO WATERMARK)
-        Leaflet.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors',
-            maxZoom: 18
+        // 1. OpenStreetMap Standard basemap (Free, No watermark, Max Zoom 19)
+        Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            subdomains: ['a', 'b', 'c'],
+            maxZoom: 19
         }).addTo(shipmentMap);
 
-        let coords = data.route || data.full_route || [];
-        if (!coords || coords.length === 0) {
+        // 2. OpenSeaMap Marine Overlay (dynamic toggle for Ocean/Sea)
+        update_marine_overlay(data.method);
+
+        let fullRoute = (data.full_route && data.full_route.length > 0) ? data.full_route : (data.route || []);
+        if (!fullRoute || fullRoute.length === 0) {
             $('#lw-map-info-text').html('<span class="text-muted">Chưa có tọa độ nào được ghi nhận cho đơn hàng này.</span>');
             return;
         }
 
-        // 1. Draw Polyline
-        let lineStyle = {
-            color: data.method === 'Air' ? '#007AFF' : (data.method === 'Ocean' ? '#0055B3' : '#28a745'),
-            weight: 3.5,
-            opacity: 0.85,
-            dashArray: data.method === 'Air' ? '6, 8' : (data.method === 'Ocean' ? '8, 4' : '')
-        };
+        // 3. Douglas-Peucker Polyline Simplification for entire route
+        let simplifiedCoords = douglasPeucker(fullRoute, 0.002);
+        if (!simplifiedCoords || simplifiedCoords.length < 2) {
+            simplifiedCoords = fullRoute;
+        }
 
-        mapPolyline = Leaflet.polyline(coords, lineStyle).addTo(shipmentMap);
+        // 4. Render Multi-leg Polylines (Dashed orange for road, solid blue for ocean/air)
+        let polylineLayers = [];
+        if (data.legs && Array.isArray(data.legs) && data.legs.length > 0) {
+            data.legs.forEach(leg => {
+                let legRaw = leg.coordinates_latlon || [];
+                if (legRaw.length >= 2) {
+                    let legSimp = douglasPeucker(legRaw, 0.002);
+                    if (!legSimp || legSimp.length < 2) legSimp = legRaw;
+
+                    let isRoad = (leg.mode === 'Road');
+                    let isAir = (leg.mode === 'Air');
+                    let legColor = isRoad ? '#FF9500' : (isAir ? '#007AFF' : '#0055B3');
+                    let legDash = isRoad ? '6, 8' : '';
+                    let legWeight = isRoad ? 3.5 : 4.0;
+
+                    let pLayer = Leaflet.polyline(legSimp, {
+                        color: legColor,
+                        weight: legWeight,
+                        opacity: 0.92,
+                        dashArray: legDash
+                    }).addTo(shipmentMap);
+                    polylineLayers.push(pLayer);
+                }
+            });
+        }
+
+        // Fallback single polyline if no legs rendered
+        if (polylineLayers.length === 0) {
+            let singleLine = Leaflet.polyline(simplifiedCoords, {
+                color: data.method === 'Air' ? '#007AFF' : (data.method === 'Ocean' ? '#0055B3' : '#FF9500'),
+                weight: 3.5,
+                opacity: 0.9,
+                dashArray: data.method === 'Road' ? '6, 8' : ''
+            }).addTo(shipmentMap);
+            polylineLayers.push(singleLine);
+        }
+
+        // Fit map bounds across all polylines
         try {
-            shipmentMap.fitBounds(mapPolyline.getBounds(), { padding: [40, 40], maxZoom: 8 });
+            let group = Leaflet.featureGroup(polylineLayers);
+            shipmentMap.fitBounds(group.getBounds(), { padding: [40, 40], maxZoom: 8 });
         } catch(e) {}
 
-        // 2. Origin Marker (USA / Supplier)
-        let originCoord = coords[0];
+        // 5. Origin Marker O (Origin - Kho nguồn, Green Badge)
+        let originCoord = simplifiedCoords[0];
+        let originName = (data.origin && data.origin.name) || (typeof data.origin === 'string' ? data.origin : 'Kho nhà máy xuất phát');
         let originIcon = Leaflet.divIcon({
             className: 'custom-origin-icon',
-            html: `<div style="background: #28a745; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">A</div>`,
-            iconSize: [26, 26],
-            iconAnchor: [13, 13]
+            html: `<div style="background: #28a745; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; border: 2.5px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.35); cursor: pointer;" title="Điểm xuất phát (Origin - Điểm O)">O</div>`,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
         });
         let origMarker = Leaflet.marker(originCoord, { icon: originIcon }).addTo(shipmentMap);
-        origMarker.bindPopup(`<b>Điểm xuất phát (Origin):</b><br>${coords[0][0].toFixed(2)}, ${coords[0][1].toFixed(2)}`);
+        origMarker.bindPopup(`<b>Kho xuất phát (Origin - Điểm O):</b><br>${originName}<br><small>Toạ độ: ${originCoord[0].toFixed(4)}, ${originCoord[1].toFixed(4)}</small>`);
+        mapMarkers.push(origMarker);
 
-        // 3. Destination Marker (Vietnam / Warehouse)
-        let destCoord = coords[coords.length - 1];
+        // 6. Destination Marker D (Destination - Kho đích Cáp Kim Khánh, Red Badge)
+        let destCoord = simplifiedCoords[simplifiedCoords.length - 1];
+        let destName = (data.destination && data.destination.name) || (typeof data.destination === 'string' ? data.destination : 'Kho Logistics Cáp Kim Khánh Đà Nẵng');
         let destIcon = Leaflet.divIcon({
             className: 'custom-dest-icon',
-            html: `<div style="background: #dc3545; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">B</div>`,
-            iconSize: [26, 26],
-            iconAnchor: [13, 13]
+            html: `<div style="background: #dc3545; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; border: 2.5px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.35); cursor: pointer;" title="Điểm đích đến (Destination - Điểm D)">D</div>`,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
         });
         let dstMarker = Leaflet.marker(destCoord, { icon: destIcon }).addTo(shipmentMap);
-        dstMarker.bindPopup(`<b>Điểm đến (Destination):</b><br>${destCoord[0].toFixed(2)}, ${destCoord[1].toFixed(2)}`);
+        dstMarker.bindPopup(`<b>Kho đích nhận hàng (Destination - Điểm D):</b><br>${destName}<br><small>Toạ độ: ${destCoord[0].toFixed(4)}, ${destCoord[1].toFixed(4)}</small>`);
+        mapMarkers.push(dstMarker);
 
-        // 4. Moving Vehicle Marker (Current position)
-        let currentPos = coords[coords.length - 1];
-        if (data.progress < 1.0 && coords.length > 1) {
-            // Position vehicle along the route
-            currentPos = coords[Math.min(coords.length - 1, Math.floor(coords.length * (data.progress || 0.5)))];
+        // 7. Intermediary Hub Markers (Departure Hub & Arrival Hub: ⚓ / 🛫)
+        if (data.departure_hub && data.departure_hub.coordinates) {
+            let dhCoords = data.departure_hub.coordinates;
+            let dhIcon = Leaflet.divIcon({
+                className: 'custom-dep-hub-icon',
+                html: `<div style="background: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 2.5px solid ${data.method === 'Air' ? '#007AFF' : '#0055B3'}; box-shadow: 0 2px 6px rgba(0,0,0,0.25); cursor: pointer;" title="Trạm trung chuyển xuất phát">
+                    ${get_hub_icon_svg(data.method)}
+                </div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+            let dhMarker = Leaflet.marker([dhCoords[0], dhCoords[1]], { icon: dhIcon }).addTo(shipmentMap);
+            dhMarker.bindPopup(`<b>Trạm trung chuyển xuất phát:</b><br>${data.departure_hub.name || 'Cảng/Sân bay xuất'}<br><small>Toạ độ: ${dhCoords[0].toFixed(4)}, ${dhCoords[1].toFixed(4)}</small>`);
+            mapMarkers.push(dhMarker);
         }
+
+        if (data.arrival_hub && data.arrival_hub.coordinates) {
+            let ahCoords = data.arrival_hub.coordinates;
+            let ahIcon = Leaflet.divIcon({
+                className: 'custom-arr-hub-icon',
+                html: `<div style="background: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 2.5px solid ${data.method === 'Air' ? '#007AFF' : '#0055B3'}; box-shadow: 0 2px 6px rgba(0,0,0,0.25); cursor: pointer;" title="Trạm trung chuyển đến">
+                    ${get_hub_icon_svg(data.method)}
+                </div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+            let ahMarker = Leaflet.marker([ahCoords[0], ahCoords[1]], { icon: ahIcon }).addTo(shipmentMap);
+            ahMarker.bindPopup(`<b>Trạm trung chuyển đến:</b><br>${data.arrival_hub.name || 'Cảng/Sân bay đến'}<br><small>Toạ độ: ${ahCoords[0].toFixed(4)}, ${ahCoords[1].toFixed(4)}</small>`);
+            mapMarkers.push(ahMarker);
+        }
+
+        // 8. Vehicle Marker with Dynamic Morphing & requestAnimationFrame Animation
+        let targetProgress = (typeof data.progress === 'number') ? data.progress : 0.55;
+        let thresholds = data.progress_thresholds || [0, 0.05, 0.95, 1];
+        let initMode = 'Road';
+        if (targetProgress > thresholds[1] && targetProgress <= thresholds[2]) {
+            initMode = data.method;
+        }
+        let initBorderColor = (initMode === 'Road') ? '#FF9500' : (data.method === 'Air' ? '#007AFF' : '#0055B3');
+
+        let routeMetrics = computePolylineMetrics(simplifiedCoords);
+        let startPosData = interpolateAtProgress(simplifiedCoords, routeMetrics, 0);
 
         let vehicleIcon = Leaflet.divIcon({
             className: 'custom-vehicle-icon',
             html: `
-                <div style="background: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(0,0,0,0.25); border: 2.5px solid ${data.method === 'Air' ? '#007AFF' : (data.method === 'Ocean' ? '#0055B3' : '#28a745')};">
-                    ${get_vehicle_svg(data.method)}
+                <div class="lw-vehicle-box" style="background: white; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(0,0,0,0.3); border: 2.8px solid ${initBorderColor}; transition: border-color 0.3s;">
+                    <div class="lw-vehicle-icon-svg" style="display: flex; align-items: center; justify-content: center; transform: rotate(${startPosData.bearing}deg); transform-origin: center center;">
+                        ${get_vehicle_svg(initMode)}
+                    </div>
                 </div>
             `,
-            iconSize: [40, 40],
-            iconAnchor: [20, 20]
+            iconSize: [42, 42],
+            iconAnchor: [21, 21]
         });
 
-        let vehMarker = Leaflet.marker(currentPos, { icon: vehicleIcon, zIndexOffset: 1000 }).addTo(shipmentMap);
-        vehMarker.bindPopup(`<b>Vị trí hiện tại:</b><br>${data.current_location || 'Đang vận chuyển'}`).openPopup();
+        let vehMarker = Leaflet.marker(startPosData.point, { icon: vehicleIcon, zIndexOffset: 1000 }).addTo(shipmentMap);
+        vehMarker._currentProgress = 0;
+        vehMarker._activeMode = initMode;
+        vehMarker.bindPopup(`<b>Vị trí phương tiện:</b><br>${data.current_location || 'Đang vận chuyển'}`);
+        mapMarkers.push(vehMarker);
 
-        // 5. Update Info Text
-        let methodBadge = data.method === 'Air' ? '✈️ Đường hàng không (Air)' : (data.method === 'Ocean' ? '🚢 Đường biển (Ocean)' : '🚚 Đường bộ (Road)');
+        // Trigger smooth vehicle animation with dynamic morphing (~1.6s)
+        animateVehicle(vehMarker, simplifiedCoords, targetProgress, 1600, data.legs || [], thresholds, data.method);
+
+        setTimeout(() => {
+            if (vehMarker && shipmentMap && shipmentMap.hasLayer(vehMarker)) {
+                vehMarker.openPopup();
+            }
+        }, 1600);
+
+        // 9. Update Info Text
+        let methodBadge = (data.method === 'Air') 
+            ? '✈️ Đa phương thức Hàng không (Air Multimodal)' 
+            : ((data.method === 'Ocean') ? '🚢 Đa phương thức Đường biển (Ocean Multimodal)' : '🚚 Đường bộ (Inland Road)');
+        let distText = data.distance_km ? ` &bull; ${Math.round(data.distance_km).toLocaleString()} km` : '';
         let infoHtml = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                <span><strong>Phương thức:</strong> ${methodBadge}</span>
+                <span><strong>Mô hình:</strong> ${methodBadge}${distText}</span>
                 <span class="badge" style="background: #e7f1ff; color: #007AFF;">${data.status_text}</span>
             </div>
             <div><strong>Vị trí hiện tại:</strong> <span style="color: #007AFF; font-weight: 500;">${data.current_location}</span></div>
         `;
         $('#lw-map-info-text').html(infoHtml);
 
-        // 6. Render Checkpoints in Timeline
+        // 10. Render Checkpoints in Timeline
         render_checkpoints_timeline(docname, doctype);
 
         // Invalidate map size after animation/popup display
@@ -539,5 +951,21 @@ $(document).ready(function() {
         frappe.router.on("change", update_widget_state);
     }
 
+    // Expose Map API for automated verification & programmatic control
+    window.LogisticsWizardMap = {
+        douglasPeucker: douglasPeucker,
+        perpendicularDistance: perpendicularDistance,
+        calculateBearing: calculateBearing,
+        computePolylineMetrics: computePolylineMetrics,
+        interpolateAtProgress: interpolateAtProgress,
+        animateVehicle: animateVehicle,
+        update_marine_overlay: update_marine_overlay,
+        getShipmentMap: function() { return shipmentMap; },
+        getSeaOverlayLayer: function() { return seaOverlayLayer; },
+        getMapPolyline: function() { return mapPolyline; },
+        getMapMarkers: function() { return mapMarkers; }
+    };
+
     setTimeout(update_widget_state, 300);
 });
+
