@@ -1,0 +1,92 @@
+{
+  "dataset_id": "TT31_SECTION_XVI_HS2022_AHTN2022",
+  "dataset_version": "2026-09-26.phase18.final",
+  "schema_version": "1.0.0",
+  "status": "PRODUCTION_RAG_READY_SOURCE_ANOMALIES_RESOLVED",
+  "basis": {
+    "phase17_status": "INTEGRITY_AUDIT_PASS_WITH_3_SOURCE_WARNINGS",
+    "source_document": "TT31/2022/TT-BTC",
+    "source_pdf": "TT_31-2022_Section-XVI.pdf",
+    "scope": "Section XVI - Chapters 84 and 85"
+  },
+  "records": {
+    "total": 3421,
+    "tariff": 2764,
+    "tariff_heading": 134,
+    "tariff_hs6": 418,
+    "tariff_ahtn8": 2212,
+    "legal_note": 112,
+    "section_note": 29,
+    "chapter_note": 74,
+    "subheading_note": 9,
+    "context": 537,
+    "footnote": 8,
+    "derived_hierarchy_rows": 2,
+    "derived_codes": [
+      "84.49",
+      "85.48"
+    ]
+  },
+  "graph": {
+    "structural_nodes": 3,
+    "record_nodes": 3421,
+    "edges": 3762,
+    "edge_types": {
+      "ANNOTATES": 8,
+      "ANNOTATES_SCOPE": 4,
+      "APPLIES_WITHIN": 112,
+      "CONSTRAINED_BY": 172,
+      "CONTAINS": 2766,
+      "CONTEXT_WITHIN": 537,
+      "NORMALIZED_REFERENCE_TO": 20,
+      "REFERENCES_CODE": 143
+    }
+  },
+  "quality": {
+    "unique_record_ids": 3421,
+    "unique_record_uids": 3421,
+    "ahtn8_units_complete": "2212/2212",
+    "phase17_source_code_coverage": "2762/2762",
+    "broken_graph_endpoints": 0,
+    "source_warnings": 3,
+    "records_with_retrieval_text_normalization": 54,
+    "unresolved_errors": 0,
+    "source_anomalies_resolved_operationally": 3,
+    "unresolved_source_anomalies_for_rag": 0,
+    "operational_source_resolutions": 3
+  },
+  "recommended_indexes": {
+    "exact": [
+      "code",
+      "code_display",
+      "heading",
+      "hs6",
+      "ahtn8"
+    ],
+    "filters": [
+      "layer",
+      "chunk_type",
+      "legal_priority",
+      "chapter",
+      "heading",
+      "hs6",
+      "ahtn8",
+      "source_page_start",
+      "rag_status"
+    ],
+    "dense_text": "text",
+    "sparse_text": "sparse_text"
+  },
+  "files": {
+    "canonical_master": "SECTION_XVI_MASTER_NORMALIZED.jsonl",
+    "rag_ingest": "SECTION_XVI_RAG_INGEST.jsonl",
+    "exact_code_index": "SECTION_XVI_EXACT_CODE_INDEX.csv",
+    "graph_structural_nodes": "SECTION_XVI_GRAPH_STRUCTURAL_NODES.jsonl",
+    "graph_edges": "SECTION_XVI_GRAPH_EDGES.jsonl",
+    "schema": "SECTION_XVI_RAG_SCHEMA.json",
+    "normalization_log": "SECTION_XVI_PHASE18_TEXT_NORMALIZATION_LOG.csv",
+    "source_warnings": "SECTION_XVI_SOURCE_WARNINGS.csv",
+    "audited_raw_master": "SECTION_XVI_MASTER_AUDITED_RAW.jsonl",
+    "warning_resolutions": "SECTION_XVI_WARNING_RESOLUTIONS.json"
+  }
+}

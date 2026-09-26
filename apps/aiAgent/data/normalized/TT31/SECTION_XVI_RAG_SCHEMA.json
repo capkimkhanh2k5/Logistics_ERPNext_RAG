@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "openai://logistic/section-xvi-rag-schema-v1",
+  "title": "Section XVI production RAG record",
+  "type": "object",
+  "required": [
+    "record_id",
+    "record_uid",
+    "dataset_id",
+    "dataset_version",
+    "schema_version",
+    "layer",
+    "chunk_type",
+    "retrieval_role",
+    "legal_priority",
+    "section",
+    "title_vi",
+    "text_vi",
+    "source",
+    "verification",
+    "retrieval",
+    "content_sha256"
+  ],
+  "properties": {
+    "record_id": {
+      "type": "string"
+    },
+    "record_uid": {
+      "type": "string"
+    },
+    "dataset_id": {
+      "const": "TT31_SECTION_XVI_HS2022_AHTN2022"
+    },
+    "dataset_version": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "layer": {
+      "enum": [
+        "tariff",
+        "legal_note",
+        "context",
+        "footnote"
+      ]
+    },
+    "chunk_type": {
+      "type": "string"
+    },
+    "retrieval_role": {
+      "type": "string"
+    },
+    "legal_priority": {
+      "enum": [
+        "P0",
+        "P1"
+      ]
+    },
+    "section": {
+      "const": "XVI"
+    },
+    "chapter": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "code_display": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "level": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "heading": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "hs6": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ahtn8": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "parent_record_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "title_vi": {
+      "type": "string"
+    },
+    "text_vi": {
+      "type": "string"
+    },
+    "text_en": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "unit_vi": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "unit_en": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source": {
+      "type": "object"
+    },
+    "verification": {
+      "type": "object"
+    },
+    "retrieval": {
+      "type": "object",
+      "required": [
+        "exact_terms",
+        "embedding_text_vi",
+        "lexical_text_vi"
+      ]
+    },
+    "content_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "additionalProperties": true
+}

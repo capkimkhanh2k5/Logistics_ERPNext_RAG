@@ -1,0 +1,92 @@
+{
+  "dataset_id": "TT31_SECTION_XVI_HS2022_AHTN2022",
+  "dataset_version": "2026-09-26.phase18.final",
+  "resolution_policy": "Correct operational text for RAG while preserving exact TT31 source wording in source_text_vi and audited raw master.",
+  "resolution_count": 3,
+  "resolutions": [
+    {
+      "resolution_id": "RES_SRCWARN_01",
+      "warning_id": "SRCWARN_01",
+      "record_id": "SXVI-N-CH84_NOTE_11A",
+      "resolution_status": "RESOLVED_OPERATIONALLY",
+      "confidence": "HIGH",
+      "source_problem": "TT31 Vietnamese text cites Chapter 85 Note 9(a),(b), while TT31 English and WCO HS 2022 cite Note 12(a),(b).",
+      "operational_change": "Use Chapter 85 Note 12(a) and 12(b) in operational text, retrieval references and graph routing.",
+      "preserve_source_text": true,
+      "official_vietnam_corrigendum_found": false,
+      "evidence": [
+        {
+          "type": "LOCAL_SOURCE",
+          "name": "TT31/2022/TT-BTC Section XVI PDF",
+          "detail": "Chapter 84 Note 11(A), Vietnamese page 19 / English page 20."
+        },
+        {
+          "type": "WCO_HS_2022",
+          "name": "WCO Trade Tools - Chapter 84 Note 11(A)",
+          "url": "https://www.wcotradetools.org/en/harmonized-system/2022/en/168471",
+          "detail": "WCO HS 2022 cites Notes 12(a) and 12(b) to Chapter 85."
+        },
+        {
+          "type": "WCO_HS_2022",
+          "name": "WCO Trade Tools - Chapter 85 Note 12",
+          "url": "https://www.wcotradetools.org/en/harmonized-system/2022/en/16850201",
+          "detail": "Chapter 85 Note 12 defines semiconductor devices and electronic integrated circuits."
+        }
+      ]
+    },
+    {
+      "resolution_id": "RES_SRCWARN_02",
+      "warning_id": "SRCWARN_02",
+      "record_id": "SXVI-C-CTX8_0044",
+      "resolution_status": "RESOLVED_OPERATIONALLY",
+      "confidence": "HIGH",
+      "source_problem": "Vietnamese source uses 'máy điện ảnh' while the English side says 'developing'.",
+      "operational_change": "Normalize to 'Của thiết bị khắc axit bằng phương pháp ướt, hiện ảnh, tẩy rửa hoặc làm sạch màn hình dẹt:'.",
+      "preserve_source_text": true,
+      "official_vietnam_corrigendum_found": false,
+      "evidence": [
+        {
+          "type": "LOCAL_SOURCE",
+          "name": "TT31/2022/TT-BTC Section XVI PDF",
+          "detail": "Context before 8486.90.32, page 113."
+        },
+        {
+          "type": "VIETNAM_OFFICIAL_LEGAL_TEXT",
+          "name": "Nghị định 124/2022/NĐ-CP - Công báo Chính phủ",
+          "url": "https://congbao.chinhphu.vn/tai-ve-van-ban-so-124-2022-nd-cp-38554-43028?format=pdf",
+          "detail": "8486.30.20 uses 'khắc axit bằng phương pháp ướt, hiện ảnh, tẩy rửa hoặc làm sạch màn hình dẹt'."
+        },
+        {
+          "type": "VIETNAM_OFFICIAL_LEGAL_TEXT",
+          "name": "Quyết định 15/2023/QĐ-TTg - Công báo Chính phủ",
+          "url": "https://congbao.chinhphu.vn/tai-ve-van-ban-so-15-2023-qd-ttg-39424-45011?format=pdf",
+          "detail": "8486.30.20 independently uses 'hiện ảnh'."
+        }
+      ]
+    },
+    {
+      "resolution_id": "RES_SRCWARN_03",
+      "warning_id": "SRCWARN_03",
+      "record_id": "SXVI-N-CH85_NOTE_12A_I_DEF6",
+      "resolution_status": "RESOLVED_OPERATIONALLY",
+      "confidence": "HIGH",
+      "source_problem": "Vietnamese source contains duplicated wording 'bao gồm bao gồm'.",
+      "operational_change": "Normalize 'bao gồm bao gồm' to 'bao gồm'.",
+      "preserve_source_text": true,
+      "official_vietnam_corrigendum_found": false,
+      "evidence": [
+        {
+          "type": "LOCAL_SOURCE",
+          "name": "TT31/2022/TT-BTC Section XVI PDF",
+          "detail": "Chapter 85 Note 12(a)(i)(6), page 128."
+        },
+        {
+          "type": "WCO_HS_2022",
+          "name": "WCO Trade Tools - Chapter 85 Note 12(a)(i)(6)",
+          "url": "https://www.wcotradetools.org/en/harmonized-system/2022/en/16851629",
+          "detail": "English source contains a single 'consists of'; duplication has no separate semantic role."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "provenance": "DERIVED_FOR_AI",
+    "source_group_no": 1,
+    "exact_source_text": "Công ước HS và các phụ lục kèm theo",
+    "source": "Điều 13 khoản 1",
+    "ingestion_role": "HS_CONVENTION_AND_ANNEXES",
+    "derived_notice": "ingestion_role is an AI/data-engineering label, not wording from TT85."
+  },
+  {
+    "provenance": "DERIVED_FOR_AI",
+    "source_group_no": 2,
+    "exact_source_text": "Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam",
+    "source": "Điều 13 khoản 2",
+    "ingestion_role": "VIETNAM_GOODS_NOMENCLATURE",
+    "derived_notice": "ingestion_role is an AI/data-engineering label, not wording from TT85."
+  },
+  {
+    "provenance": "DERIVED_FOR_AI",
+    "source_group_no": 3,
+    "exact_source_text": "Danh mục hàng hóa cấm xuất khẩu, cấm nhập khẩu, Danh mục hàng hóa xuất khẩu, nhập khẩu theo giấy phép, theo điều kiện, Danh mục hàng hóa xuất khẩu, nhập khẩu thuộc diện quản lý chuyên ngành theo quy định tại Nghị định số 69/2018/NĐ-CP quy định chi tiết một số Điều của Luật Quản lý ngoại thương",
+    "source": "Điều 13 khoản 3",
+    "ingestion_role": "TRADE_CONTROL_AND_SPECIALIZED_MANAGEMENT_LISTS",
+    "derived_notice": "ingestion_role is an AI/data-engineering label, not wording from TT85."
+  },
+  {
+    "provenance": "DERIVED_FOR_AI",
+    "source_group_no": 4,
+    "exact_source_text": "Văn bản hướng dẫn về phân loại hàng hóa của Bộ Tài chính, Cục Hải quan",
+    "source": "Điều 13 khoản 4",
+    "ingestion_role": "OFFICIAL_CLASSIFICATION_GUIDANCE",
+    "derived_notice": "ingestion_role is an AI/data-engineering label, not wording from TT85."
+  },
+  {
+    "provenance": "DERIVED_FOR_AI",
+    "source_group_no": 5,
+    "exact_source_text": "Thông báo kết quả xác định trước mã số; Thông báo kết quả phân tích, phân loại hàng hoá; Thông báo kết quả phân tích kèm mã số hàng hóa; Thông báo kết quả kiểm tra, đánh giá tiêu chí kỹ thuật",
+    "source": "Điều 13 khoản 5",
+    "ingestion_role": "ADVANCE_RULINGS_ANALYSIS_CLASSIFICATION_TECHNICAL_RESULTS",
+    "derived_notice": "ingestion_role is an AI/data-engineering label, not wording from TT85."
+  },
+  {
+    "provenance": "DERIVED_FOR_AI",
+    "source_group_no": 6,
+    "exact_source_text": "Các văn bản giải quyết khiếu nại về phân loại hàng hóa, áp dụng mức thuế của Bộ Tài chính, Cục Hải quan",
+    "source": "Điều 13 khoản 6",
+    "ingestion_role": "CLASSIFICATION_AND_TAX_APPEAL_DECISIONS",
+    "derived_notice": "ingestion_role is an AI/data-engineering label, not wording from TT85."
+  }
+]

@@ -1,0 +1,212 @@
+[
+  {
+    "component": "Legal Scope Router",
+    "sources": [
+      "Điều 1",
+      "Điều 2"
+    ],
+    "purpose": "Xác định phạm vi áp dụng và thuật ngữ chuẩn.",
+    "provenance": "DERIVED_FOR_AI",
+    "derived_notice": "Module/component mapping is system-design interpretation, not a term used by TT85.",
+    "source_texts": [
+      {
+        "source": "Điều 1",
+        "text": "1. Thông tư này quy định việc phân loại hàng hóa, phân tích để phân loại hàng hóa xuất khẩu, nhập khẩu, xây dựng và sử dụng cơ sở dữ liệu về Danh mục hàng hoá xuất khẩu, nhập khẩu Việt Nam.\n2. Người khai hải quan, cơ quan hải quan, công chức hải quan và các tổ chức, cá nhân khác khi thực hiện các công việc có liên quan đến phân loại hàng hóa, phân tích để phân loại hàng hoá xuất khẩu, nhập khẩu, xây dựng và sử dụng cơ sở dữ liệu về Danh mục hàng hoá xuất khẩu, nhập khẩu Việt Nam là đối tượng thực hiện Thông tư này."
+      },
+      {
+        "source": "Điều 2",
+        "text": "Trong Thông tư này, các từ ngữ dưới đây được hiểu như sau:\n1. Công ước Quốc tế về Hệ thống hài hòa mô tả và mã hóa hàng hóa (International Convention on the Harmonized Commodity Description and Coding System) (gọi tắt là Công ước HS) là Công ước do Hội đồng hợp tác Hải quan, nay gọi là Tổ chức Hải quan Thế giới (WCO) thông qua ngày 14 tháng 6 năm 1983 tại Bruxelles, Vương quốc Bỉ về “Hệ thống hài hòa mô tả và mã hóa hàng hóa”.\n2. Hệ thống hài hòa mô tả và mã hóa hàng hóa của Tổ chức Hải quan Thế giới (sau đây gọi tắt là Hệ thống HS), là hệ thống bao gồm danh mục những nhóm hàng, phân nhóm hàng cùng các mã số có liên quan, chú giải pháp lý Phần, Chương, Phân nhóm và các Quy tắc tổng quát.\n3. Danh mục hài hòa mô tả và mã hóa hàng hóa của Tổ chức Hải quan Thế giới (sau đây gọi tắt là Danh mục HS) là danh mục những nhóm hàng (mã 4 chữ số), phân nhóm hàng (mã 6 chữ số), chú giải pháp lý Phần, Chương, Phân nhóm được sắp xếp một cách có hệ thống ứng với tên, mô tả và mã số hàng hóa.\n4. Quy tắc tổng quát là các quy tắc chung để giải thích Hệ thống HS nhằm phân loại hàng hóa vào một nhóm, phân nhóm nhất định.\n5. Chú giải pháp lý là những nội dung giải thích các phần, chương và phân nhóm được gắn kèm ở đầu các Phần, Chương của Danh mục HS.\n6. Danh mục thuế quan hài hòa ASEAN (sau đây gọi tắt là Danh mục AHTN) là danh mục hàng hóa của các nước ASEAN, được xây dựng trên cơ sở Hệ thống HS của Tổ chức Hải quan Thế giới.\n7. Chú giải chi tiết Danh mục HS là những giải thích tổng quát và chi tiết về phạm vi, nội dung của các Phần, Chương, Nhóm, Phân nhóm của Danh mục HS.\n8. Chú giải bổ sung Danh mục AHTN (SEN) là phụ lục của Nghị định thư về việc thực hiện Danh mục AHTN để giải thích phạm vi, nội dung các phân nhóm trong Danh mục do các nước ASEAN xây dựng.\n9. Tuyển tập các ý kiến phân loại của WCO là tài liệu tập hợp các Quyết định phân loại hàng hóa đã được Ủy ban HS của Tổ chức Hải quan thế giới thông qua.\n10. Phân tích hàng hóa là việc cơ quan kiểm định hải quan sử dụng máy móc, thiết bị kỹ thuật để phân tích mẫu hàng hóa xuất khẩu, nhập khẩu:\na) Xác định thành phần, cấu tạo, tính chất lý, hóa, công dụng làm cơ sở phân loại hàng hóa theo Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam;\nb) Kiểm tra, đánh giá tiêu chí kỹ thuật của hàng hóa, xác định tiêu chuẩn chất lượng hàng hóa theo tiêu chuẩn quốc gia, quy chuẩn kỹ thuật do các cơ quan quản lý nhà nước ban hành hoặc tiêu chuẩn quốc tế để đơn vị yêu cầu phân tích làm cơ sở quyết định thông quan hàng hoá.\n11. Giám định, thử nghiệm hàng hóa là việc cơ quan hải quan trưng cầu giám định, thử nghiệm tại các tổ chức giám định, thử nghiệm theo quy định của pháp luật để xác định cấu tạo, thành phần, tính chất lý, hóa, công dụng của hàng hóa theo yêu cầu của cơ quan hải quan để xác định tên hàng, mã số hàng hóa xuất khẩu, nhập khẩu."
+      }
+    ]
+  },
+  {
+    "component": "Classification Agent",
+    "sources": [
+      "Điều 4",
+      "Điều 6"
+    ],
+    "purpose": "Áp dụng căn cứ phân loại và fallback evidence.",
+    "provenance": "DERIVED_FOR_AI",
+    "derived_notice": "Module/component mapping is system-design interpretation, not a term used by TT85.",
+    "source_texts": [
+      {
+        "source": "Điều 4",
+        "text": "1. Một mặt hàng có một mã số duy nhất theo Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam.\n2. Khi phân loại hàng hóa xuất khẩu, nhập khẩu, phải tuân thủ:\na) Điều 26 Luật Hải quan số 54/2014/QH13; Điều 16 Nghị định số 08/2015/NĐ-CP;\nb) Danh mục hàng hoá xuất khẩu, nhập khẩu Việt Nam;\nc) Biểu thuế xuất khẩu, Biểu thuế nhập khẩu;\nd) 6 (sáu) quy tắc tổng quát giải thích việc phân loại hàng hóa theo Hệ thống hài hoà mô tả và mã hoá hàng hóa;\ne) Các nội dung hướng dẫn tại Thông tư này."
+      },
+      {
+        "source": "Điều 6",
+        "text": "1. Trường hợp thực hiện phân loại hàng hóa theo quy định tại Điều 4 Thông tư này nhưng chưa xác định được mã số duy nhất theo Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam thì sử dụng các tài liệu sau:\na) Chú giải chi tiết Danh mục HS;\nb) Tuyển tập ý kiến phân loại của WCO;\nc) Chú giải bổ sung Danh mục AHTN;\nd) Cơ sở dữ liệu về Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam.\n2. Trường hợp có sự khác biệt về mô tả hàng hóa tại Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam và mô tả hàng hóa theo Danh mục HS, Danh mục AHTN thì áp dụng trực tiếp mô tả hàng hóa theo Danh mục HS, Danh mục AHTN để phân loại và hướng dẫn phân loại theo nguyên tắc áp dụng quy định của Điều ước quốc tế mà Việt Nam là thành viên.\n3. Trường hợp thực hiện quy định tại Điều 4 và khoản 1 Điều 6 Thông tư này chưa đủ cơ sở để xác định tên gọi, mô tả hàng hóa theo Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam thì được sử dụng các tiêu chí, tiêu chuẩn, quy chuẩn do cơ quan, tổ chức, đơn vị có thẩm quyền ban hành theo quy định để làm cơ sở xác định tên gọi, mô tả hàng hóa, mã số theo Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam.\n4. Trường hợp hàng hoá có mã số tại Danh mục hàng hoá quản lý chuyên ngành khác biệt với mã số xác định theo Danh mục hàng hoá xuất khẩu, nhập khẩu Việt Nam thì thực hiện theo Danh mục hàng hoá xuất khẩu, nhập khẩu Việt Nam và pháp luật về hải quan.\n5. Trường hợp mặt hàng phức tạp, khó phân loại, Cục trưởng Cục Hải quan trên cơ sở ý kiến của Bộ, cơ quan ngang Bộ quản lý chuyên ngành hoặc Ủy ban HS thuộc Tổ chức Hải quan thế giới hoặc Nhóm kỹ thuật về phân loại hàng hoá của ASEAN ban hành văn bản sửa đổi, hướng dẫn phân loại, làm ảnh hưởng tới quá trình khai báo hải quan về mã số, mức thuế và hiệu quả của hoạt động sản xuất kinh doanh của người khai hải quan, người nộp thuế thì thực hiện phân loại hàng hóa kể từ ngày văn bản sửa đổi, hướng dẫn phân loại được ban hành."
+      }
+    ]
+  },
+  {
+    "component": "GIR/Graph Engine",
+    "sources": [
+      "Điều 4 khoản 2 điểm d",
+      "Điều 8"
+    ],
+    "purpose": "Bắt buộc dùng 6 GIR; Điều 8 kích hoạt GIR 2(a) cho hàng tháo rời/chưa lắp ráp.",
+    "provenance": "DERIVED_FOR_AI",
+    "derived_notice": "Module/component mapping is system-design interpretation, not a term used by TT85.",
+    "source_texts": [
+      {
+        "source": "Điều 4 khoản 2",
+        "text": "2. Khi phân loại hàng hóa xuất khẩu, nhập khẩu, phải tuân thủ:\na) Điều 26 Luật Hải quan số 54/2014/QH13; Điều 16 Nghị định số 08/2015/NĐ-CP;\nb) Danh mục hàng hoá xuất khẩu, nhập khẩu Việt Nam;\nc) Biểu thuế xuất khẩu, Biểu thuế nhập khẩu;\nd) 6 (sáu) quy tắc tổng quát giải thích việc phân loại hàng hóa theo Hệ thống hài hoà mô tả và mã hoá hàng hóa;\ne) Các nội dung hướng dẫn tại Thông tư này."
+      },
+      {
+        "source": "Điều 8",
+        "text": "Hàng hóa là máy móc, thiết bị ở dạng chưa lắp ráp hoặc tháo rời thường do yêu cầu đóng gói, bảo quản hoặc vận chuyển thực hiện phân loại theo quy tắc 2a của 6 (sáu) quy tắc tổng quát giải thích Hệ thống HS.\nTrường hợp hàng hóa được nhập khẩu từ một nguồn hay nhiều nguồn cung cấp, về nhiều chuyến, làm thủ tục tại một hay nhiều đơn vị hải quan khác nhau thì người khai hải quan, cơ quan hải quan thực hiện theo hướng dẫn tại Điều 9 dưới đây."
+      }
+    ]
+  },
+  {
+    "component": "Combined Machine Handler",
+    "sources": [
+      "Điều 7",
+      "Điều 9"
+    ],
+    "purpose": "Xử lý máy liên hợp/tổ hợp Chương 84/85/90 và hồ sơ nhiều chuyến.",
+    "provenance": "DERIVED_FOR_AI",
+    "derived_notice": "Module/component mapping is system-design interpretation, not a term used by TT85.",
+    "source_texts": [
+      {
+        "source": "Điều 7",
+        "text": "Hàng hóa là máy liên hợp (gồm hai hay nhiều máy) hoặc tổ hợp máy thuộc các Chương 84, Chương 85 và Chương 90 của Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam được nhập khẩu từ một nguồn hay nhiều nguồn cung cấp, về nhiều chuyến, làm thủ tục tại một hay nhiều đơn vị hải quan khác nhau thì người khai hải quan được lựa chọn phân loại theo từng máy móc, thiết bị hoặc theo quy định tại Chú giải pháp lý 3, 4, 5 Phần XVI của Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam.\nTrường hợp lựa chọn phân loại theo quy định tại Chú giải pháp lý 3, 4, 5 Phần XVI của Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam thì thực hiện theo hướng dẫn tại Điều 9 dưới đây."
+      },
+      {
+        "source": "Điều 9",
+        "text": "1. Hồ sơ đăng ký Danh mục:\na) Danh mục máy móc, thiết bị; các chi tiết, linh kiện rời của máy móc, thiết bị (theo mẫu số 01/ĐKDMTB/2025 tại Phụ lục V ban hành kèm theo Thông tư số 121/2025/TT-BTC sửa đổi, bổ sung một số điều của các Thông tư quy định về thủ tục hải quan, kiểm tra, giám sát hải quan, thuế xuất khẩu, thuế nhập khẩu và quản lý thuế đối với hàng hoá xuất khẩu, nhập khẩu);\nb) Phiếu theo dõi trừ lùi (theo mẫu số 02/PTDTL-DMTB/2025 tại Phụ lục V ban hành kèm theo Thông tư số 121/2025/TT-BTC).\n2. Thủ tục thực hiện đối với người khai hải quan:\na) Người khai hải quan thực hiện khai các chỉ tiêu thông tin thông qua Hệ thống xử lý dữ liệu điện tử hải quan, trường hợp Hệ thống chưa có chức năng tiếp nhận chỉ tiêu thông tin thì nộp bản scan có xác nhận bằng chữ ký số các chứng từ thuộc hồ sơ hoặc gửi hồ sơ trực tiếp đến cơ quan hải quan.\nb) Người khai hải quan nộp hồ sơ đăng ký Danh mục quy định tại khoản 1 Điều này trước thời điểm đăng ký tờ khai hải quan nhập khẩu lô hàng đầu tiên tại cơ quan hải quan nơi thuận tiện nhất.\nc) Trường hợp Danh mục đã đăng ký nhưng người khai hải quan cần sửa đổi, bổ sung thì người khai hải quan nộp Danh mục và Phiếu theo dõi trừ lùi sửa đổi, bổ sung cho cơ quan hải quan nơi người khai hải quan đăng ký Danh mục trước thời điểm đăng ký tờ khai hải quan nhập khẩu lô hàng đầu tiên hoặc trước thời điểm đăng ký tờ khai hải quan nhập khẩu lô hàng tiếp theo có sửa đổi, bổ sung Danh mục.\nd) Trường hợp người khai hải quan mất Danh mục thì có văn bản đề nghị cơ quan hải quan nơi đăng ký Danh mục cấp lại Danh mục.\nTrường hợp mất Phiếu theo dõi trừ lùi thì người khai hải quan lập Phiếu theo dõi trừ lùi mới trong đó tự kê khai và chịu trách nhiệm trước pháp luật về số tờ khai và số lượng máy móc, thiết bị hoặc chi tiết, linh kiện trong Danh mục đã nhập khẩu gửi cơ quan hải quan nơi làm thủ tục nhập khẩu lô hàng tiếp theo.\n3. Thủ tục thực hiện đối với cơ quan hải quan:\na) Tiếp nhận hồ sơ đăng ký Danh mục\na.1) Cơ quan hải quan thực hiện tiếp nhận và kiểm tra hồ sơ đăng ký Danh mục hoặc Danh mục sửa đổi, bổ sung do người khai hải quan nộp theo khoản 1, khoản 2 Điều này. Trường hợp hồ sơ đăng ký Danh mục hoặc hồ sơ đăng ký sửa đổi, bổ sung Danh mục đúng quy định thì trong thời hạn không quá 03 ngày làm việc, cơ quan hải quan xác nhận Danh mục và Phiếu theo dõi trừ lùi, lưu 01 bản chính Danh mục, giao cho người khai hải quan 01 bản chính Danh mục kèm 01 bản chính Phiếu theo dõi trừ lùi.\na.2) Trường hợp người khai hải quan mất Danh mục hoặc Phiếu theo dõi trừ lùi.\nTrường hợp mất Danh mục, cơ quan hải quan nơi người khai hải quan đăng ký Danh mục thực hiện kiểm tra và cấp lại Danh mục trong thời hạn không quá 03 ngày làm việc kể từ ngày nhận được văn bản đề nghị theo điểm d khoản 2 Điều này.\nTrường hợp mất Phiếu theo dõi trừ lùi, cơ quan hải quan nơi làm thủ tục nhập khẩu lô hàng tiếp theo tiếp nhận và kiểm tra các nội dung tự kê khai trên Phiếu theo dõi trừ lùi mới do người khai hải quan lập, đối chiếu với các thông tin trên hệ thống của cơ quan hải quan và xác nhận Phiếu theo dõi trừ lùi các máy móc, thiết bị hoặc chi tiết, linh kiện chưa nhập khẩu.\nb) Kiểm tra khi làm thủ tục nhập khẩu\nb.1) Ngoài thủ tục hải quan theo quy định, cơ quan hải quan nơi làm thủ tục nhập khẩu căn cứ hồ sơ hải quan, kiểm tra, đối chiếu với Danh mục đã đăng ký, Phiếu theo dõi trừ lùi để thực hiện phân loại và trừ lùi những máy móc, thiết bị hoặc chi tiết, linh kiện đã thực tế nhập khẩu và xác nhận số lượng hàng hóa đã trừ lùi, lưu 01 bản chụp Danh mục và 01 bản chụp Phiếu theo dõi trừ lùi đã thực hiện trừ lùi vào hồ sơ hải quan.\nb.2) Trường hợp người khai hải quan làm thủ tục nhập khẩu tại cơ quan hải quan khác với cơ quan hải quan nơi đăng ký Danh mục thì cơ quan hải quan nơi làm thủ tục nhập khẩu tiếp nhận 01 bản chính Danh mục kèm Phiếu theo dõi trừ lùi do người khai hải quan xuất trình, thực hiện theo hướng dẫn tại điểm b.1 khoản 3 Điều này.\nb.3) Hết lượng hàng hoá nhập khẩu, cơ quan hải quan nơi làm thủ tục cho lô hàng cuối cùng xác nhận “đã nhập hết hàng hóa theo danh mục số….” lên Phiếu theo dõi trừ lùi, lưu 01 bản chính, chuyển cho người khai hải quan 01 bản chụp. Trường hợp cơ quan hải quan nơi làm thủ tục cho lô hàng cuối cùng không phải là nơi cấp Phiếu theo dõi trừ lùi thì lưu 01 bản chụp và gửi 01 bản chính đến cơ quan hải quan nơi cấp Phiếu theo dõi trừ lùi.\nCơ quan hải quan nơi cấp Phiếu theo dõi trừ lùi thực hiện kiểm tra đối với hàng hóa đã thông quan theo nguyên tắc quản lý rủi ro.\n4. Cơ quan hải quan nơi đăng ký Danh mục và cấp Phiếu theo dõi trừ lùi tổ chức phân loại, xác định rủi ro đối với các Danh mục chưa nhập khẩu hết theo thời hạn đã đăng ký để thực hiện kiểm tra việc phân loại hàng hóa đã thông quan theo quy định.\n5. Trường hợp khai bổ sung (nếu có) thực hiện theo quy định của Bộ Tài chính về thủ tục hải quan; kiểm tra, giám sát hải quan; thuế xuất khẩu, thuế nhập khẩu và quản lý thuế đối với hàng hóa xuất khẩu, nhập khẩu."
+      }
+    ]
+  },
+  {
+    "component": "Spec Completeness / HITL",
+    "sources": [
+      "Điều 3",
+      "Điều 10",
+      "Điều 11"
+    ],
+    "purpose": "Phát hiện thiếu dữ liệu kỹ thuật, yêu cầu bổ sung/giám định/phân tích.",
+    "provenance": "DERIVED_FOR_AI",
+    "derived_notice": "Module/component mapping is system-design interpretation, not a term used by TT85.",
+    "source_texts": [
+      {
+        "source": "Điều 3",
+        "text": "1. Trường hợp cơ quan hải quan không đủ cơ sở để xác định tính chính xác việc phân loại hàng hóa của người khai hải quan thì thực hiện phân tích, giám định hàng hóa theo quy định tại khoản 5 Điều 29 Nghị định số 08/2015/NĐ-CP quy định chi tiết và biện pháp thi hành Luật Hải quan về thủ tục hải quan, kiểm tra, giám sát, kiểm soát hải quan được sửa đổi, bổ sung bởi khoản 15 Điều 1 Nghị định số 167/2025/NĐ-CP.\n2. Trường hợp cơ quan kiểm định hải quan chưa đủ điều kiện thực hiện phân tích một số chỉ tiêu kỹ thuật hoặc cần phân tích kiểm chứng thì sử dụng dịch vụ giám định, thử nghiệm của các tổ chức giám định, thử nghiệm theo quy định của pháp luật để làm cơ sở thực hiện.\n3. Để phân loại hàng hóa, người khai hải quan có thể sử dụng các dịch vụ giám định hàng hóa của các tổ chức giám định theo quy định của pháp luật hoặc cơ sở dữ liệu về Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam để xác định các thông tin về thành phần, tính chất lý, hóa, tính năng, công dụng của hàng hóa xuất khẩu, nhập khẩu và chịu trách nhiệm về tính chính xác, hợp pháp của tài liệu cung cấp."
+      },
+      {
+        "source": "Điều 10",
+        "text": "Cơ quan hải quan nơi có yêu cầu phân tích hàng hóa có trách nhiệm lập và gửi hồ sơ yêu cầu phân tích đến cơ quan kiểm định hải quan, hồ sơ gồm:\n1. Hồ sơ yêu cầu phân tích, phân loại hàng hoá:\na) Phiếu yêu cầu phân tích hàng hóa xuất khẩu, nhập khẩu kiêm Biên bản lấy mẫu hàng hóa (theo mẫu số 01/PYCPT/2026 Phụ lục ban hành kèm Thông tư này). Mỗi mặt hàng lập 01 Phiếu yêu cầu phân tích hàng hóa xuất khẩu, nhập khẩu kiêm Biên bản lấy mẫu hàng hóa.\nb) Phiếu ghi số, ngày văn bản, chứng từ thuộc hồ sơ hải quan liên quan đến mẫu hàng hóa theo mẫu số 05/PGTL/2026 Phụ lục ban hành kèm theo Thông tư này (trong trường hợp khai tờ khai hải quan giấy).\nc) Mẫu hàng hóa yêu cầu phân tích.\nd) Tài liệu kỹ thuật của hàng hóa hoặc bản phân tích thành phần sản phẩm (đối với trường hợp không khai thác được trên hệ thống).\nTrường hợp không có tài liệu kỹ thuật hoặc bản phân tích thành phần sản phẩm thì cơ quan hải quan nơi gửi hồ sơ phải nêu lý do tại mục 12 mẫu số 01/PYCPT/2026.\n2. Hồ sơ yêu cầu kiểm tra, đánh giá tiêu chí kỹ thuật của hàng hóa\nThực hiện theo quy định tại điểm a khoản 5 Điều 29 Thông tư số 38/2015/TT-BTC quy định về thủ tục hải quan; kiểm tra, giám sát hải quan; thuế xuất khẩu, thuế nhập khẩu và quản lý thuế đối với hàng hoá xuất khẩu, nhập khẩu được sửa đổi, bổ sung bởi Thông tư số 39/2018/TT-BTC và Thông tư số 121/2025/TT-BTC."
+      },
+      {
+        "source": "Điều 11",
+        "text": "1. Người khai hải quan có trách nhiệm xuất trình hàng hóa để cơ quan hải quan lấy mẫu thực hiện phân tích.\n2. Lấy mẫu hàng hóa.\na) Hàng hóa xuất khẩu, nhập khẩu phải lấy mẫu để phân tích theo quy định tại khoản 5 Điều 29 Nghị định số 08/2015/NĐ-CP được sửa đổi bổ sung bởi Nghị định số 167/2025/NĐ-CP. Khi lấy mẫu phải lập Phiếu yêu cầu phân tích hàng hóa xuất khẩu, nhập khẩu kiêm Biên bản lấy mẫu hàng hóa theo quy định tại Điều 10 nêu trên.\nMẫu được lấy từ chính lô hàng cần phân tích và mang tính đại diện; phải đủ về số lượng, khối lượng để phục vụ cho việc trưng cầu giám định hoặc giải quyết khiếu nại. Khi lấy mẫu phải có đại diện của người khai hải quan. Mẫu phải được các bên ký xác nhận và niêm phong riêng biệt từng mẫu. Khi bàn giao mẫu phải có biên bản bàn giao và ký xác nhận của các bên.\nTrường hợp lấy mẫu nhưng vắng mặt người khai hải quan, cơ quan hải quan lấy mẫu với sự chứng kiến của đại diện ít nhất một trong các bên sau: Doanh nghiệp kinh doanh cảng, kho, bãi hoặc cơ quan nhà nước tại khu vực cửa khẩu hoặc đại diện doanh nghiệp vận tải và phải có ký xác nhận của các bên chứng kiến.\nb) Số lượng mẫu: 02 mẫu.\nTrường hợp người khai hải quan chỉ nhập khẩu 01 mẫu thì không thực hiện lấy mẫu.\nc) Giao nhận mẫu: Cơ quan hải quan nơi yêu cầu phân tích gửi mẫu trực tiếp hoặc qua đường bưu điện đến cơ quan kiểm định hải quan.\nMẫu chỉ có giá trị pháp lý khi còn nguyên niêm phong.\n3. Sử dụng mẫu hàng hóa.\na) Phân tích: Cơ quan kiểm định hải quan tiếp nhận mẫu (theo mẫu số 02/PTNYCPT/2026 Phụ lục ban hành kèm Thông tư này) và thực hiện phân tích;\nb) Lưu mẫu: Trong thời hạn 120 ngày kể từ ngày ban hành Thông báo kết quả phân tích, phân loại; Thông báo kết quả kiểm tra, đánh giá tiêu chí kỹ thuật, trừ những loại hàng hóa đặc biệt như hàng hóa dễ gây nguy hiểm, hàng hóa đã bị biến chất hoặc hàng hóa không thể lưu giữ được trong thời gian trên.\nTrong thời hạn 120 ngày kể từ ngày ban hành Thông báo kết quả phân tích, phân loại, Thông báo kết quả kiểm tra, đánh giá tiêu chí kỹ thuật, người khai hải quan không đồng ý với kết quả phân tích và đề nghị giám định tại các tổ chức có chức năng theo quy định của pháp luật hoặc khiếu nại liên quan đến kết quả phân tích, phân loại, cơ quan kiểm định hải quan lưu mẫu cho đến khi có quyết định giải quyết khiếu nại.\nc) Trả lại mẫu hàng hóa.\nTrường hợp người khai hải quan yêu cầu trả lại mẫu thì cơ quan kiểm định hải quan lập biên bản trả mẫu cho người khai hải quan (theo mẫu số 03/BBTLMHH/2026 Phụ lục ban hành kèm Thông tư này) và không chịu trách nhiệm về phẩm chất hàng hóa đối với những mẫu được trả lại do đã chịu tác động của quá trình phân tích mẫu. Trường hợp trả lại mẫu hàng hóa đang trong thời hạn lưu mẫu theo quy định tại điểm b khoản 3 Điều này, người khai hải quan đã công nhận kết quả phân tích thì không được khiếu nại về kết quả phân tích.\nd) Hủy mẫu hàng hóa đã phân tích.\nCơ quan hải quan hủy mẫu đối với mẫu hết hạn lưu giữ theo quy định, mẫu hàng hóa dễ gây nguy hiểm, mẫu hàng hóa đã bị biến chất hoặc mẫu hàng hóa không còn khả năng lưu giữ. Biên bản hủy mẫu nêu rõ tình trạng của mẫu lưu, lý do hủy mẫu. Quyết định hủy mẫu và biên bản hủy mẫu được lưu theo quy định về lưu giữ hồ sơ.\n4. Cục trưởng Cục Hải quan hướng dẫn cụ thể về quy trình kỹ thuật đối với việc lấy mẫu, hủy mẫu.\n5. Trường hợp cơ quan hải quan gửi mẫu trưng cầu giám định, thử nghiệm tại các tổ chức giám định, thử nghiệm thì lập hồ sơ, thực hiện thủ tục gửi mẫu giám định, thử nghiệm theo quy định của pháp luật."
+      }
+    ]
+  },
+  {
+    "component": "Critic Agent",
+    "sources": [
+      "Điều 6",
+      "Điều 12"
+    ],
+    "purpose": "Kiểm tra nguồn hỗ trợ, tiêu chí kỹ thuật và kết quả phân tích/phân loại.",
+    "provenance": "DERIVED_FOR_AI",
+    "derived_notice": "Module/component mapping is system-design interpretation, not a term used by TT85.",
+    "source_texts": [
+      {
+        "source": "Điều 6",
+        "text": "1. Trường hợp thực hiện phân loại hàng hóa theo quy định tại Điều 4 Thông tư này nhưng chưa xác định được mã số duy nhất theo Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam thì sử dụng các tài liệu sau:\na) Chú giải chi tiết Danh mục HS;\nb) Tuyển tập ý kiến phân loại của WCO;\nc) Chú giải bổ sung Danh mục AHTN;\nd) Cơ sở dữ liệu về Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam.\n2. Trường hợp có sự khác biệt về mô tả hàng hóa tại Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam và mô tả hàng hóa theo Danh mục HS, Danh mục AHTN thì áp dụng trực tiếp mô tả hàng hóa theo Danh mục HS, Danh mục AHTN để phân loại và hướng dẫn phân loại theo nguyên tắc áp dụng quy định của Điều ước quốc tế mà Việt Nam là thành viên.\n3. Trường hợp thực hiện quy định tại Điều 4 và khoản 1 Điều 6 Thông tư này chưa đủ cơ sở để xác định tên gọi, mô tả hàng hóa theo Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam thì được sử dụng các tiêu chí, tiêu chuẩn, quy chuẩn do cơ quan, tổ chức, đơn vị có thẩm quyền ban hành theo quy định để làm cơ sở xác định tên gọi, mô tả hàng hóa, mã số theo Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam.\n4. Trường hợp hàng hoá có mã số tại Danh mục hàng hoá quản lý chuyên ngành khác biệt với mã số xác định theo Danh mục hàng hoá xuất khẩu, nhập khẩu Việt Nam thì thực hiện theo Danh mục hàng hoá xuất khẩu, nhập khẩu Việt Nam và pháp luật về hải quan.\n5. Trường hợp mặt hàng phức tạp, khó phân loại, Cục trưởng Cục Hải quan trên cơ sở ý kiến của Bộ, cơ quan ngang Bộ quản lý chuyên ngành hoặc Ủy ban HS thuộc Tổ chức Hải quan thế giới hoặc Nhóm kỹ thuật về phân loại hàng hoá của ASEAN ban hành văn bản sửa đổi, hướng dẫn phân loại, làm ảnh hưởng tới quá trình khai báo hải quan về mã số, mức thuế và hiệu quả của hoạt động sản xuất kinh doanh của người khai hải quan, người nộp thuế thì thực hiện phân loại hàng hóa kể từ ngày văn bản sửa đổi, hướng dẫn phân loại được ban hành."
+      },
+      {
+        "source": "Điều 12",
+        "text": "1. Đội trưởng Đội Kiểm định hải quan ban hành Thông báo kết quả phân tích, phân loại và Thông báo kết quả kiểm tra, đánh giá tiêu chí kỹ thuật.\n2. Chi cục trưởng Chi cục Kiểm định hải quan có trách nhiệm tổ chức thực hiện và đảm bảo sự thống nhất trong việc ban hành Thông báo kết quả phân tích, phân loại và Thông báo kết quả kiểm tra, đánh giá tiêu chí kỹ thuật.\n3. Trong thời hạn không quá 05 ngày làm việc, trường hợp thời gian phân tích phụ thuộc thời gian do yêu cầu quy trình kỹ thuật phân tích hoặc mẫu hàng hóa phức tạp thì không quá 20 ngày làm việc kể từ ngày tiếp nhận đủ hồ sơ và mẫu phân tích, Đội trưởng Đội Kiểm định hải quan ban hành Thông báo kết quả phân tích, phân loại (theo mẫu số 04/TBKQPTPL/2026 Phụ lục ban hành kèm theo Thông tư này) và Thông báo kết quả kiểm tra, đánh giá tiêu chí kỹ thuật (theo mẫu số 43-KQKTĐG/KĐHQ Phụ lục I ban hành kèm theo Thông tư số 121/2025/TT-BTC).\nTrường hợp mặt hàng phức tạp, khó phân loại, cơ quan hải quan cần xin ý kiến Bộ, cơ quan ngang Bộ quản lý chuyên ngành hoặc Ủy ban HS thuộc Tổ chức Hải quan thế giới hoặc Nhóm kỹ thuật về phân loại hàng hoá của ASEAN hoặc phải thực hiện xác minh tại cơ sở sản xuất theo quy định tại khoản 5a Điều 29 Thông tư số 38/2015/TT-BTC được sửa đổi, bổ sung bởi Thông tư số 39/2018/TT-BTC và Thông tư số 121/2025/TT-BTC thì không quá 05 ngày làm việc kể từ ngày nhận được văn bản trả lời hoặc kết quả xác minh tại cơ sở sản xuất, cơ quan kiểm định hải quan ban hành Thông báo kết quả phân tích, phân loại.\n4. Trường hợp cơ quan kiểm định hải quan gửi mẫu trưng cầu giám định, thử nghiệm tại các tổ chức giám định, thử nghiệm thì trong thời hạn không quá 05 ngày làm việc, trường hợp mẫu hàng hóa phức tạp cần có thêm thời gian thì không quá 08 ngày làm việc kể từ ngày nhận được kết quả giám định, thử nghiệm hàng hóa, Đội trưởng Đội Kiểm định hải quan ban hành Thông báo kết quả phân tích, phân loại.\n5. Việc ban hành và sử dụng Thông báo kết quả kiểm tra, đánh giá tiêu chí kỹ thuật thực hiện theo quy định tại điểm a khoản 5 Điều 29 Thông tư số 38/2015/TT-BTC được sửa đổi, bổ sung bởi Thông tư số 39/2018/TT-BTC và Thông tư số 121/2025/TT-BTC.\n6. Thông báo kết quả phân tích, phân loại; Thông báo kết quả kiểm tra, đánh giá tiêu chí kỹ thuật là cơ sở để xác định mức thuế, thực hiện chính sách quản lý hàng hóa; được cập nhật vào cơ sở dữ liệu của cơ quan hải quan. Thông báo kết quả phân tích, phân loại được công khai trên trang thông tin điện tử của Cục Hải quan (trừ phần phụ lục của Thông báo kết quả phân tích, phân loại).\n7. Trường hợp người khai hải quan không đồng ý với Thông báo kết quả phân tích, phân loại thì thực hiện khiếu nại theo Luật Khiếu nại số 02/2011/QH13 hoặc trưng cầu giám định theo quy định tại Điều 30 Nghị định số 08/2015/NĐ-CP."
+      }
+    ]
+  },
+  {
+    "component": "Case-Based RAG",
+    "sources": [
+      "Điều 12 khoản 6",
+      "Điều 13 khoản 5",
+      "Điều 13 khoản 6"
+    ],
+    "purpose": "Dùng thông báo/giải quyết khiếu nại làm case evidence.",
+    "provenance": "DERIVED_FOR_AI",
+    "derived_notice": "Module/component mapping is system-design interpretation, not a term used by TT85.",
+    "source_texts": [
+      {
+        "source": "Điều 12 khoản 6",
+        "text": "6. Thông báo kết quả phân tích, phân loại; Thông báo kết quả kiểm tra, đánh giá tiêu chí kỹ thuật là cơ sở để xác định mức thuế, thực hiện chính sách quản lý hàng hóa; được cập nhật vào cơ sở dữ liệu của cơ quan hải quan. Thông báo kết quả phân tích, phân loại được công khai trên trang thông tin điện tử của Cục Hải quan (trừ phần phụ lục của Thông báo kết quả phân tích, phân loại)."
+      },
+      {
+        "source": "Điều 13 khoản 5",
+        "text": "5. Thông báo kết quả xác định trước mã số; Thông báo kết quả phân tích, phân loại hàng hoá; Thông báo kết quả phân tích kèm mã số hàng hóa; Thông báo kết quả kiểm tra, đánh giá tiêu chí kỹ thuật;"
+      },
+      {
+        "source": "Điều 13 khoản 6",
+        "text": "6. Các văn bản giải quyết khiếu nại về phân loại hàng hóa, áp dụng mức thuế của Bộ Tài chính, Cục Hải quan."
+      }
+    ]
+  },
+  {
+    "component": "Knowledge Base Updater",
+    "sources": [
+      "Điều 13",
+      "Điều 14"
+    ],
+    "purpose": "Quản lý nguồn chính thức và cập nhật khi nguồn thay đổi.",
+    "provenance": "DERIVED_FOR_AI",
+    "derived_notice": "Module/component mapping is system-design interpretation, not a term used by TT85.",
+    "source_texts": [
+      {
+        "source": "Điều 13",
+        "text": "1. Công ước HS và các phụ lục kèm theo;\n2. Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam;\n3. Danh mục hàng hóa cấm xuất khẩu, cấm nhập khẩu, Danh mục hàng hóa xuất khẩu, nhập khẩu theo giấy phép, theo điều kiện, Danh mục hàng hóa xuất khẩu, nhập khẩu thuộc diện quản lý chuyên ngành theo quy định tại Nghị định số 69/2018/NĐ-CP quy định chi tiết một số Điều của Luật Quản lý ngoại thương;\n4. Văn bản hướng dẫn về phân loại hàng hóa của Bộ Tài chính, Cục Hải quan;\n5. Thông báo kết quả xác định trước mã số; Thông báo kết quả phân tích, phân loại hàng hoá; Thông báo kết quả phân tích kèm mã số hàng hóa; Thông báo kết quả kiểm tra, đánh giá tiêu chí kỹ thuật;\n6. Các văn bản giải quyết khiếu nại về phân loại hàng hóa, áp dụng mức thuế của Bộ Tài chính, Cục Hải quan."
+      },
+      {
+        "source": "Điều 14",
+        "text": "1. Cục Hải quan tổ chức thu thập, cập nhật, sửa đổi cơ sở dữ liệu về Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam theo quy định tại Điều 18 Nghị định số 08/2015/NĐ-CP đảm bảo tính đầy đủ, toàn diện, tập trung, thống nhất và cập nhật kịp thời, đảm bảo an toàn thông tin và có khả năng kết nối, chia sẻ, đồng bộ dữ liệu với các cơ sở dữ liệu Quốc gia theo quy định.\n2. Thông tin trong cơ sở dữ liệu được bổ sung, sửa đổi khi các nguồn thông tin nêu tại Điều 13 Thông tư này thay đổi.\n3. Cục Hải quan công khai các thông tin nêu tại Điều 13 Thông tư này trên trang thông tin điện tử của Cục Hải quan để người khai hải quan, các cơ quan quản lý nhà nước có liên quan, cơ quan hải quan các cấp, công chức hải quan sử dụng và đồng bộ các danh mục nêu tại Điều 13 Thông tư này về danh mục điện tử dùng chung ngành Tài chính để các đơn vị trong ngành Tài chính, người khai hải quan, các cơ quan quản lý nhà nước có liên quan, cơ quan hải quan các cấp, công chức hải quan sử dụng."
+      }
+    ]
+  },
+  {
+    "component": "Effective-Date Validator",
+    "sources": [
+      "Điều 15",
+      "Điều 16"
+    ],
+    "purpose": "Đảm bảo đúng phiên bản pháp luật và quy định chuyển tiếp.",
+    "provenance": "DERIVED_FOR_AI",
+    "derived_notice": "Module/component mapping is system-design interpretation, not a term used by TT85.",
+    "source_texts": [
+      {
+        "source": "Điều 15",
+        "text": "1. Thông tư này có hiệu lực thi hành kể từ ngày 15 tháng 09 năm 2026.\nThông tư này thay thế Thông tư số 14/2015/TT-BTC ngày 30 tháng 01 năm 2015 của Bộ Tài chính hướng dẫn về phân loại hàng hoá, phân tích để phân loại hàng hoá; phân tích để kiểm tra chất lượng, kiểm tra an toàn thực phẩm đối với hàng hoá xuất khẩu, nhập khẩu và Thông tư số 17/2021/TT-BTC ngày 26 tháng 02 năm 2021 của Bộ Tài chính sửa đổi, bổ sung một số Điều tại Thông tư số 14/2015/TT-BTC.\n2. Trường hợp các văn bản quy phạm pháp luật viện dẫn tại Thông tư này được sửa đổi, bổ sung hoặc thay thế bằng văn bản quy phạm pháp luật khác thì áp dụng theo quy định tại văn bản sửa đổi, bổ sung hoặc thay thế đó."
+      },
+      {
+        "source": "Điều 16",
+        "text": "1. Trường hợp hàng hóa thuộc tờ khai hải quan đăng ký đã được lấy mẫu hàng hóa để phân tích, giám định, thử nghiệm nhưng đến ngày Thông tư này có hiệu lực thi hành chưa có kết quả thì thực hiện theo quy định của văn bản liên quan có hiệu lực tại thời điểm đăng ký tờ khai.\nViệc thực hiện phân loại hàng hóa, lấy mẫu, gửi mẫu, lưu mẫu phân tích, thực hiện phân tích, phân loại, giám định, thử nghiệm tiếp tục thực hiện theo pháp luật áp dụng tại thời điểm trước khi Thông tư này có hiệu lực.\n2. Trường hợp nhập khẩu máy liên hợp hoặc tổ hợp máy thuộc các Chương 84, Chương 85 và Chương 90 và chi tiết, linh kiện rời theo Danh mục đã đăng ký trước thời điểm có hiệu lực của Thông tư này thì vẫn tiếp tục thực hiện theo quy định tại Thông tư số 14/2015/TT-BTC cho đến khi nhập hết hàng hóa theo Danh mục."
+      }
+    ]
+  },
+  {
+    "component": "Tax / Trade Policy Service",
+    "sources": [
+      "Điều 5",
+      "Điều 12 khoản 6"
+    ],
+    "purpose": "Dùng mã đã phân loại để áp chính sách quản lý và mức thuế.",
+    "provenance": "DERIVED_FOR_AI",
+    "derived_notice": "Module/component mapping is system-design interpretation, not a term used by TT85.",
+    "source_texts": [
+      {
+        "source": "Điều 5",
+        "text": "1. Kết quả phân loại hàng hóa được sử dụng để áp dụng chính sách quản lý hàng hóa trên cơ sở thực hiện quy định về điều kiện, thủ tục, hồ sơ áp dụng tại Danh mục hàng hóa cấm xuất khẩu, tạm ngừng xuất khẩu; Danh mục hàng hóa cấm nhập khẩu, tạm ngừng nhập khẩu; Danh mục hàng hóa xuất khẩu, nhập khẩu theo giấy phép của cơ quan nhà nước có thẩm quyền; Danh mục hàng hóa thuộc đối tượng kiểm tra chuyên ngành có hiệu lực tại thời điểm đăng ký tờ khai.\n2. Kết quả phân loại hàng hóa được sử dụng để áp dụng mức thuế đối với một mặt hàng trên cơ sở thực hiện quy định tại các Biểu thuế áp dụng đối với hàng hóa xuất khẩu, nhập khẩu có hiệu lực tại thời điểm đăng ký tờ khai và điều kiện, thủ tục, hồ sơ để được áp dụng mức thuế quy định tại các văn bản quy phạm pháp luật về thuế đối với hàng hóa xuất khẩu, nhập khẩu."
+      },
+      {
+        "source": "Điều 12 khoản 6",
+        "text": "6. Thông báo kết quả phân tích, phân loại; Thông báo kết quả kiểm tra, đánh giá tiêu chí kỹ thuật là cơ sở để xác định mức thuế, thực hiện chính sách quản lý hàng hóa; được cập nhật vào cơ sở dữ liệu của cơ quan hải quan. Thông báo kết quả phân tích, phân loại được công khai trên trang thông tin điện tử của Cục Hải quan (trừ phần phụ lục của Thông báo kết quả phân tích, phân loại)."
+      }
+    ]
+  }
+]

@@ -1,0 +1,4 @@
+﻿id,record_id,location,type,source_vi,operational_vi,resolution_status,resolution_id,confidence,source_preserved
+SRCWARN_01,SXVI-N-CH84_NOTE_11A,Chapter 84 Note 11(A),SOURCE_INTERNAL_CROSS_REFERENCE_MISMATCH,Chú giải 9(a) và 9(b) Chương 85,Chú giải 12(a) và 12(b) Chương 85,RESOLVED_OPERATIONALLY,RES_SRCWARN_01,HIGH,YES
+SRCWARN_02,SXVI-C-CTX8_0044,Context before 8486.90.32 / page 113,BILINGUAL_SOURCE_MISMATCH,máy điện ảnh,hiện ảnh,RESOLVED_OPERATIONALLY,RES_SRCWARN_02,HIGH,YES
+SRCWARN_03,SXVI-N-CH85_NOTE_12A_I_DEF6,Chapter 85 Note 12(a)(i)(6),SOURCE_TEXT_DUPLICATION,bao gồm bao gồm,bao gồm,RESOLVED_OPERATIONALLY,RES_SRCWARN_03,HIGH,YES
