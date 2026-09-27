@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0",
+  "package": "SECTION_XIV_RAG_DATA",
+  "section": "XIV",
+  "chapter": "71",
+  "status": "FINAL_DATA_READY",
+  "purpose": "Final data-preparation handoff for downstream RAG/indexing.",
+  "retrieval_indexing_included": false,
+  "source_files": [
+    {
+      "filename": "TT31-Section-XIV.pdf",
+      "sha256": "b42bfc1cbd9ce4fe2f1ff2b8fb8300cd2e25e507d56a1e77472a24c8d9e6e2cd"
+    },
+    {
+      "filename": "TT31-Section-XIV.docx",
+      "sha256": "5dd84d48ebd8c20192e8f1f621b832937222deac399875c0ea9d54eb9dcebdec"
+    }
+  ],
+  "canonical_files": [
+    {
+      "filename": "SECTION_XIV_MASTER_NORMALIZED.jsonl",
+      "sha256": "9b3104316a405e6a9c65a575cfa23165ad179975d14318fad54be59e1edc0682",
+      "bytes": 516827
+    },
+    {
+      "filename": "SECTION_XIV_RAG_INGEST.jsonl",
+      "sha256": "86498df92a7e35b532eb48926fcc704eccc63e24b6648c8a1f73918b3bdfe526",
+      "bytes": 1345895
+    },
+    {
+      "filename": "SECTION_XIV_HS_HIERARCHY.json",
+      "sha256": "0835f0e5ae4d26e3a3f0ab2a3672b6633c5b51810ffaf48fbf351f17060b0e7b",
+      "bytes": 254086
+    },
+    {
+      "filename": "SECTION_XIV_GRAPH_NODES.jsonl",
+      "sha256": "0d23d27dd49e26f620913ff1325f59a09d3b42201e78169e3af5625997656688",
+      "bytes": 144626
+    },
+    {
+      "filename": "SECTION_XIV_GRAPH_EDGES.jsonl",
+      "sha256": "db3ccb2ad76158202d7ad9c4aefbf44e8be0f3ec6fd7bcd82b427318efce47ea",
+      "bytes": 110471
+    },
+    {
+      "filename": "SECTION_XIV_NORMALIZATION_RULES.json",
+      "sha256": "d1f8c61cc7f9024749aaa5187e24a01bb85bfd50e163c5ac7061895e9c7d4e37",
+      "bytes": 3713
+    },
+    {
+      "filename": "SECTION_XIV_RAG_INGEST_CONFIG.json",
+      "sha256": "f67783c6128c6afe605a6dc69465722adf4302bd95c8d8cf738a9feae640fcfa",
+      "bytes": 3549
+    },
+    {
+      "filename": "SECTION_XIV_CORRECTION_LOG.json",
+      "sha256": "fee507b112064d940df4da0f798e9b5985729ca98a5f296f7bc58ff6a0a19fd8",
+      "bytes": 49804
+    },
+    {
+      "filename": "SECTION_XIV_FINAL_QA_REPORT.json",
+      "sha256": "47d209d963086cd49a97047374b86e153a7584ea41eaf22046d12d1f079261ce",
+      "bytes": 2105
+    },
+    {
+      "filename": "SECTION_XIV_FINAL_QA_REPORT.md",
+      "sha256": "4b4f5ec4ecb09aadc68628b177377116abcb80b52ce45950c821c24839a92616",
+      "bytes": 1489
+    }
+  ],
+  "audit_lineage_files": [
+    "SECTION_XIV_SOURCE_RAW.jsonl",
+    "SECTION_XIV_STRUCTURED_RAW.jsonl",
+    "SECTION_XIV_LEGAL_NOTES_RAW.jsonl",
+    "SECTION_XIV_MASTER_AUDITED_RAW.jsonl"
+  ],
+  "verification_sources": [
+    {
+      "name": "Công Báo Chính phủ - Thông tư 31/2022/TT-BTC, Phụ lục I",
+      "url": "https://congbao.cdnchinhphu.vn/CongBaoCP/VanBan/2022/6/37431/41030-1-2022541-54231-2022-tt-btc.pdf",
+      "role": "Primary online verification of Chapter 71 wording, codes, branch structure and units"
+    },
+    {
+      "name": "ASEAN - In-Force Tariff Schedules (AHTN 2022), including Viet Nam",
+      "url": "https://asean.org/annex-2-tariff-schedules/",
+      "role": "Independent confirmation that the applicable regional nomenclature basis is AHTN 2022"
+    },
+    {
+      "name": "ASEAN Trade Repository - Tariff nomenclature",
+      "url": "https://atr.asean.org/read/tariff-nomenclature/39",
+      "role": "Independent explanation of AHTN/HS tariff nomenclature structure"
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0-final",
+  "package": "SECTION_XVII_FINAL_DATA_READY",
+  "section": "XVII",
+  "generated_at": "2026-09-26T22:12:35+07:00",
+  "status": "DATA_READY",
+  "inputs": {
+    "TT31-Section-XVII.pdf": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+    "TT31-Section-XVII.docx": "27e22f3d8a45f0a00506faa726ac941bfac2f1e6f285034c74cc75f9278ed54e",
+    "SECTION_XVII_MASTER_NORMALIZED.jsonl": "61516eb32d2a391b40cbc59e836f7efedd01b3f1b6c9f4b577862c77972eda31",
+    "SECTION_XVII_GRAPH_EDGES_NORMALIZED.jsonl": "5f595d1e69354f594e3573c8e2cb2da2bcd382105899169726f6137eee01266d"
+  },
+  "files": [
+    {
+      "filename": "README.md",
+      "size_bytes": 975,
+      "sha256": "e73de0ce8c0cc36da845cc029481b46bb7e2b726923868c744d1ba400c8f369f"
+    },
+    {
+      "filename": "SECTION_XVII_CHUNK_MAP.jsonl",
+      "size_bytes": 226190,
+      "sha256": "39af14835c1958fb2a5c243df7f46e58434aae33431c145466a47d0ef17e7ef5"
+    },
+    {
+      "filename": "SECTION_XVII_DATA_READY_VALIDATION.json",
+      "size_bytes": 3322,
+      "sha256": "965444d8c0e59c514520aa3818c0a597871c646e889f0591a3da59c7e9959ee1"
+    },
+    {
+      "filename": "SECTION_XVII_EXACT_MATCH_INDEX.jsonl",
+      "size_bytes": 598657,
+      "sha256": "06b22491b0c1010733e829adeb1a75598f209ec12382cf7d2303483ed6337456"
+    },
+    {
+      "filename": "SECTION_XVII_EXTERNAL_REFERENCE_INDEX.jsonl",
+      "size_bytes": 8028,
+      "sha256": "e40685bbe6bc947089fc727dc21d42cb098b31eab6b459e897f7990494611c81"
+    },
+    {
+      "filename": "SECTION_XVII_FINAL_REPORT.json",
+      "size_bytes": 407,
+      "sha256": "5be9d9be98c11f6e5c1258900aafeafaaed7456b2ad65bb29dbdece89182d738"
+    },
+    {
+      "filename": "SECTION_XVII_GRAPH_EDGES_NORMALIZED.jsonl",
+      "size_bytes": 1078765,
+      "sha256": "5662495d6bbd4237cf82adc3044dc8120b3e14513fc4cbae9f19112dc92989e4"
+    },
+    {
+      "filename": "SECTION_XVII_HS_HIERARCHY.json",
+      "size_bytes": 470365,
+      "sha256": "e8033f26c064cb857f1747cf7882489980b2e75bb700c8fd1ca3af4680f43353"
+    },
+    {
+      "filename": "SECTION_XVII_LEGAL_NOTES_AUDITED.jsonl",
+      "size_bytes": 27322,
+      "sha256": "d8c91084e3aeabc9ce8c4a0f0cdd05ab1bbe6f4ecd0c106c7b1172bf25fda362"
+    },
+    {
+      "filename": "SECTION_XVII_LEGAL_STATUS_VERIFICATION.json",
+      "size_bytes": 1512,
+      "sha256": "87d14c9d5b814d02d226e0bdcd63dc78f56aa85bf33e27b16b099d9eeb0f9ffc"
+    },
+    {
+      "filename": "SECTION_XVII_MASTER_NORMALIZED.jsonl",
+      "size_bytes": 7067692,
+      "sha256": "3764327d65d1c3b87340fd6a6c4dd4142ab32c12f435bd7ea8990966fd393378"
+    },
+    {
+      "filename": "SECTION_XVII_RAG_GRAPH_LINKS.jsonl",
+      "size_bytes": 666186,
+      "sha256": "d99b9ff3d8ed947b5202ccabe24d4dd2480d112720fbc5b2d9cdaec5a6e4e979"
+    },
+    {
+      "filename": "SECTION_XVII_RAG_INGEST.jsonl",
+      "size_bytes": 5314748,
+      "sha256": "1be213998953f04cad58019ff9cc33e96964f5f4e28ce10859c744cfc63f9763"
+    },
+    {
+      "filename": "SECTION_XVII_SOURCE_ROW_AUDIT.jsonl",
+      "size_bytes": 301654,
+      "sha256": "1dd923c7a7d35e1bb0f69501e2a2191ee60f72f430154f8a3ee5f194a17c604f"
+    }
+  ]
+}

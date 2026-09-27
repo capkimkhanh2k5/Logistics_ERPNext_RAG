@@ -1,0 +1,42 @@
+{
+  "selected_mode": "dense_sparse",
+  "weights": {
+    "dense": 1,
+    "sparse": 2
+  },
+  "snapshot": "60a8f8c6cda5d6af3116c813",
+  "profile": "3a2ce6e6d726a0f053748717",
+  "dev_run_ids": [
+    "20260926T074427770467-6445c70d",
+    "20260926T074428642281-a5394082",
+    "20260926T074436589186-7dd8d5ac",
+    "20260926T074436991968-f325ca2a",
+    "20260926T074438614238-85f59743",
+    "20260926T074440195789-2b2231ce",
+    "20260926T074441298693-2d3f29cc",
+    "20260926T074442516161-cb5cf217",
+    "20260926T074443595020-f311716e"
+  ],
+  "selection_metric": "name_and_spec Hit@10, then MRR@10",
+  "retrieval": {
+    "model": "BAAI/bge-m3",
+    "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+    "device": "cpu",
+    "batch_size": 4,
+    "max_length": 1024,
+    "checkpoint_size": 64,
+    "sparse": true,
+    "candidate_pool": 50,
+    "top_k": 10,
+    "rrf_k": 60,
+    "chunk_strategy": "contextual-v2",
+    "evidence_limit": 30,
+    "evidence_hops": 2,
+    "seed": 20260926,
+    "fusion_weights": {
+      "dense": 1.0,
+      "sparse": 1.0,
+      "fts": 0.25
+    }
+  }
+}

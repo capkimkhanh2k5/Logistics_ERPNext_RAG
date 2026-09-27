@@ -1,0 +1,19 @@
+model: BAAI/bge-m3
+revision: 5617a9f61b028005a4858fdac845db406aefb181
+# Immutable model/tokenizer revision verified by the first complete run.
+device: cpu
+batch_size: 4
+max_length: 1024
+checkpoint_size: 64
+sparse: true
+candidate_pool: 50
+top_k: 10
+rrf_k: 60
+chunk_strategy: contextual-v2
+evidence_limit: 30
+evidence_hops: 2
+seed: 20260926
+fusion_weights:
+  dense: 1.0
+  sparse: 1.0
+  fts: 0.25

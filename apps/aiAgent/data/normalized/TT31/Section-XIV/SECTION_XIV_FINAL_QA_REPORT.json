@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "audit_name": "SECTION_XIV_FINAL_DATA_QA",
+  "status": "FINAL_DATA_READY",
+  "scope": "Final data-preparation readiness; retrieval indexing is intentionally out of scope.",
+  "verification_sources": [
+    {
+      "name": "Công Báo Chính phủ - Thông tư 31/2022/TT-BTC, Phụ lục I",
+      "url": "https://congbao.cdnchinhphu.vn/CongBaoCP/VanBan/2022/6/37431/41030-1-2022541-54231-2022-tt-btc.pdf",
+      "role": "Primary online verification of Chapter 71 wording, codes, branch structure and units"
+    },
+    {
+      "name": "ASEAN - In-Force Tariff Schedules (AHTN 2022), including Viet Nam",
+      "url": "https://asean.org/annex-2-tariff-schedules/",
+      "role": "Independent confirmation that the applicable regional nomenclature basis is AHTN 2022"
+    },
+    {
+      "name": "ASEAN Trade Repository - Tariff nomenclature",
+      "url": "https://atr.asean.org/read/tariff-nomenclature/39",
+      "role": "Independent explanation of AHTN/HS tariff nomenclature structure"
+    }
+  ],
+  "counts": {
+    "normalized_records": 190,
+    "rag_ingest_documents": 190,
+    "hs8_records": 80,
+    "chapter_notes": 11,
+    "subheading_notes": 3,
+    "tariff_footnotes": 1,
+    "hierarchy_nodes": 158,
+    "hierarchy_edges": 157,
+    "graph_nodes": 208,
+    "graph_edges": 495,
+    "source_verified_correction_events": 183,
+    "source_verified_affected_records": 92,
+    "context_branches": 17
+  },
+  "checks": {
+    "known_transcription_artifacts_remaining": 0,
+    "leading_tariff_markers_remaining": 0,
+    "context_scope_errors": 0,
+    "heading_docs_with_branch_context": 0,
+    "raw_ocr_fts_documents": 0,
+    "hierarchy_text_mismatches": 0,
+    "unresolved_audit_warnings": 0,
+    "graph_topology_preserved": true
+  },
+  "errors": [],
+  "warnings": [],
+  "canonical_final_files": [
+    "SECTION_XIV_MASTER_NORMALIZED.jsonl",
+    "SECTION_XIV_RAG_INGEST.jsonl",
+    "SECTION_XIV_HS_HIERARCHY.json",
+    "SECTION_XIV_GRAPH_NODES.jsonl",
+    "SECTION_XIV_GRAPH_EDGES.jsonl",
+    "SECTION_XIV_NORMALIZATION_RULES.json",
+    "SECTION_XIV_RAG_INGEST_CONFIG.json"
+  ]
+}

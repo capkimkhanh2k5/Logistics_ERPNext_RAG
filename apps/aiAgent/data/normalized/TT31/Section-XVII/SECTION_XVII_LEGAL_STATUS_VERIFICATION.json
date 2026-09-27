@@ -1,0 +1,27 @@
+{
+  "legal_status": "CURRENT",
+  "instrument": "31/2022/TT-BTC",
+  "issued_date": "2022-06-08",
+  "nominal_effective_date": "2022-12-01",
+  "temporary_suspension": {
+    "from": "2022-12-01",
+    "through": "2022-12-29",
+    "instrument": "72/2022/TT-BTC"
+  },
+  "current_application_from": "2022-12-30",
+  "verified_on": "2026-09-26",
+  "verification_sources": [
+    "CSDL quốc gia về VBPL: 31/2022/TT-BTC marked Còn hiệu lực",
+    "Thông tư 72/2022/TT-BTC: temporary suspension from 2022-12-01 through 2022-12-29",
+    "WCO HS 2022: Section XVII covers Chapters 86-89",
+    "Vietnam Customs official annex publication for 31/2022/TT-BTC"
+  ],
+  "verification_urls": {
+    "national_legal_database_tt31": "https://vbpl.vn/TW/Pages/ivbpq-toanvan.aspx?ItemID=155207",
+    "national_legal_database_tt72": "https://vbpl.vn/botaichinh/Pages/vbpq-thuoctinh.aspx?ItemID=157421",
+    "vietnam_customs_official_tt31_publication": "https://files.customs.gov.vn/CustomsCMS/KIEN_GIANG/2022/12/1/2022_523%20%2B%20524_31-2022-TT-BTC..pdf",
+    "wco_hs_2022": "https://www.wcoomd.org/en/topics/nomenclature/instrument-and-tools/hs-nomenclature-2022-edition/hs-nomenclature-2022-edition.aspx?p=1",
+    "mof_2026_current_application_example": "https://portal.mof.gov.vn/hoidapcstc/home/cthoidap/158403"
+  },
+  "verification_note": "Web research verifies current legal status and Section XVII HS 2022 structure. Row-level tariff content corrections remain grounded in the locked user-supplied Section XVII PDF/DOCX."
+}

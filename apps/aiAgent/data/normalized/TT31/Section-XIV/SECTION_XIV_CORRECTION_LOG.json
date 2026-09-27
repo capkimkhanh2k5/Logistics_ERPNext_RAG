@@ -1,0 +1,1582 @@
+{
+  "schema_version": "1.0",
+  "section": "XIV",
+  "chapter": "71",
+  "status": "FINAL_DATA_READY",
+  "verification_sources": [
+    {
+      "name": "Công Báo Chính phủ - Thông tư 31/2022/TT-BTC, Phụ lục I",
+      "url": "https://congbao.cdnchinhphu.vn/CongBaoCP/VanBan/2022/6/37431/41030-1-2022541-54231-2022-tt-btc.pdf",
+      "role": "Primary online verification of Chapter 71 wording, codes, branch structure and units"
+    },
+    {
+      "name": "ASEAN - In-Force Tariff Schedules (AHTN 2022), including Viet Nam",
+      "url": "https://asean.org/annex-2-tariff-schedules/",
+      "role": "Independent confirmation that the applicable regional nomenclature basis is AHTN 2022"
+    },
+    {
+      "name": "ASEAN Trade Repository - Tariff nomenclature",
+      "url": "https://atr.asean.org/read/tariff-nomenclature/39",
+      "role": "Independent explanation of AHTN/HS tariff nomenclature structure"
+    }
+  ],
+  "policy": {
+    "raw_files_modified": false,
+    "normalized_display_text_source_verified": true,
+    "graph_topology_modified": false,
+    "rag_context_scope_rebuilt": true,
+    "raw_ocr_text_used_in_fts": false
+  },
+  "text_correction_event_count": 183,
+  "text_correction_affected_record_count": 92,
+  "corrections": [
+    {
+      "record_id": "SEC:XIV",
+      "field": "text.en",
+      "from": "semi- precious",
+      "to": "semi-precious",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "CH:71",
+      "field": "text.en",
+      "from": "semi- precious",
+      "to": "semi-precious",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7101",
+      "field": "text.vi",
+      "from": "nuôi cây",
+      "to": "nuôi cấy",
+      "occurrences": 2,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7101",
+      "field": "text.vi",
+      "from": "đê tiện vận chuyên",
+      "to": "để tiện vận chuyển",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7104",
+      "field": "text.vi",
+      "from": "tông hợp",
+      "to": "tổng hợp",
+      "occurrences": 2,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7104",
+      "field": "text.en",
+      "from": "semi- precious",
+      "to": "semi-precious",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7106",
+      "field": "text.vi",
+      "from": "kê cả",
+      "to": "kể cả",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7106",
+      "field": "text.vi",
+      "from": "bán thành phâm",
+      "to": "bán thành phẩm",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7106",
+      "field": "text.en",
+      "from": "semi- manufactured",
+      "to": "semi-manufactured",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7108",
+      "field": "text.vi",
+      "from": "kê cả",
+      "to": "kể cả",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7108",
+      "field": "text.vi",
+      "from": "bán thành phâm",
+      "to": "bán thành phẩm",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7110",
+      "field": "text.en",
+      "from": "semi- manufactured",
+      "to": "semi-manufactured",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7111",
+      "field": "text.en",
+      "from": "semi- manufactured",
+      "to": "semi-manufactured",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7112",
+      "field": "text.vi",
+      "from": "Phê liệu",
+      "to": "Phế liệu",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7112",
+      "field": "text.vi",
+      "from": "phê liệu",
+      "to": "phế liệu",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7112",
+      "field": "text.vi",
+      "from": "chủ yêu",
+      "to": "chủ yếu",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7115",
+      "field": "text.vi",
+      "from": "Các sản phẩm khác băng",
+      "to": "Các sản phẩm khác bằng",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7116",
+      "field": "text.vi",
+      "from": "Sản phẩm băng",
+      "to": "Sản phẩm bằng",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7117",
+      "field": "text.vi",
+      "from": "làm băng",
+      "to": "làm bằng",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS4:7118",
+      "field": "text.vi",
+      "from": "Tiên kim loại",
+      "to": "Tiền kim loại",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS6:710310",
+      "field": "text.vi",
+      "from": "căt đơn giản",
+      "to": "cắt đơn giản",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS6:710391",
+      "field": "text.vi",
+      "from": "- Rubi, saphia và ngọc lục bảo:",
+      "to": "Rubi, saphia và ngọc lục bảo:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:710391",
+      "field": "text.en",
+      "from": "- Rubies, sapphires and emeralds:",
+      "to": "Rubies, sapphires and emeralds:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:710812",
+      "field": "text.vi",
+      "from": "- Dạng chưa gia công khác:",
+      "to": "Dạng chưa gia công khác:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:710812",
+      "field": "text.en",
+      "from": "- Other unwrought forms:",
+      "to": "Other unwrought forms:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711011",
+      "field": "text.vi",
+      "from": "- Chưa gia công hoặc ở dạng bột:",
+      "to": "Chưa gia công hoặc ở dạng bột:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711011",
+      "field": "text.en",
+      "from": "- Unwrought or in powder form:",
+      "to": "Unwrought or in powder form:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711021",
+      "field": "text.vi",
+      "from": "- Chưa gia công hoặc ở dạng bột:",
+      "to": "Chưa gia công hoặc ở dạng bột:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711021",
+      "field": "text.en",
+      "from": "- Unwrought or in powder form:",
+      "to": "Unwrought or in powder form:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711031",
+      "field": "text.vi",
+      "from": "- Chưa gia công hoặc ở dạng bột:",
+      "to": "Chưa gia công hoặc ở dạng bột:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711031",
+      "field": "text.en",
+      "from": "- Unwrought or in powder form:",
+      "to": "Unwrought or in powder form:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711041",
+      "field": "text.vi",
+      "from": "- Chưa gia công hoặc ở dạng bột:",
+      "to": "Chưa gia công hoặc ở dạng bột:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711041",
+      "field": "text.en",
+      "from": "- Unwrought or in powder form:",
+      "to": "Unwrought or in powder form:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711299",
+      "field": "text.vi",
+      "from": "- Loại khác:",
+      "to": "Loại khác:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711299",
+      "field": "text.en",
+      "from": "- Other:",
+      "to": "Other:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711311",
+      "field": "text.vi",
+      "from": "Băng bạc",
+      "to": "Bằng bạc",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS6:711311",
+      "field": "text.vi",
+      "from": "- Bằng bạc, đã hoặc chưa mạ hoặc dát phủ kim loại quý khác:",
+      "to": "Bằng bạc, đã hoặc chưa mạ hoặc dát phủ kim loại quý khác:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711311",
+      "field": "text.en",
+      "from": "- Of silver, whether or not plated or clad with other precious metal:",
+      "to": "Of silver, whether or not plated or clad with other precious metal:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711319",
+      "field": "text.vi",
+      "from": "Băng kim loại",
+      "to": "Bằng kim loại",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS6:711319",
+      "field": "text.vi",
+      "from": "- Bằng kim loại quý khác, đã hoặc chưa mạ hoặc dát phủ kim loại quý:",
+      "to": "Bằng kim loại quý khác, đã hoặc chưa mạ hoặc dát phủ kim loại quý:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711319",
+      "field": "text.en",
+      "from": "- Of other precious metal, whether or not plated or clad with precious metal:",
+      "to": "Of other precious metal, whether or not plated or clad with precious metal:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711320",
+      "field": "text.vi",
+      "from": "Băng kim loại",
+      "to": "Bằng kim loại",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS6:711711",
+      "field": "text.vi",
+      "from": "- Khuy măng sét và khuy rời:",
+      "to": "Khuy măng sét và khuy rời:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711711",
+      "field": "text.en",
+      "from": "- Cuff-links and studs:",
+      "to": "Cuff-links and studs:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711719",
+      "field": "text.vi",
+      "from": "- Loại khác:",
+      "to": "Loại khác:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711719",
+      "field": "text.en",
+      "from": "- Other:",
+      "to": "Other:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS6:711810",
+      "field": "text.vi",
+      "from": "Tiên kim loại",
+      "to": "Tiền kim loại",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71011000",
+      "field": "text.vi",
+      "from": "tư nhiên",
+      "to": "tự nhiên",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71011000",
+      "field": "unit.vi",
+      "from": "kg/chiêc",
+      "to": "kg/chiếc",
+      "occurrences": 1,
+      "verification": "official Công Báo PDF / uploaded rendered source"
+    },
+    {
+      "record_id": "HS8:71012100",
+      "field": "text.vi",
+      "from": "- Chưa được gia công",
+      "to": "Chưa được gia công",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71012100",
+      "field": "text.en",
+      "from": "- Unworked",
+      "to": "Unworked",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71012100",
+      "field": "unit.vi",
+      "from": "kg/chiêc",
+      "to": "kg/chiếc",
+      "occurrences": 1,
+      "verification": "official Công Báo PDF / uploaded rendered source"
+    },
+    {
+      "record_id": "HS8:71012200",
+      "field": "text.vi",
+      "from": "- Đã gia công",
+      "to": "Đã gia công",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71012200",
+      "field": "text.en",
+      "from": "- Worked",
+      "to": "Worked",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71012200",
+      "field": "unit.vi",
+      "from": "kg/chiêc",
+      "to": "kg/chiếc",
+      "occurrences": 1,
+      "verification": "official Công Báo PDF / uploaded rendered source"
+    },
+    {
+      "record_id": "HS8:71022100",
+      "field": "text.vi",
+      "from": "- Chưa gia công hoặc mới chỉ được cắt, tách một cách đơn giản hoặc mới chỉ được chuốt hoặc mài sơ qua",
+      "to": "Chưa gia công hoặc mới chỉ được cắt, tách một cách đơn giản hoặc mới chỉ được chuốt hoặc mài sơ qua",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71022100",
+      "field": "text.en",
+      "from": "- Unworked or simply sawn, cleaved or bruted",
+      "to": "Unworked or simply sawn, cleaved or bruted",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71022900",
+      "field": "text.vi",
+      "from": "- Loại khác",
+      "to": "Loại khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71022900",
+      "field": "text.en",
+      "from": "- Other",
+      "to": "Other",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71023100",
+      "field": "text.vi",
+      "from": "- Chưa gia công hoặc mới chỉ được cắt, tách một cách đơn giản hoặc mới chỉ được chuốt hoặc mài sơ qua",
+      "to": "Chưa gia công hoặc mới chỉ được cắt, tách một cách đơn giản hoặc mới chỉ được chuốt hoặc mài sơ qua",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71023100",
+      "field": "text.en",
+      "from": "- Unworked or simply sawn, cleaved or bruted",
+      "to": "Unworked or simply sawn, cleaved or bruted",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71023900",
+      "field": "text.vi",
+      "from": "- Loại khác",
+      "to": "Loại khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71023900",
+      "field": "text.en",
+      "from": "- Other",
+      "to": "Other",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71031010",
+      "field": "text.vi",
+      "from": "- Rubi",
+      "to": "Rubi",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71031010",
+      "field": "text.en",
+      "from": "- Rubies",
+      "to": "Rubies",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71031020",
+      "field": "text.vi",
+      "from": "- Ngọc bích (nephrite và jadeite)",
+      "to": "Ngọc bích (nephrite và jadeite)",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71031020",
+      "field": "text.en",
+      "from": "- Jade (nephrite and jadeite)",
+      "to": "Jade (nephrite and jadeite)",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71031090",
+      "field": "text.vi",
+      "from": "- Loại khác",
+      "to": "Loại khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71031090",
+      "field": "text.en",
+      "from": "- Other",
+      "to": "Other",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71039900",
+      "field": "text.vi",
+      "from": "- Loại khác",
+      "to": "Loại khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71039900",
+      "field": "text.en",
+      "from": "- Other",
+      "to": "Other",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71041010",
+      "field": "text.vi",
+      "from": "- Chưa được gia công",
+      "to": "Chưa được gia công",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71041010",
+      "field": "text.en",
+      "from": "- Unworked",
+      "to": "Unworked",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71041020",
+      "field": "text.vi",
+      "from": "- Đã gia công",
+      "to": "Đã gia công",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71041020",
+      "field": "text.en",
+      "from": "- Worked",
+      "to": "Worked",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71042100",
+      "field": "text.vi",
+      "from": "- Kim cương",
+      "to": "Kim cương",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71042100",
+      "field": "text.en",
+      "from": "- Diamonds",
+      "to": "Diamonds",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71042900",
+      "field": "text.vi",
+      "from": "- Loại khác",
+      "to": "Loại khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71042900",
+      "field": "text.en",
+      "from": "- Other",
+      "to": "Other",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71049100",
+      "field": "text.vi",
+      "from": "- Kim cương",
+      "to": "Kim cương",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71049100",
+      "field": "text.en",
+      "from": "- Diamonds",
+      "to": "Diamonds",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71049900",
+      "field": "text.vi",
+      "from": "- Loại khác",
+      "to": "Loại khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71049900",
+      "field": "text.en",
+      "from": "- Other",
+      "to": "Other",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71069100",
+      "field": "text.vi",
+      "from": "- Chưa gia công",
+      "to": "Chưa gia công",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71069100",
+      "field": "text.en",
+      "from": "- Unwrought",
+      "to": "Unwrought",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71069200",
+      "field": "text.vi",
+      "from": "- Dạng bán thành phẩm",
+      "to": "Dạng bán thành phẩm",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71069200",
+      "field": "text.en",
+      "from": "- Semi-manufactured",
+      "to": "Semi-manufactured",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71070000",
+      "field": "text.vi",
+      "from": "bán thành phâm",
+      "to": "bán thành phẩm",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71081100",
+      "field": "text.vi",
+      "from": "- Dạng bột",
+      "to": "Dạng bột",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71081100",
+      "field": "text.en",
+      "from": "- Powder",
+      "to": "Powder",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71081300",
+      "field": "text.vi",
+      "from": "bán thành phâm",
+      "to": "bán thành phẩm",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71081300",
+      "field": "text.vi",
+      "from": "- Dạng bán thành phẩm khác",
+      "to": "Dạng bán thành phẩm khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71081300",
+      "field": "text.en",
+      "from": "- Other semi-manufactured forms",
+      "to": "Other semi-manufactured forms",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71082000",
+      "field": "text.vi",
+      "from": "Dạng tiên tệ",
+      "to": "Dạng tiền tệ",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71101900",
+      "field": "text.vi",
+      "from": "- Loại khác",
+      "to": "Loại khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71101900",
+      "field": "text.en",
+      "from": "- Other",
+      "to": "Other",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71102900",
+      "field": "text.vi",
+      "from": "- Loại khác",
+      "to": "Loại khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71102900",
+      "field": "text.en",
+      "from": "- Other",
+      "to": "Other",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71103900",
+      "field": "text.vi",
+      "from": "- Loại khác",
+      "to": "Loại khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71103900",
+      "field": "text.en",
+      "from": "- Other",
+      "to": "Other",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71104900",
+      "field": "text.vi",
+      "from": "- Loại khác",
+      "to": "Loại khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71104900",
+      "field": "text.en",
+      "from": "- Other",
+      "to": "Other",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71123000",
+      "field": "text.vi",
+      "from": "hợp chât",
+      "to": "hợp chất",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71129100",
+      "field": "text.vi",
+      "from": "kê cả",
+      "to": "kể cả",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71129100",
+      "field": "text.vi",
+      "from": "- Từ vàng, kể cả kim loại dát phủ vàng trừ mảnh vụn có chứa các kim loại quý khác",
+      "to": "Từ vàng, kể cả kim loại dát phủ vàng trừ mảnh vụn có chứa các kim loại quý khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71129100",
+      "field": "text.en",
+      "from": "- Of gold, including metal clad with gold but excluding sweepings containing other precious metals",
+      "to": "Of gold, including metal clad with gold but excluding sweepings containing other precious metals",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71129200",
+      "field": "text.vi",
+      "from": "kê cả",
+      "to": "kể cả",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71129200",
+      "field": "text.vi",
+      "from": "- Từ bạch kim, kể cả kim loại dát phủ bạch kim trừ mảnh vụn có chứa các kim loại quý khác",
+      "to": "Từ bạch kim, kể cả kim loại dát phủ bạch kim trừ mảnh vụn có chứa các kim loại quý khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71129200",
+      "field": "text.en",
+      "from": "- Of platinum, including metal clad with platinum but excluding sweepings containing other precious metals",
+      "to": "Of platinum, including metal clad with platinum but excluding sweepings containing other precious metals",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71129910",
+      "field": "text.vi",
+      "from": "kê cả",
+      "to": "kể cả",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71132010",
+      "field": "text.vi",
+      "from": "- Bộ phận",
+      "to": "Bộ phận",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71132010",
+      "field": "text.en",
+      "from": "- Parts",
+      "to": "Parts",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71132090",
+      "field": "text.vi",
+      "from": "- Loại khác",
+      "to": "Loại khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71132090",
+      "field": "text.en",
+      "from": "- Other",
+      "to": "Other",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71141100",
+      "field": "text.vi",
+      "from": "Băng bạc",
+      "to": "Bằng bạc",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71141100",
+      "field": "text.vi",
+      "from": "- Bằng bạc, đã hoặc chưa mạ hoặc dát phủ kim loại quý khác",
+      "to": "Bằng bạc, đã hoặc chưa mạ hoặc dát phủ kim loại quý khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71141100",
+      "field": "text.en",
+      "from": "- Of silver, whether or not plated or clad with other precious metal",
+      "to": "Of silver, whether or not plated or clad with other precious metal",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71141900",
+      "field": "text.vi",
+      "from": "Băng kim loại",
+      "to": "Bằng kim loại",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71141900",
+      "field": "text.vi",
+      "from": "- Bằng kim loại quý khác, đã hoặc chưa mạ hoặc dát phủ kim loại quý",
+      "to": "Bằng kim loại quý khác, đã hoặc chưa mạ hoặc dát phủ kim loại quý",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71141900",
+      "field": "text.en",
+      "from": "- Of other precious metal, whether or not plated or clad with precious metal",
+      "to": "Of other precious metal, whether or not plated or clad with precious metal",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71151000",
+      "field": "text.vi",
+      "from": "tâm đan",
+      "to": "tấm đan",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71159010",
+      "field": "text.vi",
+      "from": "- Bằng vàng hoặc bạc",
+      "to": "Bằng vàng hoặc bạc",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71159010",
+      "field": "text.en",
+      "from": "- Of gold or silver",
+      "to": "Of gold or silver",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71159020",
+      "field": "text.vi",
+      "from": "- Bằng kim loại dát phủ vàng hoặc bạc",
+      "to": "Bằng kim loại dát phủ vàng hoặc bạc",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71159020",
+      "field": "text.en",
+      "from": "- Of metal clad with gold or silver",
+      "to": "Of metal clad with gold or silver",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71159090",
+      "field": "text.vi",
+      "from": "- Loại khác",
+      "to": "Loại khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71159090",
+      "field": "text.en",
+      "from": "- Other",
+      "to": "Other",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71161000",
+      "field": "text.vi",
+      "from": "nuôi cây",
+      "to": "nuôi cấy",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71179010",
+      "field": "text.vi",
+      "from": "- Vòng",
+      "to": "Vòng",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71179010",
+      "field": "text.en",
+      "from": "- Bangles",
+      "to": "Bangles",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71179020",
+      "field": "text.vi",
+      "from": "- Các đồ trang sức khác",
+      "to": "Các đồ trang sức khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71179020",
+      "field": "text.en",
+      "from": "- Other imitation jewellery",
+      "to": "Other imitation jewellery",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71179094",
+      "field": "text.vi",
+      "from": "Làm toàn bộ băng",
+      "to": "Làm toàn bộ bằng",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71179094",
+      "field": "text.vi",
+      "from": "hoặc băng sứ",
+      "to": "hoặc bằng sứ",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71179094",
+      "field": "text.vi",
+      "from": "vật liệu khăc",
+      "to": "vật liệu khắc",
+      "occurrences": 3,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71179094",
+      "field": "text.en",
+      "from": "mother- of-pearl",
+      "to": "mother-of-pearl",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71181010",
+      "field": "text.vi",
+      "from": "Tiên băng",
+      "to": "Tiền bằng",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71181010",
+      "field": "text.vi",
+      "from": "- Tiền bằng bạc",
+      "to": "Tiền bằng bạc",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71181010",
+      "field": "text.en",
+      "from": "- Silver coin",
+      "to": "Silver coin",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71181090",
+      "field": "text.vi",
+      "from": "- Loại khác",
+      "to": "Loại khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71181090",
+      "field": "text.en",
+      "from": "- Other",
+      "to": "Other",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71189010",
+      "field": "text.vi",
+      "from": "Tiên băng",
+      "to": "Tiền bằng",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71189010",
+      "field": "text.vi",
+      "from": "loại pháp định ^",
+      "to": "loại pháp định (*)",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71189010",
+      "field": "text.vi",
+      "from": "- Tiền bằng vàng, loại pháp định (*) hoặc không phải loại pháp định",
+      "to": "Tiền bằng vàng, loại pháp định (*) hoặc không phải loại pháp định",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71189010",
+      "field": "text.en",
+      "from": "- Gold coin, whether or not legal tender",
+      "to": "Gold coin, whether or not legal tender",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71189020",
+      "field": "text.vi",
+      "from": "Tiên băng",
+      "to": "Tiền bằng",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71189020",
+      "field": "text.vi",
+      "from": "loại pháp định ^",
+      "to": "loại pháp định (*)",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "HS8:71189020",
+      "field": "text.vi",
+      "from": "- Tiền bằng bạc, loại pháp định (*)",
+      "to": "Tiền bằng bạc, loại pháp định (*)",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71189020",
+      "field": "text.en",
+      "from": "- Silver coin, being legal tender",
+      "to": "Silver coin, being legal tender",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71189090",
+      "field": "text.vi",
+      "from": "- Loại khác",
+      "to": "Loại khác",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "HS8:71189090",
+      "field": "text.en",
+      "from": "- Other",
+      "to": "Other",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "CTX:71:001",
+      "field": "text.vi",
+      "from": "nuôi cây",
+      "to": "nuôi cấy",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "CTX:71:008",
+      "field": "text.vi",
+      "from": "Không phải dạng tiên tệ",
+      "to": "Không phải dạng tiền tệ",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "CTX:71:014",
+      "field": "text.vi",
+      "from": "Băng kim loại",
+      "to": "Bằng kim loại",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "CTX:71:015",
+      "field": "text.vi",
+      "from": "Băng kim loại",
+      "to": "Bằng kim loại",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "CTX:71:017",
+      "field": "text.vi",
+      "from": "- Bộ phận:",
+      "to": "Bộ phận:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "CTX:71:017",
+      "field": "text.en",
+      "from": "- Parts:",
+      "to": "Parts:",
+      "occurrences": 1,
+      "verification": "normalization rule: remove tariff indentation marker only"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_01",
+      "field": "text.en",
+      "from": "classiữed",
+      "to": "classified",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_02",
+      "field": "text.en",
+      "from": "íittings",
+      "to": "fittings",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_02",
+      "field": "text.en",
+      "from": "omamentation",
+      "to": "ornamentation",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_02",
+      "field": "text.en",
+      "from": "íbregoing",
+      "to": "foregoing",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_03",
+      "field": "text.vi",
+      "from": "(ij) 0 dù",
+      "to": "(ij) Ô dù",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_03",
+      "field": "text.vi",
+      "from": "(1) Các sản phẩm thuộc Chương 90",
+      "to": "(l) Các sản phẩm thuộc Chương 90",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_03",
+      "field": "text.vi",
+      "from": "Chương 9 5 ’ (o)",
+      "to": "Chương 95; (o)",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_03",
+      "field": "text.en",
+      "from": "classitìed",
+      "to": "classified",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_03",
+      "field": "text.en",
+      "from": "classiĩied",
+      "to": "classified",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_03",
+      "field": "text.en",
+      "from": "íillings",
+      "to": "fillings",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_03",
+      "field": "text.en",
+      "from": "(1) Articles of Chapter 90",
+      "to": "(l) Articles of Chapter 90",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_03",
+      "field": "text.en",
+      "from": "scientiữc",
+      "to": "scientific",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_04",
+      "field": "text.en",
+      "from": "specitìed",
+      "to": "specified",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_05",
+      "field": "text.en",
+      "from": "classitìed",
+      "to": "classified",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_05",
+      "field": "text.en",
+      "from": "inter- metallic",
+      "to": "inter-metallic",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_06",
+      "field": "text.en",
+      "from": "othenvise",
+      "to": "otherwise",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_07",
+      "field": "text.en",
+      "from": "othenvise",
+      "to": "otherwise",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_07",
+      "field": "text.en",
+      "from": "affìxed",
+      "to": "affixed",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_08",
+      "field": "text.en",
+      "from": "classiữed",
+      "to": "classified",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_10",
+      "field": "text.en",
+      "from": "omaments",
+      "to": "ornaments",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_10",
+      "field": "text.en",
+      "from": "offìce",
+      "to": "office",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_11",
+      "field": "text.vi",
+      "from": "trừ trương hợp",
+      "to": "trừ trường hợp",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_NOTE_11",
+      "field": "text.en",
+      "from": "dress- combs",
+      "to": "dress-combs",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_SUBHEADING_NOTE_03",
+      "field": "text.en",
+      "from": "classitìed",
+      "to": "classified",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_SUBHEADING_NOTE_03",
+      "field": "text.en",
+      "from": "classifìcation",
+      "to": "classification",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    },
+    {
+      "record_id": "XIV_CH71_FOOTNOTE_7118_LEGAL_TENDER",
+      "field": "text.vi",
+      "from": "được hiêu là",
+      "to": "được hiểu là",
+      "occurrences": 1,
+      "verification": "uploaded TT31 source render + official Công Báo PDF"
+    }
+  ],
+  "context_scope_hs8": {
+    "CTX:71:001": [
+      "7101.21.00",
+      "7101.22.00"
+    ],
+    "CTX:71:002": [
+      "7102.21.00",
+      "7102.29.00"
+    ],
+    "CTX:71:003": [
+      "7102.31.00",
+      "7102.39.00"
+    ],
+    "CTX:71:004": [
+      "7103.91.10",
+      "7103.91.90",
+      "7103.99.00"
+    ],
+    "CTX:71:005": [
+      "7104.21.00",
+      "7104.29.00"
+    ],
+    "CTX:71:006": [
+      "7104.91.00",
+      "7104.99.00"
+    ],
+    "CTX:71:007": [
+      "7106.91.00",
+      "7106.92.00"
+    ],
+    "CTX:71:008": [
+      "7108.11.00",
+      "7108.12.10",
+      "7108.12.90",
+      "7108.13.00"
+    ],
+    "CTX:71:009": [
+      "7110.11.10",
+      "7110.11.90",
+      "7110.19.00"
+    ],
+    "CTX:71:010": [
+      "7110.21.10",
+      "7110.21.90",
+      "7110.29.00"
+    ],
+    "CTX:71:011": [
+      "7110.31.10",
+      "7110.31.90",
+      "7110.39.00"
+    ],
+    "CTX:71:012": [
+      "7110.41.10",
+      "7110.41.90",
+      "7110.49.00"
+    ],
+    "CTX:71:013": [
+      "7112.91.00",
+      "7112.92.00",
+      "7112.99.10",
+      "7112.99.90"
+    ],
+    "CTX:71:014": [
+      "7113.11.10",
+      "7113.11.90",
+      "7113.19.10",
+      "7113.19.90"
+    ],
+    "CTX:71:015": [
+      "7114.11.00",
+      "7114.19.00"
+    ],
+    "CTX:71:016": [
+      "7117.11.10",
+      "7117.11.90",
+      "7117.19.10",
+      "7117.19.20",
+      "7117.19.90"
+    ],
+    "CTX:71:017": [
+      "7117.90.94",
+      "7117.90.99"
+    ]
+  }
+}

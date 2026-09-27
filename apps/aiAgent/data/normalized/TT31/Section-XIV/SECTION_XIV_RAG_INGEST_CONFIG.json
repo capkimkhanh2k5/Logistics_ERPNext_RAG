@@ -1,0 +1,106 @@
+{
+  "schema_version": "1.1",
+  "phase": "P10_RAG_INGEST_BUILD",
+  "section": "XIV",
+  "chapter": "71",
+  "input": "SECTION_XIV_MASTER_NORMALIZED.jsonl",
+  "output": "SECTION_XIV_RAG_INGEST.jsonl",
+  "document_policy": {
+    "one_document_per_normalized_record": true,
+    "source_record_ids_preserved": true,
+    "legal_note_bodies_duplicated_into_hs_documents": false,
+    "legal_note_ids_materialized_as_metadata": true,
+    "ancestor_descriptions_added_to_retrieval_text": true,
+    "context_labels_added_to_heading_subheading_hs8_documents": false,
+    "source_raw_text_in_fts_fields": false,
+    "no_translation_or_semantic_rewrite": true,
+    "context_label_scope": "Branch-scoped: HS8 gets only labels whose source branch contains the code; subheading gets a label only when all descendant HS8 codes are inside that branch; heading-level documents receive no branch label."
+  },
+  "retrieval_channels": {
+    "dense": {
+      "enabled": true,
+      "model_hint": "BGE-M3",
+      "field": "content.embedding_text",
+      "skip_when": "record has no source-supported semantic text"
+    },
+    "sparse": {
+      "enabled": true,
+      "model_hint": "BGE-M3 sparse",
+      "field": "content.sparse_text"
+    },
+    "fts": {
+      "enabled": true,
+      "fields": [
+        "content.fts.code",
+        "content.fts.code_compact",
+        "content.fts.text_vi",
+        "content.fts.text_en"
+      ]
+    },
+    "exact": {
+      "enabled": true,
+      "field": "content.exact_keys",
+      "priority": "highest for exact HS-code matches"
+    },
+    "metadata_hierarchy_filter": {
+      "enabled": true,
+      "fields": [
+        "metadata.section",
+        "metadata.chapter",
+        "metadata.subchapter",
+        "metadata.record_type",
+        "metadata.hs_level",
+        "metadata.hs_code",
+        "metadata.heading_code",
+        "metadata.subheading_code",
+        "metadata.canonical_unit"
+      ]
+    },
+    "graph_expansion": {
+      "enabled": true,
+      "source": "SECTION_XIV_GRAPH_EDGES.jsonl",
+      "legal_metadata_fields": [
+        "legal_context.direct_note_ids",
+        "legal_context.inherited_note_ids",
+        "legal_context.effective_note_ids",
+        "legal_context.graph_outgoing",
+        "legal_context.graph_incoming"
+      ]
+    },
+    "fusion": {
+      "method_hint": "RRF",
+      "reranker_hint": "BGE reranker"
+    }
+  },
+  "recommended_query_flow": [
+    "query_understanding",
+    "section_chapter_router",
+    "metadata_hierarchy_filter",
+    "exact_match",
+    "dense_retrieval",
+    "sparse_retrieval",
+    "fts_retrieval",
+    "rrf_fusion",
+    "rerank",
+    "graph_expansion_for_legal_context",
+    "final_evidence_assembly"
+  ],
+  "final_qa_verification_sources": [
+    {
+      "name": "Công Báo Chính phủ - Thông tư 31/2022/TT-BTC, Phụ lục I",
+      "url": "https://congbao.cdnchinhphu.vn/CongBaoCP/VanBan/2022/6/37431/41030-1-2022541-54231-2022-tt-btc.pdf",
+      "role": "Primary online verification of Chapter 71 wording, codes, branch structure and units"
+    },
+    {
+      "name": "ASEAN - In-Force Tariff Schedules (AHTN 2022), including Viet Nam",
+      "url": "https://asean.org/annex-2-tariff-schedules/",
+      "role": "Independent confirmation that the applicable regional nomenclature basis is AHTN 2022"
+    },
+    {
+      "name": "ASEAN Trade Repository - Tariff nomenclature",
+      "url": "https://atr.asean.org/read/tariff-nomenclature/39",
+      "role": "Independent explanation of AHTN/HS tariff nomenclature structure"
+    }
+  ],
+  "final_qa_status": "SOURCE_VERIFIED"
+}
