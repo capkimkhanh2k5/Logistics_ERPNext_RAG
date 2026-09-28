@@ -63,6 +63,31 @@ def code_mention_plan(query: str) -> dict:
     }
 
 
+def qa_candidate_pool(
+    direct: list[dict], parents: list[dict], notes: list[dict], limit: int,
+    direct_fraction: float = 0.7,
+) -> list[dict]:
+    """Reserve room for cited graph neighbors before scoring a fixed rerank pool."""
+    if limit < 1 or not 0 < direct_fraction <= 1:
+        raise ValueError("Invalid QA candidate-pool budget")
+    direct_quota = max(1, min(limit, int(limit * direct_fraction)))
+    selected = list(direct[:direct_quota])
+    seen = {row["id"] for row in selected}
+    neighbors = []
+    for index in range(max(len(parents), len(notes))):
+        for group in (parents, notes):
+            if index >= len(group):
+                continue
+            row = group[index]
+            if row["id"] not in seen and row.get("source_text") and row.get("locator"):
+                neighbors.append({**row, "score": row.get("score", 0.0)})
+                seen.add(row["id"])
+    selected.extend(neighbors[: limit - len(selected)])
+    seen = {row["id"] for row in selected}
+    selected.extend(row for row in direct if row["id"] not in seen and len(selected) < limit)
+    return selected
+
+
 def unique_codes(rows: list[dict], limit: int) -> list[dict]:
     output = []
     seen = set()
@@ -1134,13 +1159,16 @@ class Retriever:
             "validation_status": "RETRIEVAL_ONLY_REQUIRES_LEGAL_REASONING",
         }
 
-    def qa_search(self, query: str, top_k: int = 10) -> dict:
+    def qa_search(
+        self, query: str, top_k: int = 10, policy_override: dict | None = None,
+        include_package: bool = True,
+    ) -> dict:
         """Explicit evidence-QA task: source chunks at all levels, no gold labels."""
         from rag.evaluation import QA_CHUNK_TYPES
 
         if top_k < 1:
             raise ValueError("top_k must be positive")
-        policy = getattr(self, "qa_policy", None)
+        policy = policy_override or getattr(self, "qa_policy", None)
         if not policy:
             raise ValueError("QA policy has not been selected on the supplied train partition")
         started = time.perf_counter()
@@ -1149,6 +1177,7 @@ class Retriever:
         encoded = self.embedder.encode([query]) if self.embedder else None
         if encoded is None:
             raise ValueError("QA retrieval requires an embedder")
+        assert self.embedder is not None
         filters: dict[str, Any] = {"chunk_types": QA_CHUNK_TYPES}
         functions = {
             "dense": lambda: self.dense(encoded["dense"][0], "knowledge", pool, **filters),
@@ -1159,6 +1188,61 @@ class Retriever:
         }
         branches = {name: functions[name]() for name in policy["weights"]}
         ranked = fuse(branches, policy["k"], policy["weights"])
+        neutral_query = " ".join(plan["exact_query"].split())
+        query_split_used = False
+        split_weight = policy.get("query_split_weight", 0.0)
+        if split_weight and neutral_query != " ".join(query.split()):
+            if not 0 < split_weight < 1:
+                raise ValueError("QA query split weight must be between 0 and 1")
+            neutral_encoded = self.embedder.encode([neutral_query])
+            neutral_filters: dict[str, Any] = {"chunk_types": ["tariff_entry"]}
+            neutral_functions = {
+                "dense": lambda: self.dense(
+                    neutral_encoded["dense"][0], "knowledge", pool, **neutral_filters
+                ),
+                "sparse": lambda: self.sparse(
+                    neutral_encoded["sparse"][0], "knowledge", pool, **neutral_filters
+                ),
+                "bm25": lambda: self.bm25(neutral_query, "knowledge", pool, **neutral_filters),
+                "fts": lambda: self.lexical(neutral_query, "knowledge", pool, **neutral_filters),
+                "exact": lambda: self.exact_match(
+                    neutral_query, "knowledge", pool, **neutral_filters
+                ),
+            }
+            neutral_branches = {name: neutral_functions[name]() for name in policy["weights"]}
+            neutral_ranked = fuse(neutral_branches, policy["k"], policy["weights"])
+            ranked = fuse(
+                {"original": ranked, "code_neutral": neutral_ranked},
+                policy["k"],
+                {"original": 1 - split_weight, "code_neutral": split_weight},
+            )
+            query_split_used = True
+        graph_candidates: dict[str, list[Any]] = {"parents": [], "notes": [], "trace": []}
+        if policy.get("graph_before_rerank"):
+            if policy.get("reranker") != "cross_encoder":
+                raise ValueError("Graph-before-rerank requires a cross-encoder policy")
+            seeds = ranked[: policy.get("graph_seed_count", 6)]
+            tariff_seeds = [r for r in seeds if r["chunk_type"] == "tariff_entry"]
+            parents = self.tariff_ancestors(tariff_seeds, limit=30) if tariff_seeds else {
+                "records": [], "trace": []
+            }
+            graph = self.evidence(
+                seeds, limit=30, hops=self.cfg["evidence_hops"],
+                query_vector=encoded["dense"][0],
+            )
+            graph_candidates = {
+                "parents": [r["id"] for r in parents["records"]],
+                "notes": [r["id"] for r in graph["records"]],
+                "trace": parents["trace"] + graph["trace"],
+            }
+            parent_rows = sorted(
+                parents["records"], key=lambda row: (-int(row.get("level") or 0), row["id"])
+            )
+            ranked = qa_candidate_pool(
+                ranked, parent_rows, graph["records"],
+                policy["rerank_pool"], policy.get("direct_fraction", 0.7),
+            )
+        pre_rerank_ids = [r["id"] for r in ranked[: policy.get("rerank_pool", pool)]]
         if policy.get("reranker") == "cross_encoder":
             if not hasattr(self, "_reranker"):
                 import torch
@@ -1177,6 +1261,18 @@ class Retriever:
                 policy["k"],
             )
         matches = ranked[:top_k]
+        if not include_package:
+            return {
+                "query": query,
+                "snapshot": self.snapshot,
+                "matches": matches,
+                "pre_rerank_ids": pre_rerank_ids,
+                "graph_candidates": graph_candidates,
+                "query_split_used": query_split_used,
+                "policy": policy,
+                "elapsed_ms": (time.perf_counter() - started) * 1000,
+                "validation_status": "RETRIEVAL_ONLY_REQUIRES_LEGAL_REASONING",
+            }
         families = self.rule_family_evidence(query, matches)
         graph = self.evidence(matches[:3], limit=30, hops=self.cfg["evidence_hops"])
         tariff_seeds = [r for r in matches if r["chunk_type"] == "tariff_entry"]
@@ -1212,6 +1308,9 @@ class Retriever:
             "matches": matches,
             "package": list(package.values()),
             "query_plan": plan,
+            "query_split_used": query_split_used,
+            "pre_rerank_ids": pre_rerank_ids,
+            "graph_candidates": graph_candidates,
             "routing": self.route(query),
             "policy": policy,
             "evidence": graph,

@@ -186,8 +186,8 @@ def test_verified_gold_uses_supplied_partitions_and_normalized_grid():
     rows, paths = discover_gold()
     assert len(rows) == 390
     assert paths == [
-        "data/verified/train/HS_RAG_TRAIN_300_VERIFIED.jsonl",
-        "data/verified/test/HS_RAG_TEST_90_DISJOINT_VERIFIED.jsonl",
+        "data/verified/hs/train/HS_RAG_TRAIN_300_VERIFIED.jsonl",
+        "data/verified/hs/test/HS_RAG_TEST_90_DISJOINT_VERIFIED.jsonl",
     ]
     assert all(r["expected_hs_8"] not in r["query"] for r in rows)
     grid = weight_grid(("dense", "sparse", "bm25", "fts", "exact"))
@@ -362,14 +362,20 @@ def test_qa_verified_targets_match_current_sources():
     from rag.evaluation import discover_qa
 
     cases = discover_qa(build_corpus())
-    assert len(cases) == 250
-    assert sum(c["split"] == "train" for c in cases) == 200
-    assert sum(c["split"] == "test" for c in cases) == 50
+    assert len(cases) == 470
+    assert sum(c["split"] == "train" for c in cases) == 320
+    assert sum(c["split"] == "test" for c in cases) == 150
     assert next(c for c in cases if c["id"] == "Q001")["canonical_groups"][0]["any_of"] == [
         "tt85:TT85-A2-2"
     ]
     assert next(c for c in cases if c["id"] == "Q200")["canonical_groups"][0]["any_of"] == [
         "tt31:SXVII_NOTE_2"
+    ]
+    assert next(c for c in cases if c["id"] == "Q201")["canonical_groups"][0]["any_of"] == [
+        "tt31:HS4:7105"
+    ]
+    assert next(c for c in cases if c["id"] == "LQ150")["canonical_groups"][0]["any_of"] == [
+        "tt85:TT85-A16-1"
     ]
 
 
@@ -452,6 +458,43 @@ def test_qa_reranker_preserves_multiple_chunks_without_hs_codes():
     ]
     ranked = rerank_evidence("rule", rows, FakeReranker(), 2, 1.0, 20)
     assert [r["id"] for r in ranked] == ["gir:GIR_3B", "gir:GIR_3A"]
+
+
+def test_qa_graph_pool_keeps_direct_results_and_real_cited_neighbors():
+    from rag.retrieval import qa_candidate_pool
+
+    direct = [{"id": key, "score": 1.0} for key in "abcd"]
+    parents = [
+        {"id": "parent", "source_text": "Nhóm 85.34", "locator": {"page": 1}},
+        {"id": "structural", "source_text": "", "locator": {"page": 1}},
+    ]
+    notes = [
+        {"id": "note", "source_text": "Chú giải 8", "locator": {"page": 2}},
+        {"id": "a", "source_text": "duplicate", "locator": {"page": 3}},
+    ]
+    pooled = qa_candidate_pool(direct, parents, notes, 4, direct_fraction=0.5)
+    assert [row["id"] for row in pooled] == ["a", "b", "parent", "note"]
+    assert all("score" in row for row in pooled)
+    assert [row["id"] for row in qa_candidate_pool(direct, [], [], 4)] == list("abcd")
+
+
+def test_indexed_corpus_contains_no_english_search_passages():
+    rows = build_corpus()["records"]
+    contaminated = (
+        "EN:",
+        "with the apparatus of heading",
+        "Of a kind used in radio equipment",
+        "Battery clamps, of a kind",
+        "Of electric accumulators of a kind",
+    )
+    assert all(
+        not any(fragment in row[field] for fragment in contaminated)
+        for row in rows
+        for field in ("embedding_text", "lexical_text")
+    )
+    assert next(row for row in rows if row["id"] == "tt31:SXVI-T-8506")[
+        "embedding_text"
+    ] == "Mã 85.06; Pin và bộ pin."
 
 
 def test_qa_weight_sweep_uses_all_primary_sources():

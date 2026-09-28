@@ -67,6 +67,56 @@ def source_files() -> dict:
     return {key: read(NORMALIZED / path) for key, path in SOURCES.items()}
 
 
+def xiv_vietnamese_view(master: dict, masters: dict[str, dict]) -> str:
+    """Use only the source's Vietnamese tariff text and nearest cited ancestors."""
+    code = master["hs"].get("code")
+    own = master["text"].get("vi") or master["text"].get("source_raw_vi")
+    parts = [f"Mã {code}." if code else ""]
+    if own:
+        parts.append(own)
+    seen = {own}
+    for ancestor_id in reversed(master["hierarchy"].get("ancestor_ids", [])):
+        ancestor = masters.get(ancestor_id)
+        if not ancestor:
+            continue
+        text = ancestor["text"].get("vi")
+        if text and text not in seen:
+            parts.append(f"Ngữ cảnh {ancestor['hs'].get('code') or ancestor_id}: {text}")
+            seen.add(text)
+        if len(seen) >= 3:
+            break
+    unit = master.get("unit", {}).get("vi")
+    if unit:
+        parts.append(f"Đơn vị: {unit}")
+    if not any(parts):
+        parts.append(f"Phần XIV, Chương {master['chapter']['code']}")
+    return " ".join(" ".join(parts).split())
+
+
+def xvii_vietnamese_view(master: dict) -> str:
+    """Build a search view from the verified Vietnamese fields of one XVII node."""
+    content = master["content"]
+    code = master.get("code")
+    parts = [f"Mã {code}." if code else ""]
+    for field in (
+        "title_vi_normalized",
+        "description_vi_normalized",
+        "legal_text_vi_normalized",
+        "supplemental_text_normalized",
+        "unit_vi_normalized",
+    ):
+        value = content.get(field)
+        if value:
+            parts.append(value)
+    if not any(parts):
+        terms = master.get("legal", {}).get("defined_terms_raw", [])
+        if terms:
+            parts.append(f"Thuật ngữ: {terms[0]}")
+    if not any(parts):
+        parts.append(f"Phần XVII, Chương {master['chapter']}")
+    return " ".join(" ".join(parts).split())
+
+
 def audit() -> dict:
     data = source_files()
     validator = jsonschema.Draft202012Validator(data["tt31_section_xvi_schema"])
@@ -111,6 +161,23 @@ def audit() -> dict:
             "duplicate_wording": len(records)
             - len({r["content"]["embedding_text"] for r in records}),
         }
+    xvii_master = {r["id"]: r for r in data["tt31_section_xvii_master"]}
+    assert all(
+        r["language_profile"] == "vi"
+        and r["content"]["embedding_text"]
+        == r["content"]["fts_text"]
+        == xvii_vietnamese_view(xvii_master[r["source_node_id"]])
+        for r in data["tt31_section_xvii"]
+    ), "Section XVII search inputs must use the verified Vietnamese view"
+    xiv_master = {r["id"]: r for r in data["tt31_section_xiv_master"]}
+    assert all(
+        r.get("search_language") == "vi"
+        and r["content"]["embedding_text"]
+        == r["content"]["sparse_text"]
+        == r["content"]["search_text"]
+        == xiv_vietnamese_view(xiv_master[r["source_record_id"]], xiv_master)
+        for r in data["tt31_section_xiv"]
+    ), "Section XIV search inputs must use the verified Vietnamese view"
     codes = {r["metadata"]["code"] for r in data["tt31_section_xvi"] if r["metadata"].get("code")}
     codes |= {r["metadata"].get("hs_code_compact") for r in data["tt31_section_xiv"]}
     codes |= {r["metadata"].get("hs8_compact") for r in data["tt31_section_xvii"]}

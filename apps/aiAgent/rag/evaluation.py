@@ -432,56 +432,62 @@ def sweep_router(cache: list[dict]) -> list[dict]:
     )
 
 
-def discover_qa(bundle: dict) -> list[dict]:
-    """Resolve verified source IDs, validate hashes, and keep labels out of retrieval."""
-    import hashlib
-    from pathlib import Path
+def discover_qa(bundle: dict, split: str | None = None) -> list[dict]:
+    """Resolve the supplied QA partitions to cited atomic chunks.
 
-    master = ROOT / "data/verified/qa/LEGAL_RETRIEVAL_BENCHMARK_250_MASTER.jsonl"
-    if master.exists():
-        return discover_qa_master(bundle, master)
-    cases = read(ROOT / "data/verified/qa/QA.jsonl")
-    chunks = {r["id"] for r in bundle["records"]}
-    nodes = {r["id"] for r in bundle["nodes"]}
-    if len({c["id"] for c in cases}) != len(cases):
+    Reading only train keeps the held-out labels outside policy selection.
+    """
+    if split not in (None, "train", "test"):
+        raise ValueError("QA split must be train, test, or None")
+    root = ROOT / "data/verified/qa"
+    paths = {
+        "train": root / "train/LEGAL_RETRIEVAL_TRAIN.jsonl",
+        "test": root / "test/LEGAL_RETRIEVAL_TEST.jsonl",
+    }
+    partitions = (split,) if split else ("train", "test")
+    rows = []
+    for partition in partitions:
+        for case in read(paths[partition]):
+            if case.get("split") != partition:
+                raise ValueError(f"QA partition mismatch: {case['id']}")
+            rows.append(case)
+    if len({r["id"] for r in rows}) != len(rows):
         raise ValueError("Duplicate QA IDs")
-    for case in cases:
+    if len({r["query"].strip().casefold() for r in rows}) != len(rows):
+        raise ValueError("Duplicate QA queries")
+    if len({r["case_family_id"] for r in rows}) != len(rows):
+        raise ValueError("QA case families overlap within the selected partitions")
+    if split is None:
+        master = read(root / "all/LEGAL_RETRIEVAL_MASTER.jsonl")
+        if {r["id"]: r for r in master} != {r["id"]: r for r in rows}:
+            raise ValueError("QA master differs from supplied train/test partitions")
+
+    records = {r["id"]: r for r in bundle["records"]}
+    by_source: dict[str, list[dict]] = {}
+    for record in records.values():
+        by_source.setdefault(record["source_id"], []).append(record)
+    for case in rows:
         mapping = {}
-        for target in case["gold_targets"]["primary"] + case["gold_targets"]["secondary"]:
-            dataset = (
-                "tt31" if target["dataset"] in ("XIV", "XVI", "XVII") else target["dataset"].lower()
-            )
-            canonical = (
-                dataset
-                + ":"
-                + (target["record_id"] or target["chunk_id"] or target["retrieval_id"])
-            )
-            structural = target.get("structural_only", False)
-            if canonical not in (nodes if structural else chunks):
-                raise ValueError(f"QA target absent: {case['id']} {canonical}")
-            path = Path(target["source_file"])
-            if not path.is_file():
-                # The source basename is stable when a benchmark was exported on another host.
-                found = list((ROOT / "data/normalized").rglob(path.name))
-                if len(found) != 1:
-                    raise ValueError(f"Ambiguous QA source: {path.name}")
-                path = found[0]
-            if hashlib.sha256(path.read_bytes()).hexdigest() != target["source_sha256"]:
-                raise ValueError(f"QA source changed since verification: {case['id']} {path.name}")
-            mapping[target["retrieval_id"]] = canonical
-        groups = [
-            {"label": g["label"], "any_of": [mapping[x] for x in g["any_of"]]}
-            for g in case["evaluation"]["required_evidence_groups"]
+        entries = case.get("record_mapping") or case.get("source_locations") or []
+        for target in entries:
+            source_id = target["source_record_id"]
+            candidates = [
+                r for r in by_source.get(source_id, []) if r["chunk_type"] in QA_CHUNK_TYPES
+            ]
+            if len(candidates) != 1:
+                raise ValueError(f"QA source absent or ambiguous: {case['id']} {source_id}")
+            mapping[target["chunk_id"]] = candidates[0]["id"]
+        primary = case["gold_primary_chunk_ids"]
+        secondary = case.get("gold_secondary_chunk_ids", [])
+        if not primary or any(alias not in mapping for alias in primary + secondary):
+            raise ValueError(f"QA gold chunk has no source mapping: {case['id']}")
+        case["canonical_groups"] = [
+            {"label": alias, "any_of": [mapping[alias]]} for alias in primary
         ]
-        if not case["evaluation"]["eligible_for_strict_scoring"] or not groups:
-            raise ValueError(f"QA is not eligible for strict scoring: {case['id']}")
-        if any(x not in chunks for g in groups for x in g["any_of"]):
-            raise ValueError(
-                "Structural-only node cannot satisfy a required textual evidence group"
-            )
-        case["canonical_groups"] = groups
+        case["canonical_secondary"] = [mapping[alias] for alias in secondary]
         case["canonical_id_mapping"] = mapping
-    return cases
+        case["category"] = case.get("category") or case["retrieval_type"]
+    return rows
 
 
 def qa_coverage(case: dict, ranked: list[dict], package: list[dict]) -> dict:
@@ -543,54 +549,6 @@ QA_CHUNK_TYPES = [
     "tariff_entry",
     "legal_clause",
 ]
-
-
-def discover_qa_master(bundle: dict, master: Any) -> list[dict]:
-    """Respect supplied subsets and resolve export aliases to active atomic chunks."""
-    import hashlib
-
-    manifest = read(master.parent / "LEGAL_RETRIEVAL_BENCHMARK_MANIFEST.json")
-    entries = manifest["files"]
-    if isinstance(entries, dict):
-        entries = [{"file": name, **value} for name, value in entries.items()]
-    expected = [
-        e for e in entries if "250_MASTER" in e.get("file", e.get("filename", e.get("path", "")))
-    ]
-    if not expected:
-        raise ValueError("Master digest missing from QA manifest")
-    if hashlib.sha256(master.read_bytes()).hexdigest() != expected[0]["sha256"]:
-        raise ValueError("QA master differs from manifest")
-    rows = read(master)
-    records = {r["id"]: r for r in bundle["records"]}
-    if len(rows) != 250 or len({r["id"] for r in rows}) != 250:
-        raise ValueError("QA master requires 250 unique IDs")
-    if len({r["query"].strip().casefold() for r in rows}) != 250:
-        raise ValueError("Duplicate QA queries")
-    for case in rows:
-        subset = case["benchmark_subset"]
-        if subset not in ("expanded_200", "original_50"):
-            raise ValueError("Unknown supplied QA subset")
-        case["split"] = "train" if subset == "expanded_200" else "test"
-        mapping = {}
-        primary: list[str] = []
-        secondary: list[str] = []
-        for target in case["record_mapping"]:
-            namespace = target["source_namespace"]
-            dataset = "tt31" if namespace.startswith("TT31_SECTION_") else namespace.lower()
-            canonical = dataset + ":" + target["source_record_id"]
-            if canonical not in records or records[canonical]["chunk_type"] not in QA_CHUNK_TYPES:
-                raise ValueError(f"QA source absent or unsupported: {case['id']} {canonical}")
-            mapping[target["chunk_id"]] = canonical
-            (primary if target["role"] == "primary" else secondary).append(canonical)
-        if not primary:
-            raise ValueError("QA requires at least one primary source")
-        case["canonical_groups"] = [{"label": sid, "any_of": [sid]} for sid in primary]
-        case["canonical_secondary"] = secondary
-        case["canonical_id_mapping"] = mapping
-        case["category"] = case.get("category", case["retrieval_type"])
-    if sum(r["split"] == "train" for r in rows) != 200:
-        raise ValueError("Supplied QA split must be 200 train / 50 test")
-    return rows
 
 
 def qa_direct_coverage(case: dict, ranked: list[dict]) -> dict:
