@@ -117,7 +117,7 @@ def audit() -> dict:
     gold = [
         r
         for part in ("train", "test")
-        for path in sorted((GOLD / part).glob("*.jsonl"))
+        for path in sorted((GOLD / "hs" / part).glob("*.jsonl"))
         for r in read(path)
     ]
     missing = [r["record_id"] for r in gold if r["expected_hs_8"] not in codes]

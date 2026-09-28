@@ -99,9 +99,9 @@ def discover_gold() -> tuple[list[dict], list[str]]:
     rows = []
     paths = []
     for partition in ("train", "test"):
-        files = sorted((ROOT / "data/verified" / partition).glob("*.jsonl"))
+        files = sorted((ROOT / "data/verified/hs" / partition).glob("*.jsonl"))
         if len(files) != 1:
-            raise ValueError(f"Expected exactly one JSONL in verified/{partition}")
+            raise ValueError(f"Expected exactly one JSONL in verified/hs/{partition}")
         path = files[0]
         paths.append(str(path.relative_to(ROOT)))
         for row in read(path):
