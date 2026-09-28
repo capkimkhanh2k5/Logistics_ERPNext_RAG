@@ -1,6 +1,5 @@
 model: BAAI/bge-m3
 revision: 5617a9f61b028005a4858fdac845db406aefb181
-# Immutable model/tokenizer revision verified by the first complete run.
 device: cpu
 batch_size: 4
 max_length: 1024
@@ -17,3 +16,7 @@ fusion_weights:
   dense: 1.0
   sparse: 1.0
   fts: 0.25
+reranker_model: BAAI/bge-reranker-v2-m3
+reranker_revision: 953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e
+rerank_pool: 30
+retrieval_version: adaptive-hierarchy-v3-rank-bm25

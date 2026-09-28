@@ -7,14 +7,19 @@
   "inputs": {
     "TT31-Section-XVII.pdf": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
     "TT31-Section-XVII.docx": "27e22f3d8a45f0a00506faa726ac941bfac2f1e6f285034c74cc75f9278ed54e",
-    "SECTION_XVII_MASTER_NORMALIZED.jsonl": "61516eb32d2a391b40cbc59e836f7efedd01b3f1b6c9f4b577862c77972eda31",
-    "SECTION_XVII_GRAPH_EDGES_NORMALIZED.jsonl": "5f595d1e69354f594e3573c8e2cb2da2bcd382105899169726f6137eee01266d"
+    "SECTION_XVII_MASTER_NORMALIZED.jsonl": "5fe3fa4746a501e5c361c34b291d0d6aa7d02d1b36516837bccde845f2e8d715",
+    "SECTION_XVII_GRAPH_EDGES_NORMALIZED.jsonl": "5662495d6bbd4237cf82adc3044dc8120b3e14513fc4cbae9f19112dc92989e4"
   },
   "files": [
     {
       "filename": "README.md",
-      "size_bytes": 975,
-      "sha256": "e73de0ce8c0cc36da845cc029481b46bb7e2b726923868c744d1ba400c8f369f"
+      "size_bytes": 1414,
+      "sha256": "f8cadf4ec547cf5198840839dce59f6480f6319652590da1b9188043d0f97883"
+    },
+    {
+      "filename": "SECTION_XVII_BENCHMARK_FINAL_CORRECTIONS.json",
+      "size_bytes": 7759,
+      "sha256": "e8af2f792a559cd405e5b09fd28c713e71d45cd591237bbe2f7cc79023822d8d"
     },
     {
       "filename": "SECTION_XVII_CHUNK_MAP.jsonl",
@@ -23,8 +28,8 @@
     },
     {
       "filename": "SECTION_XVII_DATA_READY_VALIDATION.json",
-      "size_bytes": 3322,
-      "sha256": "965444d8c0e59c514520aa3818c0a597871c646e889f0591a3da59c7e9959ee1"
+      "size_bytes": 3830,
+      "sha256": "b604735f11b8f6b177b780e5bd70c76c9f2298d0836bd9b616600f6357294be9"
     },
     {
       "filename": "SECTION_XVII_EXACT_MATCH_INDEX.jsonl",
@@ -38,8 +43,8 @@
     },
     {
       "filename": "SECTION_XVII_FINAL_REPORT.json",
-      "size_bytes": 407,
-      "sha256": "5be9d9be98c11f6e5c1258900aafeafaaed7456b2ad65bb29dbdece89182d738"
+      "size_bytes": 915,
+      "sha256": "366ae326bbd39b95bab8a8374400ba770fd4ab216225b2330262746195e9f674"
     },
     {
       "filename": "SECTION_XVII_GRAPH_EDGES_NORMALIZED.jsonl",
@@ -48,8 +53,8 @@
     },
     {
       "filename": "SECTION_XVII_HS_HIERARCHY.json",
-      "size_bytes": 470365,
-      "sha256": "e8033f26c064cb857f1747cf7882489980b2e75bb700c8fd1ca3af4680f43353"
+      "size_bytes": 470430,
+      "sha256": "fe398eef1adb42afb0c69d75f20ab547d7a36700e49a6966b64c194c3054beb2"
     },
     {
       "filename": "SECTION_XVII_LEGAL_NOTES_AUDITED.jsonl",
@@ -63,8 +68,8 @@
     },
     {
       "filename": "SECTION_XVII_MASTER_NORMALIZED.jsonl",
-      "size_bytes": 7067692,
-      "sha256": "3764327d65d1c3b87340fd6a6c4dd4142ab32c12f435bd7ea8990966fd393378"
+      "size_bytes": 7444718,
+      "sha256": "5fe3fa4746a501e5c361c34b291d0d6aa7d02d1b36516837bccde845f2e8d715"
     },
     {
       "filename": "SECTION_XVII_RAG_GRAPH_LINKS.jsonl",
@@ -73,13 +78,24 @@
     },
     {
       "filename": "SECTION_XVII_RAG_INGEST.jsonl",
-      "size_bytes": 5314748,
-      "sha256": "1be213998953f04cad58019ff9cc33e96964f5f4e28ce10859c744cfc63f9763"
+      "size_bytes": 5588774,
+      "sha256": "8cfe416f317ff9743b6419f8e42f12d926404e2d38ec5978c08ae9ba4d7997a0"
     },
     {
       "filename": "SECTION_XVII_SOURCE_ROW_AUDIT.jsonl",
-      "size_bytes": 301654,
-      "sha256": "1dd923c7a7d35e1bb0f69501e2a2191ee60f72f430154f8a3ee5f194a17c604f"
+      "size_bytes": 324589,
+      "sha256": "393c578b3418fb740ed0a3b03be2279cf62496ca0e754da572546428f753c250"
     }
-  ]
+  ],
+  "previous_inputs_before_benchmark_correction": {
+    "TT31-Section-XVII.pdf": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+    "TT31-Section-XVII.docx": "27e22f3d8a45f0a00506faa726ac941bfac2f1e6f285034c74cc75f9278ed54e",
+    "SECTION_XVII_MASTER_NORMALIZED.jsonl": "61516eb32d2a391b40cbc59e836f7efedd01b3f1b6c9f4b577862c77972eda31",
+    "SECTION_XVII_GRAPH_EDGES_NORMALIZED.jsonl": "5f595d1e69354f594e3573c8e2cb2da2bcd382105899169726f6137eee01266d"
+  },
+  "benchmark_final_correction": {
+    "date": "2026-09-27",
+    "correction_log": "SECTION_XVII_BENCHMARK_FINAL_CORRECTIONS.json",
+    "backup_sha256": "64ae9f60161e15285002937c9239616101b248210584bd0e16abbd4e709527f0"
+  }
 }

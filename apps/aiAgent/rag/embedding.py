@@ -80,12 +80,42 @@ class Embedder:
 
     def corpus(self, bundle: dict) -> dict:
         rows = bundle["records"]
-        batches = []
-        sparse = []
-        lengths = []
+        # Reuse unchanged records from the prior snapshot, even if batch boundaries moved.
+        previous = ROOT / "artifacts/embedding_manifest.json"
+        reused = {}
+        if previous.exists():
+            old = json.loads(previous.read_text())
+            if old["profile_id"] == self.profile_id:
+                base = self.cache / old["snapshot"]
+                with np.load(base.with_suffix(".npz"), allow_pickle=False) as saved:
+                    old_dense = saved["dense"]
+                old_sparse = json.loads(base.with_suffix(".sparse.json").read_text())
+                reused = {
+                    h: (v, w)
+                    for h, v, w in zip(old["input_hashes"], old_dense, old_sparse, strict=True)
+                }
+        batches: list[np.ndarray] = []
+        sparse: list[dict] = []
+        lengths: list[int] = []
         step = self.cfg["checkpoint_size"]
         for start in range(0, len(rows), step):
-            output = self.encode([r["embedding_text"] for r in rows[start : start + step]])
+            batch = rows[start : start + step]
+            missing = [r for r in batch if r["input_hash"] not in reused]
+            if missing:
+                encoded = self.encode([r["embedding_text"] for r in missing])
+                for r, v, w in zip(missing, encoded["dense"], encoded["sparse"], strict=True):
+                    reused[r["input_hash"]] = (v, w)
+            texts = [r["embedding_text"] for r in batch]
+            token_lengths = [
+                len(ids) for ids in self.model.tokenizer(texts, truncation=False)["input_ids"]
+            ]
+            if max(token_lengths) > self.cfg["max_length"]:
+                raise ValueError("Corpus contains an oversized chunk")
+            output: dict = {
+                "dense": np.stack([reused[r["input_hash"]][0] for r in batch]),
+                "sparse": [reused[r["input_hash"]][1] for r in batch],
+                "token_lengths": token_lengths,
+            }
             batches.append(output["dense"])
             sparse.extend(output["sparse"])
             lengths.extend(output["token_lengths"])
@@ -122,3 +152,131 @@ def load_embeddings(bundle: dict) -> tuple[dict, np.ndarray, list]:
         else []
     )
     return manifest, dense, sparse
+
+    # Defined below as a module helper to keep dense/sparse profile compatibility.
+
+
+def multivectors(embedder: Embedder, texts: list[str]) -> list[np.ndarray]:
+    targets = [
+        embedder.cache
+        / (
+            digest({"profile": embedder.profile, "text": text, "representation": "colbert"})
+            + ".colbert.npy"
+        )
+        for text in texts
+    ]
+    pending = {
+        target: text for target, text in zip(targets, texts, strict=True) if not target.exists()
+    }
+    missing = list(pending.items())
+    for start in range(0, len(missing), 32):
+        batch = missing[start : start + 32]
+        inputs = [text for _, text in batch]
+        lengths = embedder.model.tokenizer(inputs, truncation=False)["input_ids"]
+        if max(map(len, lengths)) > embedder.cfg["max_length"]:
+            raise ValueError("Multi-vector input exceeds max_length")
+        output = embedder.model.encode(
+            inputs,
+            batch_size=embedder.cfg["batch_size"],
+            max_length=embedder.cfg["max_length"],
+            return_dense=False,
+            return_sparse=False,
+            return_colbert_vecs=True,
+        )
+        for (target, _), vector in zip(batch, output["colbert_vecs"], strict=True):
+            np.save(target, np.asarray(vector, dtype=np.float32), allow_pickle=False)
+    return [np.load(target, allow_pickle=False) for target in targets]
+
+
+class CrossEncoder:
+    def __init__(self, model: str, revision: str, device: str = "cpu") -> None:
+        from FlagEmbedding import FlagReranker
+        from huggingface_hub import snapshot_download
+
+        self.model_id, self.revision = model, revision
+        path = snapshot_download(model, revision=revision, ignore_patterns=["*.onnx", "onnx/*"])
+        self.model = FlagReranker(path, use_fp16=False, devices=device)
+        self.cache = ROOT / "artifacts/reranker"
+        self.cache.mkdir(parents=True, exist_ok=True)
+
+    def score(self, query: str, texts: list[str], use_cache: bool = True) -> list[float]:
+        if not texts:
+            return []
+        key = digest(
+            {"model": self.model_id, "revision": self.revision, "query": query, "texts": texts}
+        )
+        target = self.cache / (key + ".json")
+        pair_target = self.cache / (
+            digest(
+                {
+                    "model": self.model_id,
+                    "revision": self.revision,
+                    "query": query,
+                    "cache": "per-pair",
+                }
+            )
+            + ".pairs.json"
+        )
+        saved = json.loads(pair_target.read_text()) if use_cache and pair_target.exists() else {}
+        hashes = [digest(text) for text in texts]
+        if use_cache and target.exists():
+            result = json.loads(target.read_text())
+            saved.update(dict(zip(hashes, result, strict=True)))
+            write_json(pair_target, saved)
+            return result
+        missing = {h: text for h, text in zip(hashes, texts, strict=True) if h not in saved}
+        if missing:
+            inputs = [[query, text] for text in missing.values()]
+            lengths = self.model.tokenizer(inputs, truncation=False)["input_ids"]
+            if max(map(len, lengths)) > 1152:
+                raise ValueError(
+                    "Cross-encoder pair exceeds max_length; refusing silent truncation"
+                )
+            scores = self.model.compute_score(inputs, batch_size=4, max_length=1152)
+            saved.update(
+                {h: float(score) for h, score in zip(missing, np.atleast_1d(scores), strict=True)}
+            )
+        result = [saved[h] for h in hashes]
+        write_json(target, result)
+        write_json(pair_target, saved)
+        return result
+
+
+def colbert_scores(
+    embedder: Embedder, query: str, texts: list[str], use_cache: bool = True
+) -> list[float]:
+    target = embedder.cache / (
+        digest({"profile": embedder.profile, "query": query, "scores": "colbert-v1"})
+        + ".colbert-scores.json"
+    )
+    saved = json.loads(target.read_text()) if use_cache and target.exists() else {}
+    hashes = [digest(text) for text in texts]
+    missing = {h: text for h, text in zip(hashes, texts, strict=True) if h not in saved}
+    if missing:
+        if use_cache:
+            q = multivectors(embedder, [query])[0]
+        else:
+            if (
+                len(embedder.model.tokenizer(query, truncation=False)["input_ids"])
+                > embedder.cfg["max_length"]
+            ):
+                raise ValueError("ColBERT query exceeds max_length")
+            encoded = embedder.model.encode(
+                [query],
+                batch_size=1,
+                max_length=embedder.cfg["max_length"],
+                return_dense=False,
+                return_sparse=False,
+                return_colbert_vecs=True,
+            )
+            q = np.asarray(encoded["colbert_vecs"][0], dtype=np.float32)
+        passages = multivectors(embedder, list(missing.values()))
+        saved.update(
+            {
+                h: float(embedder.model.colbert_score(q, passage))
+                for h, passage in zip(missing, passages, strict=True)
+            }
+        )
+    result = [saved[h] for h in hashes]
+    write_json(target, saved)
+    return result

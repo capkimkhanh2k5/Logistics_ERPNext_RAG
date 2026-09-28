@@ -1,23 +1,7 @@
 {
-  "selected_mode": "dense_sparse",
-  "weights": {
-    "dense": 1,
-    "sparse": 2
-  },
-  "snapshot": "60a8f8c6cda5d6af3116c813",
+  "snapshot": "5266199cb314aab56258c716",
   "profile": "3a2ce6e6d726a0f053748717",
-  "dev_run_ids": [
-    "20260926T074427770467-6445c70d",
-    "20260926T074428642281-a5394082",
-    "20260926T074436589186-7dd8d5ac",
-    "20260926T074436991968-f325ca2a",
-    "20260926T074438614238-85f59743",
-    "20260926T074440195789-2b2231ce",
-    "20260926T074441298693-2d3f29cc",
-    "20260926T074442516161-cb5cf217",
-    "20260926T074443595020-f311716e"
-  ],
-  "selection_metric": "name_and_spec Hit@10, then MRR@10",
+  "gold_hash": "b33dec95c67fba82f8301ecbfa4c8aa0d0a8a55c71d5624bc7d193ef965b6a71",
   "retrieval": {
     "model": "BAAI/bge-m3",
     "revision": "5617a9f61b028005a4858fdac845db406aefb181",
@@ -37,6 +21,342 @@
       "dense": 1.0,
       "sparse": 1.0,
       "fts": 0.25
+    },
+    "reranker_model": "BAAI/bge-reranker-v2-m3",
+    "reranker_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+    "rerank_pool": 30,
+    "retrieval_version": "adaptive-hierarchy-v3-rank-bm25"
+  },
+  "section_policies": {
+    "XIV": {
+      "configuration": "C10",
+      "weights": {
+        "dense": 0.35,
+        "sparse": 0.25,
+        "bm25": 0.25,
+        "fts": 0.1,
+        "exact": 0.05
+      },
+      "k": 5
+    },
+    "XVI": {
+      "configuration": "C13",
+      "weights": {
+        "dense": 0.3165037198324995,
+        "sparse": 0.2883628204888452,
+        "bm25": 0.19050895773056817,
+        "exact": 0.20462450194808704
+      },
+      "k": 5
+    },
+    "XVII": {
+      "configuration": "C13",
+      "weights": {
+        "dense": 0.3675136725955376,
+        "sparse": 0.23896101770563624,
+        "bm25": 0.004860751712855026,
+        "exact": 0.3886645579859712
+      },
+      "k": 60
     }
+  },
+  "router": {
+    "weights": {
+      "dense": 0.4,
+      "sparse": 0.15,
+      "bm25": 0.2,
+      "fts": 0.1,
+      "exact": 0.15
+    },
+    "k": 20,
+    "section_accuracy_macro": 0.9866666666666667,
+    "section_recall@2_macro": 1.0
+  },
+  "legal": {
+    "weights": {
+      "dense": 0.05,
+      "sparse": 0.05,
+      "bm25": 0.15,
+      "fts": 0.05,
+      "exact": 0.7
+    },
+    "k": 20,
+    "source_recall@5": 1.0,
+    "mrr": 0.9555555555555555,
+    "selection_status": "LEGACY_DEVELOPMENT_POLICY_NOT_QA50_TUNED"
+  },
+  "advanced": {
+    "XIV:C11": {
+      "section": "XIV",
+      "configuration": "C11",
+      "weights": {
+        "dense": 0.35,
+        "sparse": 0.2,
+        "bm25": 0.25,
+        "fts": 0.15,
+        "exact": 0.05
+      },
+      "k": 5,
+      "section_correct": 0.0,
+      "section_recall@2": 0.0,
+      "hit@1": 0.62,
+      "mrr": 0.731375,
+      "ndcg@10": 0.7789320624925654,
+      "chapter_recall@5": 0.995,
+      "heading_recall@5": 0.93,
+      "hs6_recall@5": 0.915,
+      "ahtn8_recall@5": 0.875,
+      "count": 200,
+      "hierarchy_metric_mode": "ANCESTOR_PROJECTION_OF_LEAF_RANKING",
+      "exclusion_annotated_count": 0,
+      "exclusion_violation_rate": null
+    },
+    "XIV:C12": {
+      "section": "XIV",
+      "configuration": "C12",
+      "weights": {
+        "dense": 0.4975531432756809,
+        "sparse": 0.502446856724319
+      },
+      "k": 5,
+      "section_correct": 0.0,
+      "section_recall@2": 0.0,
+      "hit@1": 0.57,
+      "mrr": 0.7166388888888889,
+      "ndcg@10": 0.7748694078441949,
+      "chapter_recall@5": 1.0,
+      "heading_recall@5": 0.95,
+      "hs6_recall@5": 0.94,
+      "ahtn8_recall@5": 0.925,
+      "count": 200,
+      "hierarchy_metric_mode": "ANCESTOR_PROJECTION_OF_LEAF_RANKING",
+      "exclusion_annotated_count": 0,
+      "exclusion_violation_rate": null
+    },
+    "XVI:C11": {
+      "section": "XVI",
+      "configuration": "C11",
+      "weights": {
+        "dense": 0.25,
+        "sparse": 0.3,
+        "bm25": 0.2,
+        "fts": 0.15,
+        "exact": 0.1
+      },
+      "k": 5,
+      "section_correct": 0.0,
+      "section_recall@2": 0.0,
+      "hit@1": 0.775,
+      "mrr": 0.841763888888889,
+      "ndcg@10": 0.8652245108945251,
+      "chapter_recall@5": 0.995,
+      "heading_recall@5": 0.985,
+      "hs6_recall@5": 0.945,
+      "ahtn8_recall@5": 0.925,
+      "count": 200,
+      "hierarchy_metric_mode": "ANCESTOR_PROJECTION_OF_LEAF_RANKING",
+      "exclusion_annotated_count": 0,
+      "exclusion_violation_rate": null
+    },
+    "XVI:C12": {
+      "section": "XVI",
+      "configuration": "C12",
+      "weights": {
+        "dense": 0.6363636363636362,
+        "sparse": 0.36363636363636365
+      },
+      "k": 5,
+      "section_correct": 0.0,
+      "section_recall@2": 0.0,
+      "hit@1": 0.75,
+      "mrr": 0.8291785714285714,
+      "ndcg@10": 0.8570007034172198,
+      "chapter_recall@5": 0.975,
+      "heading_recall@5": 0.97,
+      "hs6_recall@5": 0.94,
+      "ahtn8_recall@5": 0.925,
+      "count": 200,
+      "hierarchy_metric_mode": "ANCESTOR_PROJECTION_OF_LEAF_RANKING",
+      "exclusion_annotated_count": 0,
+      "exclusion_violation_rate": null
+    },
+    "XVII:C11": {
+      "section": "XVII",
+      "configuration": "C11",
+      "weights": {
+        "dense": 0.3601320900966365,
+        "sparse": 0.2515117320498797,
+        "bm25": 0.05101674423375278,
+        "fts": 0.00039811892386240773,
+        "exact": 0.3369413146958685
+      },
+      "k": 60,
+      "section_correct": 0.0,
+      "section_recall@2": 0.0,
+      "hit@1": 0.625,
+      "mrr": 0.7310039682539683,
+      "ndcg@10": 0.780640129654325,
+      "chapter_recall@5": 1.0,
+      "heading_recall@5": 0.995,
+      "hs6_recall@5": 0.94,
+      "ahtn8_recall@5": 0.875,
+      "count": 200,
+      "hierarchy_metric_mode": "ANCESTOR_PROJECTION_OF_LEAF_RANKING",
+      "exclusion_annotated_count": 0,
+      "exclusion_violation_rate": null
+    },
+    "XVII:C12": {
+      "section": "XVII",
+      "configuration": "C12",
+      "weights": {
+        "dense": 0.6580472619355259,
+        "sparse": 0.3419527380644741
+      },
+      "k": 60,
+      "section_correct": 0.0,
+      "section_recall@2": 0.0,
+      "hit@1": 0.6,
+      "mrr": 0.7300813492063492,
+      "ndcg@10": 0.7895001947478592,
+      "chapter_recall@5": 1.0,
+      "heading_recall@5": 0.995,
+      "hs6_recall@5": 0.97,
+      "ahtn8_recall@5": 0.895,
+      "count": 200,
+      "hierarchy_metric_mode": "ANCESTOR_PROJECTION_OF_LEAF_RANKING",
+      "exclusion_annotated_count": 0,
+      "exclusion_violation_rate": null
+    }
+  },
+  "pipeline_policies": {
+    "XIV": {
+      "strategy": "direct",
+      "candidate_pool": 50,
+      "section_mix": "router",
+      "beam_size": 10,
+      "k": 20,
+      "reranker": "none"
+    },
+    "XVI": {
+      "strategy": "direct",
+      "candidate_pool": 100,
+      "section_mix": "router",
+      "beam_size": 10,
+      "k": 20,
+      "reranker": "cross_encoder",
+      "rerank_pool": 30,
+      "rank_weight": 0.75
+    },
+    "XVII": {
+      "strategy": "direct",
+      "candidate_pool": 100,
+      "section_mix": "router",
+      "beam_size": 10,
+      "k": 20,
+      "reranker": "none"
+    }
+  },
+  "objective": "TRAIN Hit@1 -> Recall@5 -> MRR -> nDCG; pipeline selected by predicted Section",
+  "selection_scope": "TRAIN_ONLY_SELECTION; EXISTING_TEST_ALREADY_INSPECTED_FOR_DIAGNOSIS",
+  "definition_policies": {
+    "XIV": {
+      "definition_weight": 0,
+      "k": 20,
+      "evidence_rerank": true,
+      "reranker": "cross_encoder",
+      "rerank_pool": 30,
+      "rank_weight": 0.75
+    },
+    "XVI": {
+      "definition_weight": 0.5,
+      "k": 20,
+      "evidence_rerank": true,
+      "reranker": "cross_encoder",
+      "rerank_pool": 30,
+      "rank_weight": 0.75
+    },
+    "XVII": {
+      "definition_weight": 0.0,
+      "k": 20,
+      "evidence_rerank": false,
+      "reranker": "none",
+      "rerank_pool": 30,
+      "rank_weight": 1
+    }
+  },
+  "definition_version": "positive-definition-graph-bm25-v1",
+  "definition_train_trials": 885,
+  "definition_source_hash": "c3de445c85a36081c6f2f0f2cf79d7cd511f3c3b9aa0e664f2b458f1651c0125",
+  "baseline_pipeline_policies": {
+    "XIV": {
+      "strategy": "direct",
+      "candidate_pool": 50,
+      "section_mix": "router",
+      "beam_size": 10,
+      "k": 20,
+      "reranker": "none"
+    },
+    "XVI": {
+      "strategy": "direct",
+      "candidate_pool": 100,
+      "section_mix": "router",
+      "beam_size": 10,
+      "k": 20,
+      "reranker": "cross_encoder",
+      "rerank_pool": 30,
+      "rank_weight": 0.75
+    },
+    "XVII": {
+      "strategy": "direct",
+      "candidate_pool": 100,
+      "section_mix": "router",
+      "beam_size": 10,
+      "k": 20,
+      "reranker": "none"
+    }
+  },
+  "baseline_selection_scope": "USER_SUPPLIED_TRAIN_ONLY; TEST_UNTOUCHED_DURING_SELECTION",
+  "evaluation_status": "TRAIN_SELECTED; EXISTING_TEST_IS_DIAGNOSTIC_AFTER_FAILURE_INSPECTION",
+  "definition_objective": "XIV macro source-family Hit@1 -> Recall@5 -> MRR; overall TRAIN Hit@1 >= old baseline; other Sections retain TRAIN overall objective",
+  "qa": {
+    "configuration": "C11",
+    "weights": {
+      "dense": 0.3,
+      "sparse": 0.05,
+      "bm25": 0.3,
+      "fts": 0.05,
+      "exact": 0.3
+    },
+    "k": 5,
+    "all_groups@5": 0.86,
+    "all_groups@10": 0.925,
+    "group_recall@10": 0.9359999999999999,
+    "mrr@10": 0.7993769841269841,
+    "base_configuration": "C10",
+    "reranker": "cross_encoder",
+    "rerank_pool": 30,
+    "rank_weight": 0.75,
+    "pool": 100,
+    "selection_status": "SUPPLIED_200_TRAIN_ONLY_STRICT_PRIMARY_CHUNK_IDS",
+    "objective": [
+      "all_groups@10",
+      "group_recall@10",
+      "all_groups@5",
+      "mrr@10"
+    ],
+    "train_sha256": "e21f97a0e55eedc143471c1d2111d76afd2fd6789c777600ed633ef1fac48639",
+    "train_count": 200,
+    "base_trials": 44716,
+    "advanced_trials": 24,
+    "candidate_types": [
+      "gir_rule",
+      "gir_explanation",
+      "section_note",
+      "chapter_note",
+      "subheading_note",
+      "tariff_entry",
+      "legal_clause"
+    ],
+    "limitations": "Best in tested grid; no model fine-tuning; C12 not retrained in this QA experiment."
   }
 }

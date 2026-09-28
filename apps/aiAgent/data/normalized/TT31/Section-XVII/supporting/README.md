@@ -24,3 +24,7 @@ No retrieval indexing/model execution is included.
 - Blocking issues: 0
 
 Gate: DATA_READY = true
+
+## Benchmark FINAL correction — 2026-09-27
+
+Restored next-page continuations for headings 8711 (VI) and 8716 (VI/EN) from source PDF pages 71–72 and 76–77. Propagated to dependent RAG text and hierarchy; IDs/counts unchanged. See SECTION_XVII_BENCHMARK_FINAL_CORRECTIONS.json. Earlier audits remain historical; this correction is scoped to benchmark evidence. Reindex changed ingest documents before using an existing search index.

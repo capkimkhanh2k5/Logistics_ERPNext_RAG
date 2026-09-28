@@ -125,5 +125,25 @@
   "blocking_issues": [],
   "final_gate": {
     "data_ready_for_rag_index_build": true
+  },
+  "benchmark_final_correction": {
+    "date": "2026-09-27",
+    "heading_ids": [
+      "SXVII_HEADING4_8711",
+      "SXVII_HEADING4_8716"
+    ],
+    "source_pages": {
+      "SXVII_HEADING4_8711": [
+        71,
+        72
+      ],
+      "SXVII_HEADING4_8716": [
+        76,
+        77
+      ]
+    },
+    "affected_ingest_documents": 66,
+    "all_ids_and_counts_preserved": true,
+    "validation_scope": "New checks cover benchmark corrections and propagation; original full-corpus audit is historical."
   }
 }

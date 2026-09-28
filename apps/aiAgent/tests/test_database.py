@@ -42,7 +42,7 @@ def test_fts_unaccent_and_source_citations(conn):
     assert [r["id"] for r in retriever.lexical("máy tính")] == [
         r["id"] for r in retriever.lexical("may tinh")
     ]
-    output = retriever.search("smartphone'; DROP TABLE rag.chunks; --", mode="fts")
+    output = retriever.search("smartphone'; DROP TABLE rag.chunks; --", mode="fts", levels=[8])
     assert all(r["level"] == 8 and r["locator"] for r in output["candidates"])
     evidence = retriever.lookup("85171300")["evidence"]
     assert evidence["records"]
@@ -59,9 +59,9 @@ def test_effective_date_filter(conn):
     assert retriever.search(
         "phân loại", intent="tt85", mode="fts", expand=False, as_of=date(2026, 9, 15)
     )["matches"]
-    assert not retriever.search("máy tính", mode="fts", expand=False, as_of=date(2026, 9, 26))[
-        "candidates"
-    ]  # TT31 validity unknown
+    assert not retriever.search(
+        "máy tính", mode="fts", expand=False, as_of=date(2026, 9, 26), chapters=["84", "85"]
+    )["candidates"]  # TT31 validity unknown
 
 
 def test_failed_snapshot_never_becomes_active(conn):
@@ -99,3 +99,90 @@ def test_learned_sparse_postings_have_correct_dot_product(conn):
     ).fetchall()
     expected = sum(row["weight"] * weights.get(str(row["token"]), 0) for row in saved)
     assert first["score"] == pytest.approx(expected, rel=1e-5)
+
+
+def test_bm25_uses_pinned_library_and_respects_namespace(conn):
+    from rank_bm25 import BM25Okapi
+
+    retriever = Retriever(conn)
+    rows = retriever.bm25("phân loại hồ sơ", intent="tt85")
+    assert isinstance(retriever._bm25_index, BM25Okapi)
+    assert rows and all(r["namespace"] == "legal_classification" for r in rows)
+    assert not any("FORM-" in r["id"] for r in rows)
+    assert retriever.route("Chú giải Phần XVII loại trừ thiết bị điện")["intent"] == "legal"
+
+
+def test_implicit_hs6_nodes_preserve_source_and_graph_structure(conn):
+    retriever = Retriever(conn)
+    node = conn.execute(
+        "SELECT metadata FROM rag.graph_nodes WHERE snapshot=%s AND id=%s",
+        (retriever.snapshot, "tt31:DERIVED_HS6_851240"),
+    ).fetchone()
+    assert node and node["metadata"]["virtual"] and not node["metadata"]["legal_text_available"]
+    edges = conn.execute(
+        "SELECT * FROM rag.graph_edges WHERE snapshot=%s AND source=%s",
+        (retriever.snapshot, "tt31:DERIVED_HS6_851240"),
+    ).fetchall()
+    assert any(e["target"] == "tt31:SXVI-T-85124000" for e in edges)
+
+
+def test_definition_search_uses_real_graph_and_preserves_atomic_chunks(conn):
+    retriever = Retriever(conn)
+    views = retriever.definition_views()
+    silver = views["tt31:HS8:71131190"]
+    assert silver["record"]["source_text"] == retriever.exact("71131190")[0]["source_text"]
+    assert any(x["id"] == "tt31:XIV_CH71_NOTE_09" for x in silver["citations"])
+    assert any(x["target_id"] == "tt31:HS4:7113" for x in silver["paths"])
+    imitation = views["tt31:HS8:71171920"]
+    fragments = [x for x in imitation["citations"] if x.get("fragment_id")]
+    assert fragments and all("(a)" in x["text"] and "(b)" not in x["text"] for x in fragments)
+    candidates = retriever.definition_candidates("hoa tai bằng bạc", sections=["XIV"])
+    assert candidates and all(x["section"] == "XIV" for x in candidates)
+    assert all(x["definition_paths"] and x["definition_citations"] for x in candidates)
+    assert not retriever.definition_candidates("hoa tai bằng bạc", sections=["XVI"])
+
+
+def test_router_sections_are_selected_before_result_limit(conn):
+    retriever = Retriever(conn)
+    result = retriever.search("đồ trang sức pin", mode="bm25", top_k=1, expand=False)
+    assert len(result["candidates"]) == 1
+    assert len(result["section_candidates"]) == 2
+    assert len(retriever.section_candidates(result["candidates"])) == 1
+
+
+def test_parent_evidence_contains_only_actual_source_documents(conn):
+    retriever = Retriever(conn)
+    leaf = retriever.exact("85171300")
+    assert leaf
+    result = retriever.tariff_ancestors(leaf)
+    assert result["records"] and result["trace"]
+    assert any(r["code"] == "8517" for r in result["records"])
+    assert all(
+        r["source_text"] and r["locator"] and r["chunk_type"] == "tariff_entry"
+        for r in result["records"]
+    )
+    assert all(r["level"] < 8 for r in result["records"])
+    assert not any(r["id"].startswith("tt31:DERIVED_HS6_") for r in result["records"])
+
+
+def test_gir_family_expansion_uses_database_canonical_ids(conn):
+    retriever = Retriever(conn)
+    rule = conn.execute(
+        "SELECT * FROM rag.chunks WHERE snapshot=%s AND id=%s", (retriever.snapshot, "gir:GIR_2A")
+    ).fetchone()
+    assert rule and "source_id" not in rule
+    expanded = retriever.rule_family_evidence("Trình tự áp dụng quy tắc", [rule])
+    assert {r["id"] for r in expanded} == {"gir:GIR_2A", "gir:GIR_2B"}
+    assert all(r["source_text"] and r["locator"] for r in expanded)
+
+
+def test_questioned_code_retains_its_source_section_notes_scope(conn):
+    from rag.retrieval import code_mention_plan
+
+    retriever = Retriever(conn)
+    plan = code_mention_plan("Có thuộc nhóm 87.08 không?")
+    assert "8708" not in retriever.exact_features(plan["exact_query"])
+    scopes = retriever.referenced_note_scope(plan)
+    assert scopes and {r["section"] for r in scopes} == {"XVII"}
+    assert all(r["purpose"] == "NOTES_FOR_REFERENCE_VALIDATION_NOT_CANDIDATE_BOOST" for r in scopes)
+    assert not retriever.referenced_note_scope(code_mention_plan("Tra cứu nhóm 87.08"))

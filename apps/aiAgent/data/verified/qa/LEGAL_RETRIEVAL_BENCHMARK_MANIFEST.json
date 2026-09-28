@@ -1,0 +1,69 @@
+{
+  "benchmark_name": "HS Legal Retrieval Benchmark",
+  "benchmark_version": "5.0-final",
+  "status": "FINAL",
+  "verified_on": "2026-09-27",
+  "benchmark_family": "legal_retrieval",
+  "evaluation_target": "legal_evidence_rag_chunk",
+  "counts": {
+    "expanded_200": 200,
+    "original_50": 50,
+    "combined": 250,
+    "unique_questions": 250,
+    "unique_gold_source_records": 146,
+    "unique_gold_rag_chunks": 146,
+    "exact_chunk_mapped_questions": 250,
+    "original_50_questions_with_cross_subset_gold_overlap": 8,
+    "pairwise_cross_subset_gold_overlap_relationships": 17,
+    "exact_duplicate_query_texts": 0
+  },
+  "source_validation": {
+    "section_xiv": {
+      "master_records": 190,
+      "rag_chunks": 190,
+      "exact_master_to_rag": 190,
+      "missing": 0
+    },
+    "section_xvi": {
+      "master_records": 3421,
+      "rag_chunks": 3421,
+      "exact_master_to_rag": 3421,
+      "missing": 0
+    },
+    "section_xvii": {
+      "master_records": 1456,
+      "rag_chunks": 1433,
+      "represented_master_nodes": 1433,
+      "omitted_external_reference_nodes": 23,
+      "benchmark_uses_omitted_node": false
+    },
+    "gir_rag_records": 115,
+    "tt85_rag_chunks": 100
+  },
+  "files": {
+    "LEGAL_RETRIEVAL_BENCHMARK_V5_FINAL_200_EXACT_CHUNK.jsonl": {
+      "sha256": "6ea9712c61f8d06eceda5a6eaf8cdcb0a38d1dccf954d43573eb1e8d383af601",
+      "size_bytes": 375556
+    },
+    "LEGAL_RETRIEVAL_BENCHMARK_V5_FINAL_ORIGINAL_50_EXACT_CHUNK.jsonl": {
+      "sha256": "737e072220ed38948b8a4ac45b5bce3e8f08b635a7d22cbe8def123bc67c8b62",
+      "size_bytes": 88766
+    },
+    "LEGAL_RETRIEVAL_BENCHMARK_V5_FINAL_250_MASTER.jsonl": {
+      "sha256": "bd71e91992af180b1fa90937a0558caff7e5e740f48cc29e3b04c73883aaf682",
+      "size_bytes": 464322
+    },
+    "LEGAL_RETRIEVAL_BENCHMARK_V5_FINAL_250.tsv": {
+      "sha256": "ab0c0a90f2ee386e74cc8b6106955b96ba062f9c98a03112fd8f71077ff1e1df",
+      "size_bytes": 52695
+    },
+    "LEGAL_RETRIEVAL_GOLD_RECORD_TO_CHUNK_MAP.jsonl": {
+      "sha256": "16baa0d6b98548e38660ad0027e064af9964699967e041ae1ab3a53cbcd5c71e",
+      "size_bytes": 40453
+    },
+    "LEGAL_RETRIEVAL_BENCHMARK_V5_FINAL_QA_REPORT.md": {
+      "sha256": "5b37b5fb47b460fe753e2596f1bae974c2e2bd9d6749b2bf8a7af104478ca209",
+      "size_bytes": 5457
+    }
+  }
+}

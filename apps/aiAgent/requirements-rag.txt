@@ -17,3 +17,5 @@ bandit>=1.8,<2
 mypy>=1.15,<2
 types-PyYAML
 types-jsonschema
+
+rank-bm25==0.2.2

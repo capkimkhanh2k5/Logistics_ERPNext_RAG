@@ -53,3 +53,22 @@ CREATE TABLE IF NOT EXISTS rag.retrieval_results (
   run_id text REFERENCES rag.evaluation_runs(id), test_id text, variant text,
   result jsonb NOT NULL, PRIMARY KEY(run_id,test_id,variant)
 );
+
+-- Additive migration preserves prior immutable snapshots.
+ALTER TABLE rag.chunks ADD COLUMN IF NOT EXISTS namespace text;
+ALTER TABLE rag.chunks ADD COLUMN IF NOT EXISTS chunk_type text;
+ALTER TABLE rag.chunks ADD COLUMN IF NOT EXISTS section text;
+ALTER TABLE rag.chunks ADD COLUMN IF NOT EXISTS hs6 text;
+ALTER TABLE rag.chunks ADD COLUMN IF NOT EXISTS ahtn8 text;
+ALTER TABLE rag.chunks ADD COLUMN IF NOT EXISTS source jsonb;
+ALTER TABLE rag.chunks ADD COLUMN IF NOT EXISTS legal_status text;
+CREATE INDEX IF NOT EXISTS chunks_namespace ON rag.chunks(snapshot,namespace,chunk_type,section,level);
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='chunks_namespace_valid' AND conrelid='rag.chunks'::regclass) THEN
+    ALTER TABLE rag.chunks ADD CONSTRAINT chunks_namespace_valid CHECK (namespace IN ('hs_classification','legal_classification'));
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='chunks_type_valid' AND conrelid='rag.chunks'::regclass) THEN
+    ALTER TABLE rag.chunks ADD CONSTRAINT chunks_type_valid CHECK (chunk_type IN ('gir_rule','gir_explanation','section_note','chapter_note','subheading_note','tariff_entry','legal_clause'));
+  END IF;
+END $$;

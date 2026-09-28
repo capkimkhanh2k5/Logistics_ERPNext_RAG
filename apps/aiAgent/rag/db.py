@@ -95,9 +95,9 @@ def ingest(
         )
         with conn.cursor() as cur:
             cur.executemany(
-                """INSERT INTO rag.chunks VALUES
+                """INSERT INTO rag.chunks(snapshot,id,dataset,role,code,level,chapter,heading,source_text,embedding_text,metadata,locator,effective_from,effective_to,lexical,namespace,chunk_type,section,hs6,ahtn8,source,legal_status) VALUES
               (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
-               to_tsvector('simple',unaccent(%s))) ON CONFLICT DO NOTHING""",
+               to_tsvector('simple',unaccent(%s)),%s,%s,%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING""",
                 [
                     (
                         snapshot,
@@ -115,6 +115,13 @@ def ingest(
                         r.get("effective_from"),
                         r.get("effective_to"),
                         r["lexical_text"],
+                        r["namespace"],
+                        r["chunk_type"],
+                        r["section"],
+                        r["hs6"],
+                        r["ahtn8"],
+                        Jsonb(r["source"]),
+                        r["legal_status"],
                     )
                     for r in rows
                 ],

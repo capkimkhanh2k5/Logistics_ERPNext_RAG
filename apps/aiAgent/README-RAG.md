@@ -2,8 +2,8 @@
 
 | Notebook | Workflow |
 |---|---|
-| `notebooks/01_build_knowledge_base.ipynb` | Audit → GIR context / TT85 hierarchy + forms → BGE-M3 dense+sparse → PostgreSQL → integrity/idempotency |
-| `notebooks/02_test_retrieval.ipynb` | Legal/robustness/challenge cases → dev ablation → weighted hybrid selection → routing/graph → final benchmark → uncached latency → code checks |
+| `notebooks/01_build_knowledge_base.ipynb` | Audit XIV/XVI/XVII → namespaces / GIR / TT85 clauses → BGE-M3 dense+sparse → PostgreSQL → integrity/idempotency |
+| `notebooks/02_test_retrieval.ipynb` | Train 300 / test 90 → C1–C15 / weight sweep → soft Top-2 Sections / hierarchy → legal → held-out benchmark → latency / checks |
 
 **Cả hai notebook đã được chạy; outputs được giữ ngay trong file.** Không tạo report rời. Các module `rag/` giữ logic dùng chung để notebook và runtime dùng cùng implementation.
 
@@ -57,14 +57,60 @@ with connect() as conn:
     result = retriever.routed_search("Điện thoại thông minh 5G có hệ điều hành chạy ứng dụng")
 ```
 
-`routed_search` nhận diện intent và các strong scope cues; truy vấn chưa chắc chắn search cả 84/85. `NEED_MORE_INFORMATION` vẫn có thể trả ứng viên. Đây là retrieval support, chưa quyết định HS cuối cùng.
+`routed_search` nhận diện intent; product dùng cross-Section retrieval → Top-2 Sections → direct/hierarchy candidate paths → trained reranking policy. Trước xếp hạng cuối, policy đã chọn trên train có thể bổ sung ứng viên qua các cạnh định nghĩa Notes → nhóm → mã con, rồi cho cross-encoder đọc ngữ cảnh định nghĩa. Notes/GIR và graph được trả kèm ứng viên. Kết quả có `validation_status=REQUIRES_GIR_EXCLUSION_REASONING`; chưa phải kết luận HS. Không hard-filter Chapter 84/85 hoặc chỉ AHTN8 trong bộ lọc chung.
 
-Các mode: `fts`, `dense`, `sparse`, `hybrid`, `dense_sparse`, `hybrid_sparse`. Default đọc selected config khớp snapshot/profile/settings. Exact-code dùng `lookup`. FTS là `simple` + `unaccent`/`ts_rank_cd`, không phải BM25. Learned sparse dùng token postings và dot product. Corpus nhỏ dùng exact cosine thay cho ANN; chưa cần HNSW/reranker.
+## Metadata và retrieval
 
-Graph đi lên ancestors trước khi mở rộng notes; explicit constraints được ưu tiên. Output có `required_ids`, `missing_required_ids`, `omitted_ids`, coverage status và budget. Context views có source-ID mapping; nguyên văn source/citation locator giữ riêng. TT85 forms là biểu diễn title+fields trích xuất, không thay thế layout biểu mẫu gốc.
+Cùng PostgreSQL/pgvector, hai namespaces `hs_classification` và `legal_classification`. Dataset vẫn là `tt31`, `gir`, `tt85`, `scope`. Metadata gồm namespace/dataset/chunk_type/role, section/chapter/heading/hs6/ahtn8, source/effective_from/effective_to/legal_status. Legal status chỉ phản ánh metadata nguồn, không là xác minh pháp lý độc lập.
 
-## Cách đọc kết quả
+Bảy chunk types: gir_rule, gir_explanation, section_note, chapter_note, subheading_note, tariff_entry, legal_clause. Structural/context/source-footnote records có chunk_type null khi không thuộc bảy loại này; subtype nguồn được giữ nguyên. 5 mẫu TT85 giữ trong source template registry, không có vectors. Tạo Word chưa triển khai.
 
-Xem trực tiếp các bảng trong notebook 02. Bộ 50 case cũ được ghi là reproduction; challenge 12 query/mã mới được khóa trước khi chọn dev config. Legal qrels được đối chiếu nguồn local, chưa có independent expert review. Scope suite 16 case là kiểm tra chức năng trên mẫu nhỏ, chưa chứng minh coverage mọi sản phẩm. Date filters dùng metadata local; không mặc định TT31/GIR có legal validity đã xác minh.
+Các retrievers: dense BGE-M3, learned sparse token postings, Okapi BM25 từ `rank-bm25==0.2.2`/`BM25Okapi` (`k1=1.2,b=0.75,epsilon=0.25`, index trong RAM từ active PostgreSQL snapshot), FTS `simple+unaccent/ts_rank_cd`, Exact mã/thuộc tính kỹ thuật. BM25 không được thay bằng FTS/sparse. Weighted RRF kết hợp rank, k=5/10/20/40/60/100/200. Trọng số chuẩn hóa về 1 là quy ước benchmark; toán học RRF không yêu cầu tổng bằng 1.
 
-Latency được đo riêng với `use_cache=False`. Query chỉ có tên sản phẩm có thể kém query đầy đủ thông số; notebook giữ cả kết quả và các failure cases. RAG ingestion/retrieval/testing đã chạy xuyên suốt; final HS classification, GIR reasoning engine, Critic, LLM generation và ERP integration thuộc giai đoạn sau.
+C11 cross-encoder BGE reranker v2-m3 pin revision; C12 BGE-M3 `colbert_score()` từ FlagEmbedding rerank top30 sau dense+sparse. Các scores reranker không cộng vào RRF. MPS dùng cho cross-encoder nếu có; BGE embedding/ColBERT giữ CPU FP32. Cache branches và reranking là artifacts phục vụ resume, không phải report.
+
+Graph chứa hierarchy, notes, cross references của XIV/XVI/XVII; các external stubs có mã trong corpus được nối bằng RESOLVES_TO. Unknown external references vẫn là stubs, không biến thành căn cứ đầy đủ. Expansion có budget/omitted/missing-required IDs; Notes coverage không thay thế GIR/exclusion reasoning.
+
+## Benchmark
+
+Dùng `data/verified/train/HS_RAG_TRAIN_300_VERIFIED.jsonl` (100 sản phẩm mỗi Phần) và `data/verified/test/HS_RAG_TEST_90_DISJOINT_VERIFIED.jsonl` (30 mỗi Phần). Không tự chia lại; bỏ qua bản CSV và thư mục all/. Không trùng sản phẩm, có 8 mã HS trùng giữa train/test. Mỗi sản phẩm có hai query variants name_only và name_and_spec. Train chỉ chọn cấu hình retrieval, không fine-tune BGE và không ingest gold. Query không sử dụng nhãn, ground_truth_condition, mô tả đáp án; chỉ dẫn Case test và tham chiếu mã HS/Chapter trong mô tả được loại và đối chiếu ở notebook.
+
+C1–C10 và C13–C15 khảo sát simplex bước .05 cùng 600 Dirichlet samples/family, k=5/10/20/40/60/100/200. C13 dense+sparse+BM25+Exact; C14 dense+sparse+BM25; C15 sparse+BM25+Exact. C11/C12 khảo sát nhiều base policies với Cross-Encoder/ColBERT. Mục tiêu chọn trên train: Hit@1 → Recall@5 → MRR → nDCG@10. Router/15 legal qrels có sweep riêng; pháp luật chưa có test độc lập.
+
+Adaptive pipeline giữ Top-2 Sections, kết hợp ứng viên trực tiếp và graph hierarchy dựa trên tín hiệu mã con. Beam 5/10/20, branch pool 50/100, Section fusion equal/router, direct path weight .25/.5/.75. So sánh thêm rerank pool20/30/50 và rank blending .5/.75/1.0 với Cross-Encoder/ColBERT. Policy runtime chọn theo Section được router dự đoán; không dùng Section nhãn test. Pipeline strict cũ vẫn được giữ để đo pruning và so sánh trên cùng test. Nodes suy ra không mang nội dung luật giả.
+
+Bảng test theo Section/query variant: Hit@1, Section Accuracy/Recall@2, Chapter/Heading/HS6/AHTN8 Recall@5, MRR, nDCG@10, per-case ranks/failures và trace hierarchy. Ancestor projection của leaf retrieval được ghi rõ, không gọi là kết quả traversal thật. Exclusion Violation Rate là N/A nếu không có forbidden-code qrels. Cache hỗ trợ resume; không xuất report riêng và không xóa output notebook.
+
+GIR Rule Engine, Critic, LLM generation, Agent2/FastAPI/ERP integration thuộc giai đoạn tiếp theo.
+
+Adapters dùng tên `tt31_section_xiv`, `tt31_section_xvi`, `tt31_section_xvii`; metadata `dataset=tt31` là nguồn thông tư chung, `section` xác định Phần. Không sử dụng tên `tt31` để chỉ riêng adapter XVI. Các HS6 không có dòng nguồn riêng được bổ sung graph-only nodes từ prefix AHTN8, có virtual=true/legal_text_available=false; không tạo nội dung pháp lý hoặc embedding giả.
+
+### Cải thiện truy xuất theo định nghĩa
+
+Notebook 02 giữ nguyên kết quả benchmark ban đầu và bổ sung các cell phân tích, chọn policy trên train, so sánh trước/sau và kiểm tra runtime. Nhánh `definition_candidates` dùng cùng BM25Okapi trên search views nối qua `DEFINES_FOR`/`DEFINITION_APPLIES_TO`/`INCLUDES_IN_SCOPE` và descendants `CONTAINS`. Không dùng cạnh loại trừ để tạo ứng viên. Placeholder Note 9(a) được giải tới đúng đoạn nguồn của Note 9, không sao chép cả Note 9(b) vào nhóm 7117. Mỗi view có citation và graph path; source_text và vectors gốc không đổi.
+
+Sweep trọng số nhánh định nghĩa 0–1, RRF k và evidence-aware Cross-Encoder (pool10/20/30, rank blending .25/.5/.75/1). Chọn theo Section dự đoán, luôn so sánh với baseline gồm reranker hiện có. Trọng số 0 và evidence_rerank=false giữ đường truy xuất cũ. Gold không tham gia dựng index. TEST đã được xem để chẩn đoán nên các số sau cải thiện là diagnostic regression, cần test mới để xác nhận tổng quát hóa độc lập.
+
+Đối với XIV, notebook so sánh thêm mục tiêu macro giữa hai nhóm nguồn trên TRAIN (dòng biểu thuế và ví dụ Notes), với điều kiện Hit@1 toàn TRAIN XIV không thấp hơn baseline. Cách này chọn cùng policy với mục tiêu toàn bộ train: evidence-aware Cross-Encoder Top20, rank_weight=.75, RRF k=20, definition_weight=0. XVI chọn definition_weight=.5, evidence-aware Cross-Encoder Top30/.75/k20; XVII giữ đường baseline. Policy áp dụng theo Section dự đoán.
+
+Router runtime lấy Top-2 Sections từ toàn bộ kết quả fusion trước khi cắt top_k. Notebook kiểm tra runtime parity trên các câu thuộc cả ba Phần và câu bị routing lệch; score RRF so sánh với sai số float nhỏ, thứ tự mã so sánh chính xác. Kết quả trước/sau và lỗi còn lại lưu ở output của notebook 02.
+
+## Dữ liệu chuẩn hóa và hồ sơ hỗ trợ
+
+Trong mỗi `data/normalized/TT31/Section-XIV`, `Section-XVI`, `Section-XVII`, các file mà `rag.data.SOURCES` đọc giữ nguyên tên và vị trí. Các bản xuất phụ, checksum, manifest, báo cáo, audit và nhật ký sửa nguồn nằm trong `supporting/`. Nội dung của hồ sơ lịch sử giữ nguyên; đường dẫn tương đối trong checksum/manifest cũ được hiểu theo cấu trúc gói nguồn trước khi di chuyển. Hash của các đầu vào hiện tại được kiểm chứng trực tiếp trong notebook và QA preflight; checksum lịch sử không được coi là hash snapshot active.
+
+XVII có `SECTION_XVII_GRAPH_EDGES_NORMALIZED.jsonl`; adapter chuyển các cạnh về schema chung. Node của XVII được lấy từ master, XIV từ GRAPH_NODES, XVI từ master và GRAPH_STRUCTURAL_NODES. Đây là khác biệt định dạng xuất dữ liệu, cùng một graph runtime trong PostgreSQL.
+
+### Sửa đầu vào đã đối chiếu nguồn — 2026-09-27
+
+Notebook 01 có cell xác thực và sửa đầu vào: 87.04 được khôi phục khoảng trắng theo PDF gốc/Công báo; 85.06 bổ sung heading tiếng Anh có sẵn trong nguồn; 85.34 bổ sung toàn văn Chú giải 8 Chương 85 với ID và locator. Tên heading pháp lý, raw extraction, ID/mã HS và graph giữ nguyên. Sửa 1 master và 238 search documents XVII chứa cùng mô tả 87.04; XVI sửa 2 master/2 ingest rows. Không tạo thêm file dữ liệu/report. Đây là đầu vào chuẩn bị cho lần ingestion tiếp theo; cached corpus, snapshot/database và cấu hình xếp hạng chưa được cập nhật bởi lượt sửa nguồn này. Các kết quả benchmark đã lưu vẫn thuộc snapshot cũ.
+
+## QA: 200 train / 50 test
+
+`data/verified/qa/LEGAL_RETRIEVAL_BENCHMARK_250_MASTER.jsonl` chứa 250 câu. Adapter dùng đúng `benchmark_subset`: `expanded_200` là train, `original_50` là test. Manifest xác thực hash master; `record_mapping` giải alias export (ví dụ `RAG_SXVII_NOTE_2`) về chunk nguồn thật (`tt31:SXVII_NOTE_2`). Gold không được ingest, không fine-tune model và không dùng nhãn test để chọn chính sách.
+
+Notebook 02 thử 44.716 tổ hợp cấu hình/trọng số/RRF k trên train, rồi so sánh Cross-Encoder chính thức sau fusion. Cấu hình QA lưu ở khóa `qa` trong `config/selected_retrieval.json`; giữ nguyên chính sách HS đã chọn. Top-10 được chấm theo ID chunk primary chính xác, không dùng context alias để thay thế. Secondary không thuộc primary recall. Có 8 câu test dùng chung gold source với train, không trùng câu hỏi; kết quả test hiện có là chẩn đoán, cần tập mới độc lập để xác nhận tổng quát hóa.
+
+`Retriever.qa_search(query)` hoặc `knowledge_search(query)` khi đã có chính sách QA dùng corpus chung với các chunk type GIR, Notes, TT85, tariff entry ở nhiều tầng. Không cố định role/level, không hard-filter Section. Query gốc đi vào semantic/lexical retrieval; chỉ Exact che các mã được nhắc để nghi vấn/phủ định. Reranker sắp xếp theo chunk ID để các Notes/GIR không bị gộp vì code=None. Gói bổ sung có graph evidence, các tài liệu cha thật, Notes của các nhánh/mã được nhắc và các rule cùng họ GIR đã tìm được; việc lấy đủ tài liệu không thay thế suy luận pháp lý.
+
+`knowledge_search(policy="hs_transfer")` tái lập thí nghiệm chuyển chính sách HS vào các kênh HS4/HS6/AHTN8; `policy="legacy_fixed"` tái lập baseline đa tầng cũ. `routed_search` chuyển câu hỏi GIR/Notes/thủ tục sang chính sách QA khi đã có; nhánh sản phẩm vẫn dùng `adaptive_search` và chính sách HS hiện có. Các cơ chế che mã nghi vấn và mở rộng căn cứ QA không được tự động áp vào xếp hạng ứng viên sản phẩm. Kiểm tra hồi quy HS xác nhận không đổi Top-5, không phải bằng chứng tăng độ chính xác HS.
