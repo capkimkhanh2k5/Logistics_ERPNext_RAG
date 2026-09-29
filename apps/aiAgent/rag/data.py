@@ -16,6 +16,7 @@ SOURCES = {
     "tt31_section_xvi": "TT31/Section-XVI/SECTION_XVI_RAG_INGEST.jsonl",
     "tt31_section_xvi_master": "TT31/Section-XVI/SECTION_XVI_MASTER_NORMALIZED.jsonl",
     "tt31_section_xvi_schema": "TT31/Section-XVI/SECTION_XVI_RAG_SCHEMA.json",
+    "tt31_unified_rag_schema": "TT31/UNIFIED_RAG_INGEST_SCHEMA.json",
     "tt31_section_xiv": "TT31/Section-XIV/SECTION_XIV_RAG_INGEST.jsonl",
     "tt31_section_xiv_master": "TT31/Section-XIV/SECTION_XIV_MASTER_NORMALIZED.jsonl",
     "tt31_section_xiv_nodes": "TT31/Section-XIV/SECTION_XIV_GRAPH_NODES.jsonl",
@@ -122,6 +123,14 @@ def audit() -> dict:
     validator = jsonschema.Draft202012Validator(data["tt31_section_xvi_schema"])
     for record in data["tt31_section_xvi_master"]:
         validator.validate(record)
+    ingest_validator = jsonschema.Draft202012Validator(data["tt31_unified_rag_schema"])
+    for sec_key in ("tt31_section_xiv", "tt31_section_xvi", "tt31_section_xvii"):
+        for record in data[sec_key]:
+            ingest_validator.validate(record)
+            assert record["schema_version"] == "2.0-final"
+            assert record["id"] == record["source_id"]
+            assert record["text"] == record["content"]["embedding_text"]
+            assert record["sparse_text"] == record["content"]["sparse_text"]
     masters = {r["record_id"]: r for r in data["tt31_section_xvi_master"]}
     ids = {r["id"] for r in data["tt31_section_xvi"]} | {
         n["node_id"] for n in data["tt31_section_xvi_nodes"]

@@ -2,7 +2,7 @@
 
 > English authority: WCO HS Nomenclature 2022.
 > Vietnamese authority: Danh mục hàng hóa XNK Việt Nam ban hành kèm TT31/2022/TT-BTC.
-> RAG scope: Section XVI, Chapters 84–85.
+> RAG scope: Section XIV (Chapter 71), Section XVI (Chapters 84–85), Section XVII (Chapters 86–89).
 
 | Phần | Tên Phần (VI) | Chương | Tên Chương (VI) | Scope |
 |---|---|---:|---|---|
@@ -76,7 +76,7 @@
 | XIII | SẢN PHẨM BẰNG ĐÁ, THẠCH CAO, XI MĂNG, AMIĂNG, MICA HOẶC CÁC VẬT LIỆU TƯƠNG TỰ; CÁC SẢN PHẨM BẰNG GỐM; THỦY TINH VÀ CÁC SẢN PHẨM BẰNG THỦY TINH | 68 | Sản phẩm làm bằng đá, thạch cao, xi măng, amiăng, mica hoặc các vật liệu tương tự | OUT_OF_SCOPE |
 | XIII | SẢN PHẨM BẰNG ĐÁ, THẠCH CAO, XI MĂNG, AMIĂNG, MICA HOẶC CÁC VẬT LIỆU TƯƠNG TỰ; CÁC SẢN PHẨM BẰNG GỐM; THỦY TINH VÀ CÁC SẢN PHẨM BẰNG THỦY TINH | 69 | Đồ gốm, sứ | OUT_OF_SCOPE |
 | XIII | SẢN PHẨM BẰNG ĐÁ, THẠCH CAO, XI MĂNG, AMIĂNG, MICA HOẶC CÁC VẬT LIỆU TƯƠNG TỰ; CÁC SẢN PHẨM BẰNG GỐM; THỦY TINH VÀ CÁC SẢN PHẨM BẰNG THỦY TINH | 70 | Thủy tinh và các sản phẩm bằng thủy tinh | OUT_OF_SCOPE |
-| XIV | NGỌC TRAI THIÊN NHIÊN HOẶC NUÔI CẤY, ĐÁ QUÝ HOẶC ĐÁ BÁN QUÝ, KIM LOẠI QUÝ, KIM LOẠI ĐƯỢC DÁT PHỦ KIM LOẠI QUÝ, VÀ CÁC SẢN PHẨM CỦA CHÚNG; ĐỒ KIM HOÀN GIẢ; TIỀN KIM LOẠI | 71 | Ngọc trai tự nhiên hoặc nuôi cấy, đá quý hoặc đá bán quý, kim loại quý, kim loại được dát phủ kim loại quý, và các sản phẩm của chúng; đồ kim hoàn giả; tiền kim loại | OUT_OF_SCOPE |
+| XIV | NGỌC TRAI THIÊN NHIÊN HOẶC NUÔI CẤY, ĐÁ QUÝ HOẶC ĐÁ BÁN QUÝ, KIM LOẠI QUÝ, KIM LOẠI ĐƯỢC DÁT PHỦ KIM LOẠI QUÝ, VÀ CÁC SẢN PHẨM CỦA CHÚNG; ĐỒ KIM HOÀN GIẢ; TIỀN KIM LOẠI | 71 | Ngọc trai tự nhiên hoặc nuôi cấy, đá quý hoặc đá bán quý, kim loại quý, kim loại được dát phủ kim loại quý, và các sản phẩm của chúng; đồ kim hoàn giả; tiền kim loại | IN_SCOPE |
 | XV | KIM LOẠI CƠ BẢN VÀ CÁC SẢN PHẨM BẰNG KIM LOẠI CƠ BẢN | 72 | Sắt và thép | OUT_OF_SCOPE |
 | XV | KIM LOẠI CƠ BẢN VÀ CÁC SẢN PHẨM BẰNG KIM LOẠI CƠ BẢN | 73 | Các sản phẩm bằng sắt hoặc thép | OUT_OF_SCOPE |
 | XV | KIM LOẠI CƠ BẢN VÀ CÁC SẢN PHẨM BẰNG KIM LOẠI CƠ BẢN | 74 | Đồng và các sản phẩm bằng đồng | OUT_OF_SCOPE |
@@ -91,10 +91,10 @@
 | XV | KIM LOẠI CƠ BẢN VÀ CÁC SẢN PHẨM BẰNG KIM LOẠI CƠ BẢN | 83 | Hàng tạp hóa làm từ kim loại cơ bản | OUT_OF_SCOPE |
 | XVI | MÁY VÀ CÁC TRANG THIẾT BỊ CƠ KHÍ; THIẾT BỊ ĐIỆN; CÁC BỘ PHẬN CỦA CHÚNG; THIẾT BỊ GHI VÀ TÁI TẠO ÂM THANH, THIẾT BỊ GHI VÀ TÁI TẠO HÌNH ẢNH, ÂM THANH TRUYỀN HÌNH VÀ CÁC BỘ PHẬN VÀ PHỤ KIỆN CỦA CÁC THIẾT BỊ TRÊN | 84 | Lò phản ứng hạt nhân, nồi hơi, máy và thiết bị cơ khí; các bộ phận của chúng | IN_SCOPE |
 | XVI | MÁY VÀ CÁC TRANG THIẾT BỊ CƠ KHÍ; THIẾT BỊ ĐIỆN; CÁC BỘ PHẬN CỦA CHÚNG; THIẾT BỊ GHI VÀ TÁI TẠO ÂM THANH, THIẾT BỊ GHI VÀ TÁI TẠO HÌNH ẢNH, ÂM THANH TRUYỀN HÌNH VÀ CÁC BỘ PHẬN VÀ PHỤ KIỆN CỦA CÁC THIẾT BỊ TRÊN | 85 | Máy điện và thiết bị điện và các bộ phận của chúng; máy ghi và tái tạo âm thanh, máy ghi và tái tạo hình ảnh và âm thanh truyền hình, bộ phận và phụ kiện của các loại máy trên | IN_SCOPE |
-| XVII | XE CỘ, PHƯƠNG TIỆN BAY, TÀU THUYỀN VÀ CÁC THIẾT BỊ VẬN TẢI LIÊN HỢP | 86 | Đầu máy, các phương tiện di chuyển trên đường sắt hoặc đường tàu điện và các bộ phận của chúng; các bộ phận cố định và ghép nối đường ray đường sắt hoặc tàu điện và bộ phận của chúng; thiết bị tín hiệu giao thông bằng cơ khí (kể cả cơ điện) các loại | OUT_OF_SCOPE |
-| XVII | XE CỘ, PHƯƠNG TIỆN BAY, TÀU THUYỀN VÀ CÁC THIẾT BỊ VẬN TẢI LIÊN HỢP | 87 | Xe trừ phương tiện chạy trên đường sắt hoặc đường tàu điện, và các bộ phận và phụ kiện của chúng | OUT_OF_SCOPE |
-| XVII | XE CỘ, PHƯƠNG TIỆN BAY, TÀU THUYỀN VÀ CÁC THIẾT BỊ VẬN TẢI LIÊN HỢP | 88 | Phương tiện bay, tàu vũ trụ, và các bộ phận của chúng | OUT_OF_SCOPE |
-| XVII | XE CỘ, PHƯƠNG TIỆN BAY, TÀU THUYỀN VÀ CÁC THIẾT BỊ VẬN TẢI LIÊN HỢP | 89 | Tàu thủy, thuyền và các kết cấu nổi | OUT_OF_SCOPE |
+| XVII | XE CỘ, PHƯƠNG TIỆN BAY, TÀU THUYỀN VÀ CÁC THIẾT BỊ VẬN TẢI LIÊN HỢP | 86 | Đầu máy, các phương tiện di chuyển trên đường sắt hoặc đường tàu điện và các bộ phận của chúng; các bộ phận cố định và ghép nối đường ray đường sắt hoặc tàu điện và bộ phận của chúng; thiết bị tín hiệu giao thông bằng cơ khí (kể cả cơ điện) các loại | IN_SCOPE |
+| XVII | XE CỘ, PHƯƠNG TIỆN BAY, TÀU THUYỀN VÀ CÁC THIẾT BỊ VẬN TẢI LIÊN HỢP | 87 | Xe trừ phương tiện chạy trên đường sắt hoặc đường tàu điện, và các bộ phận và phụ kiện của chúng | IN_SCOPE |
+| XVII | XE CỘ, PHƯƠNG TIỆN BAY, TÀU THUYỀN VÀ CÁC THIẾT BỊ VẬN TẢI LIÊN HỢP | 88 | Phương tiện bay, tàu vũ trụ, và các bộ phận của chúng | IN_SCOPE |
+| XVII | XE CỘ, PHƯƠNG TIỆN BAY, TÀU THUYỀN VÀ CÁC THIẾT BỊ VẬN TẢI LIÊN HỢP | 89 | Tàu thủy, thuyền và các kết cấu nổi | IN_SCOPE |
 | XVIII | DỤNG CỤ, THIẾT BỊ QUANG HỌC, NHIẾP ẢNH, ĐIỆN ẢNH, ĐO LƯỜNG, KIỂM TRA, CHÍNH XÁC, Y TẾ HOẶC PHẪU THUẬT; ĐỒNG HỒ THỜI GIAN, ĐỒNG HỒ CÁ NHÂN; NHẠC CỤ; CÁC BỘ PHẬN VÀ PHỤ KIỆN CỦA CHÚNG | 90 | Dụng cụ và thiết bị quang học, nhiếp ảnh, điện ảnh, đo lường, kiểm tra, chính xác, y tế hoặc phẫu thuật; các bộ phận và phụ kiện của chúng | OUT_OF_SCOPE |
 | XVIII | DỤNG CỤ, THIẾT BỊ QUANG HỌC, NHIẾP ẢNH, ĐIỆN ẢNH, ĐO LƯỜNG, KIỂM TRA, CHÍNH XÁC, Y TẾ HOẶC PHẪU THUẬT; ĐỒNG HỒ THỜI GIAN, ĐỒNG HỒ CÁ NHÂN; NHẠC CỤ; CÁC BỘ PHẬN VÀ PHỤ KIỆN CỦA CHÚNG | 91 | Đồng hồ thời gian, đồng hồ cá nhân và các bộ phận của chúng | OUT_OF_SCOPE |
 | XVIII | DỤNG CỤ, THIẾT BỊ QUANG HỌC, NHIẾP ẢNH, ĐIỆN ẢNH, ĐO LƯỜNG, KIỂM TRA, CHÍNH XÁC, Y TẾ HOẶC PHẪU THUẬT; ĐỒNG HỒ THỜI GIAN, ĐỒNG HỒ CÁ NHÂN; NHẠC CỤ; CÁC BỘ PHẬN VÀ PHỤ KIỆN CỦA CHÚNG | 92 | Nhạc cụ; các bộ phận và phụ kiện của chúng | OUT_OF_SCOPE |
