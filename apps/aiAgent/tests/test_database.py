@@ -112,6 +112,42 @@ def test_bm25_uses_pinned_library_and_respects_namespace(conn):
     assert retriever.route("Chú giải Phần XVII loại trừ thiết bị điện")["intent"] == "legal"
 
 
+def test_parent_candidates_follow_cited_contains_edges(conn):
+    retriever = Retriever(conn)
+    vector = conn.execute(
+        "SELECT embedding FROM rag.embeddings WHERE snapshot=%s AND profile=%s AND chunk_id=%s",
+        (retriever.snapshot, retriever.profile, "tt31:SXVII_HEADING4_8714"),
+    ).fetchone()["embedding"]
+    candidates = retriever.parent_candidates("khung xe và càng xe đạp", vector, ["XVII"])
+    assert candidates
+    for candidate in candidates[:10]:
+        parent = candidate["parent_support"]
+        assert candidate["locator"] and parent["locator"] and candidate["score"] > 0
+        path = conn.execute(
+            """WITH RECURSIVE descendants(id) AS (
+                SELECT target FROM rag.graph_edges WHERE snapshot=%s AND source=%s
+                  AND relation='CONTAINS'
+                UNION
+                SELECT e.target FROM rag.graph_edges e JOIN descendants d ON e.source=d.id
+                WHERE e.snapshot=%s AND e.relation='CONTAINS'
+            ) SELECT 1 FROM descendants WHERE id=%s LIMIT 1""",
+            (retriever.snapshot, parent["id"], retriever.snapshot, candidate["id"]),
+        ).fetchone()
+        assert path is not None
+
+
+def test_new_snapshot_without_frozen_policy_has_safe_section_fallback(conn, tmp_path, monkeypatch):
+    import rag.retrieval as retrieval_module
+
+    monkeypatch.setattr(retrieval_module, "ROOT", tmp_path)
+    retriever = Retriever(conn)
+    assert set(retriever.section_policies) == {"XIV", "XVI", "XVII"}
+    assert all(
+        policy["weights"] == {"dense": 0.5, "sparse": 0.5}
+        for policy in retriever.section_policies.values()
+    )
+
+
 def test_implicit_hs6_nodes_preserve_source_and_graph_structure(conn):
     retriever = Retriever(conn)
     node = conn.execute(

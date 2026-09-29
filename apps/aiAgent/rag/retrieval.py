@@ -64,7 +64,10 @@ def code_mention_plan(query: str) -> dict:
 
 
 def qa_candidate_pool(
-    direct: list[dict], parents: list[dict], notes: list[dict], limit: int,
+    direct: list[dict],
+    parents: list[dict],
+    notes: list[dict],
+    limit: int,
     direct_fraction: float = 0.7,
 ) -> list[dict]:
     """Reserve room for cited graph neighbors before scoring a fixed rerank pool."""
@@ -321,6 +324,16 @@ class Retriever:
         self.snapshot, self.profile = active["snapshot"], active["profile"]
         self.default_mode = "dense_sparse"
         self.weights = self.cfg.get("fusion_weights", {})
+        self.section_policies = {
+            section: {
+                "configuration": "C5",
+                "mode": "dense_sparse",
+                "weights": {"dense": 0.5, "sparse": 0.5},
+                "k": self.cfg["rrf_k"],
+            }
+            for section in ("XIV", "XVI", "XVII")
+        }
+        self.parent_policies: dict[str, dict] = {}
         selection_path = ROOT / "config/selected_retrieval.json"
         if selection_path.exists():
             selection = read(selection_path)
@@ -335,6 +348,7 @@ class Retriever:
                 self.qa_policy = selection.get("qa", {})
                 self.pipeline_policies = selection.get("pipeline_policies", {})
                 self.definition_policies = selection.get("definition_policies", {})
+                self.parent_policies = selection.get("parent_policies", {})
                 self.weights = selection.get(
                     "weights", self.router_policy.get("weights", self.weights)
                 )
@@ -623,6 +637,78 @@ class Retriever:
             else r
             for r in rows
         ]
+
+    def parent_candidates(
+        self,
+        query: str,
+        dense_vector: Any,
+        sections: list[str],
+        parent_limit: int = 20,
+        child_limit: int = 5,
+    ) -> list[dict]:
+        """Search real tariff ancestors, then rank their real descendants by BM25."""
+        if not sections or parent_limit < 1 or child_limit < 1:
+            return []
+        parent_branches = {
+            "dense": self.dense(
+                dense_vector, "product", parent_limit, sections=sections, levels=[4, 6]
+            ),
+            "bm25": self.bm25(query, "product", parent_limit, sections=sections, levels=[4, 6]),
+        }
+        parents = fuse(parent_branches, 60, {"dense": 0.5, "bm25": 0.5})[:parent_limit]
+        if not parents:
+            return []
+        if not hasattr(self, "_bm25_index"):
+            self.bm25(query, "product", 1, sections=sections, levels=[4, 6])
+        scores = self._bm25_index.get_scores(self.tokens(query))
+        leaves = self.documents("product", sections=sections, levels=[8])
+        leaves_by_id = {leaf["id"]: leaf for leaf in leaves}
+        if not hasattr(self, "_tariff_children"):
+            edges = self.conn.execute(
+                "SELECT source,target FROM rag.graph_edges WHERE snapshot=%s AND relation='CONTAINS'",
+                (self.snapshot,),
+            ).fetchall()
+            self._tariff_children: dict[str, list[str]] = {}
+            for edge in edges:
+                self._tariff_children.setdefault(edge["source"], []).append(edge["target"])
+        output = []
+        seen = set()
+        for parent in parents:
+            code = parent.get("code")
+            if not code or parent.get("level") not in (4, 6):
+                continue
+            frontier = [parent["id"]]
+            descendants_ids = set()
+            while frontier:
+                node_id = frontier.pop()
+                if node_id in descendants_ids:
+                    continue
+                descendants_ids.add(node_id)
+                frontier.extend(self._tariff_children.get(node_id, []))
+            descendants = sorted(
+                (
+                    ({**leaf, "score": float(scores[self._bm25_positions[leaf["id"]]])})
+                    for node_id in descendants_ids
+                    if (leaf := leaves_by_id.get(node_id)) is not None
+                    and leaf["id"] in self._bm25_positions
+                ),
+                key=lambda leaf: (-leaf["score"], leaf["id"]),
+            )
+            for leaf in descendants[:child_limit]:
+                if leaf["id"] in seen or leaf["score"] <= 0:
+                    continue
+                seen.add(leaf["id"])
+                output.append(
+                    {
+                        **leaf,
+                        "parent_support": {
+                            "id": parent["id"],
+                            "code": code,
+                            "locator": parent["locator"],
+                        },
+                    }
+                )
+        return output
 
     @classmethod
     def exact_features(cls, text: str) -> set[str]:
@@ -1160,7 +1246,10 @@ class Retriever:
         }
 
     def qa_search(
-        self, query: str, top_k: int = 10, policy_override: dict | None = None,
+        self,
+        query: str,
+        top_k: int = 10,
+        policy_override: dict | None = None,
         include_package: bool = True,
     ) -> dict:
         """Explicit evidence-QA task: source chunks at all levels, no gold labels."""
@@ -1223,11 +1312,15 @@ class Retriever:
                 raise ValueError("Graph-before-rerank requires a cross-encoder policy")
             seeds = ranked[: policy.get("graph_seed_count", 6)]
             tariff_seeds = [r for r in seeds if r["chunk_type"] == "tariff_entry"]
-            parents = self.tariff_ancestors(tariff_seeds, limit=30) if tariff_seeds else {
-                "records": [], "trace": []
-            }
+            parents = (
+                self.tariff_ancestors(tariff_seeds, limit=30)
+                if tariff_seeds
+                else {"records": [], "trace": []}
+            )
             graph = self.evidence(
-                seeds, limit=30, hops=self.cfg["evidence_hops"],
+                seeds,
+                limit=30,
+                hops=self.cfg["evidence_hops"],
                 query_vector=encoded["dense"][0],
             )
             graph_candidates = {
@@ -1239,8 +1332,11 @@ class Retriever:
                 parents["records"], key=lambda row: (-int(row.get("level") or 0), row["id"])
             )
             ranked = qa_candidate_pool(
-                ranked, parent_rows, graph["records"],
-                policy["rerank_pool"], policy.get("direct_fraction", 0.7),
+                ranked,
+                parent_rows,
+                graph["records"],
+                policy["rerank_pool"],
+                policy.get("direct_fraction", 0.7),
             )
         pre_rerank_ids = [r["id"] for r in ranked[: policy.get("rerank_pool", pool)]]
         if policy.get("reranker") == "cross_encoder":
@@ -1577,6 +1673,19 @@ class Retriever:
         ranking_params = definition_policy or params
         definition_rows = []
         candidates = output["candidates"]
+        parent_policy = getattr(self, "parent_policies", {}).get(key, {})
+        parent_rows = []
+        if parent_policy.get("weight", 0) > 0:
+            parent_rows = self.parent_candidates(
+                query,
+                encoded["dense"][0],
+                [s["section"] for s in sections],
+                parent_policy.get("parent_limit", 20),
+                parent_policy.get("child_limit", 5),
+            )
+            candidates = definition_fusion(
+                candidates, parent_rows, parent_policy["weight"], parent_policy.get("k", 60)
+            )
         if definition_policy:
             definition_rows = self.definition_candidates(
                 query, 100, [s["section"] for s in sections]
@@ -1624,6 +1733,8 @@ class Retriever:
             "section_candidates": sections,
             "pipeline_policy": params,
             "definition_policy": definition_policy,
+            "parent_policy": parent_policy,
+            "parent_candidates": parent_rows[:10],
             "definition_candidates": definition_rows[:10],
             "definition_evidence": list(
                 {

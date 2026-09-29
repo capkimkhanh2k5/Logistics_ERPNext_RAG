@@ -67,24 +67,13 @@ def source_files() -> dict:
     return {key: read(NORMALIZED / path) for key, path in SOURCES.items()}
 
 
-def xiv_vietnamese_view(master: dict, masters: dict[str, dict]) -> str:
-    """Use only the source's Vietnamese tariff text and nearest cited ancestors."""
+def xiv_vietnamese_view(master: dict) -> str:
+    """Format only this XIV record's normalized Vietnamese source fields."""
     code = master["hs"].get("code")
     own = master["text"].get("vi") or master["text"].get("source_raw_vi")
     parts = [f"Mã {code}." if code else ""]
     if own:
         parts.append(own)
-    seen = {own}
-    for ancestor_id in reversed(master["hierarchy"].get("ancestor_ids", [])):
-        ancestor = masters.get(ancestor_id)
-        if not ancestor:
-            continue
-        text = ancestor["text"].get("vi")
-        if text and text not in seen:
-            parts.append(f"Ngữ cảnh {ancestor['hs'].get('code') or ancestor_id}: {text}")
-            seen.add(text)
-        if len(seen) >= 3:
-            break
     unit = master.get("unit", {}).get("vi")
     if unit:
         parts.append(f"Đơn vị: {unit}")
@@ -94,7 +83,7 @@ def xiv_vietnamese_view(master: dict, masters: dict[str, dict]) -> str:
 
 
 def xvii_vietnamese_view(master: dict) -> str:
-    """Build a search view from the verified Vietnamese fields of one XVII node."""
+    """Format only this XVII record's normalized Vietnamese source fields."""
     content = master["content"]
     code = master.get("code")
     parts = [f"Mã {code}." if code else ""]
@@ -117,6 +106,17 @@ def xvii_vietnamese_view(master: dict) -> str:
     return " ".join(" ".join(parts).split())
 
 
+def xvi_vietnamese_view(master: dict) -> str:
+    """Use the normalized title and wording of one XVI source record only."""
+    title = (master.get("title_vi") or "").strip()
+    wording = (master.get("text_vi") or master.get("source_text_vi") or "").strip()
+    if master.get("layer") == "context":
+        return wording
+    if master.get("layer") == "tariff":
+        return f"{master['code_display']} — {wording}"
+    return title if wording and wording in title else " ".join(p for p in (title, wording) if p)
+
+
 def audit() -> dict:
     data = source_files()
     validator = jsonschema.Draft202012Validator(data["tt31_section_xvi_schema"])
@@ -129,6 +129,7 @@ def audit() -> dict:
     assert len(masters) == len(data["tt31_section_xvi_master"])
     for r in data["tt31_section_xvi"]:
         assert r["text"] == masters[r["id"]]["retrieval"]["embedding_text_vi"]
+        assert r["text"] == xvi_vietnamese_view(masters[r["id"]])
     broken = [
         e["edge_id"]
         for e in data["tt31_section_xvi_edges"]
@@ -175,7 +176,7 @@ def audit() -> dict:
         and r["content"]["embedding_text"]
         == r["content"]["sparse_text"]
         == r["content"]["search_text"]
-        == xiv_vietnamese_view(xiv_master[r["source_record_id"]], xiv_master)
+        == xiv_vietnamese_view(xiv_master[r["source_record_id"]])
         for r in data["tt31_section_xiv"]
     ), "Section XIV search inputs must use the verified Vietnamese view"
     codes = {r["metadata"]["code"] for r in data["tt31_section_xvi"] if r["metadata"].get("code")}
@@ -405,7 +406,10 @@ def build_corpus() -> dict:
             else:
                 raw = r["content"]["raw_authoritative"]
                 source_text = (
-                    raw.get("legal_text_vi_raw")
+                    m["content"].get("legal_text_vi_normalized")
+                    or m["content"].get("description_vi_normalized")
+                    or m["content"].get("supplemental_text_normalized")
+                    or raw.get("legal_text_vi_raw")
                     or raw.get("description_vi_raw")
                     or raw.get("supplemental_text_raw")
                     or r["content"]["embedding_text"]

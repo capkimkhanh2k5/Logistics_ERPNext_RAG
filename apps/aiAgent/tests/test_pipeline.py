@@ -9,7 +9,7 @@ from rag.retrieval import fuse, unique_codes
 
 def test_corpus_integrity_and_provenance():
     report = audit()
-    assert report["gold_count"] == 390
+    assert report["gold_count"] == 852
     assert report["graph_edges"] == 5813
     first, second = build_corpus(), build_corpus()
     assert first["snapshot"] == second["snapshot"]
@@ -19,6 +19,19 @@ def test_corpus_integrity_and_provenance():
     assert len({r["id"] for r in first["records"]}) == 5356
     corrected = [r for r in first["records"] if r["metadata"].get("source_anomaly")]
     assert corrected
+    rows = {r["id"]: r for r in first["records"]}
+    pickup = rows["tt31:SXVII_HS8_87043112"]
+    assert "Ô tô pick-up" in pickup["source_text"]
+    assert "Xe có động cơ dùng để chở hàng" not in pickup["embedding_text"]
+    bicycle_frame = rows["tt31:SXVII_HS8_87149110"]
+    assert "Khung xe và càng xe" not in bicycle_frame["embedding_text"]
+    assert all(
+        "Ngữ cảnh " not in row["embedding_text"]
+        for row in rows.values()
+        if row["dataset"] == "tt31"
+    )
+    assert "Theo mục đích của nhóm 85.34" not in rows["tt31:SXVI-T-8534"]["embedding_text"]
+    assert "Theo mục đích của nhóm 85.34" in rows["tt31:SXVI-N-CH85_NOTE_8"]["source_text"]
 
 
 @pytest.mark.parametrize(
@@ -64,12 +77,27 @@ def test_gold_never_enters_query_and_split_matches_supplied_files():
     dev = {g["expected_hs_8"] for g in gold if g["test_id"] in split["dev"]}
     test = {g["expected_hs_8"] for g in gold if g["test_id"] in split["test"]}
     assert dev & test == set(split["overlapping_codes"])
-    assert len(split["dev"]) == 300
-    assert len(split["test"]) == 90
-    assert len(split["dev"]) + len(split["test"]) == 390
+    assert len(split["dev"]) == 709
+    assert len(split["test"]) == 143
+    assert len(split["dev"]) + len(split["test"]) == 852
     for row in gold:
         altered = {**row, "expected_hs_8": "99999999", "chapter": "99", "heading": "9999"}
         assert query_for(row, "name_and_spec") == query_for(altered, "name_and_spec")
+
+
+def test_holdout_is_explicit_and_case_families_do_not_cross_splits():
+    ordinary, _ = discover_gold()
+    assert {row["split"] for row in ordinary} == {"train", "test"}
+    all_cases, _ = discover_gold(("train", "test", "holdout"))
+    split = benchmark_split(all_cases)
+    assert len(split["holdout"]) == 88
+    families = {
+        name: {r["case_family_id"] for r in all_cases if r["split"] == name}
+        for name in ("train", "test", "holdout")
+    }
+    assert not (families["train"] & families["test"])
+    assert not (families["train"] & families["holdout"])
+    assert not (families["test"] & families["holdout"])
 
 
 def test_metrics_do_not_count_heading_as_full_code_hit():
@@ -184,10 +212,10 @@ def test_verified_gold_uses_supplied_partitions_and_normalized_grid():
     from rag.evaluation import discover_gold, weight_grid
 
     rows, paths = discover_gold()
-    assert len(rows) == 390
+    assert len(rows) == 852
     assert paths == [
-        "data/verified/hs/train/HS_RAG_TRAIN_300_VERIFIED.jsonl",
-        "data/verified/hs/test/HS_RAG_TEST_90_DISJOINT_VERIFIED.jsonl",
+        "data/verified/hs/train/HS_RAG_TRAIN.jsonl",
+        "data/verified/hs/test/HS_RAG_TEST.jsonl",
     ]
     assert all(r["expected_hs_8"] not in r["query"] for r in rows)
     grid = weight_grid(("dense", "sparse", "bm25", "fts", "exact"))
@@ -492,9 +520,10 @@ def test_indexed_corpus_contains_no_english_search_passages():
         for row in rows
         for field in ("embedding_text", "lexical_text")
     )
-    assert next(row for row in rows if row["id"] == "tt31:SXVI-T-8506")[
-        "embedding_text"
-    ] == "Mã 85.06; Pin và bộ pin."
+    assert (
+        next(row for row in rows if row["id"] == "tt31:SXVI-T-8506")["embedding_text"]
+        == "85.06 — Pin và bộ pin."
+    )
 
 
 def test_qa_weight_sweep_uses_all_primary_sources():

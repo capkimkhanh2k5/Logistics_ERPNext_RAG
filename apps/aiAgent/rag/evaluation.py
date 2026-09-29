@@ -8,7 +8,7 @@ from typing import Any
 
 import numpy as np
 
-from rag.data import ROOT, config, digest, read, write_json
+from rag.data import ROOT, config, digest, read
 from rag.retrieval import Retriever, code_mention_plan
 
 
@@ -94,11 +94,13 @@ def evidence_metrics(retriever: Retriever, cases: list[dict], mode: str | None =
     }
 
 
-def discover_gold() -> tuple[list[dict], list[str]]:
-    """Use the user-supplied partitions; ignore all/ and CSV mirrors."""
+def discover_gold(partitions: tuple[str, ...] = ("train", "test")) -> tuple[list[dict], list[str]]:
+    """Load only explicitly requested user partitions; ignore all/ and CSV mirrors."""
     rows = []
     paths = []
-    for partition in ("train", "test"):
+    if not partitions or set(partitions) - {"train", "test", "holdout"}:
+        raise ValueError("Unknown or empty gold partitions")
+    for partition in partitions:
         files = sorted((ROOT / "data/verified/hs" / partition).glob("*.jsonl"))
         if len(files) != 1:
             raise ValueError(f"Expected exactly one JSONL in verified/hs/{partition}")
@@ -126,27 +128,39 @@ def discover_gold() -> tuple[list[dict], list[str]]:
 
 
 def benchmark_split(cases: list[dict]) -> dict:
-    """Record supplied product-disjoint partitions, with code overlap reported explicitly."""
+    """Record supplied product and family isolation, with code overlap reported."""
+
+    if len({row["test_id"] for row in cases}) != len(cases):
+        raise ValueError("Gold IDs duplicated across partitions")
 
     def signature(row):
         return unicodedata.normalize("NFKC", query_for(row, "name_only")).casefold()
 
-    train = [r for r in cases if r["split"] == "train"]
-    test = [r for r in cases if r["split"] == "test"]
-    duplicate_products = {signature(r) for r in train} & {signature(r) for r in test}
-    if duplicate_products:
-        raise ValueError(f"Products duplicated between train/test: {duplicate_products}")
+    groups = {
+        name: [r for r in cases if r["split"] == name] for name in ("train", "test", "holdout")
+    }
+    for left, right in (("train", "test"), ("train", "holdout"), ("test", "holdout")):
+        duplicate_products = {signature(r) for r in groups[left]} & {
+            signature(r) for r in groups[right]
+        }
+        if duplicate_products:
+            raise ValueError(f"Products duplicated between {left}/{right}: {duplicate_products}")
+        left_families = {r["case_family_id"] for r in groups[left] if r.get("case_family_id")}
+        right_families = {r["case_family_id"] for r in groups[right] if r.get("case_family_id")}
+        if left_families & right_families:
+            raise ValueError(f"Case families duplicated between {left}/{right}")
     result = {
         "gold_sha256": digest(cases),
         "grouping": "USER_SUPPLIED_PRODUCT_DISJOINT",
-        "dev": [r["test_id"] for r in train],
-        "test": [r["test_id"] for r in test],
+        "dev": [r["test_id"] for r in groups["train"]],
+        "test": [r["test_id"] for r in groups["test"]],
+        "holdout": [r["test_id"] for r in groups["holdout"]],
         "overlapping_codes": sorted(
-            {r["expected_hs_8"] for r in train} & {r["expected_hs_8"] for r in test}
+            {r["expected_hs_8"] for r in groups["train"]}
+            & {r["expected_hs_8"] for r in groups["test"]}
         ),
-        "purpose": "train tunes retrieval; no model fine-tuning and no gold ingestion",
+        "purpose": "train tunes retrieval; test diagnoses; holdout evaluates frozen policy once",
     }
-    write_json(ROOT / "config/evaluation_split.json", result)
     return result
 
 
