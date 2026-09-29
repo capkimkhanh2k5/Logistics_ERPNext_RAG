@@ -390,9 +390,10 @@ def test_qa_verified_targets_match_current_sources():
     from rag.evaluation import discover_qa
 
     cases = discover_qa(build_corpus())
-    assert len(cases) == 470
-    assert sum(c["split"] == "train" for c in cases) == 320
+    assert len(cases) == 650
+    assert sum(c["split"] == "train" for c in cases) == 400
     assert sum(c["split"] == "test" for c in cases) == 150
+    assert sum(c["split"] == "holdout" for c in cases) == 100
     assert next(c for c in cases if c["id"] == "Q001")["canonical_groups"][0]["any_of"] == [
         "tt85:TT85-A2-2"
     ]

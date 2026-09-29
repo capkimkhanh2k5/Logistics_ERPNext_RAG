@@ -451,14 +451,15 @@ def discover_qa(bundle: dict, split: str | None = None) -> list[dict]:
 
     Reading only train keeps the held-out labels outside policy selection.
     """
-    if split not in (None, "train", "test"):
-        raise ValueError("QA split must be train, test, or None")
+    if split not in (None, "train", "test", "holdout"):
+        raise ValueError("QA split must be train, test, holdout, or None")
     root = ROOT / "data/verified/qa"
     paths = {
         "train": root / "train/LEGAL_RETRIEVAL_TRAIN.jsonl",
         "test": root / "test/LEGAL_RETRIEVAL_TEST.jsonl",
+        "holdout": root / "holdout/LEGAL_RETRIEVAL_HOLDOUT.jsonl",
     }
-    partitions = (split,) if split else ("train", "test")
+    partitions = (split,) if split else ("train", "test", "holdout")
     rows = []
     for partition in partitions:
         for case in read(paths[partition]):
@@ -471,11 +472,6 @@ def discover_qa(bundle: dict, split: str | None = None) -> list[dict]:
         raise ValueError("Duplicate QA queries")
     if len({r["case_family_id"] for r in rows}) != len(rows):
         raise ValueError("QA case families overlap within the selected partitions")
-    if split is None:
-        master = read(root / "all/LEGAL_RETRIEVAL_MASTER.jsonl")
-        if {r["id"]: r for r in master} != {r["id"]: r for r in rows}:
-            raise ValueError("QA master differs from supplied train/test partitions")
-
     records = {r["id"]: r for r in bundle["records"]}
     by_source: dict[str, list[dict]] = {}
     for record in records.values():
@@ -561,6 +557,7 @@ QA_CHUNK_TYPES = [
     "chapter_note",
     "subheading_note",
     "tariff_entry",
+    "tariff_footnote",
     "legal_clause",
 ]
 

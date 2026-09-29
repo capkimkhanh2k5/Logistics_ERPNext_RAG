@@ -68,7 +68,6 @@ DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='chunks_namespace_valid' AND conrelid='rag.chunks'::regclass) THEN
     ALTER TABLE rag.chunks ADD CONSTRAINT chunks_namespace_valid CHECK (namespace IN ('hs_classification','legal_classification'));
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='chunks_type_valid' AND conrelid='rag.chunks'::regclass) THEN
-    ALTER TABLE rag.chunks ADD CONSTRAINT chunks_type_valid CHECK (chunk_type IN ('gir_rule','gir_explanation','section_note','chapter_note','subheading_note','tariff_entry','legal_clause'));
-  END IF;
 END $$;
+ALTER TABLE rag.chunks DROP CONSTRAINT IF EXISTS chunks_type_valid;
+ALTER TABLE rag.chunks ADD CONSTRAINT chunks_type_valid CHECK (chunk_type IN ('gir_rule','gir_explanation','section_note','chapter_note','subheading_note','tariff_entry','tariff_footnote','legal_clause'));

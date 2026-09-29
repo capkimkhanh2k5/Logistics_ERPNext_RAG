@@ -401,7 +401,15 @@ def build_corpus() -> dict:
                 locator = m["source"]
                 legal = r.get("legal_context", {})
                 notes = legal.get("effective_note_ids", [])
-                chunk_type = kind if kind.endswith("_note") else "tariff_entry" if level else None
+                chunk_type = (
+                    "tariff_footnote"
+                    if kind == "tariff_footnote"
+                    else kind
+                    if kind.endswith("_note")
+                    else "tariff_entry"
+                    if level
+                    else None
+                )
                 source = m["source"]
             else:
                 raw = r["content"]["raw_authoritative"]
@@ -485,6 +493,7 @@ def build_corpus() -> dict:
         "chapter_note",
         "subheading_note",
         "tariff_entry",
+        "tariff_footnote",
         "legal_clause",
     }
     for row in rows:
@@ -497,7 +506,13 @@ def build_corpus() -> dict:
         if dataset == "tt31" and "chunk_type" not in row:
             original = md.get("chunk_type")
             row["chunk_type"] = (
-                "tariff_entry" if row.get("level") else original if original in supported else None
+                "tariff_entry"
+                if row.get("level")
+                else "tariff_footnote"
+                if md.get("original_type") == "tariff_footnote"
+                else original
+                if original in supported
+                else None
             )
             if row["role"] == "evidence" and row["chunk_type"] is None:
                 row["role"] = (

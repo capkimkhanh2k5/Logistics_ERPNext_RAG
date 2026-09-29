@@ -2,9 +2,8 @@
 
 | Notebook | Workflow |
 |---|---|
-| `notebooks/01_build_knowledge_base.ipynb` | Audit XIV/XVI/XVII → namespaces / GIR / TT85 clauses → BGE-M3 dense+sparse → PostgreSQL → integrity/idempotency |
+| `notebooks/01_build_knowledge_base.ipynb` | Audit XIV/XVI/XVII → namespaces / GIR / TT85 → BGE-M3 → làm sạch schema RAG và nạp lại PostgreSQL trong một transaction → kiểm thử QA 400 train / 150 test / 100 holdout |
 | `notebooks/02_test_retrieval.ipynb` | HS train 709 / test 143 / holdout 88 → C1–C15 / weight sweep → soft Top-2 Sections / parent graph / reranker → Top-K benchmark |
-| `notebooks/03_qa_retrieval_experiment.ipynb` | Train 320 / test 150 QA → so sánh graph trước/sau reranker và truy vấn bỏ mã nghi vấn → chọn cấu hình QA / kiểm tra runtime |
 
 Outputs được giữ ngay trong các notebook. Không tạo report rời. Các module `rag/` giữ logic dùng chung để notebook và runtime dùng cùng implementation.
 
@@ -16,7 +15,7 @@ Trong `frappe-bench/apps/aiAgent`:
 .venv/bin/jupyter lab notebooks
 ```
 
-Chọn kernel **Python (AI Agent RAG)**. Chạy notebook 01 trước. Trong notebook 02, chọn các cell từ mục **New verified HS partitions — active snapshot** đến cuối và dùng *Run Selected Cells*; phần phía trên giữ output thí nghiệm lịch sử. Để kiểm tra QA với cấu hình đã khóa, trong notebook 03 chạy hai cell setup đầu tiên rồi cell cuối ở mục **QA regression on the new active Knowledge Base snapshot**. Notebook 02/03 đọc corpus/model profile active từ artifacts/database, không cần giữ kernel notebook 01.
+Chọn kernel **Python (AI Agent RAG)**. Chạy notebook 01 trước để build KB và đánh giá QA. Trong notebook 02, chọn các cell từ mục **New verified HS partitions — active snapshot** đến cuối và dùng *Run Selected Cells*; phần phía trên giữ output thí nghiệm lịch sử. Phần QA trong notebook 01 kiểm thử cấu hình đã khóa. Notebook 02 đọc corpus/model profile active từ artifacts/database, không cần giữ kernel notebook 01.
 
 Máy mới cần:
 
@@ -35,7 +34,7 @@ docker compose -f docker-compose.rag.yml up -d
 
 Giữ `.env` hiện tại nếu đã có database volume. Lockfile đã được kiểm chứng trên macOS ARM64/Python 3.11; khi đổi platform có thể resolve từ `requirements-rag.txt` rồi kiểm chứng lại.
 
-Notebook 01 có cell hiển thị database trước ingestion; `APPLY=True` ghi vào database RAG riêng. Có thể đặt `APPLY=False` để dry-run. Không DROP/TRUNCATE. Model/tokenizer được pin commit; máy mới tải weights khoảng 2,2 GB. Ingestion tái chạy có checkpoint và không tạo duplicate.
+Notebook 01 có cell hiển thị database trước ingestion; `APPLY=True` ghi vào database RAG riêng. `APPLY=True, FRESH_REBUILD=True` xóa các bảng thuộc schema `rag` và nạp lại trong cùng transaction; lỗi sẽ rollback. Nguồn và output notebook được giữ. Có thể đặt `APPLY=False` để dry-run. Model/tokenizer được pin commit; máy mới tải weights khoảng 2,2 GB. Ingestion tái chạy có checkpoint và không tạo duplicate.
 
 ## Cấu trúc còn lại
 
@@ -64,7 +63,7 @@ with connect() as conn:
 
 Cùng PostgreSQL/pgvector, hai namespaces `hs_classification` và `legal_classification`. Dataset vẫn là `tt31`, `gir`, `tt85`, `scope`. Metadata gồm namespace/dataset/chunk_type/role, section/chapter/heading/hs6/ahtn8, source/effective_from/effective_to/legal_status. Legal status chỉ phản ánh metadata nguồn, không là xác minh pháp lý độc lập.
 
-Bảy chunk types: gir_rule, gir_explanation, section_note, chapter_note, subheading_note, tariff_entry, legal_clause. Structural/context/source-footnote records có chunk_type null khi không thuộc bảy loại này; subtype nguồn được giữ nguyên. 5 mẫu TT85 giữ trong source template registry, không có vectors. Tạo Word chưa triển khai.
+Tám chunk types: gir_rule, gir_explanation, section_note, chapter_note, subheading_note, tariff_entry, tariff_footnote, legal_clause. Structural/context records có chunk_type null khi không thuộc tám loại này; subtype nguồn được giữ nguyên. 5 mẫu TT85 giữ trong source template registry, không có vectors. Tạo Word chưa triển khai.
 
 Các retrievers: dense BGE-M3, learned sparse token postings, Okapi BM25 từ `rank-bm25==0.2.2`/`BM25Okapi` (`k1=1.2,b=0.75,epsilon=0.25`, index trong RAM từ active PostgreSQL snapshot), FTS `simple+unaccent/ts_rank_cd`, Exact mã/thuộc tính kỹ thuật. BM25 không được thay bằng FTS/sparse. Weighted RRF kết hợp rank, k=5/10/20/40/60/100/200. Trọng số chuẩn hóa về 1 là quy ước benchmark; toán học RRF không yêu cầu tổng bằng 1.
 
@@ -78,7 +77,7 @@ Dùng `data/verified/hs/train/HS_RAG_TRAIN.jsonl` (709 sản phẩm), `test/HS_R
 
 C1–C15, nhiều bộ trọng số và RRF k được quét trên TRAIN; chính sách cũ cũng là một candidate. Tập validation nội bộ chọn cấu hình cho từng Phần và router. Sau đó notebook thử nhánh tài liệu cha theo `CONTAINS`, định nghĩa Notes và Cross-Encoder trên cùng ngân sách ứng viên. Không dùng nhãn test/holdout để chọn. Ngữ cảnh bổ sung tại thời điểm truy xuất luôn giữ bản ghi và locator riêng, không ghi ngược vào corpus nguồn.
 
-Chính sách HS của snapshot nguồn thuần `e06d50069151e5b0ecae0450`: XIV C9 Dense .35 / BM25 .35 / Exact .30; XVI C6 Dense .145 / BM25 .855; XVII C13 thiên về BM25 .685 và Sparse .315. Cả ba dùng Cross-Encoder pool30; XIV/XVII còn thử nhánh tài liệu cha với trọng số .2. Router dùng Dense .70 / Sparse .10 / BM25 .10 / FTS .05 / Exact .05, RRF k60 và giữ Top-2 Sections. Tỷ lệ đầy đủ trong `config/selected_retrieval.json`; đây là lựa chọn từ TRAIN của corpus mới, chưa được xác nhận trên holdout mới.
+Chính sách HS được chọn lại trên TRAIN của snapshot dựng mới `e2354dac4a5bdc2c717cac99`: XIV C9 Dense .35 / BM25 .35 / Exact .30; XVI C6 Dense .145 / BM25 .855; XVII C13 thiên về BM25 .685 và Sparse .315. Cả ba dùng Cross-Encoder pool30; XIV/XVII còn thử nhánh tài liệu cha với trọng số .2. Router dùng Dense .70 / Sparse .10 / BM25 .10 / FTS .05 / Exact .05, RRF k60 và giữ Top-2 Sections. Tỷ lệ đầy đủ trong `config/selected_retrieval.json`; đây là lựa chọn từ TRAIN; TEST và HOLDOUT đã được đo sau khi khóa chính sách. HOLDOUT có cùng SHA256 với bản đã xem trên snapshot trước nên được xem là tập hồi quy, không phải xác nhận mù.
 
 | Phần | Test Hit@1 / HS8 Recall@5 | Holdout Hit@1 / HS8 Recall@5 |
 |---|---:|---:|
@@ -86,7 +85,7 @@ Chính sách HS của snapshot nguồn thuần `e06d50069151e5b0ecae0450`: XIV C
 | XVI | 59.6% / 91.5% | 34.5% / 58.6% |
 | XVII | 27.1% / 75.0% | 26.7% / 46.7% |
 
-Đây là **Top-K retrieval**, không phải độ chính xác kết luận mã HS. Holdout Top-2 Section Recall vẫn là 87/88, nhưng HS8 Recall@5 giảm mạnh sau khi bỏ văn bản cha/Chú giải đã từng được nối vào từng dòng. Điều này cho thấy nguồn ngữ cảnh có ích cho tìm kiếm, đồng thời xác nhận cần đặt nó ở một kênh truy xuất riêng có citation thay vì trộn vào bản ghi nguồn. Bảng từng câu, MRR/nDCG và độ trễ của cả hai snapshot được giữ trong output notebook 02. Exclusion Violation Rate là N/A vì bộ sản phẩm không có `forbidden_codes` gắn nhãn.
+Đây là **Top-K retrieval**, không phải độ chính xác kết luận mã HS. Holdout Top-2 Section Recall là 87/88. Bảng từng câu, MRR/nDCG và độ trễ của snapshot mới nằm trong output notebook 02; các bảng cũ phía trên được giữ làm lịch sử. Exclusion Violation Rate là N/A vì bộ sản phẩm không có `forbidden_codes` gắn nhãn. Vì corpus thay đổi ở metadata của một chú thích biểu thuế, các chỉ số HS8 của snapshot mới trùng kết quả lần trước; lần này đã xóa 11 snapshot cũ và nạp lại toàn bộ 5.356 chunk trong database.
 
 GIR Rule Engine, Critic, LLM generation, Agent2/FastAPI/ERP integration thuộc giai đoạn tiếp theo.
 
@@ -108,13 +107,13 @@ Notebook 01 đối chiếu và sửa lỗi OCR với PDF nguồn. Các trường
 
 Phần XVII bổ sung sửa OCR `0 tô` → `Ô tô` trong 173 mô tả Chương 87 sau khi kiểm tra mẫu trên ảnh PDF; bản trích xuất thô vẫn được giữ. HS6 và Heading cha là các bản ghi riêng có locator; quan hệ cha được giữ bằng cạnh `CONTAINS` trong graph. Nhánh tìm tài liệu cha trong notebook 02 chỉ duyệt các cạnh này.
 
-## QA: 320 train / 150 test
+## QA: 400 train / 150 test / 100 holdout
 
-`data/verified/qa/train/LEGAL_RETRIEVAL_TRAIN.jsonl` chứa 320 câu, `data/verified/qa/test/LEGAL_RETRIEVAL_TEST.jsonl` chứa 150 câu, và `all/LEGAL_RETRIEVAL_MASTER.jsonl` là union để kiểm tra. Adapter dùng `record_mapping` hoặc `source_locations` để ánh xạ alias export về chunk nguồn thật; kiểm tra ID, câu hỏi, case family và nguồn. Gold không được ingest, không fine-tune model và không dùng nhãn test để chọn chính sách.
+`data/verified/qa/train/LEGAL_RETRIEVAL_TRAIN.jsonl` chứa 400 câu, `data/verified/qa/test/LEGAL_RETRIEVAL_TEST.jsonl` chứa 150 câu, và `holdout/LEGAL_RETRIEVAL_HOLDOUT.jsonl` chứa 100 câu và chỉ dùng sau khi khóa chính sách. Adapter dùng `record_mapping` hoặc `source_locations` để ánh xạ alias export về chunk nguồn thật; kiểm tra ID, câu hỏi, case family và nguồn. Gold không được ingest, không fine-tune model và không dùng nhãn test để chọn chính sách.
 
-Notebook 03 thử các họ retriever/trọng số trên QA train, sau đó so sánh đường trực tiếp với đường thêm tài liệu cha và Notes thật trước Cross-Encoder. Thử pool 30/50/100, phần ứng viên trực tiếp được giữ, và nhánh truy vấn bỏ mã đang bị nghi vấn. Chọn policy trên train và ghi khóa `qa` trong `config/selected_retrieval.json`; giữ nguyên chính sách HS. Top-10 được chấm theo ID chunk primary chính xác; gói căn cứ được chấm riêng. 50 test cũ từng được dùng để chẩn đoán nên báo riêng với 100 test mới. Kết quả là đánh giá retrieval trên bộ dữ liệu đã cung cấp, chưa phải chứng minh chất lượng kết luận pháp lý cuối cùng.
+Phần QA notebook 01 thử các họ retriever/trọng số trên QA train, sau đó so sánh đường trực tiếp với đường thêm tài liệu cha và Notes thật trước Cross-Encoder. Thử pool 30/50/100, phần ứng viên trực tiếp được giữ, và nhánh truy vấn bỏ mã đang bị nghi vấn. Chọn policy trên train và ghi khóa `qa` trong `config/selected_retrieval.json`; giữ nguyên chính sách HS. Top-10 được chấm theo ID chunk primary chính xác; gói căn cứ được chấm riêng. 50 test cũ từng được dùng để chẩn đoán nên báo riêng với 100 test mới. Kết quả là đánh giá retrieval trên bộ dữ liệu đã cung cấp, chưa phải chứng minh chất lượng kết luận pháp lý cuối cùng.
 
-Trên snapshot nguồn thuần `e06d50069151e5b0ecae0450`, TRAIN chọn QA `graph_50_70`: Dense .25 / Sparse .05 / BM25 .20 / Exact .50, RRF k20, graph trước reranker với 70% chỗ cho ứng viên trực tiếp và rerank pool50. Notebook 03 đã chạy hồi quy đủ 150 câu: **86,0%** có đủ căn cứ bắt buộc trực tiếp trong Top-10; **89,3%** có đủ trong gói căn cứ mở rộng. Snapshot trước đạt 80,7% trực tiếp và 94,0% trong gói, nên thay đổi corpus cải thiện một chỉ số nhưng làm giảm chỉ số kia. Nhóm `cross_section_exclusion` chỉ có 2 câu và còn yếu (0/2 trực tiếp, 1/2 trong gói). Đây vẫn là retrieval, chưa kiểm chứng suy luận pháp lý; test QA đã được xem trên snapshot trước và là tập hồi quy.
+Trên snapshot dựng lại `e2354dac4a5bdc2c717cac99`, QA TRAIN 400 câu chọn C11 transfer: Dense .30 / Sparse .05 / BM25 .30 / FTS .05 / Exact .30, RRF k5 và Cross-Encoder pool30. Đủ mọi primary chunk trong Top-10: **362/400 (90,5%) train**, **127/150 (84,7%) test** và **97/100 (97,0%) holdout**; Top-5 holdout là 95/100. Gói căn cứ đạt 134/150 trên test và 97/100 trên holdout. Biến thể graph trước reranker đạt 129/150 trên test nhưng không được chọn vì thua tiêu chí train. QA test cũ là tập hồi quy; holdout mới đã được dùng để phát hiện thiếu loại `tariff_footnote` ở một nguồn, nên kết quả holdout cũng là chẩn đoán, không còn mù hoàn toàn. Đây là chất lượng retrieval, chưa kiểm chứng suy luận pháp lý.
 
 `Retriever.qa_search(query)` hoặc `knowledge_search(query)` khi đã có chính sách QA dùng corpus chung với các chunk type GIR, Notes, TT85, tariff entry ở nhiều tầng. Không cố định role/level, không hard-filter Section. Query gốc đi vào semantic/lexical retrieval; Exact che các mã được nhắc để nghi vấn/phủ định. Nhánh truy vấn bổ sung dùng câu đã bỏ mã nghi vấn để tìm hàng hóa, và chỉ hoạt động nếu chọn trên train. Gói bổ sung có graph evidence, các tài liệu cha thật, Notes của các nhánh/mã được nhắc và các rule cùng họ GIR đã tìm được; việc lấy đủ tài liệu không thay thế suy luận pháp lý.
 
