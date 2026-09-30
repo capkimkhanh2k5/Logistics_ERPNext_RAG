@@ -77,15 +77,15 @@ Dùng `data/verified/hs/train/HS_RAG_TRAIN.jsonl` (709 sản phẩm), `test/HS_R
 
 C1–C15, nhiều bộ trọng số và RRF k được quét trên TRAIN; chính sách cũ cũng là một candidate. Tập validation nội bộ chọn cấu hình cho từng Phần và router. Sau đó notebook thử nhánh tài liệu cha theo `CONTAINS`, định nghĩa Notes và Cross-Encoder trên cùng ngân sách ứng viên. Không dùng nhãn test/holdout để chọn. Ngữ cảnh bổ sung tại thời điểm truy xuất luôn giữ bản ghi và locator riêng, không ghi ngược vào corpus nguồn.
 
-Chính sách HS được chọn lại trên TRAIN của snapshot dựng mới `e2354dac4a5bdc2c717cac99`: XIV C9 Dense .35 / BM25 .35 / Exact .30; XVI C6 Dense .145 / BM25 .855; XVII C13 thiên về BM25 .685 và Sparse .315. Cả ba dùng Cross-Encoder pool30; XIV/XVII còn thử nhánh tài liệu cha với trọng số .2. Router dùng Dense .70 / Sparse .10 / BM25 .10 / FTS .05 / Exact .05, RRF k60 và giữ Top-2 Sections. Tỷ lệ đầy đủ trong `config/selected_retrieval.json`; đây là lựa chọn từ TRAIN; TEST và HOLDOUT đã được đo sau khi khóa chính sách. HOLDOUT có cùng SHA256 với bản đã xem trên snapshot trước nên được xem là tập hồi quy, không phải xác nhận mù.
+Lần chạy lại từ DB và cache rỗng ngày 29–30/09/2026 tạo snapshot `1a454b4e04d0ecd211b73d06`: XIV C9 Dense .35 / BM25 .35 / Exact .30; XVI C6 Dense .145 / BM25 .855; XVII C15 Sparse .266 / BM25 .733 / Exact .001. Cả ba dùng Cross-Encoder pool30 và nhánh tài liệu cha trọng số .2; XVII còn dùng nhánh định nghĩa trọng số .2. Router dùng Dense .45 / Sparse .20 / BM25 .20 / FTS .05 / Exact .10, RRF k60 và giữ Top-2 Sections. Tỷ lệ đầy đủ trong `config/selected_retrieval.json`; đây là lựa chọn từ TRAIN; TEST và HOLDOUT được đo sau khi khóa chính sách. HOLDOUT đã được xem trên snapshot trước nên là tập hồi quy, không phải xác nhận mù.
 
 | Phần | Test Hit@1 / HS8 Recall@5 | Holdout Hit@1 / HS8 Recall@5 |
 |---|---:|---:|
-| XIV | 20.8% / 35.4% | 17.2% / 48.3% |
-| XVI | 59.6% / 91.5% | 34.5% / 58.6% |
-| XVII | 27.1% / 75.0% | 26.7% / 46.7% |
+| XIV | 20.8% / 35.4% | 17.2% / 51.7% |
+| XVI | 80.9% / 95.7% | 34.5% / 62.1% |
+| XVII | 25.0% / 70.8% | 23.3% / 40.0% |
 
-Đây là **Top-K retrieval**, không phải độ chính xác kết luận mã HS. Holdout Top-2 Section Recall là 87/88. Bảng từng câu, MRR/nDCG và độ trễ của snapshot mới nằm trong output notebook 02; các bảng cũ phía trên được giữ làm lịch sử. Exclusion Violation Rate là N/A vì bộ sản phẩm không có `forbidden_codes` gắn nhãn. Vì corpus thay đổi ở metadata của một chú thích biểu thuế, các chỉ số HS8 của snapshot mới trùng kết quả lần trước; lần này đã xóa 11 snapshot cũ và nạp lại toàn bộ 5.356 chunk trong database.
+Đây là **Top-K retrieval**, không phải độ chính xác kết luận mã HS. Holdout Top-2 Section Recall là 87/88; một câu holdout được router đưa sang intent pháp lý. Bảng từng câu, MRR/nDCG và độ trễ của snapshot mới nằm trong output notebook 02; các bảng cũ phía trên được giữ làm lịch sử. Exclusion Violation Rate là N/A vì bộ sản phẩm không có `forbidden_codes` gắn nhãn. Lần này đã xóa volume PostgreSQL RAG, dựng lại một snapshot với 5.356 chunk/embedding, 5.521 graph nodes, 6.655 graph edges và 94.649 sparse postings.
 
 GIR Rule Engine, Critic, LLM generation, Agent2/FastAPI/ERP integration thuộc giai đoạn tiếp theo.
 
@@ -103,7 +103,7 @@ XVII có `SECTION_XVII_GRAPH_EDGES_NORMALIZED.jsonl`; adapter chuyển các cạ
 
 ### Sửa đầu vào đã đối chiếu nguồn — 2026-09-29
 
-Notebook 01 đối chiếu và sửa lỗi OCR với PDF nguồn. Các trường embedding/BM25/FTS của XIV/XVI/XVII hiện chỉ dùng mã và văn bản tiếng Việt của **chính bản ghi** đã chuẩn hóa; không nối mô tả của cha hoặc Chú giải vào văn bản ingest. Riêng 85.34, Chú giải 8 là một bản ghi độc lập với ID và locator riêng. Năm dòng XVI bị OCR trộn hai cột ngôn ngữ được sửa theo cột tiếng Việt. Cột tiếng Anh và bản trích xuất thô vẫn giữ để kiểm toán. ID, mã HS và graph giữ nguyên. Mọi kết quả benchmark của snapshot trước khi sửa corpus chỉ có giá trị lịch sử.
+Các lỗi OCR đã được đối chiếu với PDF nguồn và sửa trong dữ liệu chuẩn hóa trước lượt chạy này; cell đầu notebook 01 nay chỉ kiểm tra schema v2 và văn bản tiếng Việt mà không ghi lại nguồn. Các trường embedding/BM25/FTS của XIV/XVI/XVII chỉ dùng mã và văn bản tiếng Việt của **chính bản ghi**; không nối mô tả của cha hoặc Chú giải vào văn bản ingest. Riêng 85.34, Chú giải 8 là một bản ghi độc lập với ID và locator riêng. Năm dòng XVI bị OCR trộn hai cột ngôn ngữ đã được sửa theo cột tiếng Việt. Cột tiếng Anh và bản trích xuất thô vẫn giữ để kiểm toán. ID, mã HS và graph giữ nguyên. Mọi kết quả benchmark của snapshot trước khi sửa corpus chỉ có giá trị lịch sử.
 
 Phần XVII bổ sung sửa OCR `0 tô` → `Ô tô` trong 173 mô tả Chương 87 sau khi kiểm tra mẫu trên ảnh PDF; bản trích xuất thô vẫn được giữ. HS6 và Heading cha là các bản ghi riêng có locator; quan hệ cha được giữ bằng cạnh `CONTAINS` trong graph. Nhánh tìm tài liệu cha trong notebook 02 chỉ duyệt các cạnh này.
 
@@ -113,7 +113,7 @@ Phần XVII bổ sung sửa OCR `0 tô` → `Ô tô` trong 173 mô tả Chương
 
 Phần QA notebook 01 thử các họ retriever/trọng số trên QA train, sau đó so sánh đường trực tiếp với đường thêm tài liệu cha và Notes thật trước Cross-Encoder. Thử pool 30/50/100, phần ứng viên trực tiếp được giữ, và nhánh truy vấn bỏ mã đang bị nghi vấn. Chọn policy trên train và ghi khóa `qa` trong `config/selected_retrieval.json`; giữ nguyên chính sách HS. Top-10 được chấm theo ID chunk primary chính xác; gói căn cứ được chấm riêng. 50 test cũ từng được dùng để chẩn đoán nên báo riêng với 100 test mới. Kết quả là đánh giá retrieval trên bộ dữ liệu đã cung cấp, chưa phải chứng minh chất lượng kết luận pháp lý cuối cùng.
 
-Trên snapshot dựng lại `e2354dac4a5bdc2c717cac99`, QA TRAIN 400 câu chọn C11 transfer: Dense .30 / Sparse .05 / BM25 .30 / FTS .05 / Exact .30, RRF k5 và Cross-Encoder pool30. Đủ mọi primary chunk trong Top-10: **362/400 (90,5%) train**, **127/150 (84,7%) test** và **97/100 (97,0%) holdout**; Top-5 holdout là 95/100. Gói căn cứ đạt 134/150 trên test và 97/100 trên holdout. Biến thể graph trước reranker đạt 129/150 trên test nhưng không được chọn vì thua tiêu chí train. QA test cũ là tập hồi quy; holdout mới đã được dùng để phát hiện thiếu loại `tariff_footnote` ở một nguồn, nên kết quả holdout cũng là chẩn đoán, không còn mù hoàn toàn. Đây là chất lượng retrieval, chưa kiểm chứng suy luận pháp lý.
+Trên snapshot `1a454b4e04d0ecd211b73d06`, QA TRAIN 400 câu chọn C10 graph_30_70: Dense .25 / Sparse .25 / BM25 .10 / FTS .10 / Exact .30, RRF k5, Cross-Encoder pool30, giữ 70% ứng viên trực tiếp trước khi thêm căn cứ graph. Đủ mọi primary chunk trong Top-10: **364/400 (91,0%) train**, **128/150 (85,3%) test** và **98/100 (98,0%) holdout**; Top-5 holdout là 95/100. Gói căn cứ đạt 133/150 trên test và 98/100 trên holdout; baseline cũ đạt 134/150 gói test trên cùng snapshot. QA test cũ là tập hồi quy; holdout đã được dùng để chẩn đoán nguồn nên không còn mù hoàn toàn. Đây là chất lượng retrieval, chưa kiểm chứng suy luận pháp lý.
 
 `Retriever.qa_search(query)` hoặc `knowledge_search(query)` khi đã có chính sách QA dùng corpus chung với các chunk type GIR, Notes, TT85, tariff entry ở nhiều tầng. Không cố định role/level, không hard-filter Section. Query gốc đi vào semantic/lexical retrieval; Exact che các mã được nhắc để nghi vấn/phủ định. Nhánh truy vấn bổ sung dùng câu đã bỏ mã nghi vấn để tìm hàng hóa, và chỉ hoạt động nếu chọn trên train. Gói bổ sung có graph evidence, các tài liệu cha thật, Notes của các nhánh/mã được nhắc và các rule cùng họ GIR đã tìm được; việc lấy đủ tài liệu không thay thế suy luận pháp lý.
 

@@ -146,8 +146,17 @@ def audit() -> dict:
     ]
     assert not broken, f"Broken graph endpoints: {broken}"
     quality = {}
+    for key in ("tt31_section_xiv", "tt31_section_xvi", "tt31_section_xvii"):
+        records = data[key]
+        assert len({r["id"] for r in records}) == len(records), f"Duplicate IDs: {key}"
+        assert all(r["content"]["embedding_text"].strip() for r in records), f"Empty content: {key}"
+        quality[key] = {
+            "count": len(records),
+            "duplicate_wording": len(records)
+            - len({r["content"]["embedding_text"] for r in records}),
+            "short_ids": [r["id"] for r in records if len(r["content"]["embedding_text"]) < 40],
+        }
     for key, id_field, text_field in [
-        ("tt31_section_xvi", "id", "text"),
         ("gir", "id", "text_vi"),
         ("tt85", "chunk_id", "text"),
     ]:
@@ -159,24 +168,12 @@ def audit() -> dict:
             "duplicate_wording": len(rows) - len({r[text_field] for r in rows}),
             "short_ids": [r[id_field] for r in rows if len(r[text_field]) < 40],
         }
-    for key, id_field in [
-        ("tt31_section_xiv", "source_record_id"),
-        ("tt31_section_xvii", "source_node_id"),
-    ]:
-        records = data[key]
-        assert len({r[id_field] for r in records}) == len(records)
-        assert all(r["content"]["embedding_text"].strip() for r in records)
-        quality[key] = {
-            "count": len(records),
-            "duplicate_wording": len(records)
-            - len({r["content"]["embedding_text"] for r in records}),
-        }
     xvii_master = {r["id"]: r for r in data["tt31_section_xvii_master"]}
     assert all(
         r["language_profile"] == "vi"
         and r["content"]["embedding_text"]
         == r["content"]["fts_text"]
-        == xvii_vietnamese_view(xvii_master[r["source_node_id"]])
+        == xvii_vietnamese_view(xvii_master[r["id"]])
         for r in data["tt31_section_xvii"]
     ), "Section XVII search inputs must use the verified Vietnamese view"
     xiv_master = {r["id"]: r for r in data["tt31_section_xiv_master"]}
@@ -185,12 +182,15 @@ def audit() -> dict:
         and r["content"]["embedding_text"]
         == r["content"]["sparse_text"]
         == r["content"]["search_text"]
-        == xiv_vietnamese_view(xiv_master[r["source_record_id"]])
+        == xiv_vietnamese_view(xiv_master[r["id"]])
         for r in data["tt31_section_xiv"]
     ), "Section XIV search inputs must use the verified Vietnamese view"
-    codes = {r["metadata"]["code"] for r in data["tt31_section_xvi"] if r["metadata"].get("code")}
-    codes |= {r["metadata"].get("hs_code_compact") for r in data["tt31_section_xiv"]}
-    codes |= {r["metadata"].get("hs8_compact") for r in data["tt31_section_xvii"]}
+    codes = {
+        r["metadata"]["code_compact"]
+        for k in ("tt31_section_xiv", "tt31_section_xvi", "tt31_section_xvii")
+        for r in data[k]
+        if r["metadata"].get("code_compact")
+    }
     gold = [
         r
         for part in ("train", "test")
@@ -379,15 +379,15 @@ def build_corpus() -> dict:
         }
         for e in data["tt31_section_xvi_edges"]
     ]
-    # Each Section uses its own export schema; preserve the original fields in metadata.
+    # Process Section XIV and XVII using unified Schema v2.0 fields
     for section, key in [("XIV", "tt31_section_xiv"), ("XVII", "tt31_section_xvii")]:
         master = {r["id"]: r for r in data[key + "_master"]}
         for r in data[key]:
-            sid = r.get("source_record_id", r.get("source_node_id"))
+            sid = r["id"]
             m = master[sid]
             md = r["metadata"]
-            kind = r.get("record_type", r.get("document_type"))
-            code = md.get("hs_code_compact", md.get("code_compact"))
+            kind = r["document_type"]
+            code = md.get("code_compact")
             if kind == "chapter":
                 code = md["chapter"]
             level = len(code) if code and code.isdigit() and len(code) in (2, 4, 6, 8) else None
@@ -454,7 +454,7 @@ def build_corpus() -> dict:
                     "export_metadata": md,
                     "original_type": kind,
                     "governing_note_ids": notes,
-                    "exact_terms": r.get("exact_tokens", r["content"].get("exact_keys", [])),
+                    "exact_terms": r["content"]["exact_keys"],
                 },
                 locator,
                 section=section,

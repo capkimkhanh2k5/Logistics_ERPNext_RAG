@@ -1,5 +1,5 @@
 {
-  "snapshot": "e2354dac4a5bdc2c717cac99",
+  "snapshot": "1a454b4e04d0ecd211b73d06",
   "profile": "3a2ce6e6d726a0f053748717",
   "gold_hash": "586c851fe9df940bd407bc9017ef39af577b4a34f8e249049af7a7952e383dc3",
   "retrieval": {
@@ -30,11 +30,11 @@
   "selected_mode": "full_hybrid",
   "router": {
     "weights": {
-      "dense": 0.7,
-      "sparse": 0.1,
-      "bm25": 0.1,
+      "dense": 0.45,
+      "sparse": 0.2,
+      "bm25": 0.2,
       "fts": 0.05,
-      "exact": 0.05
+      "exact": 0.1
     },
     "k": 60
   },
@@ -57,12 +57,11 @@
       "k": 20
     },
     "XVII": {
-      "configuration": "C13",
+      "configuration": "C15",
       "weights": {
-        "dense": 0.00012596190210462563,
-        "sparse": 0.3149708899853406,
-        "bm25": 0.6848674538035058,
-        "exact": 3.56943090491384e-05
+        "sparse": 0.26619677174116124,
+        "bm25": 0.7327117961237644,
+        "exact": 0.00109143213507426
       },
       "k": 60
     }
@@ -86,7 +85,7 @@
       "k": 20,
       "reranker": "cross_encoder",
       "rerank_pool": 30,
-      "rank_weight": 1.0
+      "rank_weight": 0.5
     },
     "XVII": {
       "strategy": "direct",
@@ -108,8 +107,16 @@
       "rerank_pool": 30,
       "rank_weight": 0.5
     },
-    "XVII": {
+    "XVI": {
       "definition_weight": 0,
+      "k": 60,
+      "evidence_rerank": true,
+      "reranker": "cross_encoder",
+      "rerank_pool": 30,
+      "rank_weight": 0.5
+    },
+    "XVII": {
+      "definition_weight": 0.2,
       "k": 60,
       "evidence_rerank": true,
       "reranker": "cross_encoder",
@@ -125,7 +132,7 @@
       "child_limit": 5
     },
     "XVI": {
-      "weight": 0,
+      "weight": 0.2,
       "k": 60,
       "parent_limit": 20,
       "child_limit": 5
@@ -151,12 +158,12 @@
     "selection_status": "LEGACY_DEVELOPMENT_POLICY_NOT_QA50_TUNED"
   },
   "qa": {
-    "configuration": "C11",
+    "configuration": "C10",
     "weights": {
-      "dense": 0.3,
-      "sparse": 0.05,
-      "bm25": 0.3,
-      "fts": 0.05,
+      "dense": 0.25,
+      "sparse": 0.25,
+      "bm25": 0.1,
+      "fts": 0.1,
       "exact": 0.3
     },
     "k": 5,
@@ -164,13 +171,14 @@
     "reranker": "cross_encoder",
     "rerank_pool": 30,
     "rank_weight": 0.75,
-    "graph_before_rerank": false,
+    "graph_before_rerank": true,
     "query_split_weight": 0.0,
+    "direct_fraction": 0.7,
     "selection_status": "QA_400_TRAIN_ONLY",
     "train_sha256": "6abe2fd43c2fbf45db3905440b7db7e033c041a3062a3c5913bba3180a74a827",
     "train_count": 400,
     "tested_variants": 11,
-    "selected_variant": "baseline_old_snapshot",
+    "selected_variant": "graph_30_70",
     "objective": [
       "all_groups@10",
       "group_recall@10",
