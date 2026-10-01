@@ -16,13 +16,17 @@ def clean_product_text(text: str) -> str:
     """Remove dataset instructions and explicit tariff labels, never product quantities."""
     text = re.split(r"(?i)\bcase\s+test\b", text)[0]
     text = re.sub(
-        r"(?i)(?:thuộc\s+)?(?:phân nhóm|nhánh|nhóm|mã HS|HS code|heading|chương)"
-        r"\s*\d{2,8}(?:\.\d{2}){0,2}",
+        r"(?i)(?:hàng\s+hóa\s+theo\s+đúng\s+mô\s+tả\s+pháp\s+lý\s+của\s+)?(?:thuộc\s+)?(?:dòng\s+hàng|dòng|phân\s+nhóm|nhánh|nhóm|mã\s+HS|HS\s+code|heading|chương|mã|tại|nêu\s+tại)"
+        r"\s*[:\-]?\s*(?:\d{2,8}(?:\.\d{2}){0,2}|\d{4}(?:\s+\d{2}){1,2})",
         "",
         text,
     )
-    text = re.sub(r"(?i)chú giải\s+\d+(?:/\d+)*", "", text)
-    text = re.sub(r"(?<![\d.])\d{8}(?![\d.])", "", text)
+    text = re.sub(r"(?i)chú\s+giải\s+\d+(?:/\d+)*", "", text)
+    text = re.sub(r"\b\d{4}\.\d{2}\.\d{2}\b", "", text)
+    text = re.sub(r"\b\d{4}\s+\d{2}\s+\d{2}\b", "", text)
+    text = re.sub(r"\b\d{4}\.\d{2}\b", "", text)
+    text = re.sub(r"(?<!\d)\d{8}(?!\d)", "", text)
+    text = re.sub(r"(?i)(?:thuộc\s+)?(?:nhóm|heading|chương)\s*\d{2}(?:\.\d{2})?", "", text)
     return " ".join(text.split()).strip(" .;,:")
 
 
@@ -100,6 +104,12 @@ def discover_gold(partitions: tuple[str, ...] = ("train", "test")) -> tuple[list
     paths = []
     if not partitions or set(partitions) - {"train", "test", "holdout"}:
         raise ValueError("Unknown or empty gold partitions")
+    taxonomy = {
+        r["chapter_code"]: r["section_code"]
+        for r in read(ROOT / "data/normalized/HS_Index/HS_2022_SCOPE_INDEX_VI_FINAL.json")[
+            "records"
+        ]
+    }
     for partition in partitions:
         files = sorted((ROOT / "data/verified/hs" / partition).glob("*.jsonl"))
         if len(files) != 1:
@@ -110,7 +120,9 @@ def discover_gold(partitions: tuple[str, ...] = ("train", "test")) -> tuple[list
             code = str(row["expected_hs_8"]).replace(".", "").strip()
             if len(code) != 8 or not code.isdigit():
                 raise ValueError(f"Invalid gold code: {row['record_id']}")
-            section = "XIV" if code[:2] == "71" else "XVI" if code[:2] in ("84", "85") else "XVII"
+            section = taxonomy.get(code[:2])
+            if section is None:
+                raise ValueError(f"Gold chapter has no source taxonomy: {row['record_id']}")
             if row["split"] != partition or row["section"] != section:
                 raise ValueError(f"Partition/Section mismatch: {row['record_id']}")
             rows.append(
@@ -400,11 +412,11 @@ def sweep_router(cache: list[dict]) -> list[dict]:
     grid = weight_grid(branches)
     weights = np.array([[w[b] for b in branches] for w in grid], dtype=np.float64)
     results = []
-    sections = ["XIV", "XVI", "XVII"]
+    sections = sorted({item["case"]["section"] for item in cache})
     for k in (20, 60, 100):
-        accuracy = np.zeros((len(grid), 3))
-        recall = np.zeros((len(grid), 3))
-        counts = np.zeros(3)
+        accuracy = np.zeros((len(grid), len(sections)))
+        recall = np.zeros((len(grid), len(sections)))
+        counts = np.zeros(len(sections))
         for item in cache:
             rows = {r["id"]: r for b in branches for r in item["branches"][b]}
             ids = sorted(rows)
@@ -431,7 +443,7 @@ def sweep_router(cache: list[dict]) -> list[dict]:
             recall[:, gold] += (order[:, :2] == gold).any(axis=1)
             counts[gold] += 1
         if (counts == 0).any():
-            raise ValueError("Router dev must cover all three Sections")
+            raise ValueError("Router dev must cover its declared Sections")
         for i, w in enumerate(grid):
             results.append(
                 {

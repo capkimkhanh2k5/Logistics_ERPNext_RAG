@@ -137,9 +137,9 @@ def test_weighted_fusion_and_conservative_routing():
     from rag.retrieval import Retriever
 
     router = Retriever.__new__(Retriever)
-    assert router.route("Thịt bò tươi")["status"] == "OUT_OF_SCOPE"
+    assert router.route("Thịt bò tươi")["status"] == "UNCERTAIN"
     assert router.route("Máy xay thịt")["status"] == "UNCERTAIN"
-    assert router.route("Thiết bị điện tử")["status"] == "NEED_MORE_INFORMATION"
+    assert router.route("Thiết bị điện tử")["status"] == "UNCERTAIN"
     assert router.route("0901.21.00")["status"] == "OUT_OF_SCOPE"
     assert router.route("GIR 6 phân nhóm")["intent"] == "gir"
 
@@ -253,6 +253,13 @@ def test_supplied_query_sanitization_preserves_product_specs():
         clean_product_text("Hoa tai bằng bạc. Case test Chú giải 9 Chương 71.")
         == "Hoa tai bằng bạc"
     )
+    assert "8401" not in clean_product_text(
+        "Hàng hóa theo đúng mô tả pháp lý của dòng 8401.10.00: Lò phản ứng hạt nhân."
+    )
+    assert "7117" not in clean_product_text(
+        "Bộ phận imitation jewellery làm toàn bộ bằng các vật liệu nêu tại 71179094."
+    )
+    assert clean_product_text("Dòng 8708.29.90 phụ tùng ô tô 2.0L") == "phụ tùng ô tô 2.0L"
 
 
 def test_dual_paths_keep_direct_candidates_when_hierarchy_prunes():

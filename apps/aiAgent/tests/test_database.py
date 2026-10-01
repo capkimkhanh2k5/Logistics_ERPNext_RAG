@@ -139,11 +139,15 @@ def test_parent_candidates_follow_cited_contains_edges(conn):
 def test_new_snapshot_without_frozen_policy_has_safe_section_fallback(conn, tmp_path, monkeypatch):
     import rag.retrieval as retrieval_module
 
+    (tmp_path / "config").mkdir()
+    (tmp_path / "config/hybrid_retrieval.json").write_text(
+        (retrieval_module.ROOT / "config/hybrid_retrieval.json").read_text()
+    )
     monkeypatch.setattr(retrieval_module, "ROOT", tmp_path)
     retriever = Retriever(conn)
     assert set(retriever.section_policies) == {"XIV", "XVI", "XVII"}
     assert all(
-        policy["weights"] == {"dense": 0.5, "sparse": 0.5}
+        policy["weights"] == retriever.product_policy["weights"]
         for policy in retriever.section_policies.values()
     )
 
@@ -222,3 +226,84 @@ def test_questioned_code_retains_its_source_section_notes_scope(conn):
     assert scopes and {r["section"] for r in scopes} == {"XVII"}
     assert all(r["purpose"] == "NOTES_FOR_REFERENCE_VALIDATION_NOT_CANDIDATE_BOOST" for r in scopes)
     assert not retriever.referenced_note_scope(code_mention_plan("Tra cứu nhóm 87.08"))
+
+
+def test_registered_new_chapter_runs_shared_hybrid_context_and_reranker(conn):
+    """Real DB ingest/search path; model doubles check wiring, not semantic quality."""
+    import numpy as np
+
+    from rag.data import tariff_bundle
+    from tests.test_retrieval_enhancements import fixture_tariff
+
+    source, data = fixture_tariff()
+    rows, nodes, edges = tariff_bundle(source, data)
+    for row in rows:
+        row.update(input_hash=digest(row["embedding_text"]), lexical_text=row["embedding_text"])
+    declaration = {
+        "records_hash": digest(rows),
+        "edges_hash": digest(edges),
+        "nodes_hash": digest(nodes),
+        "test_fixture": True,
+    }
+    bundle = {
+        "snapshot": digest(declaration)[:24],
+        "manifest": declaration,
+        "records": rows,
+        "nodes": nodes,
+        "edges": [{**e, "id": str(i)} for i, e in enumerate(edges)],
+    }
+    declaration["edges_hash"] = digest(bundle["edges"])
+    bundle["snapshot"] = digest(declaration)[:24]
+    active = conn.execute("SELECT * FROM rag.active").fetchone()
+    profile = conn.execute(
+        "SELECT config FROM rag.profiles WHERE id=%s", (active["profile"],)
+    ).fetchone()["config"]
+    manifest = {
+        "snapshot": bundle["snapshot"],
+        "profile": profile,
+        "profile_id": active["profile"],
+        "ids": [r["id"] for r in rows],
+        "input_hashes": [r["input_hash"] for r in rows],
+    }
+    vector = np.zeros(1024, dtype=np.float32)
+    vector[0] = 1
+
+    class Encoder:
+        profile_id = active["profile"]
+
+        def encode(self, texts, use_cache=True):
+            return {
+                "dense": np.stack([vector for _ in texts]),
+                "sparse": [{} for _ in texts],
+                "cache_hit": False,
+            }
+
+    class Reranker:
+        def __init__(self):
+            self.model = self
+            self.seen = []
+
+        def tokenizer(self, pairs, truncation=False):
+            return {"input_ids": [list(range(len(q.split()) + len(t.split()))) for q, t in pairs]}
+
+        def score(self, query, texts, use_cache=True):
+            self.seen.extend(texts)
+            return [1.0 for _ in texts]
+
+    with conn.transaction(force_rollback=True):
+        ingest(
+            conn, bundle, manifest, np.stack([vector for _ in rows]), [{} for _ in rows], apply=True
+        )
+        retriever = Retriever(conn, Encoder())
+        reranker = Reranker()
+        retriever._reranker = reranker
+        assert retriever.coverage == {"sections": ["XV"], "chapters": ["72"]}
+        assert retriever.route("72071000")["status"] == "IN_SCOPE"
+        result = retriever.adaptive_search("Nhãn trung gian từ nguồn", use_cache=False)
+        assert result["candidates"][0]["code"] == "72071000"
+        assert result["section_candidates"][0]["section"] == "XV"
+        assert any("Nhãn trung gian từ nguồn" in text for text in reranker.seen)
+        assert result["policy"]["version"] == "generic-graph-v2-budget"
+        assert result["reader_notes"][0]["id"] == "tt31:NOTE"
+        assert not result["candidates"][0]["note_citations"]
+    assert conn.execute("SELECT * FROM rag.active").fetchone() == active

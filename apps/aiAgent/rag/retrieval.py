@@ -10,7 +10,8 @@ import psycopg
 from pgvector.psycopg import register_vector
 from psycopg import sql as pgsql
 
-from rag.data import ROOT, config, normalize_code, read
+from rag.context import GraphContext, fit_rerank_context
+from rag.data import ROOT, config, load_corpus, normalize_code, read
 from rag.embedding import CrossEncoder, Embedder, colbert_scores
 
 
@@ -117,7 +118,13 @@ def candidate_paths(
     hierarchy_rankings = {}
     for section in sections:
         key = section["section"]
-        policy = section_policies[key]
+        policy = section_policies.get(
+            key,
+            {
+                "weights": params.get("weights", {b: 1.0 for b in leaf_branches}),
+                "k": params.get("k", 60),
+            },
+        )
         ranked = unique_codes(
             fuse(
                 {b: rows[:pool] for b, rows in leaf_branches.items() if b in policy["weights"]},
@@ -259,17 +266,95 @@ def definition_passages(records: list[dict], nodes: list[dict], edges: list[dict
 
 
 def definition_fusion(
-    rows: list[dict], definitions: list[dict], weight: float, k: int
+    rows: list[dict],
+    definitions: list[dict],
+    weight: float,
+    k: int,
+    limit: int = 100,
+    top_quota_pool: int = 40,
 ) -> list[dict]:
-    """Add graph-derived candidates while retaining the direct retrieval path."""
+    """Add graph-derived candidates while guaranteeing quota inside the top candidate pool."""
     if not 0 <= weight <= 1:
         raise ValueError("Definition weight must be in [0, 1]")
     if weight == 0 or not definitions:
         return rows
-    branches = {"retrieval": rows, "definition": definitions}
     if weight == 1:
-        branches = {"definition": definitions}
-    return unique_codes(fuse(branches, k, {"retrieval": 1 - weight, "definition": weight}), 100)
+        return unique_codes(definitions, limit)
+
+    raw_fused = unique_codes(
+        fuse(
+            {"retrieval": rows, "definition": definitions},
+            k,
+            {"retrieval": 1 - weight, "definition": weight},
+        ),
+        limit * 2,
+    )
+    def_ids = {d["id"] for d in definitions}
+    pool_n = min(top_quota_pool, limit)
+    target_quota = max(1, min(len(definitions), int(pool_n * weight)))
+
+    top_slice = raw_fused[:pool_n]
+    rest_slice = raw_fused[pool_n:]
+
+    top_defs = [r for r in top_slice if r["id"] in def_ids]
+    missing = target_quota - len(top_defs)
+
+    if missing > 0:
+        seen_in_top = {r["id"] for r in top_slice}
+        to_inject = []
+        for d in definitions:
+            if d["id"] not in seen_in_top:
+                to_inject.append(d)
+                seen_in_top.add(d["id"])
+                if len(to_inject) >= missing:
+                    break
+
+        if to_inject:
+            direct_in_top = [r for r in top_slice if r["id"] not in def_ids]
+            num_displace = min(len(to_inject), len(direct_in_top))
+            kept_direct = direct_in_top[: len(direct_in_top) - num_displace]
+            displaced = direct_in_top[len(direct_in_top) - num_displace :]
+
+            new_top = kept_direct + top_defs + to_inject
+            inject_ids = {d["id"] for d in to_inject}
+            cleaned_rest = [r for r in rest_slice if r["id"] not in inject_ids]
+
+            raw_fused = new_top + displaced + cleaned_rest
+
+    return unique_codes(raw_fused, limit)
+
+
+def source_channel_pool(
+    channels: dict[str, list[dict]], weights: dict[str, float], limit: int, k: int
+) -> list[dict]:
+    """Weighted source-channel opportunity in every prefix, including the rerank window."""
+    if limit < 1 or any(w < 0 for w in weights.values()) or sum(weights.values()) <= 0:
+        raise ValueError("Invalid shared channel budget")
+    normalized = {name: weights[name] / sum(weights.values()) for name in channels}
+    fused = {r["id"]: r for r in fuse(channels, k, weights)}
+    positions = {name: 0 for name in channels}
+    served = {name: 0 for name in channels}
+    seen, codes, result = set(), set(), []
+    while len(result) < limit:
+        available = []
+        for name, rows in channels.items():
+            while positions[name] < len(rows) and (
+                rows[positions[name]]["id"] in seen or rows[positions[name]].get("code") in codes
+            ):
+                positions[name] += 1
+            if positions[name] < len(rows) and normalized[name] > 0:
+                available.append(name)
+        if not available:
+            break
+        name = max(available, key=lambda n: normalized[n] * (len(result) + 1) - served[n])
+        row = channels[name][positions[name]]
+        positions[name] += 1
+        served[name] += 1
+        seen.add(row["id"])
+        if row.get("code"):
+            codes.add(row["code"])
+        result.append({**fused[row["id"]], "selection_channel": name})
+    return result
 
 
 def rerank_candidates(
@@ -324,15 +409,7 @@ class Retriever:
         self.snapshot, self.profile = active["snapshot"], active["profile"]
         self.default_mode = "dense_sparse"
         self.weights = self.cfg.get("fusion_weights", {})
-        self.section_policies = {
-            section: {
-                "configuration": "C5",
-                "mode": "dense_sparse",
-                "weights": {"dense": 0.5, "sparse": 0.5},
-                "k": self.cfg["rrf_k"],
-            }
-            for section in ("XIV", "XVI", "XVII")
-        }
+        self.section_policies: dict[str, dict] = {}
         self.parent_policies: dict[str, dict] = {}
         selection_path = ROOT / "config/selected_retrieval.json"
         if selection_path.exists():
@@ -352,27 +429,32 @@ class Retriever:
                 self.weights = selection.get(
                     "weights", self.router_policy.get("weights", self.weights)
                 )
-                modes = {
-                    "C1": "dense",
-                    "C2": "sparse",
-                    "C3": "bm25",
-                    "C4": "fts",
-                    "C5": "dense_sparse",
-                    "C6": "dense_bm25",
-                    "C7": "hybrid_sparse",
-                    "C8": "dense_sparse_exact",
-                    "C9": "dense_bm25_exact",
-                    "C10": "full_hybrid",
-                    "C11": "full_hybrid",
-                    "C12": "dense_sparse",
-                    "C13": "full_hybrid",
-                    "C14": "full_hybrid",
-                    "C15": "full_hybrid",
-                }
-                self.section_policies = {
-                    section: {**policy, "mode": modes[policy["configuration"]]}
-                    for section, policy in selection.get("section_policies", {}).items()
-                }
+        self.product_policy = read(ROOT / "config/hybrid_retrieval.json")
+        self.default_mode = self.product_policy["mode"]
+        self.weights = self.product_policy["weights"]
+        coverage = conn.execute(
+            "SELECT DISTINCT section,chapter FROM rag.chunks WHERE snapshot=%s "
+            "AND namespace='hs_classification' AND chunk_type='tariff_entry' AND level=8 "
+            "ORDER BY section,chapter",
+            (self.snapshot,),
+        ).fetchall()
+        self.coverage = {
+            "sections": sorted({r["section"] for r in coverage if r["section"]}),
+            "chapters": sorted({r["chapter"] for r in coverage if r["chapter"]}),
+        }
+        self.section_policies = {
+            section: {
+                "configuration": "SHARED",
+                "mode": self.default_mode,
+                "weights": self.weights,
+                "k": self.product_policy["rrf_k"],
+            }
+            for section in self.coverage["sections"]
+        }
+        self.router_policy = {"weights": self.weights, "k": self.product_policy["rrf_k"]}
+        self.pipeline_policies = {}
+        self.definition_policies = {}
+        self.parent_policies = {}
         if embedder and embedder.profile_id != self.profile:
             raise ValueError("Query embedding profile differs from active database profile")
 
@@ -625,18 +707,38 @@ class Retriever:
         return sorted(rows, key=lambda r: (-r["score"], r["id"]))[:limit]
 
     def definition_context(self, rows: list[dict]) -> list[dict]:
-        views = self.definition_views()
-        return [
-            {
-                **r,
-                "rerank_text": views[r["id"]]["text"],
-                "definition_paths": views[r["id"]]["paths"],
-                "definition_citations": views[r["id"]]["citations"],
+        if not hasattr(self, "_parent_texts_by_code"):
+            parent_chunks = self.conn.execute(
+                "SELECT code, level, source_text FROM rag.chunks WHERE snapshot=%s AND level IN (4, 6) AND chunk_type='tariff_entry'",
+                (self.snapshot,),
+            ).fetchall()
+            self._parent_texts_by_code = {
+                p["code"]: p["source_text"] for p in parent_chunks if p.get("code")
             }
-            if r["id"] in views
-            else r
-            for r in rows
-        ]
+        views = self.definition_views()
+        enriched = []
+        for r in rows:
+            code = r.get("code", "")
+            h4_text = self._parent_texts_by_code.get(code[:4]) if len(code) >= 4 else None
+            hs6_text = self._parent_texts_by_code.get(code[:6]) if len(code) >= 6 else None
+            base_text = r.get("embedding_text", r.get("source_text", ""))
+            ctx_parts = []
+            if h4_text:
+                ctx_parts.append(f"Thuộc Nhóm {code[:4]}: {h4_text}")
+            if hs6_text and hs6_text != h4_text:
+                ctx_parts.append(f"Phân nhóm {code[:6]}: {hs6_text}")
+            def_view = views.get(r["id"])
+            if def_view and def_view.get("citations"):
+                ctx_parts.append(
+                    "Chú giải áp dụng:\n" + "\n".join(c["text"] for c in def_view["citations"])
+                )
+            rerank_text = (base_text + "\n" + "\n".join(ctx_parts)) if ctx_parts else base_text
+            entry = {**r, "rerank_text": rerank_text}
+            if def_view:
+                entry["definition_paths"] = def_view["paths"]
+                entry["definition_citations"] = def_view["citations"]
+            enriched.append(entry)
+        return enriched
 
     def parent_candidates(
         self,
@@ -644,9 +746,9 @@ class Retriever:
         dense_vector: Any,
         sections: list[str],
         parent_limit: int = 20,
-        child_limit: int = 5,
+        child_limit: int = 10,
     ) -> list[dict]:
-        """Search real tariff ancestors, then rank their real descendants by BM25."""
+        """Search real tariff ancestors, then rank their real descendants with parent support score."""
         if not sections or parent_limit < 1 or child_limit < 1:
             return []
         parent_branches = {
@@ -673,7 +775,7 @@ class Retriever:
                 self._tariff_children.setdefault(edge["source"], []).append(edge["target"])
         output = []
         seen = set()
-        for parent in parents:
+        for p_rank, parent in enumerate(parents):
             code = parent.get("code")
             if not code or parent.get("level") not in (4, 6):
                 continue
@@ -685,22 +787,24 @@ class Retriever:
                     continue
                 descendants_ids.add(node_id)
                 frontier.extend(self._tariff_children.get(node_id, []))
-            descendants = sorted(
-                (
-                    ({**leaf, "score": float(scores[self._bm25_positions[leaf["id"]]])})
-                    for node_id in descendants_ids
-                    if (leaf := leaves_by_id.get(node_id)) is not None
-                    and leaf["id"] in self._bm25_positions
-                ),
-                key=lambda leaf: (-leaf["score"], leaf["id"]),
-            )
-            for leaf in descendants[:child_limit]:
-                if leaf["id"] in seen or leaf["score"] <= 0:
+            p_score = 1.0 / (60 + p_rank)
+            descendants = []
+            for node_id in descendants_ids:
+                leaf = leaves_by_id.get(node_id)
+                if leaf is None or leaf["id"] not in self._bm25_positions:
+                    continue
+                leaf_bm25 = float(scores[self._bm25_positions[leaf["id"]]])
+                score = p_score * 5.0 + max(0.0, leaf_bm25)
+                descendants.append((score, leaf))
+            descendants.sort(key=lambda x: (-x[0], x[1]["id"]))
+            for score, leaf in descendants[:child_limit]:
+                if leaf["id"] in seen:
                     continue
                 seen.add(leaf["id"])
                 output.append(
                     {
                         **leaf,
+                        "score": score,
                         "parent_support": {
                             "id": parent["id"],
                             "code": code,
@@ -1020,7 +1124,7 @@ class Retriever:
             "evidence": evidence,
             "timings": timings,
             "validity": "DATE_FILTERED_LOCAL_METADATA" if as_of else "NOT_LEGALLY_VERIFIED",
-            "scope": "CORPUS_XIV_XVI_XVII" if intent == "product" else "LEGAL_CORPUS",
+            "scope": "ACTIVE_TARIFF_CORPUS" if intent == "product" else "LEGAL_CORPUS",
         }
 
     def tariff_knowledge_channels(self, query: str, exact_query: str, top_k: int) -> dict:
@@ -1193,7 +1297,7 @@ class Retriever:
             if mention["status"] not in ("QUESTIONED", "NEGATED"):
                 continue
             for record in self.exact(mention["code"]):
-                if record.get("section") in ("XIV", "XVI", "XVII"):
+                if record.get("section"):
                     scopes[(mention["code"], record["section"])] = {
                         "code": mention["code"],
                         "status": mention["status"],
@@ -1552,11 +1656,9 @@ class Retriever:
                 }
             return {
                 "intent": "lookup",
-                "status": "IN_SCOPE"
-                if code[:2] in ("71", "84", "85", "86", "87", "88", "89")
-                else "OUT_OF_SCOPE",
+                "status": "IN_SCOPE" if code[:2] in self.registered_chapters() else "OUT_OF_SCOPE",
                 "code": code,
-                "reason": "EXPLICIT_CODE_PREFIX",
+                "reason": "ACTIVE_CORPUS_COVERAGE",
             }
         if (
             sequence_rules
@@ -1583,28 +1685,6 @@ class Retriever:
             text,
         ):
             return {"intent": "tt85", "status": "LEGAL_QUERY", "reason": "PROCEDURE_INTENT"}
-        # Strong product cues only; machinery using these materials remains uncertain/in-scope.
-        if not re.search(r"máy|thiết bị|bộ điều khiển", text) and re.search(
-            r"thịt bò|gạo|áo thun|quần áo|cam tươi|lốp xe", text
-        ):
-            return {
-                "intent": "product",
-                "status": "OUT_OF_SCOPE",
-                "reason": "STRONG_OTHER_CHAPTER_CUE",
-            }
-        if text in {
-            "thiết bị điện tử",
-            "linh kiện điện tử",
-            "bộ chuyển đổi",
-            "pin",
-            "màn hình",
-            "thiết bị mạng",
-        }:
-            return {
-                "intent": "product",
-                "status": "NEED_MORE_INFORMATION",
-                "reason": "BROAD_PRODUCT_ONLY",
-            }
         return {"intent": "product", "status": "UNCERTAIN", "reason": "SOFT_CROSS_SECTION"}
 
     def routed_search(self, query: str, mode: str | None = None) -> dict:
@@ -1626,128 +1706,183 @@ class Retriever:
             result = self.search(query, intent=routing["intent"], mode=mode)
         return {"routing": routing, **result}
 
+    def registered_chapters(self) -> set[str]:
+        if hasattr(self, "coverage"):
+            return set(self.coverage["chapters"])
+        return {
+            r["chapter"]
+            for r in load_corpus()["records"]
+            if r.get("level") == 8 and r.get("chapter")
+        }
+
+    def graph_context(self) -> GraphContext:
+        if not hasattr(self, "_source_graph"):
+            records = self.documents("knowledge", namespace="hs_classification")
+            nodes = self.conn.execute(
+                "SELECT * FROM rag.graph_nodes WHERE snapshot=%s", (self.snapshot,)
+            ).fetchall()
+            edges = self.conn.execute(
+                "SELECT * FROM rag.graph_edges WHERE snapshot=%s ORDER BY id", (self.snapshot,)
+            ).fetchall()
+            self._source_graph = GraphContext(records, nodes, edges)
+        return self._source_graph
+
+    def graph_candidates(self, query: str, limit: int = 100) -> list[dict]:
+        from rank_bm25 import BM25Okapi
+
+        if not hasattr(self, "_context_index"):
+            self._context_views = self.graph_context().candidate_views()
+            self._context_ids = sorted(self._context_views)
+            self._context_index = BM25Okapi(
+                [self.tokens(self._context_views[n]["rerank_text"]) for n in self._context_ids],
+                k1=1.2,
+                b=0.75,
+                epsilon=0.25,
+            )
+        scores = self._context_index.get_scores(self.tokens(query))
+        return sorted(
+            [
+                {**self._context_views[n], "score": float(score)}
+                for n, score in zip(self._context_ids, scores, strict=True)
+                if score > 0
+            ],
+            key=lambda r: (-r["score"], r["id"]),
+        )[:limit]
+
+    def prepare_product_candidates(
+        self, query: str, base_pool: list[dict], method: str | None = None, use_cache: bool = True
+    ) -> list[dict]:
+        method = method or self.product_policy["default_method"]
+        if method not in {"B0", "B1", "B2"}:
+            raise ValueError("Unknown shared retrieval method")
+        policy = self.product_policy
+        graph = self.graph_context()
+        # Each ablation adds one source-based feature; weights and rerank budget stay fixed.
+        candidates = list(base_pool)
+        if method in {"B1", "B2"}:
+            graph_rows = self.graph_candidates(query, policy["candidate_pool"])
+            weight = policy["graph_context_weight"]
+            candidates = source_channel_pool(
+                {"direct": candidates, "graph_context": graph_rows},
+                {"direct": 1 - weight, "graph_context": weight},
+                policy["candidate_pool"],
+                policy["rrf_k"],
+            )
+        notes = []
+        if method == "B2":
+            notes = self.product_notes(query, use_cache)
+        return graph.enrich(
+            candidates,
+            context_budget=policy["context_char_budget"],
+            note_budget=policy["note_char_budget"],
+            relevant_notes=[r["id"] for r in notes],
+            include_hierarchy=True,
+            include_notes=method == "B2",
+        )
+
+    def product_notes(self, query: str, use_cache: bool = True) -> list[dict]:
+        policy = self.product_policy
+        return self.search(
+            query,
+            intent="knowledge",
+            mode=policy["mode"],
+            namespace="hs_classification",
+            top_k=policy["note_limit"],
+            expand=False,
+            chunk_types=["section_note", "chapter_note", "subheading_note"],
+            weights=policy["weights"],
+            rrf_k=policy["rrf_k"],
+            use_cache=use_cache,
+        )["matches"]
+
+    def rank_product_candidates(
+        self,
+        query: str,
+        candidates: list[dict],
+        rerank_pool: int | None = None,
+        use_cache: bool = True,
+    ) -> list[dict]:
+        policy = self.product_policy
+        if not hasattr(self, "_reranker"):
+            import torch
+
+            self._reranker = CrossEncoder(
+                self.cfg["reranker_model"],
+                self.cfg["reranker_revision"],
+                device="mps" if torch.backends.mps.is_available() else "cpu",
+            )
+        pool = rerank_pool or policy["rerank_pool"]
+        candidates = fit_rerank_context(query, candidates[:pool], self._reranker.model.tokenizer)
+        return rerank_candidates(
+            query,
+            candidates,
+            policy["reranker"],
+            self.embedder,
+            self._reranker,
+            pool,
+            policy["rank_weight"],
+            policy["rrf_k"],
+            use_cache=use_cache,
+        )
+
     def adaptive_search(
         self,
         query: str,
         weights: dict | None = None,
         section_policies: dict | None = None,
-        rrf_k: int = 20,
+        rrf_k: int | None = None,
+        rerank_pool: int | None = None,
+        method: str | None = None,
+        use_cache: bool = True,
     ) -> dict:
         if self.embedder is None:
             raise ValueError("Adaptive retrieval requires an embedder")
-        policies = section_policies or getattr(self, "section_policies", {})
-        cross = self.search(
+        if section_policies is not None and section_policies != self.section_policies:
+            raise ValueError(
+                "Product retrieval uses one shared policy; per-Section overrides are retired"
+            )
+        started = time.perf_counter()
+        policy = self.product_policy
+        method = method or policy["default_method"]
+        base = self.search(
             query,
-            mode="full_hybrid",
-            top_k=100,
+            mode=policy["mode"],
+            top_k=policy["candidate_pool"],
+            levels=[8],
             expand=False,
-            weights=weights or self.weights,
-            rrf_k=rrf_k,
+            weights=weights or policy["weights"],
+            rrf_k=rrf_k or policy["rrf_k"],
+            use_cache=use_cache,
         )
-        # Choose Sections before truncating fused candidates to top_k.
-        sections = cross["section_candidates"]
-        key = sections[0]["section"] if sections else ""
-        params = getattr(self, "pipeline_policies", {}).get(
-            key,
-            {
-                "strategy": "dual",
-                "beam_size": 10,
-                "direct_weight": 0.5,
-                "section_mix": "router",
-                "candidate_pool": 100,
-                "reranker": "none",
-            },
-        )
-        encoded = self.embedder.encode([query])
-        pool = 100
-        filters: dict[str, Any] = {"levels": [8]}
-        branches = {
-            "dense": self.dense(encoded["dense"][0], "product", pool, **filters),
-            "sparse": self.sparse(encoded["sparse"][0], "product", pool, **filters),
-            "bm25": self.bm25(query, "product", pool, **filters),
-            "fts": self.lexical(query, "product", pool, **filters),
-            "exact": self.exact_match(query, "product", pool, **filters),
-        }
-        output = candidate_paths(branches, sections, policies, params)
-        definition_policy = getattr(self, "definition_policies", {}).get(key)
-        ranking_params = definition_policy or params
-        definition_rows = []
-        candidates = output["candidates"]
-        parent_policy = getattr(self, "parent_policies", {}).get(key, {})
-        parent_rows = []
-        if parent_policy.get("weight", 0) > 0:
-            parent_rows = self.parent_candidates(
-                query,
-                encoded["dense"][0],
-                [s["section"] for s in sections],
-                parent_policy.get("parent_limit", 20),
-                parent_policy.get("child_limit", 5),
-            )
-            candidates = definition_fusion(
-                candidates, parent_rows, parent_policy["weight"], parent_policy.get("k", 60)
-            )
-        if definition_policy:
-            definition_rows = self.definition_candidates(
-                query, 100, [s["section"] for s in sections]
-            )
-            candidates = definition_fusion(
-                candidates,
-                definition_rows,
-                definition_policy["definition_weight"],
-                definition_policy["k"],
-            )
-            if definition_policy.get("evidence_rerank"):
-                candidates = self.definition_context(candidates)
-        reranker = None
-        if ranking_params.get("reranker") == "cross_encoder":
-            import torch
-
-            if not hasattr(self, "_reranker"):
-                self._reranker = CrossEncoder(
-                    self.cfg["reranker_model"],
-                    self.cfg["reranker_revision"],
-                    device="mps" if torch.backends.mps.is_available() else "cpu",
-                )
-            reranker = self._reranker
-        ranked = rerank_candidates(
-            query,
-            candidates,
-            ranking_params.get("reranker", "none"),
-            self.embedder,
-            reranker,
-            ranking_params.get("rerank_pool", 30),
-            ranking_params.get("rank_weight", 1.0),
-            ranking_params.get("k", 20),
-        )
-        notes = self.documents(
-            "knowledge",
-            namespace="hs_classification",
-            sections=[s["section"] for s in sections],
-            chunk_types=["section_note", "chapter_note", "subheading_note"],
-        )
-        gir = self.search(query, intent="gir", mode="full_hybrid", top_k=5, expand=False)
+        candidates = self.prepare_product_candidates(query, base["candidates"], method, use_cache)
+        ranked = self.rank_product_candidates(query, candidates, rerank_pool, use_cache)
+        ranked = ranked[: policy["top_k"]]
+        # Notes support the downstream reader without changing production ranking.
+        retrieved_notes = self.product_notes(query, use_cache)
+        linked = set().union(*(self.graph_context().source_view(r)["note_ids"] for r in ranked))
+        reader_notes = [r for r in retrieved_notes if r["id"] in linked]
+        evidence = self.evidence(ranked, self.cfg["evidence_limit"], self.cfg["evidence_hops"])
         return {
-            **output,
             "query": query,
-            "candidates": ranked[:10],
-            "section_candidates": sections,
-            "pipeline_policy": params,
-            "definition_policy": definition_policy,
-            "parent_policy": parent_policy,
-            "parent_candidates": parent_rows[:10],
-            "definition_candidates": definition_rows[:10],
-            "definition_evidence": list(
-                {
-                    x.get("fragment_id", x["id"]): x
-                    for r in self.definition_context(ranked[:10])
-                    for x in r.get("definition_citations", [])
-                }.values()
-            )
-            if definition_policy
-            else [],
-            "notes": notes,
-            "gir": gir["matches"],
-            "evidence": self.evidence(ranked[:10]),
+            "snapshot": self.snapshot,
+            "profile": self.profile,
+            "retrieval_version": policy["version"],
+            "method": method,
+            "candidates": ranked,
+            "candidate_pool": candidates,
+            "base_candidate_pool": base["candidates"],
+            "section_candidates": self.section_candidates(candidates),
+            "evidence": evidence,
+            "reader_notes": reader_notes,
+            "notes_role": "SOURCE_EVIDENCE_AFTER_RANKING",
+            "policy": policy,
+            "coverage": self.coverage,
+            "timings": {**base["timings"], "total_ms": (time.perf_counter() - started) * 1000},
+            "verification": {
+                "automatic_attribute_penalty": False,
+                "status": "REQUIRES_SOURCE_REASONING",
+                "missing_information": "NOT_INFERRED_FROM_PRODUCT_KEYWORDS",
+            },
             "validation_status": "REQUIRES_GIR_EXCLUSION_REASONING",
         }
 
@@ -1756,7 +1891,7 @@ class Retriever:
         scores: dict[str, float] = {}
         for r in ranked:
             section = r.get("section")
-            if section in ("XIV", "XVI", "XVII"):
+            if section:
                 scores[section] = max(scores.get(section, 0), r.get("rrf_score", r.get("score", 0)))
         return [
             {"section": s, "score": score}

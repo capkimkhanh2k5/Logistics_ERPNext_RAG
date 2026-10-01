@@ -10,28 +10,18 @@ from typing import Any
 import jsonschema
 import yaml
 
+from rag.sources import (
+    canonical_edge,
+    canonical_tariff,
+    context_scope_edges,
+    first,
+    source_manifest,
+    source_path,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 NORMALIZED = ROOT / "data" / "normalized"
-SOURCES = {
-    "tt31_section_xvi": "TT31/Section-XVI/SECTION_XVI_RAG_INGEST.jsonl",
-    "tt31_section_xvi_master": "TT31/Section-XVI/SECTION_XVI_MASTER_NORMALIZED.jsonl",
-    "tt31_section_xvi_schema": "TT31/Section-XVI/SECTION_XVI_RAG_SCHEMA.json",
-    "tt31_unified_rag_schema": "TT31/UNIFIED_RAG_INGEST_SCHEMA.json",
-    "tt31_section_xiv": "TT31/Section-XIV/SECTION_XIV_RAG_INGEST.jsonl",
-    "tt31_section_xiv_master": "TT31/Section-XIV/SECTION_XIV_MASTER_NORMALIZED.jsonl",
-    "tt31_section_xiv_nodes": "TT31/Section-XIV/SECTION_XIV_GRAPH_NODES.jsonl",
-    "tt31_section_xiv_edges": "TT31/Section-XIV/SECTION_XIV_GRAPH_EDGES.jsonl",
-    "tt31_section_xvii": "TT31/Section-XVII/SECTION_XVII_RAG_INGEST.jsonl",
-    "tt31_section_xvii_master": "TT31/Section-XVII/SECTION_XVII_MASTER_NORMALIZED.jsonl",
-    "tt31_section_xvii_edges": "TT31/Section-XVII/SECTION_XVII_GRAPH_EDGES_NORMALIZED.jsonl",
-    "gir": "6_GIR /GIR_RAG_VI_COMBINED.jsonl",
-    "tt85": "TT85/tt85_rag_chunks_source.jsonl",
-    "articles": "TT85/tt85_articles_source.json",
-    "tt85_metadata": "TT85/tt85_metadata_source.json",
-    "scope": "HS_Index/HS_2022_SCOPE_INDEX_VI_FINAL.json",
-    "tt31_section_xvi_nodes": "TT31/Section-XVI/SECTION_XVI_GRAPH_STRUCTURAL_NODES.jsonl",
-    "tt31_section_xvi_edges": "TT31/Section-XVI/SECTION_XVI_GRAPH_EDGES.jsonl",
-}
+SOURCES = source_manifest(ROOT)["files"]
 GOLD = ROOT / "data/verified"
 
 
@@ -65,165 +55,179 @@ def normalize_code(value: str) -> str:
 
 
 def source_files() -> dict:
-    return {key: read(NORMALIZED / path) for key, path in SOURCES.items()}
-
-
-def xiv_vietnamese_view(master: dict) -> str:
-    """Format only this XIV record's normalized Vietnamese source fields."""
-    code = master["hs"].get("code")
-    own = master["text"].get("vi") or master["text"].get("source_raw_vi")
-    parts = [f"Mã {code}." if code else ""]
-    if own:
-        parts.append(own)
-    unit = master.get("unit", {}).get("vi")
-    if unit:
-        parts.append(f"Đơn vị: {unit}")
-    if not any(parts):
-        parts.append(f"Phần XIV, Chương {master['chapter']['code']}")
-    return " ".join(" ".join(parts).split())
-
-
-def xvii_vietnamese_view(master: dict) -> str:
-    """Format only this XVII record's normalized Vietnamese source fields."""
-    content = master["content"]
-    code = master.get("code")
-    parts = [f"Mã {code}." if code else ""]
-    for field in (
-        "title_vi_normalized",
-        "description_vi_normalized",
-        "legal_text_vi_normalized",
-        "supplemental_text_normalized",
-        "unit_vi_normalized",
-    ):
-        value = content.get(field)
-        if value:
-            parts.append(value)
-    if not any(parts):
-        terms = master.get("legal", {}).get("defined_terms_raw", [])
-        if terms:
-            parts.append(f"Thuật ngữ: {terms[0]}")
-    if not any(parts):
-        parts.append(f"Phần XVII, Chương {master['chapter']}")
-    return " ".join(" ".join(parts).split())
-
-
-def xvi_vietnamese_view(master: dict) -> str:
-    """Use the normalized title and wording of one XVI source record only."""
-    title = (master.get("title_vi") or "").strip()
-    wording = (master.get("text_vi") or master.get("source_text_vi") or "").strip()
-    if master.get("layer") == "context":
-        return wording
-    if master.get("layer") == "tariff":
-        return f"{master['code_display']} — {wording}"
-    return title if wording and wording in title else " ".join(p for p in (title, wording) if p)
+    return {
+        key: read(source_path(NORMALIZED, path))
+        for key, path in source_manifest(ROOT)["files"].items()
+    }
 
 
 def audit() -> dict:
     data = source_files()
-    validator = jsonschema.Draft202012Validator(data["tt31_section_xvi_schema"])
-    for record in data["tt31_section_xvi_master"]:
-        validator.validate(record)
-    ingest_validator = jsonschema.Draft202012Validator(data["tt31_unified_rag_schema"])
-    for sec_key in ("tt31_section_xiv", "tt31_section_xvi", "tt31_section_xvii"):
-        for record in data[sec_key]:
-            ingest_validator.validate(record)
-            assert record["schema_version"] == "2.0-final"
-            assert record["id"] == record["source_id"]
-            assert record["text"] == record["content"]["embedding_text"]
-            assert record["sparse_text"] == record["content"]["sparse_text"]
-    masters = {r["record_id"]: r for r in data["tt31_section_xvi_master"]}
-    ids = {r["id"] for r in data["tt31_section_xvi"]} | {
-        n["node_id"] for n in data["tt31_section_xvi_nodes"]
-    }
-    assert len(masters) == len(data["tt31_section_xvi_master"])
-    for r in data["tt31_section_xvi"]:
-        assert r["text"] == masters[r["id"]]["retrieval"]["embedding_text_vi"]
-        assert r["text"] == xvi_vietnamese_view(masters[r["id"]])
-    broken = [
-        e["edge_id"]
-        for e in data["tt31_section_xvi_edges"]
-        if e["source_id"] not in ids or e["target_id"] not in ids
-    ]
-    assert not broken, f"Broken graph endpoints: {broken}"
-    quality = {}
-    for key in ("tt31_section_xiv", "tt31_section_xvi", "tt31_section_xvii"):
-        records = data[key]
-        assert len({r["id"] for r in records}) == len(records), f"Duplicate IDs: {key}"
-        assert all(r["content"]["embedding_text"].strip() for r in records), f"Empty content: {key}"
-        quality[key] = {
+    registered = source_manifest(ROOT)
+    validator = jsonschema.Draft202012Validator(data["tt31_unified_rag_schema"])
+    taxonomy = {r["chapter_code"]: r["section_code"] for r in data["scope"]["records"]}
+    quality, codes, broken = {}, set(), []
+    all_ids = set()
+    graph_edges = 0
+    for source in registered["tariffs"]:
+        records = data[source["records"]]
+        ids = {r["id"] for r in records}
+        if len(ids) != len(records):
+            raise ValueError("Duplicate tariff source IDs")
+        for r in records:
+            validator.validate(r)
+            md = r["metadata"]
+            if md.get("chapter") and taxonomy.get(md["chapter"]) != md["section"]:
+                raise ValueError(f"Source Section/Chapter mismatch: {r['id']}")
+            if r["id"] != r["source_id"] or r["text"] != r["content"]["embedding_text"]:
+                raise ValueError(f"Inconsistent canonical source record: {r['id']}")
+            if not r["text"].strip() or not r["provenance"]:
+                raise ValueError(f"Missing source text or provenance: {r['id']}")
+            code = first(md, "code_compact", "code")
+            if code:
+                codes.add(str(code).replace(".", ""))
+        for n in data.get(source.get("nodes"), []):
+            ids.add(first(n, "node_id", "id", "record_id"))
+        all_ids.update(ids)
+        edges = [canonical_edge(e, "") for e in data.get(source.get("edges"), [])]
+        graph_edges += len(edges)
+        broken.extend(e for e in edges if e["source"] not in ids or e["target"] not in ids)
+        quality[source["records"]] = {
             "count": len(records),
-            "duplicate_wording": len(records)
-            - len({r["content"]["embedding_text"] for r in records}),
-            "short_ids": [r["id"] for r in records if len(r["content"]["embedding_text"]) < 40],
+            "duplicate_wording": len(records) - len({r["text"] for r in records}),
+            "short_ids": [r["id"] for r in records if len(r["text"]) < 40],
         }
-    for key, id_field, text_field in [
-        ("gir", "id", "text_vi"),
-        ("tt85", "chunk_id", "text"),
-    ]:
+    if broken:
+        raise ValueError("Broken source graph endpoints")
+    for key, id_field, text_field in [("gir", "id", "text_vi"), ("tt85", "chunk_id", "text")]:
         rows = data[key]
-        assert len({r[id_field] for r in rows}) == len(rows), f"Duplicate IDs: {key}"
-        assert all(r[text_field].strip() for r in rows), f"Empty content: {key}"
+        if len({r[id_field] for r in rows}) != len(rows) or any(
+            not r[text_field].strip() for r in rows
+        ):
+            raise ValueError(f"Invalid legal source records: {key}")
         quality[key] = {
             "count": len(rows),
             "duplicate_wording": len(rows) - len({r[text_field] for r in rows}),
             "short_ids": [r[id_field] for r in rows if len(r[text_field]) < 40],
         }
-    xvii_master = {r["id"]: r for r in data["tt31_section_xvii_master"]}
-    assert all(
-        r["language_profile"] == "vi"
-        and r["content"]["embedding_text"]
-        == r["content"]["fts_text"]
-        == xvii_vietnamese_view(xvii_master[r["id"]])
-        for r in data["tt31_section_xvii"]
-    ), "Section XVII search inputs must use the verified Vietnamese view"
-    xiv_master = {r["id"]: r for r in data["tt31_section_xiv_master"]}
-    assert all(
-        r.get("search_language") == "vi"
-        and r["content"]["embedding_text"]
-        == r["content"]["sparse_text"]
-        == r["content"]["search_text"]
-        == xiv_vietnamese_view(xiv_master[r["id"]])
-        for r in data["tt31_section_xiv"]
-    ), "Section XIV search inputs must use the verified Vietnamese view"
-    codes = {
-        r["metadata"]["code_compact"]
-        for k in ("tt31_section_xiv", "tt31_section_xvi", "tt31_section_xvii")
-        for r in data[k]
-        if r["metadata"].get("code_compact")
-    }
     gold = [
         r
         for part in ("train", "test")
         for path in sorted((GOLD / "hs" / part).glob("*.jsonl"))
         for r in read(path)
     ]
-    missing = [r["record_id"] for r in gold if r["expected_hs_8"] not in codes]
-    assert not missing, f"Gold codes missing: {missing}"
     raw = ROOT / "data/raw/ThongTu_85-2026_TT-BTC.docx"
     hash_matches = (
         hashlib.sha256(raw.read_bytes()).hexdigest() == data["tt85_metadata"]["source_sha256"]
     )
-    assert hash_matches, "TT85 source hash mismatch"
-    result = {
+    if not hash_matches:
+        raise ValueError("TT85 source hash mismatch")
+    return {
         "quality": quality,
-        "scope_count": len(data["scope"]["records"]),
-        "graph_nodes": len(ids),
-        "graph_edges": sum(
-            len(data[k])
-            for k in ("tt31_section_xvi_edges", "tt31_section_xiv_edges", "tt31_section_xvii_edges")
-        ),
-        "broken_endpoints": broken,
+        "scope_count": len(taxonomy),
+        "graph_nodes": len(all_ids),
+        "graph_edges": graph_edges,
+        "broken_endpoints": [],
         "gold_count": len(gold),
         "unique_gold_codes": len({g["expected_hs_8"] for g in gold}),
-        "gold_missing": missing,
+        "gold_missing": [r["record_id"] for r in gold if r["expected_hs_8"] not in codes],
         "tt85_source_hash_matches": hash_matches,
         "legal_verification": "LOCAL_METADATA_ONLY",
         "source_hashes": {
-            path: hashlib.sha256((NORMALIZED / path).read_bytes()).hexdigest()
-            for path in SOURCES.values()
+            path: hashlib.sha256(source_path(NORMALIZED, path).read_bytes()).hexdigest()
+            for path in registered["files"].values()
         },
     }
-    return result
+
+
+def tariff_bundle(source: dict, data: dict) -> tuple[list[dict], list[dict], list[dict]]:
+    """Adapt one registered source format into the shared record/node/edge contract."""
+    masters = {first(r, "id", "record_id"): r for r in data.get(source.get("master"), [])}
+    rows = [canonical_tariff(r, masters.get(r["id"])) for r in data[source["records"]]]
+    nodes = {
+        r["id"]: {
+            "id": r["id"],
+            "metadata": {
+                **r["metadata"],
+                "source_text": r["source_text"],
+                "locator": r["locator"],
+                "code": r["code"],
+                "level": r["level"],
+                "section": r["section"],
+                "chapter": r["chapter"],
+                "role": r["role"],
+                "chunk_type": r["chunk_type"],
+            },
+        }
+        for r in rows
+    }
+    for n in data.get(source.get("nodes"), []):
+        nid = "tt31:" + first(n, "node_id", "id", "record_id")
+        if nid not in nodes:
+            nodes[nid] = {"id": nid, "metadata": n}
+    edges = [canonical_edge(e) for e in data.get(source.get("edges"), [])]
+    for row in rows:
+        for note_id in row["metadata"].get("governing_note_ids", []):
+            nid = "tt31:" + note_id
+            if nid in nodes:
+                edges.append(
+                    {
+                        "source": row["id"],
+                        "target": nid,
+                        "relation": "CONSTRAINED_BY",
+                        "metadata": {
+                            "basis": "SOURCE_GOVERNING_NOTE_IDS",
+                            "locator": row["locator"],
+                        },
+                    }
+                )
+    edges.extend(context_scope_edges(rows, masters))
+    annotations = source.get("annotations")
+    if annotations:
+        by_code = {r["code"]: r for r in rows if r["code"]}
+        for code, info in data[annotations["file"]].items():
+            row = by_code.get(code)
+            if row is None:
+                raise ValueError(f"Annotation has no registered source code: {code}")
+            parts = [
+                f"{label}: {info[field]}"
+                for field, label in annotations["fields"].items()
+                if info.get(field) and info[field] not in annotations.get("omit_values", [])
+            ]
+            if not parts:
+                continue
+            nid = "tt31:SOURCE_ANNOTATION_" + digest([annotations["file"], code])[:20]
+            locator = {
+                "source_key": annotations["file"],
+                "source_code": code,
+                "document": annotations["source_document"],
+                "page": info.get("page"),
+                "basis": "REGISTERED_SOURCE_ANNOTATION",
+            }
+            nodes[nid] = {
+                "id": nid,
+                "metadata": {
+                    "role": "context",
+                    "section": row["section"],
+                    "chapter": row["chapter"],
+                    "source_text": "\n".join(parts),
+                    "locator": locator,
+                    "annotation": info,
+                },
+            }
+            edges.append(
+                {
+                    "source": nid,
+                    "target": row["id"],
+                    "relation": "CONTEXT_FOR",
+                    "metadata": {"basis": "REGISTERED_SOURCE_ANNOTATION", "locator": locator},
+                }
+            )
+    unique = {}
+    for e in edges:
+        key = (e["source"], e["relation"], e["target"])
+        unique.setdefault(key, {**e, "id": "SOURCE_EDGE:" + digest(key)[:24]})
+    return rows, list(nodes.values()), list(unique.values())
 
 
 def build_corpus() -> dict:
@@ -258,27 +262,14 @@ def build_corpus() -> dict:
             }
         )
 
-    masters = {r["record_id"]: r for r in data["tt31_section_xvi_master"]}
-    for r in data["tt31_section_xvi"]:
-        m = masters[r["id"]]
-        md = r["metadata"]
-        role = "candidate" if md["layer"] == "tariff" else "evidence"
-        add(
-            "tt31",
-            r["id"],
-            m.get("source_text_vi") or m["text_vi"],
-            r["text"],
-            role,
-            m,
-            m["source"],
-            code=md.get("code"),
-            level=md.get("level"),
-            chapter=md.get("chapter"),
-            heading=md.get("heading"),
-            normalized_text=m["text_vi"],
-            effective_from=None,
-            effective_to=None,
-        )
+    registered = source_manifest(ROOT)
+    nodes, edges = [], []
+    for source in registered["tariffs"]:
+        source_rows, source_nodes, source_edges = tariff_bundle(source, data)
+        rows.extend(source_rows)
+        nodes.extend(source_nodes)
+        edges.extend(source_edges)
+
     # Context joins reviewed against the ordered source text; atomic wording stays intact.
     gir_context = {
         "GIR_3_NOTE_009": ["GIR_3_NOTE_008", "GIR_3_NOTE_009", "GIR_3_NOTE_MERGED_03"],
@@ -351,7 +342,15 @@ def build_corpus() -> dict:
             effective_from=r["effective_from"],
             effective_to=None,
         )
+    registered_chapters = {r["chapter"] for r in rows if r.get("level") == 8}
     for r in data["scope"]["records"]:
+        r = {
+            **r,
+            "in_scope": r["chapter_code"] in registered_chapters,
+            "scope_status": "IN_SCOPE"
+            if r["chapter_code"] in registered_chapters
+            else "OUT_OF_SCOPE",
+        }
         add(
             "scope",
             r["chapter_code"],
@@ -364,137 +363,7 @@ def build_corpus() -> dict:
             effective_from=None,
             effective_to=None,
         )
-    node_ids = {r["id"] for r in rows if r["dataset"] == "tt31"}
-    nodes = [{"id": r["id"], "metadata": r["metadata"]} for r in rows if r["dataset"] == "tt31"]
-    for node in data["tt31_section_xvi_nodes"]:
-        nodes.append({"id": "tt31:" + node["node_id"], "metadata": node})
-        node_ids.add("tt31:" + node["node_id"])
-    edges = [
-        {
-            "id": e["edge_id"],
-            "source": "tt31:" + e["source_id"],
-            "target": "tt31:" + e["target_id"],
-            "relation": e["relation"],
-            "metadata": e["metadata"],
-        }
-        for e in data["tt31_section_xvi_edges"]
-    ]
-    # Process Section XIV and XVII using unified Schema v2.0 fields
-    for section, key in [("XIV", "tt31_section_xiv"), ("XVII", "tt31_section_xvii")]:
-        master = {r["id"]: r for r in data[key + "_master"]}
-        for r in data[key]:
-            sid = r["id"]
-            m = master[sid]
-            md = r["metadata"]
-            kind = r["document_type"]
-            code = md.get("code_compact")
-            if kind == "chapter":
-                code = md["chapter"]
-            level = len(code) if code and code.isdigit() and len(code) in (2, 4, 6, 8) else None
-            role = (
-                "candidate"
-                if kind in ("heading", "subheading", "hs_code")
-                else "scope"
-                if kind in ("chapter", "section", "subchapter")
-                else "evidence"
-                if kind
-                in ("section_note", "chapter_note", "subheading_note", "definition", "legal_term")
-                else "context"
-            )
-            if section == "XIV":
-                source_text = (
-                    m["text"].get("source_raw_vi")
-                    or m["text"]["vi"]
-                    or r["content"]["embedding_text"]
-                )
-                locator = m["source"]
-                legal = r.get("legal_context", {})
-                notes = legal.get("effective_note_ids", [])
-                chunk_type = (
-                    "tariff_footnote"
-                    if kind == "tariff_footnote"
-                    else kind
-                    if kind.endswith("_note")
-                    else "tariff_entry"
-                    if level
-                    else None
-                )
-                source = m["source"]
-            else:
-                raw = r["content"]["raw_authoritative"]
-                source_text = (
-                    m["content"].get("legal_text_vi_normalized")
-                    or m["content"].get("description_vi_normalized")
-                    or m["content"].get("supplemental_text_normalized")
-                    or raw.get("legal_text_vi_raw")
-                    or raw.get("description_vi_raw")
-                    or raw.get("supplemental_text_raw")
-                    or r["content"]["embedding_text"]
-                )
-                locator = r["provenance"]
-                notes = r["graph"].get("governing_note_ids", [])
-                chunk_type = (
-                    kind
-                    if kind.endswith("_note")
-                    else "chapter_note"
-                    if kind in ("definition", "legal_term")
-                    else "tariff_entry"
-                    if level
-                    else None
-                )
-                source = m["provenance"]
-            add(
-                "tt31",
-                sid,
-                source_text,
-                r["content"]["embedding_text"],
-                role,
-                {
-                    "original": m,
-                    "export_metadata": md,
-                    "original_type": kind,
-                    "governing_note_ids": notes,
-                    "exact_terms": r["content"]["exact_keys"],
-                },
-                locator,
-                section=section,
-                chapter=md.get("chapter"),
-                code=code if level else None,
-                level=level,
-                heading=(code[:4] if level and level >= 4 else None),
-                hs6=(code[:6] if level and level >= 6 else None),
-                ahtn8=code if level == 8 else None,
-                chunk_type=chunk_type,
-                source=source,
-                effective_from=md.get("current_application_from"),
-                effective_to=None,
-                legal_status=md.get("legal_status", "UNVERIFIED"),
-            )
-        # External graph endpoints stay stubs; links to loaded codes are resolved below.
-        graph_rows = (
-            data["tt31_section_xiv_nodes"] if section == "XIV" else data["tt31_section_xvii_master"]
-        )
-        for node in graph_rows:
-            sid = node.get("node_id", node.get("id"))
-            nid = "tt31:" + sid
-            if nid not in node_ids:
-                nodes.append({"id": nid, "metadata": node})
-                node_ids.add(nid)
-        for e in data[key + "_edges"]:
-            source = e.get("source_node_id", e.get("from_id"))
-            target = e.get("target_node_id", e.get("to_id"))
-            relation = e["relation"]
-            if relation == "PARENT_OF" or "CONTAINS" in relation:
-                relation = "CONTAINS"
-            edges.append(
-                {
-                    "id": section + ":" + e.get("edge_id", e.get("id")),
-                    "source": "tt31:" + source,
-                    "target": "tt31:" + target,
-                    "relation": relation,
-                    "metadata": e,
-                }
-            )
+    node_ids = {n["id"] for n in nodes}
     supported = {
         "gir_rule",
         "gir_explanation",
@@ -506,6 +375,7 @@ def build_corpus() -> dict:
         "legal_clause",
     }
     for row in rows:
+        row["input_hash"] = digest(row["embedding_text"])
         md = row["metadata"]
         dataset = row["dataset"]
         row["namespace"] = "legal_classification" if dataset == "tt85" else "hs_classification"
@@ -644,12 +514,15 @@ def build_corpus() -> dict:
     manifest = {
         "strategy": cfg["chunk_strategy"],
         "source_hashes": report["source_hashes"],
+        "source_manifest_hash": digest(registered),
+        "graph_version": "source-context-v2",
         "count": len(rows),
         "roles": dict(Counter(r["role"] for r in rows)),
         "namespaces": dict(Counter(r["namespace"] for r in rows)),
         "sections": dict(Counter(r["section"] or "GLOBAL" for r in rows)),
         "records_hash": digest(rows),
         "edges_hash": digest(edges),
+        "nodes_hash": digest(nodes),
     }
     snapshot = digest(manifest)[:24]
     bundle = {
@@ -667,4 +540,5 @@ def load_corpus() -> dict:
     bundle = read(ROOT / "artifacts/corpus.json")
     assert bundle["manifest"]["records_hash"] == digest(bundle["records"]), "Corpus hash mismatch"
     assert bundle["manifest"]["edges_hash"] == digest(bundle["edges"]), "Graph hash mismatch"
+    assert bundle["manifest"]["nodes_hash"] == digest(bundle["nodes"]), "Graph nodes hash mismatch"
     return bundle

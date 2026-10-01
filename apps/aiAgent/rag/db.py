@@ -25,6 +25,7 @@ def connect() -> psycopg.Connection[dict[str, Any]]:
         row_factory=dict_row,
         autocommit=True,
     )
+    register_vector(conn)
     return conn
 
 

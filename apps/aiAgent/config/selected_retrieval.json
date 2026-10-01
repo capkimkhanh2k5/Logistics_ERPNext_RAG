@@ -1,7 +1,7 @@
 {
-  "snapshot": "1a454b4e04d0ecd211b73d06",
+  "snapshot": "6ecd56f663a79e147ea7cdc3",
   "profile": "3a2ce6e6d726a0f053748717",
-  "gold_hash": "586c851fe9df940bd407bc9017ef39af577b4a34f8e249049af7a7952e383dc3",
+  "gold_hash": "da1b6d2577a55cd0e2cbf3bd5d91755a901ccbecce62532cd4a4a913c7da6542",
   "retrieval": {
     "model": "BAAI/bge-m3",
     "revision": "5617a9f61b028005a4858fdac845db406aefb181",
@@ -25,7 +25,7 @@
     "reranker_model": "BAAI/bge-reranker-v2-m3",
     "reranker_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
     "rerank_pool": 30,
-    "retrieval_version": "adaptive-hierarchy-v3-rank-bm25"
+    "retrieval_version": "shared-source-graph-v2"
   },
   "selected_mode": "full_hybrid",
   "router": {
@@ -37,112 +37,6 @@
       "exact": 0.1
     },
     "k": 60
-  },
-  "section_policies": {
-    "XIV": {
-      "configuration": "C9",
-      "weights": {
-        "dense": 0.35,
-        "bm25": 0.35,
-        "exact": 0.3
-      },
-      "k": 20
-    },
-    "XVI": {
-      "configuration": "C6",
-      "weights": {
-        "dense": 0.1448858592553968,
-        "bm25": 0.8551141407446032
-      },
-      "k": 20
-    },
-    "XVII": {
-      "configuration": "C15",
-      "weights": {
-        "sparse": 0.26619677174116124,
-        "bm25": 0.7327117961237644,
-        "exact": 0.00109143213507426
-      },
-      "k": 60
-    }
-  },
-  "pipeline_policies": {
-    "XIV": {
-      "strategy": "direct",
-      "candidate_pool": 100,
-      "section_mix": "router",
-      "beam_size": 10,
-      "k": 20,
-      "reranker": "cross_encoder",
-      "rerank_pool": 30,
-      "rank_weight": 0.5
-    },
-    "XVI": {
-      "strategy": "direct",
-      "candidate_pool": 100,
-      "section_mix": "router",
-      "beam_size": 10,
-      "k": 20,
-      "reranker": "cross_encoder",
-      "rerank_pool": 30,
-      "rank_weight": 0.5
-    },
-    "XVII": {
-      "strategy": "direct",
-      "candidate_pool": 100,
-      "section_mix": "router",
-      "beam_size": 10,
-      "k": 20,
-      "reranker": "cross_encoder",
-      "rerank_pool": 30,
-      "rank_weight": 0.25
-    }
-  },
-  "definition_policies": {
-    "XIV": {
-      "definition_weight": 0,
-      "k": 60,
-      "evidence_rerank": true,
-      "reranker": "cross_encoder",
-      "rerank_pool": 30,
-      "rank_weight": 0.5
-    },
-    "XVI": {
-      "definition_weight": 0,
-      "k": 60,
-      "evidence_rerank": true,
-      "reranker": "cross_encoder",
-      "rerank_pool": 30,
-      "rank_weight": 0.5
-    },
-    "XVII": {
-      "definition_weight": 0.2,
-      "k": 60,
-      "evidence_rerank": true,
-      "reranker": "cross_encoder",
-      "rerank_pool": 30,
-      "rank_weight": 0.25
-    }
-  },
-  "parent_policies": {
-    "XIV": {
-      "weight": 0.2,
-      "k": 60,
-      "parent_limit": 20,
-      "child_limit": 5
-    },
-    "XVI": {
-      "weight": 0.2,
-      "k": 60,
-      "parent_limit": 20,
-      "child_limit": 5
-    },
-    "XVII": {
-      "weight": 0.2,
-      "k": 60,
-      "parent_limit": 20,
-      "child_limit": 5
-    }
   },
   "legal": {
     "weights": {
@@ -198,5 +92,7 @@
     "limitations": "Best among tested policies on supplied train; no model fine-tuning."
   },
   "selection_scope": "GROUPED_TRAIN_80_20; TEST_DIAGNOSTIC; HOLDOUT_REGRESSION_PREVIOUSLY_EXAMINED",
-  "selection_objective": "Validation Hit@1, Recall@5, MRR; parent and reranker ablations"
+  "selection_objective": "Validation Hit@1, Recall@5, MRR; parent and reranker ablations",
+  "product_policy_file": "config/hybrid_retrieval.json",
+  "qa_transfer_status": "VERIFIED_650_REGRESSION_UNCHANGED_NO_RETUNING"
 }

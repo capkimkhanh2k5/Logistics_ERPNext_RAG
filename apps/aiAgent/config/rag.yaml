@@ -19,4 +19,4 @@ fusion_weights:
 reranker_model: BAAI/bge-reranker-v2-m3
 reranker_revision: 953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e
 rerank_pool: 30
-retrieval_version: adaptive-hierarchy-v3-rank-bm25
+retrieval_version: shared-source-graph-v2
