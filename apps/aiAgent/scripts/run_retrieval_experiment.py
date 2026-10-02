@@ -217,7 +217,7 @@ def paired_cluster_interval(cases: list[dict], manifest: dict, a: dict, b: dict)
 
 
 def load_cases() -> list[dict]:
-    cases, _ = discover_gold(("train", "test", "holdout"))
+    cases, _ = discover_gold()
     return [{**c, "query": query_for(c, "name_and_spec")} for c in cases]
 
 
@@ -289,7 +289,7 @@ def main() -> None:
     cases = load_cases()
     manifest_path = run_dir / "manifest.json"
     manifest = read(manifest_path) if manifest_path.exists() else prepare_manifest(args.run_id)
-    canonical_cases, _ = discover_gold(("train", "test", "holdout"))
+    canonical_cases, _ = discover_gold()
     if manifest["dataset_hash"] != digest(canonical_cases):
         raise ValueError("Frozen evaluation dataset has changed")
     if {r["record_id"] for r in manifest["rows"]} != {c["record_id"] for c in cases}:

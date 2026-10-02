@@ -66,7 +66,8 @@ def audit() -> dict:
     registered = source_manifest(ROOT)
     validator = jsonschema.Draft202012Validator(data["tt31_unified_rag_schema"])
     taxonomy = {r["chapter_code"]: r["section_code"] for r in data["scope"]["records"]}
-    quality, codes, broken = {}, set(), []
+    quality, codes = {}, set()
+    broken: list[dict] = []
     all_ids = set()
     graph_edges = 0
     for source in registered["tariffs"]:
@@ -110,12 +111,7 @@ def audit() -> dict:
             "duplicate_wording": len(rows) - len({r[text_field] for r in rows}),
             "short_ids": [r[id_field] for r in rows if len(r[text_field]) < 40],
         }
-    gold = [
-        r
-        for part in ("train", "test")
-        for path in sorted((GOLD / "hs" / part).glob("*.jsonl"))
-        for r in read(path)
-    ]
+    gold = [r for path in sorted((GOLD / "hs/dev_test").glob("*.jsonl")) for r in read(path)]
     raw = ROOT / "data/raw/ThongTu_85-2026_TT-BTC.docx"
     hash_matches = (
         hashlib.sha256(raw.read_bytes()).hexdigest() == data["tt85_metadata"]["source_sha256"]
@@ -186,9 +182,10 @@ def tariff_bundle(source: dict, data: dict) -> tuple[list[dict], list[dict], lis
     if annotations:
         by_code = {r["code"]: r for r in rows if r["code"]}
         for code, info in data[annotations["file"]].items():
-            row = by_code.get(code)
-            if row is None:
+            candidate_row = by_code.get(code)
+            if candidate_row is None:
                 raise ValueError(f"Annotation has no registered source code: {code}")
+            row = candidate_row
             parts = [
                 f"{label}: {info[field]}"
                 for field, label in annotations["fields"].items()
@@ -223,7 +220,7 @@ def tariff_bundle(source: dict, data: dict) -> tuple[list[dict], list[dict], lis
                     "metadata": {"basis": "REGISTERED_SOURCE_ANNOTATION", "locator": locator},
                 }
             )
-    unique = {}
+    unique: dict[tuple, dict] = {}
     for e in edges:
         key = (e["source"], e["relation"], e["target"])
         unique.setdefault(key, {**e, "id": "SOURCE_EDGE:" + digest(key)[:24]})

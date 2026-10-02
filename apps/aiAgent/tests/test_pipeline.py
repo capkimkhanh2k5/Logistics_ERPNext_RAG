@@ -9,7 +9,7 @@ from rag.retrieval import fuse, unique_codes
 
 def test_corpus_integrity_and_provenance():
     report = audit()
-    assert report["gold_count"] == 852
+    assert report["gold_count"] == 940
     assert report["graph_edges"] == 5813
     first, second = build_corpus(), build_corpus()
     assert first["snapshot"] == second["snapshot"]
@@ -77,27 +77,31 @@ def test_gold_never_enters_query_and_split_matches_supplied_files():
     dev = {g["expected_hs_8"] for g in gold if g["test_id"] in split["dev"]}
     test = {g["expected_hs_8"] for g in gold if g["test_id"] in split["test"]}
     assert dev & test == set(split["overlapping_codes"])
-    assert len(split["dev"]) == 709
-    assert len(split["test"]) == 143
-    assert len(split["dev"]) + len(split["test"]) == 852
+    assert len(split["dev"]) == 752
+    assert len(split["test"]) == 188
+    assert len(split["dev"]) + len(split["test"]) == 940
     for row in gold:
         altered = {**row, "expected_hs_8": "99999999", "chapter": "99", "heading": "9999"}
         assert query_for(row, "name_and_spec") == query_for(altered, "name_and_spec")
 
 
-def test_holdout_is_explicit_and_case_families_do_not_cross_splits():
+def test_only_dev_test_are_active_and_groups_do_not_cross_splits():
     ordinary, _ = discover_gold()
-    assert {row["split"] for row in ordinary} == {"train", "test"}
-    all_cases, _ = discover_gold(("train", "test", "holdout"))
+    assert {row["split"] for row in ordinary} == {"dev", "test"}
+    with pytest.raises(ValueError, match="Unknown"):
+        discover_gold(("train", "test", "holdout"))
+    all_cases = ordinary
     split = benchmark_split(all_cases)
-    assert len(split["holdout"]) == 88
+    assert len(split["dev"]) + len(split["test"]) == 940
     families = {
         name: {r["case_family_id"] for r in all_cases if r["split"] == name}
-        for name in ("train", "test", "holdout")
+        for name in ("dev", "test")
     }
-    assert not (families["train"] & families["test"])
-    assert not (families["train"] & families["holdout"])
-    assert not (families["test"] & families["holdout"])
+    assert not (families["dev"] & families["test"])
+    assert not (
+        {r["eval_group_id"] for r in all_cases if r["split"] == "dev"}
+        & {r["eval_group_id"] for r in all_cases if r["split"] == "test"}
+    )
 
 
 def test_metrics_do_not_count_heading_as_full_code_hit():
@@ -212,10 +216,10 @@ def test_verified_gold_uses_supplied_partitions_and_normalized_grid():
     from rag.evaluation import discover_gold, weight_grid
 
     rows, paths = discover_gold()
-    assert len(rows) == 852
+    assert len(rows) == 940
     assert paths == [
-        "data/verified/hs/train/HS_RAG_TRAIN.jsonl",
-        "data/verified/hs/test/HS_RAG_TEST.jsonl",
+        "data/verified/hs/dev_test/HS_RAG_DEV.jsonl",
+        "data/verified/hs/dev_test/HS_RAG_TEST.jsonl",
     ]
     assert all(r["expected_hs_8"] not in r["query"] for r in rows)
     grid = weight_grid(("dense", "sparse", "bm25", "fts", "exact"))
@@ -398,9 +402,12 @@ def test_qa_verified_targets_match_current_sources():
 
     cases = discover_qa(build_corpus())
     assert len(cases) == 650
-    assert sum(c["split"] == "train" for c in cases) == 400
-    assert sum(c["split"] == "test" for c in cases) == 150
-    assert sum(c["split"] == "holdout" for c in cases) == 100
+    assert sum(c["split"] == "dev" for c in cases) == 520
+    assert sum(c["split"] == "test" for c in cases) == 130
+    assert not (
+        {c["eval_group_id"] for c in cases if c["split"] == "dev"}
+        & {c["eval_group_id"] for c in cases if c["split"] == "test"}
+    )
     assert next(c for c in cases if c["id"] == "Q001")["canonical_groups"][0]["any_of"] == [
         "tt85:TT85-A2-2"
     ]

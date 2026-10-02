@@ -6,6 +6,7 @@ import unicodedata
 from datetime import date
 from typing import Any
 
+import numpy as np
 import psycopg
 from pgvector.psycopg import register_vector
 from psycopg import sql as pgsql
@@ -334,7 +335,8 @@ def source_channel_pool(
     fused = {r["id"]: r for r in fuse(channels, k, weights)}
     positions = {name: 0 for name in channels}
     served = {name: 0 for name in channels}
-    seen, codes, result = set(), set(), []
+    seen, codes = set(), set()
+    result: list[dict] = []
     while len(result) < limit:
         available = []
         for name, rows in channels.items():
@@ -1749,6 +1751,24 @@ class Retriever:
             key=lambda r: (-r["score"], r["id"]),
         )[:limit]
 
+    def graph_dense_candidates(
+        self, query: str, limit: int = 100, use_cache: bool = True
+    ) -> list[dict]:
+        """Search the same source hierarchy views semantically, without chapter routing."""
+        if self.embedder is None:
+            raise ValueError("Source context dense retrieval requires an embedder")
+        if not hasattr(self, "_context_vectors"):
+            views = self.graph_context().candidate_views()
+            self._dense_context_ids = sorted(views)
+            self._dense_context_views = [views[n] for n in self._dense_context_ids]
+            self._context_vectors = self.embedder.source_context_vectors(
+                self.snapshot, self._dense_context_views
+            )
+        vector = self.embedder.encode([query], use_cache=use_cache)["dense"][0]
+        scores = self._context_vectors @ vector
+        indices = np.argsort(-scores, kind="stable")[:limit]
+        return [{**self._dense_context_views[i], "score": float(scores[i])} for i in indices]
+
     def prepare_product_candidates(
         self, query: str, base_pool: list[dict], method: str | None = None, use_cache: bool = True
     ) -> list[dict]:
@@ -1762,9 +1782,19 @@ class Retriever:
         if method in {"B1", "B2"}:
             graph_rows = self.graph_candidates(query, policy["candidate_pool"])
             weight = policy["graph_context_weight"]
+            dense_weight = policy.get("graph_dense_weight", 0.0)
+            if not 0 <= dense_weight <= 1:
+                raise ValueError("Source context dense weight must be between zero and one")
+            channels = {"direct": candidates, "graph_context": graph_rows}
+            channel_weights = {"direct": 1 - weight, "graph_context": weight * (1 - dense_weight)}
+            if dense_weight > 0:
+                channels["graph_dense"] = self.graph_dense_candidates(
+                    query, policy["candidate_pool"], use_cache
+                )
+                channel_weights["graph_dense"] = weight * dense_weight
             candidates = source_channel_pool(
-                {"direct": candidates, "graph_context": graph_rows},
-                {"direct": 1 - weight, "graph_context": weight},
+                channels,
+                channel_weights,
                 policy["candidate_pool"],
                 policy["rrf_k"],
             )
@@ -1803,6 +1833,8 @@ class Retriever:
         use_cache: bool = True,
     ) -> list[dict]:
         policy = self.product_policy
+        if self.embedder is None:
+            raise ValueError("Product ranking requires an embedder")
         if not hasattr(self, "_reranker"):
             import torch
 
@@ -1883,7 +1915,31 @@ class Retriever:
                 "status": "REQUIRES_SOURCE_REASONING",
                 "missing_information": "NOT_INFERRED_FROM_PRODUCT_KEYWORDS",
             },
+            "decision_support": self.source_comparison(ranked),
             "validation_status": "REQUIRES_GIR_EXCLUSION_REASONING",
+        }
+
+    def source_comparison(self, ranked: list[dict], limit: int = 3) -> dict:
+        """Expose competing source conditions for clarification, without assigning an HS answer."""
+        alternatives = []
+        for row in ranked[:limit]:
+            view = self.graph_context().source_view(row)
+            alternatives.append(
+                {
+                    "code": row["code"],
+                    "description": row["source_text"],
+                    "locator": row["locator"],
+                    "source_conditions": view["citations"],
+                    "note_ids": view["note_ids"],
+                }
+            )
+        return {
+            "status": "SHORTLIST_REQUIRES_PRODUCT_SOURCE_COMPARISON",
+            "missing_attributes_assessed": False,
+            "clarification_prompt": (
+                "Please provide product specifications needed to compare these cited source conditions."
+            ),
+            "alternatives": alternatives,
         }
 
     def section_candidates(self, ranked: list[dict], top_n: int = 2) -> list[dict]:

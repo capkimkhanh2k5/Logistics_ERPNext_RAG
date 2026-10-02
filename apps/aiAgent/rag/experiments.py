@@ -43,7 +43,7 @@ def build_eval_groups(cases: list[dict], threshold: float = 0.70) -> dict[str, s
                 union(cases[i]["record_id"], cases[j]["record_id"])
 
     # Family and contrastive identities are mandatory groups, even with low text similarity.
-    families = {}
+    families: dict[tuple, str] = {}
     for c in cases:
         for field in (
             "case_family_id",
@@ -72,7 +72,7 @@ def prepare_manifest(
     inner_folds: int = 3,
     seed: int = 20260930,
 ) -> dict:
-    cases, paths = discover_gold(("train", "test", "holdout"))
+    cases, paths = discover_gold()
     eval_groups = build_eval_groups(cases)
 
     y = [c["section"] for c in cases]
@@ -118,7 +118,8 @@ def prepare_manifest(
         rows.append(
             {
                 "record_id": rid,
-                "original_split": c["split"],
+                "original_split": c.get("original_split", c["split"]),
+                "split": c["split"],
                 "section": c["section"],
                 "expected_hs_8": c["expected_hs_8"],
                 "chapter": c["expected_hs_8"][:2],

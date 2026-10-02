@@ -137,6 +137,36 @@ class Embedder:
         write_json(ROOT / "artifacts/embedding_manifest.json", manifest)
         return manifest
 
+    def source_context_vectors(self, snapshot: str, views: list[dict]) -> np.ndarray:
+        """Index only cited source views; evaluation questions never enter this index."""
+        identity = {
+            "representation": "source-hierarchy-context-v1",
+            "snapshot": snapshot,
+            "profile": self.profile,
+            "ids": [r["id"] for r in views],
+            "text_hashes": [digest(r["rerank_text"]) for r in views],
+        }
+        directory = ROOT / "artifacts/context_embeddings"
+        directory.mkdir(parents=True, exist_ok=True)
+        target = directory / (digest(identity) + ".npz")
+        if target.exists():
+            with np.load(target, allow_pickle=False) as saved:
+                return validate_vectors(saved["dense"], len(views))
+        batches = []
+        step = self.cfg["checkpoint_size"]
+        for start in range(0, len(views), step):
+            texts = [r["rerank_text"] for r in views[start : start + step]]
+            batches.append(self.encode(texts)["dense"])
+            print(
+                f"Source context embedded {min(start + step, len(views))}/{len(views)}", flush=True
+            )
+        dense = validate_vectors(np.concatenate(batches), len(views))
+        temporary = target.with_suffix(".tmp.npz")
+        np.savez_compressed(temporary, dense=dense)
+        temporary.replace(target)
+        write_json(target.with_suffix(".json"), identity)
+        return dense
+
 
 def load_embeddings(bundle: dict) -> tuple[dict, np.ndarray, list]:
     manifest = json.loads((ROOT / "artifacts/embedding_manifest.json").read_text())

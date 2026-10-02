@@ -72,7 +72,7 @@ def main() -> None:
             predictions[production],
             policy["rerank_pool"],
         )
-        for split in ("train", "test", "holdout")
+        for split in ("dev", "test")
     }
     paired = paired_cluster_interval(cases, manifest, predictions["B0"], predictions[production])
     old_metrics_path = ROOT / "artifacts/experiments/run_hs_grouped_cv_v1/M5_metrics.json"

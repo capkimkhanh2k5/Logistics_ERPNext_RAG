@@ -1,0 +1,94 @@
+{
+  "version": "hs-dev-test-v1",
+  "seed": 20261001,
+  "target_dev_fraction": 0.8,
+  "target_test_fraction": 0.2,
+  "algorithm": "StratifiedGroupKFold_CHAPTER; min_SECTION_then_CHAPTER_count_error",
+  "selected_test_fold": 2,
+  "selection_inputs": "CASE_COUNTS_ONLY_NO_RETRIEVAL_SCORES",
+  "grouping_version": "mandatory-family-and-template-v2",
+  "grouping_threshold": 0.7,
+  "sklearn_version": "1.9.1",
+  "evaluation_scope": "PREVIOUSLY_SEEN_REGRESSION_NOT_BLIND",
+  "dev_validation_folds": 5,
+  "total_cases": 940,
+  "total_groups": 798,
+  "counts": {
+    "dev": 752,
+    "test": 188
+  },
+  "groups": {
+    "dev": 638,
+    "test": 160
+  },
+  "section_counts": {
+    "XIV": {
+      "dev": 195,
+      "test": 49
+    },
+    "XVI": {
+      "dev": 341,
+      "test": 85
+    },
+    "XVII": {
+      "dev": 216,
+      "test": 54
+    }
+  },
+  "chapter_counts": {
+    "71": {
+      "dev": 195,
+      "test": 49
+    },
+    "84": {
+      "dev": 227,
+      "test": 57
+    },
+    "85": {
+      "dev": 114,
+      "test": 28
+    },
+    "86": {
+      "dev": 29,
+      "test": 7
+    },
+    "87": {
+      "dev": 138,
+      "test": 34
+    },
+    "88": {
+      "dev": 18,
+      "test": 5
+    },
+    "89": {
+      "dev": 31,
+      "test": 8
+    }
+  },
+  "source_dataset_hash": "2137cfee41068ba083f5f6248e37eb1a3186b70b2e37b0ef6f421ffc92fcb97a",
+  "source_file_sha256": {
+    "data/verified/hs/train/HS_RAG_TRAIN.jsonl": "00b112d086926548b96850ef18a77741d13d4da641f4ce069d97c32d50ecc668",
+    "data/verified/hs/test/HS_RAG_TEST.jsonl": "b709e607c3c055fcbb0e0257bbed4499a3d034de5ab9df7fa4d148cc8d8df8f8",
+    "data/verified/hs/holdout/HS_RAG_HOLDOUT.jsonl": "cd6b2c2502482a6b2917f74e23c6da2e96861eb2e47193325245773145a7c523"
+  },
+  "original_file_archive": {
+    "data/verified/hs/train/HS_RAG_TRAIN.jsonl": "artifacts/experiments/run_shared_dev_v3/legacy_data/data/verified/hs/train/HS_RAG_TRAIN.jsonl",
+    "data/verified/hs/test/HS_RAG_TEST.jsonl": "artifacts/experiments/run_shared_dev_v3/legacy_data/data/verified/hs/test/HS_RAG_TEST.jsonl",
+    "data/verified/hs/holdout/HS_RAG_HOLDOUT.jsonl": "artifacts/experiments/run_shared_dev_v3/legacy_data/data/verified/hs/holdout/HS_RAG_HOLDOUT.jsonl"
+  },
+  "split_code_sha256": {
+    "scripts/prepare_dev_test.py": "25ba17cc5f4eadfb40fbd7ee8d8642287f5fdef0c59cc284327ae2246d7428ac",
+    "rag/experiments.py": "5f13d52050a8f512b5ed0aa80abb1316ba775dea40ce05bcb7ba6a6b2572ae8a",
+    "rag/evaluation.py": "9d78da737d55325016ac469a8d1e8d60c647673dec412c7cc861e17d1390d0c3"
+  },
+  "files": {
+    "dev": {
+      "path": "HS_RAG_DEV.jsonl",
+      "sha256": "86d841814db37bf4529e6bc99c2945dcec459917e332ed8da2f3f0b2037b6c35"
+    },
+    "test": {
+      "path": "HS_RAG_TEST.jsonl",
+      "sha256": "398f2d77056a5c2255c24d16f7920dbd416e846d2aec92b9d70edf0fac8ffc55"
+    }
+  }
+}

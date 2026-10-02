@@ -3,7 +3,7 @@
 | Notebook | Workflow |
 |---|---|
 | `notebooks/01_build_knowledge_base.ipynb` | Audit manifest nguồn → GIR/TT85/HS → BGE-M3 → nạp snapshot mới trong transaction → QA |
-| `notebooks/02_test_retrieval.ipynb` | Policy chung → B0/B1 trên 940 ca → chỉ số theo Phần/Chương → QA và latency; B2 tùy chọn |
+| `notebooks/02_test_retrieval.ipynb` | Dev → chọn/khóa cấu hình HS chung → Test → chất lượng và latency |
 
 V2 lưu report và predictions trong `artifacts/experiments/<run-id>`; notebook đọc cùng runtime/runner. Các module `rag/` giữ logic dùng chung để notebook và runtime dùng cùng implementation.
 
@@ -13,6 +13,8 @@ V2 lưu report và predictions trong `artifacts/experiments/<run-id>`; notebook 
 |---|---|
 | `rag/sources.py` | Đọc manifest, chuẩn hóa định dạng records/NODE/EDGE và quan hệ nguồn khi build corpus; không chọn mã HS theo sản phẩm. |
 | `rag/experiments.py` | Nhóm các câu cùng họ/biến thể, lưu manifest và fold mappings cho đánh giá; v2 hiện chưa tối ưu tham số trong folds. |
+| `scripts/prepare_dev_test.py` | Tái tạo/kiểm chứng hai tập HS và QA từ archive; giữ nguyên các nhóm. |
+| `scripts/tune_shared_retrieval.py` | Chọn một policy HS trên Dev, đo latency, khóa policy rồi chấm Test. |
 | `scripts/run_retrieval_experiment.py` | Chấm các biến thể B0/B1/B2 với policy đã khóa, lưu từng dự đoán và Hit@1/Recall/MRR theo Phần/Chương. |
 | `scripts/run_runtime_regression.py` | Chấm lại QA pháp lý bằng policy đã khóa; không tìm trọng số. |
 | `scripts/measure_fresh_runtime_latency.py` | Đo thời gian runtime khi bỏ cache truy vấn/reranker. |
@@ -20,17 +22,33 @@ V2 lưu report và predictions trong `artifacts/experiments/<run-id>`; notebook 
 
 Các scripts chạy khi thực nghiệm/kiểm chứng; chúng không được chạy lại cho mỗi câu hỏi người dùng.
 
-### Train, Test và Holdout
+### Dev/Test hiện tại — HS và QA
 
-| Tập | HS | QA | Mục đích khi chọn cấu hình mới |
-|---|---:|---:|---|
-| Train | 709 | 400 | Chọn phương pháp/trọng số/tham số bằng train hoặc validation/folds bên trong train. |
-| Test | 143 | 150 | Chấm và phân tích kết quả của cấu hình đã khóa; không tối ưu trọng số theo điểm test. |
-| Holdout | 88 | 100 | Đánh giá cuối sau khi khóa cấu hình; chỉ là kiểm định độc lập nếu chưa được dùng để chọn hoặc sửa phương pháp. |
+Hai bộ dữ liệu đang dùng chỉ có Dev và Test:
 
-Đây là gold câu hỏi/đáp án để chấm Retrieval, không phải corpus tri thức và không dùng fine-tune BGE/Cross-Encoder. Corpus được ingest lấy từ nguồn chuẩn hóa trong `config/source_manifest.json`.
+| Bộ dữ liệu | Tổng | Dev | Test | Mục đích |
+|---|---:|---:|---:|---|
+| HS XIV | 244 | 195 | 49 | Cùng cấu hình với các Phần khác. |
+| HS XVI | 426 | 341 | 85 | Cùng cấu hình với các Phần khác. |
+| HS XVII | 270 | 216 | 54 | Cùng cấu hình với các Phần khác. |
+| HS toàn bộ | 940 | 752 | 188 | Dev chọn cấu hình; Test chấm sau khi khóa. |
+| QA pháp lý | 650 | 520 | 130 | Dev chọn cấu hình QA; Test đánh giá policy đã khóa. |
 
-QA notebook 01 chọn policy trên 400 câu Train rồi chấm Test/Holdout. HS v2 hiện dùng một policy chung đã khóa để chấm cả 940 ca; chưa chạy tìm trọng số lại trên 709 Train. B1 được chọn từ regression v2 đã xem trước đó. Do cả ba tập đã được xem nhiều lần, các điểm hiện tại là hồi quy; tên Holdout không làm nó trở thành tập mù mới.
+File đang dùng nằm trong `data/verified/hs/dev_test/` và `data/verified/qa/dev_test/`, mỗi bộ gồm hai JSONL và một manifest. Các file giữ câu hỏi/đáp án gốc, thêm `original_split`, `eval_group_id`, `dev_fold`; HS có `query` đã loại nhãn/chỉ dẫn phân loại. Gold chỉ dùng để chấm, không vào corpus hoặc fine-tune BGE/Cross-Encoder.
+
+HS phân tầng theo Chương, QA theo loại câu hỏi; cả hai giữ nguyên nhóm các câu cùng họ/biến thể. Không có nhóm nằm ở cả Dev và Test. Mỗi Dev có năm folds nội bộ để kiểm tra ổn định; folds không làm mô hình tự học thêm. Một số loại QA chỉ có 2–4 câu nên không thể đạt đúng 80/20 ở từng loại và có loại chưa xuất hiện trong Test; manifest ghi rõ số lượng thực tế.
+
+Các file Train/Test/Holdout cũ và Excel chia theo tập cũ đã xóa khỏi thư mục dữ liệu đang dùng. Bản lưu cùng hashes ở `artifacts/experiments/run_shared_dev_v3/legacy_data/` chỉ phục vụ truy vết/reproduce dữ liệu; runtime, notebook và runner không đọc bản lưu để đánh giá. `.venv/bin/python scripts/prepare_dev_test.py` kiểm chứng/tái tạo hai bộ mới từ archive; mặc định từ chối thay nội dung đã khóa.
+
+Tất cả câu hỏi đã từng được xem. Test mới là kiểm tra hồi quy trên phân chia theo nhóm mới, không phải Test mù và không chứng minh chất lượng ở Chương chưa có câu hỏi.
+
+### Chọn cấu hình HS chung trên Dev
+
+`scripts/tune_shared_retrieval.py dev` khóa danh sách 24 phương án trước khi chạy: Dense/BM25 trực tiếp 0.35/0.35 hoặc 0.55/0.15, tỷ trọng dense trong kênh graph 0 hoặc 0.5, pool 40/60/80, rank weight 0.85 hoặc 1.0. Các trọng số Sparse/FTS/Exact, ngân sách graph và source context dùng chung cho toàn corpus.
+
+Tiêu chí là Macro MRR@10, Macro Recall@5 không giảm, Recall@5 mỗi Phần giảm tối đa 1 điểm phần trăm, và p95 runtime tối đa 3000 ms trên 30 câu Dev cân bằng giữa các Phần. Score neural cho cùng query/source được tái sử dụng khi so sánh cấu hình; latency phục vụ được đo riêng, bỏ query/reranker caches.
+
+Sau khi lưu `locked_selection.json`, chạy `scripts/tune_shared_retrieval.py test` để chấm 188 câu Test với baseline và cấu hình đã chọn. Không dùng Test chọn lại cấu hình. Đây là chọn tham số Retrieval trên Dev, không phải fine-tune hoặc Nested CV. Kết quả nằm ở `artifacts/experiments/run_shared_dev_v3/`.
 
 ## Mở và chạy
 
@@ -40,7 +58,7 @@ Trong `frappe-bench/apps/aiAgent`:
 .venv/bin/jupyter lab notebooks
 ```
 
-Chọn kernel **Python (AI Agent RAG)**. Notebook 01 build corpus từ manifest; mặc định giữ snapshot cũ. Notebook 02 chấm baseline B0 và policy chung B1; B2 dùng Notes trong reranker là thí nghiệm tùy chọn. Bản notebook 02 cũ được lưu ở `artifacts/experiments/run_generic_graph_v2/baseline/notebooks/02_test_retrieval.ipynb`.
+Chọn kernel **Python (AI Agent RAG)**. Notebook 01 build corpus từ manifest; mặc định giữ snapshot cũ. Notebook 02 chọn policy HS trên Dev rồi chấm Test. QA trong notebook 01 dùng Dev 520 câu và Test 130 câu. Bản notebook 02 cũ được lưu ở `artifacts/experiments/run_generic_graph_v2/baseline/notebooks/02_test_retrieval.ipynb`.
 
 Máy mới cần:
 
@@ -84,9 +102,9 @@ with connect() as conn:
 
 `routed_search` nhận diện intent. Product dùng hybrid trên toàn corpus đã nạp → source context từ NODE/EDGE → Cross-Encoder chung → Notes làm bằng chứng đọc. Cấu hình ở `config/hybrid_retrieval.json`; không có policy theo Phần, injection danh sách mã theo từ khóa hoặc penalty thuộc tính theo prefix HS. Phạm vi mới có cùng pipeline sau khi đăng ký nguồn, audit, ingest/index.
 
-Kết quả là shortlist có citation và `verification.status=REQUIRES_SOURCE_REASONING`; chưa là kết luận HS hoặc bộ tự nhận diện mọi thông tin thiếu. [Hợp đồng và cách thêm Chương](docs/retrieval/source-contract-v2.md).
+Kết quả là shortlist có citation và `verification.status=REQUIRES_SOURCE_REASONING`. `decision_support` trả các mô tả/điều kiện nguồn cạnh nhau để đối chiếu và yêu cầu bổ sung thông số sản phẩm; chưa tự xác định thuộc tính thiếu hay ra kết luận HS. Dense context được dựng từ tất cả tariff entries và NODE/EDGE đang nạp, cache gắn snapshot/model/text hashes.
 
-### Kết quả v2 hiện tại — 01/10/2026
+### Kết quả v2 trước nâng cấp Dev/Test — 01/10/2026
 
 Snapshot `6ecd56f663a79e147ea7cdc3`; policy `generic-graph-v2-budget`, B1 mặc định. Chấm đủ 940 ca/798 nhóm đã xem; không fine-tune, không tune theo Chương, không gọi lượt này là nested OOF hoặc kiểm định mù.
 

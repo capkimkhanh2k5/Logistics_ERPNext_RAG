@@ -35,7 +35,7 @@ def main() -> None:
     args = parser.parse_args()
     if args.per_section < 1:
         raise ValueError("Sample count must be positive")
-    cases, _ = discover_gold(("test", "holdout"))
+    cases, _ = discover_gold(("test",))
     by_section = defaultdict(list)
     for case in cases:
         by_section[case["section"]].append(case)

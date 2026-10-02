@@ -98,11 +98,11 @@ def evidence_metrics(retriever: Retriever, cases: list[dict], mode: str | None =
     }
 
 
-def discover_gold(partitions: tuple[str, ...] = ("train", "test")) -> tuple[list[dict], list[str]]:
-    """Load only explicitly requested user partitions; ignore all/ and CSV mirrors."""
+def discover_gold(partitions: tuple[str, ...] = ("dev", "test")) -> tuple[list[dict], list[str]]:
+    """Load only active Dev/Test gold; archives are excluded from evaluation."""
     rows = []
     paths = []
-    if not partitions or set(partitions) - {"train", "test", "holdout"}:
+    if not partitions or set(partitions) - {"dev", "test"}:
         raise ValueError("Unknown or empty gold partitions")
     taxonomy = {
         r["chapter_code"]: r["section_code"]
@@ -111,10 +111,7 @@ def discover_gold(partitions: tuple[str, ...] = ("train", "test")) -> tuple[list
         ]
     }
     for partition in partitions:
-        files = sorted((ROOT / "data/verified/hs" / partition).glob("*.jsonl"))
-        if len(files) != 1:
-            raise ValueError(f"Expected exactly one JSONL in verified/hs/{partition}")
-        path = files[0]
+        path = ROOT / f"data/verified/hs/dev_test/HS_RAG_{partition.upper()}.jsonl"
         paths.append(str(path.relative_to(ROOT)))
         for row in read(path):
             code = str(row["expected_hs_8"]).replace(".", "").strip()
@@ -148,10 +145,8 @@ def benchmark_split(cases: list[dict]) -> dict:
     def signature(row):
         return unicodedata.normalize("NFKC", query_for(row, "name_only")).casefold()
 
-    groups = {
-        name: [r for r in cases if r["split"] == name] for name in ("train", "test", "holdout")
-    }
-    for left, right in (("train", "test"), ("train", "holdout"), ("test", "holdout")):
+    groups = {name: [r for r in cases if r["split"] == name] for name in ("dev", "test")}
+    for left, right in (("dev", "test"),):
         duplicate_products = {signature(r) for r in groups[left]} & {
             signature(r) for r in groups[right]
         }
@@ -161,17 +156,18 @@ def benchmark_split(cases: list[dict]) -> dict:
         right_families = {r["case_family_id"] for r in groups[right] if r.get("case_family_id")}
         if left_families & right_families:
             raise ValueError(f"Case families duplicated between {left}/{right}")
+        if {r["eval_group_id"] for r in groups[left]} & {r["eval_group_id"] for r in groups[right]}:
+            raise ValueError("Evaluation groups duplicated between Dev/Test")
     result = {
         "gold_sha256": digest(cases),
-        "grouping": "USER_SUPPLIED_PRODUCT_DISJOINT",
-        "dev": [r["test_id"] for r in groups["train"]],
+        "grouping": "WHOLE_EVALUATION_GROUPS",
+        "dev": [r["test_id"] for r in groups["dev"]],
         "test": [r["test_id"] for r in groups["test"]],
-        "holdout": [r["test_id"] for r in groups["holdout"]],
         "overlapping_codes": sorted(
-            {r["expected_hs_8"] for r in groups["train"]}
+            {r["expected_hs_8"] for r in groups["dev"]}
             & {r["expected_hs_8"] for r in groups["test"]}
         ),
-        "purpose": "train tunes retrieval; test diagnoses; holdout evaluates frozen policy once",
+        "purpose": "Dev selects one shared policy; Test evaluates it after selection is locked",
     }
     return result
 
@@ -461,17 +457,16 @@ def sweep_router(cache: list[dict]) -> list[dict]:
 def discover_qa(bundle: dict, split: str | None = None) -> list[dict]:
     """Resolve the supplied QA partitions to cited atomic chunks.
 
-    Reading only train keeps the held-out labels outside policy selection.
+    Reading only Dev keeps Test labels outside policy selection.
     """
-    if split not in (None, "train", "test", "holdout"):
-        raise ValueError("QA split must be train, test, holdout, or None")
+    if split not in (None, "dev", "test"):
+        raise ValueError("QA split must be dev, test, or None")
     root = ROOT / "data/verified/qa"
     paths = {
-        "train": root / "train/LEGAL_RETRIEVAL_TRAIN.jsonl",
-        "test": root / "test/LEGAL_RETRIEVAL_TEST.jsonl",
-        "holdout": root / "holdout/LEGAL_RETRIEVAL_HOLDOUT.jsonl",
+        "dev": root / "dev_test/LEGAL_RETRIEVAL_DEV.jsonl",
+        "test": root / "dev_test/LEGAL_RETRIEVAL_TEST.jsonl",
     }
-    partitions = (split,) if split else ("train", "test", "holdout")
+    partitions = (split,) if split else ("dev", "test")
     rows = []
     for partition in partitions:
         for case in read(paths[partition]):
