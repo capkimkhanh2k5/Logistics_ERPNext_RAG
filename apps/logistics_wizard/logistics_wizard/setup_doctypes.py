@@ -6,23 +6,35 @@ import os
 import frappe
 
 def install_all_doctypes():
-    print("=== [BẮT ĐẦU CÀI ĐẶT DOCTYPES GIAI ĐOẠN 1 & 2] ===")
+    print("=== [BẮT ĐẦU CÀI ĐẶT DOCTYPES GIAI ĐOẠN 1, 2 & 3] ===")
 
     doctype_files = [
-        # Giai đoạn 1
+        # Giai đoạn 1: Master Danh mục biểu thuế & chi phí
         ("HS Preferential Rate", "hs_preferential_rate", "hs_preferential_rate.json"),
         ("Charge Type", "charge_type", "charge_type.json"),
         ("HS Tariff Rate", "hs_tariff_rate", "hs_tariff_rate.json"),
         ("Customs Exchange Rate", "customs_exchange_rate", "customs_exchange_rate.json"),
 
-        # Giai đoạn 2 - Child Tables trước
+        # Giai đoạn 2: Child Tables
         ("Trade Shipment Milestone", "trade_shipment_milestone", "trade_shipment_milestone.json"),
         ("Trade Shipment Container", "trade_shipment_container", "trade_shipment_container.json"),
         ("Trade Shipment Cost Item", "trade_shipment_cost_item", "trade_shipment_cost_item.json"),
         ("Trade Shipment Item Allocation", "trade_shipment_item_allocation", "trade_shipment_item_allocation.json"),
+        ("Trade Shipment Exception", "trade_shipment_exception", "trade_shipment_exception.json"),
 
-        # Giai đoạn 2 - Master DocType sau
-        ("Trade Shipment", "trade_shipment", "trade_shipment.json")
+        # Giai đoạn 3: Child Tables
+        ("Trade Document Item", "trade_document_item", "trade_document_item.json"),
+        ("Customs Declaration Item", "customs_declaration_item", "customs_declaration_item.json"),
+
+        # Giai đoạn 3: Master Trade Case (Hồ sơ thương mại mẹ)
+        ("Trade Case", "trade_case", "trade_case.json"),
+
+        # Giai đoạn 2: Master Trade Shipment (Chuyến tàu con - liên kết Trade Case & Exceptions)
+        ("Trade Shipment", "trade_shipment", "trade_shipment.json"),
+
+        # Giai đoạn 3: Master Giấy phép & Tờ khai hải quan
+        ("Import Permit", "import_permit", "import_permit.json"),
+        ("Customs Declaration", "customs_declaration", "customs_declaration.json")
     ]
 
     base_path = frappe.get_app_path("logistics_wizard")
@@ -52,7 +64,7 @@ def install_all_doctypes():
 
     frappe.db.commit()
     frappe.clear_cache()
-    print("=== [HOÀN TẤT CÀI ĐẶT VÀ ĐỒNG BỘ DOCTYPES] ===")
+    print("=== [HOÀN TẤT CÀI ĐẶT VÀ ĐỒNG BỘ TẤT CẢ DOCTYPES GIAI ĐOẠN 1-3] ===")
 
 if __name__ == "__main__":
     install_all_doctypes()

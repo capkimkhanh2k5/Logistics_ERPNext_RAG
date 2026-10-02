@@ -10,11 +10,13 @@
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
+  "trade_case",
   "shipment_name",
   "supplier",
   "status",
   "cost_status",
   "column_break_shipping",
+  "trade_type",
   "incoterm",
   "named_place",
   "transport_mode",
@@ -42,7 +44,9 @@
   "section_break_costs",
   "cost_items",
   "section_break_alloc",
-  "item_allocations"
+  "item_allocations",
+  "section_break_exceptions",
+  "exceptions"
  ],
  "fields": [
   {
@@ -54,6 +58,14 @@
    "options": "TS-.YYYY.-.#####",
    "reqd": 1,
    "set_only_once": 1
+  },
+  {
+   "fieldname": "trade_case",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Hồ sơ Thương mại (Trade Case)",
+   "options": "Trade Case"
   },
   {
    "fieldname": "shipment_name",
@@ -93,6 +105,15 @@
   {
    "fieldname": "column_break_shipping",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "Import",
+   "fieldname": "trade_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Loại hình Thương mại",
+   "options": "Import\nExport"
   },
   {
    "fieldname": "incoterm",
@@ -262,6 +283,17 @@
    "fieldtype": "Table",
    "label": "Danh sách phân bổ mặt hàng",
    "options": "Trade Shipment Item Allocation"
+  },
+  {
+   "fieldname": "section_break_exceptions",
+   "fieldtype": "Section Break",
+   "label": "Nhật ký Bất thường & Rủi ro (Exceptions & Risks)"
+  },
+  {
+   "fieldname": "exceptions",
+   "fieldtype": "Table",
+   "label": "Danh sách Bất thường / Trễ hạn / Chi phí vượt",
+   "options": "Trade Shipment Exception"
   }
  ],
  "links": [],

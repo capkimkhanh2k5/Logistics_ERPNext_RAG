@@ -1,0 +1,272 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "naming_series:",
+ "creation": "2026-10-03 00:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "declaration_no",
+  "declaration_date",
+  "trade_case",
+  "trade_shipment",
+  "column_break_channel",
+  "declaration_type",
+  "customs_channel",
+  "customs_office",
+  "clearance_status",
+  "clearance_date",
+  "section_break_valuation",
+  "currency",
+  "customs_exchange_rate",
+  "total_customs_value_vnd",
+  "column_break_tax",
+  "total_import_duty_vnd",
+  "total_vat_vnd",
+  "total_tax_vnd",
+  "tax_payment_status",
+  "tax_payment_ref",
+  "section_break_items",
+  "items",
+  "section_break_notes",
+  "notes"
+ ],
+ "fields": [
+  {
+   "default": "CD-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Mã Quản lý Nội bộ / Series",
+   "no_copy": 1,
+   "options": "CD-.YYYY.-.#####",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "declaration_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Số Tờ khai VNACCS (11 Chữ số)",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "declaration_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Ngày đăng ký Tờ khai",
+   "reqd": 1
+  },
+  {
+   "fieldname": "trade_case",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Hồ sơ Thương mại (Trade Case)",
+   "options": "Trade Case"
+  },
+  {
+   "fieldname": "trade_shipment",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Chuyến tàu / Lô hàng (Trade Shipment)",
+   "options": "Trade Shipment"
+  },
+  {
+   "fieldname": "column_break_channel",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Import",
+   "fieldname": "declaration_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Loại hình Tờ khai",
+   "options": "Import\nExport",
+   "reqd": 1
+  },
+  {
+   "default": "Luồng Xanh (Green)",
+   "fieldname": "customs_channel",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Phân luồng Hải quan",
+   "options": "Luồng Xanh (Green)\nLuồng Vàng (Yellow)\nLuồng Đỏ (Red)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customs_office",
+   "fieldtype": "Data",
+   "label": "Chi cục Hải quan Đăng ký",
+   "reqd": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "clearance_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Trạng thái Thông quan",
+   "options": "Draft\nRegistered\nInspected\nTax Paid\nCleared\nRejected",
+   "reqd": 1
+  },
+  {
+   "fieldname": "clearance_date",
+   "fieldtype": "Date",
+   "label": "Ngày chính thức Thông quan"
+  },
+  {
+   "fieldname": "section_break_valuation",
+   "fieldtype": "Section Break",
+   "label": "Trị giá Tính thuế & Tỷ giá Hải quan quy đổi"
+  },
+  {
+   "default": "USD",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Đồng tiền Khai báo / Currency",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "customs_exchange_rate",
+   "fieldtype": "Currency",
+   "label": "Tỷ giá Hải quan áp thuế (Bộ Tài chính)"
+  },
+  {
+   "fieldname": "total_customs_value_vnd",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Tổng Trị giá Tính thuế (VND)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_tax",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_import_duty_vnd",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Tổng Tiền thuế Nhập khẩu (VND)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_vat_vnd",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Tổng Tiền thuế VAT (VND)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_tax_vnd",
+   "fieldtype": "Currency",
+   "label": "Tổng Nghĩa vụ Thuế Hải quan (VND)",
+   "read_only": 1
+  },
+  {
+   "default": "Unpaid",
+   "fieldname": "tax_payment_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Tình trạng Nộp thuế Kho bạc",
+   "options": "Unpaid\nPartially Paid\nPaid"
+  },
+  {
+   "fieldname": "tax_payment_ref",
+   "fieldtype": "Data",
+   "label": "Mã Giấy nộp tiền Kho bạc / UNC"
+  },
+  {
+   "fieldname": "section_break_items",
+   "fieldtype": "Section Break",
+   "label": "Chi tiết Dòng hàng Khai báo (Declaration Items)"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Danh sách Mặt hàng Khai báo",
+   "options": "Customs Declaration Item"
+  },
+  {
+   "fieldname": "section_break_notes",
+   "fieldtype": "Section Break",
+   "label": "Ghi chú & Pháp lý Hải quan"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Ghi chú của Chuyên viên Hải quan / Forwarder"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Customs Declaration",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Stock Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 0,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 0,
+   "write": 0
+  }
+ ],
+ "quick_entry": 1,
+ "search_fields": "declaration_no,customs_office,trade_case,trade_shipment",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

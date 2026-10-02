@@ -1,0 +1,139 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-10-03 00:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "hs_code",
+  "item_name",
+  "qty",
+  "uom",
+  "currency",
+  "unit_price",
+  "customs_value_cur",
+  "customs_value_vnd",
+  "column_break_tax",
+  "import_duty_rate",
+  "import_duty_amount",
+  "vat_rate",
+  "vat_amount",
+  "total_tax"
+ ],
+ "fields": [
+  {
+   "fieldname": "hs_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Mã HS / HS Code",
+   "reqd": 1
+  },
+  {
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tên mặt hàng khai báo / Item Name",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Số lượng / Qty",
+   "reqd": 1
+  },
+  {
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "label": "ĐVT / UOM",
+   "options": "UOM"
+  },
+  {
+   "default": "USD",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Đồng tiền",
+   "options": "Currency"
+  },
+  {
+   "default": "0",
+   "fieldname": "unit_price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Đơn giá (Ngoại tệ)"
+  },
+  {
+   "default": "0",
+   "fieldname": "customs_value_cur",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Trị giá Hải quan (Ngoại tệ)"
+  },
+  {
+   "default": "0",
+   "fieldname": "customs_value_vnd",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Trị giá tính thuế (VND)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_tax",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "import_duty_rate",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Thuế suất NK (%)"
+  },
+  {
+   "default": "0",
+   "fieldname": "import_duty_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Tiền thuế NK (VND)",
+   "read_only": 1
+  },
+  {
+   "default": "10",
+   "fieldname": "vat_rate",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Thuế suất VAT (%)"
+  },
+  {
+   "default": "0",
+   "fieldname": "vat_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Tiền thuế VAT (VND)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "total_tax",
+   "fieldtype": "Currency",
+   "label": "Tổng thuế dòng này (VND)",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Customs Declaration Item",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

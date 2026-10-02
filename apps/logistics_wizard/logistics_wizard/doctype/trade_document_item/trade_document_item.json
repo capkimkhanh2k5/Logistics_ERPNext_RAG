@@ -1,0 +1,104 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-10-03 00:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "document_type",
+  "document_name",
+  "document_number",
+  "is_mandatory",
+  "status",
+  "column_break_dates",
+  "issue_date",
+  "expiry_date",
+  "attachment",
+  "section_break_notes",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Loại chứng từ / Document Type",
+   "options": "Contract\nCommercial Invoice\nPacking List\nBill of Lading\nCertificate of Origin\nCustoms Declaration\nImport Permit\nCargo Insurance\nQuality Inspection\nDelivery Order\nOther",
+   "reqd": 1
+  },
+  {
+   "fieldname": "document_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tên chứng từ / Document Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "document_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Số hiệu chứng từ / Ref No"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_mandatory",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Bắt buộc (Mandatory)?"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Trạng thái phê duyệt / Status",
+   "options": "Pending\nSubmitted\nApproved\nRejected",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_dates",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "issue_date",
+   "fieldtype": "Date",
+   "label": "Ngày phát hành / Issue Date"
+  },
+  {
+   "fieldname": "expiry_date",
+   "fieldtype": "Date",
+   "label": "Ngày hết hạn / Expiry Date"
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "label": "Tệp đính kèm / Attachment"
+  },
+  {
+   "fieldname": "section_break_notes",
+   "fieldtype": "Section Break",
+   "label": "Ghi chú & Yêu cầu pháp lý"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Ghi chú nội dung / Notes"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Trade Document Item",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

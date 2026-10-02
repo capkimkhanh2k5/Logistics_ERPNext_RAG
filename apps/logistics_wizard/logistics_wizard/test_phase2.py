@@ -46,7 +46,7 @@ class Phase2TestRunner:
     def test_case_1_seed_shipment_integrity(self):
         """TC1: Kiểm tra tính toàn vẹn của Lô hàng mẫu (Apple Inc iPhone 16)"""
         try:
-            shipment_name = frappe.db.get_value("Trade Shipment", {"supplier": self.supplier}, "name")
+            shipment_name = "TS-2026-00001" if frappe.db.exists("Trade Shipment", "TS-2026-00001") else frappe.db.get_value("Trade Shipment", {"supplier": self.supplier}, "name", order_by="creation asc")
             assert shipment_name, "Không tìm thấy Lô hàng của Apple Inc"
             doc = frappe.get_doc("Trade Shipment", shipment_name)
 

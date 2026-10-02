@@ -45,6 +45,16 @@ doc_events = {
     },
     "Trade Shipment": {
         "validate": "logistics_wizard.doctype.trade_shipment.trade_shipment.validate_trade_shipment"
+    },
+    "Trade Case": {
+        "validate": "logistics_wizard.doctype.trade_case.trade_case.validate_trade_case"
+    },
+    "Customs Declaration": {
+        "validate": "logistics_wizard.doctype.customs_declaration.customs_declaration.validate_customs_declaration",
+        "on_update": "logistics_wizard.doctype.customs_declaration.customs_declaration.on_update_customs_declaration"
+    },
+    "Import Permit": {
+        "validate": "logistics_wizard.doctype.import_permit.import_permit.validate_import_permit"
     }
 }
 

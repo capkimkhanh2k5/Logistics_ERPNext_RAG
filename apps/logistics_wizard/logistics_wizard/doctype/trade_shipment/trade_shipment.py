@@ -28,6 +28,7 @@ def validate_trade_shipment(doc, method=None):
     calculate_milestone_variances(doc)
     calculate_container_deadlines(doc)
     calculate_cost_item_variances(doc)
+    detect_automated_exceptions(doc)
     validate_closure_governance(doc)
 
 def ensure_default_milestones(doc):
@@ -110,3 +111,39 @@ def validate_closure_governance(doc):
                 _("Lô hàng vượt dự toán ngân sách {0}% (> 10%). Yêu cầu phê duyệt của Ban Giám đốc / Giám đốc Tài chính (CFO) trước khi đóng quyết toán lô hàng.").format(doc.cost_variance_pct),
                 title=_("Vượt Ngân sách Cần Phê duyệt Cấp cao")
             )
+
+def detect_automated_exceptions(doc):
+    """Tự động ghi nhận bất thường vào bảng exceptions nếu phát hiện trễ hạn hoặc vượt chi phí"""
+    # 1. Trễ tiến độ mốc quan trọng > 2 ngày
+    for m in doc.get("milestones", []):
+        if flt(m.variance_days) > 2:
+            already_logged = any(
+                e.exception_type == "Delay" and m.milestone_code in (e.description or "")
+                for e in doc.get("exceptions", [])
+            )
+            if not already_logged:
+                doc.append("exceptions", {
+                    "exception_type": "Delay",
+                    "severity": "High" if m.variance_days > 5 else "Medium",
+                    "status": "Open",
+                    "due_date": add_days(frappe.utils.today(), 2),
+                    "description": f"Mốc {m.milestone_code} ({m.milestone_name}) trễ {m.variance_days} ngày so với kế hoạch ban đầu.",
+                    "resolution_notes": "Cần liên hệ forwarder/hãng tàu cập nhật lịch trình."
+                })
+
+    # 2. Vượt dự toán chi phí > 10%
+    if flt(doc.cost_variance_pct) > 10.0 and flt(doc.total_actual_cost) > 0:
+        already_logged = any(
+            e.exception_type == "Cost Overrun"
+            for e in doc.get("exceptions", [])
+        )
+        if not already_logged:
+            doc.append("exceptions", {
+                "exception_type": "Cost Overrun",
+                "severity": "High",
+                "status": "Open",
+                "due_date": add_days(frappe.utils.today(), 3),
+                "description": f"Lô hàng phát sinh vượt dự toán {doc.cost_variance_pct}% (chênh lệch {flt(doc.cost_variance_amount):,.2f} VND).",
+                "resolution_notes": "Yêu cầu rà soát các khoản phí Demurrage/Detention hoặc chênh lệch cước trước khi quyết toán."
+            })
+

@@ -1,0 +1,166 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "naming_series:",
+ "creation": "2026-10-03 00:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "permit_number",
+  "permit_name",
+  "issuing_authority",
+  "trade_case",
+  "status",
+  "column_break_dates",
+  "issue_date",
+  "valid_until",
+  "hs_code",
+  "attachment",
+  "section_break_scope",
+  "scope_description"
+ ],
+ "fields": [
+  {
+   "default": "IP-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Mã Giấy phép / Series",
+   "no_copy": 1,
+   "options": "IP-.YYYY.-.#####",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "permit_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Số Giấy phép / Giấy chứng nhận",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "permit_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tên Giấy phép / Kiểm tra chuyên ngành",
+   "reqd": 1
+  },
+  {
+   "fieldname": "issuing_authority",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Cơ quan Cấp phép (Bộ / Cục)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "trade_case",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Hồ sơ Thương mại (Trade Case)",
+   "options": "Trade Case"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Trạng thái Cấp phép",
+   "options": "Draft\nApplied\nGranted\nExpired\nRejected",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_dates",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "issue_date",
+   "fieldtype": "Date",
+   "label": "Ngày Cấp phép"
+  },
+  {
+   "fieldname": "valid_until",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Ngày Hết hạn Hiệu lực"
+  },
+  {
+   "fieldname": "hs_code",
+   "fieldtype": "Data",
+   "label": "Mã HS Áp dụng"
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "label": "Bản số hóa / Scan Giấy phép"
+  },
+  {
+   "fieldname": "section_break_scope",
+   "fieldtype": "Section Break",
+   "label": "Phạm vi & Yêu cầu Kỹ thuật"
+  },
+  {
+   "fieldname": "scope_description",
+   "fieldtype": "Small Text",
+   "label": "Nội dung phê duyệt & Tiêu chuẩn áp dụng"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Import Permit",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Stock Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 0,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 0,
+   "write": 0
+  }
+ ],
+ "quick_entry": 1,
+ "search_fields": "permit_number,permit_name,issuing_authority,trade_case",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

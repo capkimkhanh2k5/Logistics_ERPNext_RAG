@@ -1,0 +1,298 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "naming_series:",
+ "creation": "2026-10-03 00:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "case_title",
+  "trade_type",
+  "status",
+  "cost_status",
+  "column_break_party",
+  "supplier",
+  "customer",
+  "purchase_order",
+  "sales_order",
+  "incoterm",
+  "section_break_commercial",
+  "contract_no",
+  "contract_date",
+  "currency",
+  "exchange_rate",
+  "total_contract_amount",
+  "column_break_budget",
+  "total_budget_vnd",
+  "total_actual_cost_vnd",
+  "cost_variance_vnd",
+  "cost_variance_pct",
+  "section_break_compliance",
+  "stage_gate_status",
+  "document_readiness_pct",
+  "section_break_documents",
+  "documents",
+  "section_break_notes",
+  "notes"
+ ],
+ "fields": [
+  {
+   "default": "IMP-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Mã Hồ sơ Thương mại / Series",
+   "no_copy": 1,
+   "options": "IMP-.YYYY.-.#####\nEXP-.YYYY.-.#####",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "case_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tiêu đề Hồ sơ / Case Title",
+   "reqd": 1
+  },
+  {
+   "default": "Import",
+   "fieldname": "trade_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Loại hình Thương mại",
+   "options": "Import\nExport",
+   "reqd": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Trạng thái Hồ sơ / Status",
+   "options": "Draft\nActive\nCompleted\nCancelled",
+   "reqd": 1
+  },
+  {
+   "default": "Open",
+   "fieldname": "cost_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Trạng thái Quyết toán / Cost Status",
+   "options": "Open\nPending Review\nClosed"
+  },
+  {
+   "fieldname": "column_break_party",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.trade_type=='Import'",
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Nhà cung cấp / Supplier",
+   "options": "Supplier"
+  },
+  {
+   "depends_on": "eval:doc.trade_type=='Export'",
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Khách hàng / Customer",
+   "options": "Customer"
+  },
+  {
+   "depends_on": "eval:doc.trade_type=='Import'",
+   "fieldname": "purchase_order",
+   "fieldtype": "Link",
+   "label": "Đơn Mua Hàng gốc / Purchase Order",
+   "options": "Purchase Order"
+  },
+  {
+   "depends_on": "eval:doc.trade_type=='Export'",
+   "fieldname": "sales_order",
+   "fieldtype": "Link",
+   "label": "Đơn Bán Hàng gốc / Sales Order",
+   "options": "Sales Order"
+  },
+  {
+   "fieldname": "incoterm",
+   "fieldtype": "Link",
+   "label": "Điều kiện Incoterms",
+   "options": "Incoterm"
+  },
+  {
+   "fieldname": "section_break_commercial",
+   "fieldtype": "Section Break",
+   "label": "Thông tin Thương mại & Hợp đồng Ngoại thương"
+  },
+  {
+   "fieldname": "contract_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Số Hợp đồng Ngoại thương / Contract No"
+  },
+  {
+   "fieldname": "contract_date",
+   "fieldtype": "Date",
+   "label": "Ngày ký Hợp đồng / Contract Date"
+  },
+  {
+   "default": "USD",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Đồng tiền Hợp đồng / Currency",
+   "options": "Currency"
+  },
+  {
+   "default": "25400",
+   "fieldname": "exchange_rate",
+   "fieldtype": "Currency",
+   "label": "Tỷ giá dự kiến (USD/VND)"
+  },
+  {
+   "fieldname": "total_contract_amount",
+   "fieldtype": "Currency",
+   "label": "Tổng trị giá Hợp đồng (Ngoại tệ)"
+  },
+  {
+   "fieldname": "column_break_budget",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_budget_vnd",
+   "fieldtype": "Currency",
+   "label": "Tổng ngân sách Hợp đồng (VND)"
+  },
+  {
+   "fieldname": "total_actual_cost_vnd",
+   "fieldtype": "Currency",
+   "label": "Tổng chi phí thực tế các chuyến (VND)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cost_variance_vnd",
+   "fieldtype": "Currency",
+   "label": "Chênh lệch chi phí (VND)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cost_variance_pct",
+   "fieldtype": "Percent",
+   "label": "% Chênh lệch chi phí",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_compliance",
+   "fieldtype": "Section Break",
+   "label": "Trạng thái Điều kiện Sẵn sàng (Stage Gate Readiness)"
+  },
+  {
+   "default": "Not Ready",
+   "fieldname": "stage_gate_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Trạng thái Cổng kiểm soát (Stage Gate)",
+   "options": "Not Ready\nDocument Ready\nCustoms Ready\nReady for Delivery\nClosed",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "document_readiness_pct",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "% Hoàn thiện Bộ chứng từ",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_documents",
+   "fieldtype": "Section Break",
+   "label": "Bộ chứng từ Ngoại thương & Pháp lý (Trade Documents Checklist)"
+  },
+  {
+   "fieldname": "documents",
+   "fieldtype": "Table",
+   "label": "Danh mục chứng từ cần kiểm soát",
+   "options": "Trade Document Item"
+  },
+  {
+   "fieldname": "section_break_notes",
+   "fieldtype": "Section Break",
+   "label": "Ghi chú & Chỉ đạo Quản trị"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Ghi chú / Chỉ đạo của Lãnh đạo"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Trade Case",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Purchase Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 0,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 0,
+   "write": 0
+  }
+ ],
+ "quick_entry": 1,
+ "search_fields": "case_title,contract_no,supplier,purchase_order",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

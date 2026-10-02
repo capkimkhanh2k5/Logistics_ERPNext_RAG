@@ -1,0 +1,94 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-10-03 00:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "exception_type",
+  "severity",
+  "status",
+  "column_break_assignee",
+  "assignee",
+  "due_date",
+  "section_break_desc",
+  "description",
+  "resolution_notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "exception_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Loại sự cố / Exception Type",
+   "options": "Delay\nMissing Document\nCustoms Hold\nDemurrage Risk\nCost Overrun\nCargo Damage\nQuantity Discrepancy\nOther",
+   "reqd": 1
+  },
+  {
+   "default": "Medium",
+   "fieldname": "severity",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Mức độ / Severity",
+   "options": "Low\nMedium\nHigh\nCritical",
+   "reqd": 1
+  },
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Trạng thái / Status",
+   "options": "Open\nIn Progress\nResolved\nClosed",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_assignee",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "assignee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Người xử lý / Assignee",
+   "options": "User"
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Hạn chót xử lý / Due Date"
+  },
+  {
+   "fieldname": "section_break_desc",
+   "fieldtype": "Section Break",
+   "label": "Chi tiết sự cố & Phương án xử lý"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Mô tả sự cố / Description"
+  },
+  {
+   "fieldname": "resolution_notes",
+   "fieldtype": "Small Text",
+   "label": "Phương án & Kết quả xử lý / Resolution Notes"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Trade Shipment Exception",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
