@@ -1,0 +1,56 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-10-02 16:15:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "trade_agreement",
+  "preferential_duty_rate",
+  "co_form_required",
+  "conditions"
+ ],
+ "fields": [
+  {
+   "fieldname": "trade_agreement",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Hiệp định FTA / Biểu thuế ưu đãi",
+   "options": "Form E (ACFTA - Trung Quốc - ASEAN)\nForm D (ATIGA - Nội khối ASEAN)\nEUR.1 (EVFTA - Việt Nam - EU)\nForm AK (AKFTA - Việt Nam - Hàn Quốc)\nForm AJ / VJ (VJEPA / AJCEP - Việt Nam - Nhật Bản)\nCPTPP (Hiệp định Đối tác Toàn diện và Tiến bộ xuyên Thái Bình Dương)\nForm EAV (VN - EAEU - Liên minh Á Âu)\nForm VC (VN - Chile)\nForm AI (AIFTA - ASEAN - Ấn Độ)\nForm AANZ (AANZFTA - ASEAN - Úc - New Zealand)\nForm RCEP (Hiệp định Đối tác Kinh tế Toàn diện Khu vực)",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "preferential_duty_rate",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Thuế suất ưu đãi đặc biệt (%)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "co_form_required",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Chứng từ xuất xứ bắt buộc / C/O Form"
+  },
+  {
+   "fieldname": "conditions",
+   "fieldtype": "Small Text",
+   "label": "Điều kiện áp dụng / Notes"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-02 16:15:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "HS Preferential Rate",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

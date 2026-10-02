@@ -1,0 +1,152 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:charge_name",
+ "creation": "2026-10-02 16:15:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "charge_name",
+  "charge_code",
+  "cost_category",
+  "column_break_main",
+  "include_in_valuation",
+  "include_in_customs_valuation",
+  "allocation_criterion",
+  "section_break_acc",
+  "default_expense_account",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "charge_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tên loại phí / Charge Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "charge_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Mã loại phí / Code"
+  },
+  {
+   "fieldname": "cost_category",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Nhóm chi phí / Category",
+   "options": "\nVận chuyển quốc tế (International Freight)\nPhí tại cảng (Port / Local Charges)\nBảo hiểm hàng hải (Marine Insurance)\nThuế & Lệ phí hải quan (Customs Duty & Tax)\nThủ tục hải quan & Kiểm tra chuyên ngành (Customs Brokerage & Inspection)\nKho bãi & Nâng hạ (Warehousing & Handling)\nVận chuyển nội địa (Inland Trucking)\nPhí phạt & Lưu bãi quá hạn (Demurrage & Detention Penalties)\nKhác (Other)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "include_in_valuation",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Tính vào giá vốn hàng tồn kho / Include in Valuation"
+  },
+  {
+   "default": "0",
+   "fieldname": "include_in_customs_valuation",
+   "fieldtype": "Check",
+   "label": "Cộng vào trị giá tính thuế HQ / Include in Customs Value"
+  },
+  {
+   "default": "Theo Giá trị hàng (Value)",
+   "fieldname": "allocation_criterion",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Tiêu chí phân bổ / Allocation Criterion",
+   "options": "Theo Thể tích (CBM)\nTheo Khối lượng (Gross Weight)\nTheo Giá trị hàng (Value)\nKhông phân bổ (None / Expense)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_acc",
+   "fieldtype": "Section Break",
+   "label": "Hạch toán & Ghi chú / Accounting & Notes"
+  },
+  {
+   "fieldname": "default_expense_account",
+   "fieldtype": "Link",
+   "label": "Tài khoản chi phí trung gian / Default Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Mô tả & Hướng dẫn / Description"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-02 16:15:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Charge Type",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Purchase Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 0,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 0,
+   "write": 0
+  }
+ ],
+ "quick_entry": 1,
+ "search_fields": "charge_code,cost_category",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

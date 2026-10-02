@@ -20,7 +20,10 @@ override_whitelisted_methods = {
 }
 
 doctype_js = {
-    "Shipment Tracking": "public/js/shipment_tracking.js"
+    "Shipment Tracking": "public/js/shipment_tracking.js",
+    "Charge Type": "doctype/charge_type/charge_type.js",
+    "HS Tariff Rate": "doctype/hs_tariff_rate/hs_tariff_rate.js",
+    "Customs Exchange Rate": "doctype/customs_exchange_rate/customs_exchange_rate.js"
 }
 
 doc_events = {
@@ -29,6 +32,15 @@ doc_events = {
     },
     "Purchase Receipt": {
         "before_submit": "logistics_wizard.api.validate_purchase_receipt_shipment_status"
+    },
+    "Charge Type": {
+        "validate": "logistics_wizard.doctype.charge_type.charge_type.validate_charge_type"
+    },
+    "HS Tariff Rate": {
+        "validate": "logistics_wizard.doctype.hs_tariff_rate.hs_tariff_rate.validate_hs_tariff_rate"
+    },
+    "Customs Exchange Rate": {
+        "validate": "logistics_wizard.doctype.customs_exchange_rate.customs_exchange_rate.validate_customs_exchange_rate"
     }
 }
 

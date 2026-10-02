@@ -1,0 +1,157 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:hs_code",
+ "creation": "2026-10-02 16:15:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "hs_code",
+  "description",
+  "unit_of_measure",
+  "column_break_tax",
+  "general_duty_rate",
+  "mfn_duty_rate",
+  "vat_rate",
+  "section_break_permits",
+  "requires_import_permit",
+  "managing_ministry",
+  "compliance_notes",
+  "section_break_fta",
+  "preferential_rates"
+ ],
+ "fields": [
+  {
+   "fieldname": "hs_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Mã HS / HS Code (8-10 số)",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Mô tả hàng hóa theo biểu thuế / Description",
+   "reqd": 1
+  },
+  {
+   "fieldname": "unit_of_measure",
+   "fieldtype": "Link",
+   "label": "Đơn vị tính hải quan / UOM",
+   "options": "UOM"
+  },
+  {
+   "fieldname": "column_break_tax",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "general_duty_rate",
+   "fieldtype": "Percent",
+   "label": "Thuế suất Thông thường / General Duty (%)"
+  },
+  {
+   "default": "0",
+   "fieldname": "mfn_duty_rate",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Thuế suất Ưu đãi MFN / MFN Duty (%)"
+  },
+  {
+   "default": "10",
+   "fieldname": "vat_rate",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Thuế suất GTGT nhập khẩu / Import VAT (%)"
+  },
+  {
+   "fieldname": "section_break_permits",
+   "fieldtype": "Section Break",
+   "label": "Kiểm tra chuyên ngành & Giấy phép / Permits & Regulatory"
+  },
+  {
+   "default": "0",
+   "fieldname": "requires_import_permit",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Yêu cầu Giấy phép / Kiểm tra chất lượng chuyên ngành"
+  },
+  {
+   "fieldname": "managing_ministry",
+   "fieldtype": "Select",
+   "label": "Bộ / Cơ quan quản lý chuyên ngành",
+   "options": "\nBộ Thông tin và Truyền thông (MIC)\nBộ Y tế (MOH)\nBộ Công Thương (MOIT)\nBộ Nông nghiệp & Phát triển Nông thôn (MARD)\nBộ Giao thông Vận tải (MOT)\nBộ Khoa học và Công nghệ (MOST)\nBộ Công an (MPS)"
+  },
+  {
+   "fieldname": "compliance_notes",
+   "fieldtype": "Small Text",
+   "label": "Quy chuẩn kỹ thuật / Ghi chú tuân thủ (QCVN / TCVN)"
+  },
+  {
+   "fieldname": "section_break_fta",
+   "fieldtype": "Section Break",
+   "label": "Biểu thuế Ưu đãi Đặc biệt theo Hiệp định (FTA Preferential Rates)"
+  },
+  {
+   "fieldname": "preferential_rates",
+   "fieldtype": "Table",
+   "label": "Danh sách Thuế suất FTA",
+   "options": "HS Preferential Rate"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-02 16:15:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "HS Tariff Rate",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Purchase Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 0,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 0,
+   "write": 0
+  }
+ ],
+ "quick_entry": 1,
+ "search_fields": "description",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
