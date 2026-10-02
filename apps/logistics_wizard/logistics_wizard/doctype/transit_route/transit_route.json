@@ -1,0 +1,109 @@
+{
+ "actions": [],
+ "creation": "2026-10-01 16:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "milestone",
+  "activity",
+  "location",
+  "port_code",
+  "date",
+  "timestamp",
+  "lat",
+  "lon",
+  "vessel_or_flight",
+  "dedup_hash",
+  "is_current",
+  "notes"
+ ],
+ "fields": [
+  {
+   "default": "DEPARTED",
+   "fieldname": "milestone",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Mốc hành trình (DCSA Milestone)",
+   "options": "BOOKED\nGATE_IN\nLOADED\nDEPARTED\nTRANSSHIPMENT\nARRIVED\nDISCHARGED\nGATE_OUT\nDELIVERED",
+   "reqd": 1
+  },
+  {
+   "fieldname": "activity",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Trạng thái chi tiết (Activity)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Địa điểm / Cảng (Location)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "port_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Mã cảng (UN/LOCODE / Port Code)"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Ngày ghi nhận (Date)"
+  },
+  {
+   "fieldname": "timestamp",
+   "fieldtype": "Datetime",
+   "label": "Thời điểm chính xác (Timestamp)"
+  },
+  {
+   "fieldname": "lat",
+   "fieldtype": "Float",
+   "label": "Vĩ độ (Latitude)",
+   "precision": "6"
+  },
+  {
+   "fieldname": "lon",
+   "fieldtype": "Float",
+   "label": "Kinh độ (Longitude)",
+   "precision": "6"
+  },
+  {
+   "fieldname": "vessel_or_flight",
+   "fieldtype": "Data",
+   "label": "Phương tiện (Vessel / Flight)"
+  },
+  {
+   "fieldname": "dedup_hash",
+   "fieldtype": "Data",
+   "label": "Mã băm khử trùng lặp (Dedup Hash)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_current",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Trạm hiện tại (Is Current)"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Ghi chú (Notes)"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-01 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Transit Route",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

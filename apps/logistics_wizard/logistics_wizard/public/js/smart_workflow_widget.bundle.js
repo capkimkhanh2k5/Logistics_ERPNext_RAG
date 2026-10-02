@@ -5,7 +5,7 @@ $(document).ready(function () {
     const WORKFLOW_STEPS = [
         { doctype: "Material Request", id: "wiz-Material-Request", slug: "material-request", label: "1. Yêu cầu mua hàng (Material Request)" },
         { doctype: "Purchase Order", id: "wiz-Purchase-Order", slug: "purchase-order", label: "2. Đơn đặt hàng (Purchase Order)" },
-        { doctype: "Shipment Tracking", id: "wiz-Shipment-Tracking", slug: "shipment-tracking", label: "3. Theo dõi hành trình (Shipment Tracking)" },
+        { doctype: "Shipment Tracking", id: "wiz-Shipment-Tracking", slug: "shipment-tracking-hub", label: "3. Theo dõi hành trình (Shipment Tracking)" },
         { doctype: "Purchase Receipt", id: "wiz-Purchase-Receipt", slug: "purchase-receipt", label: "4. Nhận hàng (Purchase Receipt)" },
         { doctype: "Landed Cost Voucher", id: "wiz-Landed-Cost-Voucher", slug: "landed-cost-voucher", label: "5. Phân bổ giá vốn (Landed Cost)" },
         { doctype: "Stock Entry", id: "wiz-Stock-Entry", slug: "stock-entry", label: "6. Nhập kho (Stock Entry)" }
@@ -181,13 +181,40 @@ $(document).ready(function () {
                 }
             });
 
-            $('.lw-sub-fab').on('click', function () {
-                let target = $(this).attr('id').replace('lw-fab-', 'lw-popup-');
+            $('.lw-sub-fab').on('click', function (e) {
+                let fabId = $(this).attr('id');
+                if (fabId === 'lw-fab-shipment') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    $('.lw-popup').hide();
+                    $('#lw-fab-menu').removeClass('show');
+                    $('#lw-fab-main').removeClass('active');
+
+                    let route = (typeof frappe !== 'undefined' && frappe.get_route) ? frappe.get_route() : [];
+                    let routeOpts = {};
+                    if (route && route[0] === 'Form' && ['Purchase Order', 'Shipment Tracking', 'Purchase Receipt'].includes(route[1]) && route[2]) {
+                        routeOpts = { shipment: route[2], doctype: route[1] };
+                    }
+                    if (typeof frappe !== 'undefined' && frappe.set_route) {
+                        frappe.set_route('shipment-tracking-hub', routeOpts);
+                    } else {
+                        window.location.href = '/app/shipment-tracking-hub' + (routeOpts.shipment ? '?shipment=' + encodeURIComponent(routeOpts.shipment) : '');
+                    }
+                    return;
+                }
+
+                let target = fabId.replace('lw-fab-', 'lw-popup-');
                 $('.lw-popup').hide();
                 $('#' + target).show();
+            });
 
-                if (target === 'lw-popup-shipment') {
-                    open_shipment_view();
+            $(document).on('click', '#wiz-Shipment-Tracking a', function (e) {
+                if (typeof frappe !== 'undefined' && frappe.set_route) {
+                    e.preventDefault();
+                    $('.lw-popup').hide();
+                    $('#lw-fab-menu').removeClass('show');
+                    $('#lw-fab-main').removeClass('active');
+                    frappe.set_route('shipment-tracking-hub');
                 }
             });
 

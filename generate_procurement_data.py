@@ -627,8 +627,86 @@ def run():
     po4.insert(ignore_permissions=True)
     print(f"   ✓ Purchase Order (Draft): {po4.name} (Chưa submit, dùng để demo thao tác duyệt)")
 
+    # -------------------------------------------------------------
+    # KỊCH BẢN 5: ĐƠN HÀNG MÔ PHỎNG IMP-2026-001 (CONTAINER ABC123) - DELAY +2 NGÀY
+    # -------------------------------------------------------------
+    print("\n5. Tạo Đơn hàng 5 (IMP-2026-001) - Container ABC123, Trễ ETA +2 ngày (Mô phỏng Exception Hub):")
+
+    po5 = frappe.get_doc({
+        "doctype": "Purchase Order",
+        "name": "IMP-2026-001",
+        "company": company,
+        "supplier": supplier,
+        "currency": "USD",
+        "conversion_rate": exchange_rate,
+        "buying_price_list": "Standard Buying",
+        "transaction_date": "2026-09-28",
+        "schedule_date": "2026-10-12",
+        "shipping_method": "Ocean",
+        "etd": "2026-10-01",
+        "customs_declaration_number": "HQ-2026-APL-IMP001",
+        "supplier_address": "Apple Park Headquarters-Billing",
+        "shipping_address": "Cap Khanh Logistics Warehouse-Shipping",
+        "items": [
+            {"item_code": "IPHONE-16-PROMAX", "qty": 300, "rate": 1100.0, "schedule_date": "2026-10-12", "warehouse": "Goods In Transit - CK"}
+        ]
+    })
+    po5.insert(ignore_permissions=True)
+    po5.submit()
+    print(f"   ✓ Purchase Order: {po5.name} (Đơn hàng mô phỏng IMP-2026-001)")
+
+    st5 = frappe.get_doc({
+        "doctype": "Shipment Tracking",
+        "name": "ST-IMP-2026-001",
+        "purchase_order": po5.name,
+        "shipping_method": "Ocean",
+        "carrier": "Maersk Line",
+        "vessel_name": "Maersk Mc-Kinney Moller",
+        "tracking_number": "MAEU123456789",
+        "container_id": "ABC123",
+        "bill_of_lading": "BL-2026-MAERSK-01",
+        "origin_port": "Port of Long Beach",
+        "destination_port": "Cat Lai Port, Ho Chi Minh",
+        "etd": "2026-10-01",
+        "atd": "2026-10-01",
+        "initial_eta": "2026-10-10",
+        "eta": "2026-10-12",
+        "delay_days": 2,
+        "is_delayed": 1,
+        "is_stale": 0,
+        "status": "Delayed",
+        "current_lat": 13.44,
+        "current_lon": 144.79,
+        "transit_route": [
+            {"activity": "Container Loaded on Board Vessel", "location": "Port of Long Beach", "date": "2026-10-01", "notes": "Container ABC123 xếp xong lên tàu."},
+            {"activity": "Vessel Departed Port of Loading", "location": "Port of Long Beach", "date": "2026-10-01", "notes": "Tàu xuất bến đúng lịch trình."},
+            {"activity": "Transshipment / En Route Navigation", "location": "Guam Oceanic Corridor", "date": "2026-10-06", "notes": "Vận tốc giảm do thời tiết, ETA dời từ 10/10 sang 12/10 (+2 ngày)."}
+        ]
+    })
+    st5.insert(ignore_permissions=True)
+    print(f"   ✓ Shipment Tracking: {st5.name} (Container ABC123, Trễ ETA +2 ngày)")
+
+    if frappe.db.exists("DocType", "Shipment Exception"):
+        exc5 = frappe.get_doc({
+            "doctype": "Shipment Exception",
+            "name": "EXC-IMP-2026-001-01",
+            "shipment_tracking": st5.name,
+            "purchase_order": po5.name,
+            "carrier": "Maersk Line",
+            "container_id": "ABC123",
+            "exception_type": "ETA Delay",
+            "severity": "Warning",
+            "old_eta": "2026-10-10",
+            "new_eta": "2026-10-12",
+            "delay_days": 2,
+            "status": "Open",
+            "description": "Lịch trình tàu bị dời 2 ngày (từ 10/10 sang 12/10) do thời tiết tại hành lang Guam."
+        })
+        exc5.insert(ignore_permissions=True)
+        print(f"   ✓ Shipment Exception: {exc5.name} (Warning - Delay 2 ngày)")
+
     frappe.db.commit()
-    print("\n🎉 HOÀN THÀNH TẠO 4 BỘ ĐƠN HÀNG XUẤT NHẬP KHẨU VÀ LUỒNG PROCUREMENT ĐẦY ĐỦ!")
+    print("\n🎉 HOÀN THÀNH TẠO 5 BỘ ĐƠN HÀNG XUẤT NHẬP KHẨU VÀ LUỒNG PROCUREMENT ĐẦY ĐỦ!")
 
 if __name__ == "__main__":
     import os, sys
