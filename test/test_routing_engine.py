@@ -54,11 +54,17 @@ def test_ocean_routing():
     log_test_header("TEST 1: Maritime Ocean Routing (searoute)")
 
     test_pairs = [
-        ("port_of_long_beach", "cat_lai_port", "Long Beach -> Cat Lai"),
-        ("port_of_los_angeles", "hai_phong_port", "Los Angeles -> Hai Phong"),
+        ("port_of_long_beach", "cat_lai_port", "Long Beach -> Cat Lai", 50, 10000.0, True),
+        ("port_of_los_angeles", "hai_phong_port", "Los Angeles -> Hai Phong", 50, 10000.0, True),
+        ("laem_chabang_port", "cat_lai_port", "Laem Chabang -> Cat Lai", 10, 1000.0, False),
+        ("laem_chabang_port", "hiep_phuoc_port", "Laem Chabang -> Hiep Phuoc (RoRo)", 10, 1000.0, False),
+        ("yantian_port", "hai_phong_port", "Yantian -> Hai Phong", 15, 900.0, False),
+        ("shanghai_port", "hai_phong_port", "Shanghai -> Hai Phong", 25, 2000.0, False),
+        ("port_klang", "cat_lai_port", "Port Klang -> Cat Lai", 12, 1500.0, False),
+        ("yokohama_port", "hai_phong_port", "Yokohama -> Hai Phong", 25, 3000.0, False),
     ]
 
-    for origin, dest, label in test_pairs:
+    for origin, dest, label, min_pts, min_dist, is_transpacific in test_pairs:
         t0 = time.time()
         # Force cache bypass on first test to measure raw searoute calculation speed
         res = get_route_coordinates(origin, dest, shipping_method="Ocean", use_cache=False)
@@ -74,42 +80,42 @@ def test_ocean_routing():
         print(f"    - Maritime route distance: {dist_km:.2f} km")
         print(f"    - Execution time: {elapsed * 1000:.2f} ms")
 
-        # 1. Verify points > 50
-        assert pts_count > 50, f"Expected > 50 waypoints, got {pts_count}"
-        print(f"    [PASS] Waypoint count > 50 ({pts_count} points)")
+        # 1. Verify points >= min_pts
+        assert pts_count >= min_pts, f"Expected >= {min_pts} waypoints, got {pts_count}"
+        print(f"    [PASS] Waypoint count >= {min_pts} ({pts_count} points)")
 
-        # 2. Verify response time < 1.0s
+        # 2. Verify distance >= min_dist
+        assert dist_km >= min_dist, f"Expected >= {min_dist} km, got {dist_km}"
+        print(f"    [PASS] Navigational distance verified ({dist_km:.2f} km >= {min_dist} km)")
+
+        # 3. Verify response time < 1.0s
         assert elapsed < 1.0, f"Raw calculation took too long: {elapsed:.3f}s >= 1.0s"
         print(f"    [PASS] Response time < 1.0s ({elapsed * 1000:.2f} ms)")
 
-        # 3. Verify Pacific Crossing: route reaches high latitude in North Pacific
-        # Longitudes in unrolled format or coordinates reach lat > 35N and cross Pacific
-        max_lat = max(pt[0] for pt in coords_latlon)
-        assert max_lat >= 35.0, f"Expected North Pacific arc reaching >= 35°N, got max lat {max_lat}"
-        print(f"    [PASS] Navigates North Pacific Great Circle arc (peak latitude {max_lat:.2f}° N)")
+        if is_transpacific:
+            # Verify Pacific Crossing: route reaches high latitude in North Pacific
+            max_lat = max(pt[0] for pt in coords_latlon)
+            assert max_lat >= 35.0, f"Expected North Pacific arc reaching >= 35°N, got max lat {max_lat}"
+            print(f"    [PASS] Navigates North Pacific Great Circle arc (peak latitude {max_lat:.2f}° N)")
 
-        # 4. Verify Luzon Strait / South China Sea gateway
-        # Checks if route passes near Luzon Strait (lat 18-24 N, lon 118-124 E / unrolled -242 to -236)
-        passes_luzon_or_scs = False
-        for lat, lon in coords_latlon:
-            # normalize longitude to 0..360 or -180..180
-            norm_lon = ((lon + 180) % 360) - 180
-            if 15.0 <= lat <= 23.0 and 115.0 <= norm_lon <= 125.0:
-                passes_luzon_or_scs = True
-                break
-        assert passes_luzon_or_scs, "Ocean route did not pass through the Luzon Strait / South China Sea corridor"
-        print("    [PASS] Confirmed passage through Luzon Strait & South China Sea corridor")
+            passes_luzon_or_scs = False
+            for lat, lon in coords_latlon:
+                norm_lon = ((lon + 180) % 360) - 180
+                if 15.0 <= lat <= 23.0 and 115.0 <= norm_lon <= 125.0:
+                    passes_luzon_or_scs = True
+                    break
+            assert passes_luzon_or_scs, "Ocean route did not pass through the Luzon Strait / South China Sea corridor"
+            print("    [PASS] Confirmed passage through Luzon Strait & South China Sea corridor")
 
-        # 5. Anti-Collision check: intermediate points must not hit Asian continental core
-        # (e.g. lat 28..45 N, lon 100..115 E)
-        for lat, lon in coords_latlon[5:-5]:
+        # Anti-Collision check: intermediate points must not hit Asian continental core (e.g. lat 28..45 N, lon 100..115 E)
+        for lat, lon in coords_latlon[2:-2]:
             norm_lon = ((lon + 180) % 360) - 180
             assert not (28.0 <= lat <= 45.0 and 100.0 <= norm_lon <= 115.0), (
                 f"Land collision detected at lat={lat}, lon={norm_lon}"
             )
         print("    [PASS] 0% land collisions detected on continental landmass")
 
-        # 6. Verify continuous unwrapped longitude for Leaflet across Antimeridian
+        # Verify continuous unwrapped longitude for Leaflet across Antimeridian
         ocean_lons = [pt[1] for pt in coords_latlon]
         max_ocean_step = max(abs(ocean_lons[i] - ocean_lons[i-1]) for i in range(1, len(ocean_lons)))
         assert max_ocean_step < 30.0, f"Ocean antimeridian wrap jump detected: {max_ocean_step:.1f}°"
@@ -154,6 +160,31 @@ def test_air_routing():
     assert abs(seg2[0][1] - 180.0) < 1e-4 or abs(seg2[0][1] - (-180.0)) < 1e-4, f"Seg 2 boundary error: {seg2[0]}"
     print(f"    [PASS] Closed-form analytical split at exact boundary: Lat {seg1[-1][0]:.2f}° N, Lon ±180.0°")
 
+    # 4. Verify 10 Asian Air Freight Corridors (Aviation Great-Circle SLERP)
+    asian_air_corridors = [
+        ("suvarnabhumi_airport", "tan_son_nhat_airport", "BKK -> SGN", 716.1),
+        ("suvarnabhumi_airport", "noi_bai_airport", "BKK -> HAN", 995.2),
+        ("shenzhen_baoan_airport", "noi_bai_airport", "SZX -> HAN", 840.4),
+        ("hong_kong_airport", "noi_bai_airport", "HKG -> HAN", 846.2),
+        ("penang_airport", "tan_son_nhat_airport", "PEN -> SGN", 932.3),
+        ("kuala_lumpur_airport", "tan_son_nhat_airport", "KUL -> SGN", 1050.3),
+        ("hefei_xinqiao_airport", "noi_bai_airport", "HFE -> HAN", 1630.2),
+        ("shanghai_pudong_airport", "noi_bai_airport", "PVG -> HAN", 1936.7),
+        ("tokyo_narita_airspace", "noi_bai_airport", "NRT -> HAN", 3720.7),
+        ("tokyo_haneda_airport", "noi_bai_airport", "HND -> HAN", 3660.1),
+    ]
+
+    for orig, dest, label, exp_dist in asian_air_corridors:
+        t_air = time.time()
+        r = get_route_coordinates(orig, dest, shipping_method="Air", use_cache=False)
+        el_air = time.time() - t_air
+        act_dist = r.get("distance_km", 0.0)
+        act_pts = len(r.get("coordinates", []))
+        assert act_pts >= 20, f"{label}: Expected >= 20 pts, got {act_pts}"
+        assert abs(act_dist - exp_dist) <= 20.0, f"{label}: Expected ~{exp_dist} km, got {act_dist} km"
+        assert el_air < 0.5, f"{label}: Air routing too slow ({el_air*1000:.2f} ms)"
+        print(f"    [PASS] {label}: {act_pts} waypoints, {act_dist:.1f} km ({el_air * 1000:.2f} ms)")
+
 
 def test_cache_performance():
     log_test_header("TEST 3: Redis / In-Memory Route Cache Performance")
@@ -182,8 +213,8 @@ def test_cache_performance():
     assert res2.get("cached") is True, f"Expected cached=True, got {res2.get('cached')}"
     print("    [PASS] Response correctly flags cached = True")
 
-    assert avg_lat < 50.0, f"Cache retrieval latency too high: {avg_lat:.2f} ms >= 50.0 ms"
-    print(f"    [PASS] Cache retrieval latency well under 50ms threshold ({avg_lat:.4f} ms)")
+    assert avg_lat < 5.0, f"Cache retrieval latency too high: {avg_lat:.2f} ms >= 5.0 ms (SLA < 5ms)"
+    print(f"    [PASS] Cache retrieval latency meets strict SLA < 5ms ({avg_lat:.4f} ms < 5.0 ms)")
 
 
 def test_api_endpoint():
@@ -245,6 +276,15 @@ def test_api_endpoint():
             {"docname": "PUR-ORD-2026-00001", "doctype": "Purchase Order"},
             {"docname": "ST-2026-00002", "doctype": "Shipment Tracking"},
         ]
+
+        # Warm up backend socket connection
+        try:
+            warm_data = json.dumps(test_cases[0]).encode("utf-8")
+            warm_req = urllib.request.Request(url, data=warm_data, headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(warm_req, timeout=5.0) as resp:
+                resp.read()
+        except Exception:
+            pass
 
         for payload in test_cases:
             t0 = time.time()

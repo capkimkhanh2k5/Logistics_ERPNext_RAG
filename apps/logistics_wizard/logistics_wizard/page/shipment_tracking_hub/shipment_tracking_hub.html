@@ -1,0 +1,217 @@
+<div class="shipment-tracking-hub-container">
+    <!-- Top Action Header -->
+    <div class="hub-header-bar">
+        <div class="hub-title-block">
+            <h2 class="hub-title">
+                <span class="hub-title-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                    </svg>
+                </span>
+                <span class="hub-title-text">Trung Tâm Quản Trị Vận Chuyển Toàn Cầu</span>
+            </h2>
+            <p class="hub-subtitle">Giám sát hành trình container, tiến độ mốc DCSA quốc tế và phát hiện lệch lịch trình theo thời gian thực</p>
+        </div>
+        <div class="hub-header-actions">
+            <button class="btn btn-default btn-sm hub-btn-refresh" id="hub-btn-refresh" title="Làm mới dữ liệu">
+                <i class="fa fa-refresh"></i> Làm mới
+            </button>
+            <button class="btn btn-primary btn-sm hub-btn-sync" id="hub-btn-sync-now" title="Đồng bộ dữ liệu tức thì từ hãng vận tải">
+                <i class="fa fa-cloud-download"></i> Đồng bộ tức thì (Sync Now)
+            </button>
+        </div>
+    </div>
+
+    <!-- KHỐI 1: 4 Thẻ KPI Metrics (Icon Vector SVG Monoline) -->
+    <div class="hub-kpi-grid">
+        <div class="hub-kpi-card kpi-total" data-filter="all">
+            <div class="kpi-icon-wrap">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/>
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                </svg>
+            </div>
+            <div class="kpi-data">
+                <div class="kpi-label">Tổng số lô hàng</div>
+                <div class="kpi-value" id="kpi-val-total">0</div>
+                <div class="kpi-desc">Tất cả vận đơn trong hệ thống</div>
+            </div>
+        </div>
+        <div class="hub-kpi-card kpi-transit active" data-filter="In Transit">
+            <div class="kpi-icon-wrap">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 19 21 12 17 5 21 12 2"/>
+                </svg>
+            </div>
+            <div class="kpi-data">
+                <div class="kpi-label">Đang vận chuyển</div>
+                <div class="kpi-value" id="kpi-val-transit">0</div>
+                <div class="kpi-desc">Tàu biển & máy bay đang hành trình</div>
+            </div>
+        </div>
+        <div class="hub-kpi-card kpi-delayed" data-filter="Delayed">
+            <div class="kpi-icon-wrap">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+            </div>
+            <div class="kpi-data">
+                <div class="kpi-label">Trễ hạn & Ngoại lệ</div>
+                <div class="kpi-value" id="kpi-val-delayed">0</div>
+                <div class="kpi-desc">Biến động ETA & sự cố cần xử lý</div>
+            </div>
+        </div>
+        <div class="hub-kpi-card kpi-stale" data-filter="Stale">
+            <div class="kpi-icon-wrap">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="2"/>
+                    <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/>
+                </svg>
+            </div>
+            <div class="kpi-data">
+                <div class="kpi-label">Mất tín hiệu (&gt;48h)</div>
+                <div class="kpi-value" id="kpi-val-stale">0</div>
+                <div class="kpi-desc">Chưa có tín hiệu mới từ carrier</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KHỐI 2: Bản đồ Giám sát Toàn cầu Tương tác -->
+    <div class="hub-map-card">
+        <div class="hub-card-header">
+            <div class="card-header-title">
+                <span class="header-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                </span>
+                <span class="header-text" id="hub-map-title">Bản đồ Giám sát Toàn cầu (Fleet Overview)</span>
+            </div>
+            <div class="card-header-controls">
+                <span class="badge badge-info" id="hub-selected-shipment-badge" style="display:none;"></span>
+                <button class="btn btn-xs btn-default" id="hub-map-reset-btn" title="Trở về góc nhìn toàn cầu">
+                    <i class="fa fa-globe"></i> Toàn cảnh
+                </button>
+            </div>
+        </div>
+        <div class="hub-map-wrapper">
+            <div id="lw-hub-map" class="lw-hub-map-canvas"></div>
+            <div id="hub-map-loading" class="hub-map-loading-overlay" style="display:none;">
+                <div class="spinner-border text-primary" role="status"></div>
+                <span>Đang tải lộ trình & định vị phương tiện...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- KHỐI 4: Visual Milestones Timeline Stepper (9 Mốc DCSA) -->
+    <div class="hub-timeline-card" id="hub-stepper-card">
+        <div class="hub-card-header">
+            <div class="card-header-title">
+                <span class="header-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="4"/>
+                        <line x1="1.05" y1="12" x2="8" y2="12"/>
+                        <line x1="16" y1="12" x2="22.95" y2="12"/>
+                    </svg>
+                </span>
+                <span class="header-text">Tiến Trình 9 Mốc Sự Kiện Quốc Tế DCSA (Milestones Stepper)</span>
+            </div>
+            <div class="card-header-actions">
+                <span class="hub-stepper-shipment-name" id="stepper-shipment-name">Chưa chọn lô hàng</span>
+            </div>
+        </div>
+        <div class="hub-stepper-container">
+            <div class="hub-stepper-track" id="hub-stepper-track">
+                <!-- Sẽ được render động qua JS (9 mốc: BOOKED, GATE_IN, LOADED, DEPARTED, TRANSSHIPMENT, ARRIVED, DISCHARGED, GATE_OUT, DELIVERED) -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TẦNG DƯỚI: Chia 2 Cột (Bảng lô hàng chi tiết 65% + Trung tâm Cảnh báo 35%) -->
+    <div class="hub-split-section">
+        <!-- KHỐI 3: Bảng Quản trị Lô hàng Chi tiết (65%) -->
+        <div class="hub-table-panel">
+            <div class="hub-card-header">
+                <div class="card-header-title">
+                    <span class="header-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6"/>
+                            <line x1="8" y1="12" x2="21" y2="12"/>
+                            <line x1="8" y1="18" x2="21" y2="18"/>
+                            <line x1="3" y1="6" x2="3.01" y2="6"/>
+                            <line x1="3" y1="12" x2="3.01" y2="12"/>
+                            <line x1="3" y1="18" x2="3.01" y2="18"/>
+                        </svg>
+                    </span>
+                    <span class="header-text">Danh Sách Lô Hàng Quốc Tế</span>
+                </div>
+                <div class="hub-search-box">
+                    <i class="fa fa-search hub-search-icon"></i>
+                    <input type="text" id="hub-search-input" class="form-control input-sm" placeholder="Tìm mã vận đơn, container, B/L, PO, hãng tàu...">
+                </div>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="hub-filter-tabs">
+                <button class="hub-tab-btn active" data-tab="all">Tất cả (<span id="tab-cnt-all">0</span>)</button>
+                <button class="hub-tab-btn" data-tab="In Transit">Đang vận chuyển (<span id="tab-cnt-transit">0</span>)</button>
+                <button class="hub-tab-btn" data-tab="Delayed">Trễ hạn (<span id="tab-cnt-delayed">0</span>)</button>
+                <button class="hub-tab-btn" data-tab="Stale">Mất tín hiệu (<span id="tab-cnt-stale">0</span>)</button>
+                <button class="hub-tab-btn" data-tab="Delivered">Đã giao hàng (<span id="tab-cnt-delivered">0</span>)</button>
+            </div>
+
+            <!-- Shipment Data Table -->
+            <div class="hub-table-wrapper">
+                <table class="table table-hover hub-data-table" id="hub-shipments-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 22%;">Vận đơn / Container</th>
+                            <th style="width: 18%;">Hãng tàu & Phương tiện</th>
+                            <th style="width: 20%;">Cảng Đi ➔ Đến</th>
+                            <th style="width: 15%;">Lịch trình (ETD / ETA)</th>
+                            <th style="width: 13%;">Độ trễ</th>
+                            <th style="width: 12%; text-align: center;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hub-shipments-tbody">
+                        <tr>
+                            <td colspan="6" class="text-center text-muted" style="padding: 30px;">
+                                <i class="fa fa-spinner fa-spin"></i> Đang tải dữ liệu vận chuyển...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- KHỐI 5: Trung Tâm Cảnh Báo Ngoại Lệ & Biến Động ETA (35%) -->
+        <div class="hub-exceptions-panel">
+            <div class="hub-card-header">
+                <div class="card-header-title">
+                    <span class="header-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                    </span>
+                    <span class="header-text">Trung Tâm Ngoại Lệ & Cảnh Báo (Exception Center)</span>
+                </div>
+                <span class="badge badge-warning" id="hub-exception-count-badge">0 sự cố</span>
+            </div>
+            <div class="hub-exceptions-list" id="hub-exceptions-list">
+                <!-- Sẽ được render động qua JS -->
+                <div class="text-center text-muted" style="padding: 35px 15px;">
+                    <i class="fa fa-check-circle text-success" style="font-size: 28px; margin-bottom: 8px;"></i>
+                    <p style="margin: 0; font-size: 13px;">Không có sự cố hoặc cảnh báo ngoại lệ đang mở.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -689,7 +689,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     position: fixed;
     bottom: 32px;
     left: 32px;
-    z-index: 1050;
+    z-index: 9999 !important;
     display: flex;
     flex-direction: column-reverse;
     align-items: center;

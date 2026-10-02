@@ -26,6 +26,25 @@ echo ">>> Checking if site '$SITE_NAME' already exists..."
 
 if bench --site "$SITE_NAME" list-apps > /dev/null 2>&1; then
     echo ">>> Site '$SITE_NAME' already exists. Skipping site creation."
+    echo ">>> Running bench migrate to sync DocTypes and Pages..."
+    bench --site "$SITE_NAME" migrate || true
+    $BENCH_DIR/env/bin/python3 -c "
+import frappe, os
+sites_dir = '$BENCH_DIR/sites'
+if os.path.exists(sites_dir): os.chdir(sites_dir)
+try:
+    frappe.init(site='$SITE_NAME')
+    frappe.connect()
+    from frappe.modules.import_file import import_file_by_path
+    app_path = frappe.get_app_path('logistics_wizard')
+    page_json = os.path.join(app_path, 'page', 'shipment_tracking_hub', 'shipment_tracking_hub.json')
+    if os.path.exists(page_json):
+        import_file_by_path(page_json, force=True)
+        frappe.db.commit()
+        print('>>> Page shipment-tracking-hub registered successfully.')
+except Exception as e:
+    print('>>> Page sync error:', e)
+" || true
 else
     echo ">>> Creating site '$SITE_NAME'..."
     bench new-site "$SITE_NAME" \
