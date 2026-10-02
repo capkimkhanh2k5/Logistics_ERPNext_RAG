@@ -180,14 +180,14 @@ class AdversarialChallengeM5(unittest.TestCase):
         with patch("test_e2e_acceptance.get_route_coordinates", side_effect=fake_air_route):
             with self.assertRaises(AssertionError) as ctx:
                 master_suite.verify_layer2_routing_and_cache(self.tracker)
-            self.assertIn("Air distance 9500.0 km outside expected", str(ctx.exception))
+            self.assertIn("deviates from geodesic Great-Circle", str(ctx.exception))
 
     def test_ac4_negative_mutation_antimeridian_jump(self):
         """Simulate wrapped longitude jump > 30 degrees: AC-4 must fail."""
         def fake_air_route(*args, **kwargs):
             if kwargs.get("shipping_method") == "Air":
                 return {
-                    "distance_km": 13150.0,
+                    "distance_km": 12598.55,
                     "coordinates_latlon": [(37.0, 175.0), (37.0, -175.0)],  # 350 deg jump!
                     "split_segments": [[], []],
                 }

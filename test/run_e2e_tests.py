@@ -27,11 +27,18 @@ from test_shipment_tracking_e2e import (
     TestTier3CrossFeatureCombinations,
     TestTier4RealWorldSimulation,
 )
+from test_procurement_simulation_r3_r4_r5 import (
+    TestCoordinateAccuracyR1,
+    TestPhysicalSpeedsAndDistancesR2,
+    TestProcurementMasterDataR3,
+    TestSimulationShipmentsDCSAR4,
+    TestHubEndpointComplianceR5,
+)
 
 
 def main():
     parser = argparse.ArgumentParser(description="Logistics Wizard E2E Test Suite Runner")
-    parser.add_argument("--tier", type=int, choices=[1, 2, 3, 4], help="Run specific tier (1, 2, 3, or 4)")
+    parser.add_argument("--tier", type=int, choices=[1, 2, 3, 4, 5], help="Run specific tier (1, 2, 3, 4, or 5)")
     parser.add_argument("-v", "--verbose", action="store_true", default=True, help="Verbose test execution")
     args = parser.parse_args()
 
@@ -39,24 +46,33 @@ def main():
     suite = unittest.TestSuite()
 
     tier_map = {
-        1: ("Tier 1: Feature Coverage (R1, R2, R3, R4)", TestTier1FeatureCoverage),
-        2: ("Tier 2: Boundary & Corner Cases", TestTier2BoundaryCornerCases),
-        3: ("Tier 3: Cross-Feature Combinations", TestTier3CrossFeatureCombinations),
-        4: ("Tier 4: Real-World Master Simulation (IMP-2026-001)", TestTier4RealWorldSimulation),
+        1: ("Tier 1: Feature Coverage (R1, R2, R3, R4)", [TestTier1FeatureCoverage]),
+        2: ("Tier 2: Boundary & Corner Cases", [TestTier2BoundaryCornerCases]),
+        3: ("Tier 3: Cross-Feature Combinations", [TestTier3CrossFeatureCombinations]),
+        4: ("Tier 4: Real-World Master Simulation (IMP-2026-001)", [TestTier4RealWorldSimulation]),
+        5: ("Tier 5: Logistics Expansion & Master Simulation (R1 - R5)", [
+            TestCoordinateAccuracyR1,
+            TestPhysicalSpeedsAndDistancesR2,
+            TestProcurementMasterDataR3,
+            TestSimulationShipmentsDCSAR4,
+            TestHubEndpointComplianceR5,
+        ]),
     }
 
     if args.tier:
-        name, test_cls = tier_map[args.tier]
+        name, test_classes = tier_map[args.tier]
         print(f"\n=======================================================")
         print(f" EXECUTING: {name}")
         print(f"=======================================================")
-        suite.addTests(loader.loadTestsFromTestCase(test_cls))
+        for cls in test_classes:
+            suite.addTests(loader.loadTestsFromTestCase(cls))
     else:
         print("\n================================================================================")
-        print(" EXECUTING ALL 4 TIERS: MASTER END-TO-END VERIFICATION SUITE")
+        print(" EXECUTING ALL 5 TIERS: MASTER END-TO-END VERIFICATION SUITE")
         print("================================================================================")
-        for _, (_, test_cls) in tier_map.items():
-            suite.addTests(loader.loadTestsFromTestCase(test_cls))
+        for _, (_, test_classes) in tier_map.items():
+            for cls in test_classes:
+                suite.addTests(loader.loadTestsFromTestCase(cls))
 
     runner = unittest.TextTestRunner(verbosity=2 if args.verbose else 1)
     t0 = time.time()

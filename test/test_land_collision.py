@@ -291,21 +291,65 @@ def test_ocean_routes_land_collision(detector: LandCollisionDetector):
             "origin": "port_of_long_beach",
             "dest": "cat_lai_port",
             "name": "Long Beach -> Cat Lai",
-            # Coastal approach thresholds:
-            # - Origin terminal: Long Beach inner basin / San Pedro Bay breakwater (first 2 pts)
-            # - Destination terminal: Cat Lai Dong Nai river navigation fairway (last 2 pts)
             "origin_terminal_idx": 2,
             "dest_terminal_idx": 2,
+            "min_pts": 50,
         },
         {
             "origin": "port_of_los_angeles",
             "dest": "hai_phong_port",
             "name": "Los Angeles -> Hai Phong",
-            # Coastal approach thresholds:
-            # - Origin terminal: Los Angeles inner channel (first 2 pts)
-            # - Destination terminal: Hai Phong Cam river fairway (last 2 pts)
             "origin_terminal_idx": 2,
             "dest_terminal_idx": 2,
+            "min_pts": 50,
+        },
+        {
+            "origin": "laem_chabang_port",
+            "dest": "cat_lai_port",
+            "name": "Laem Chabang -> Cat Lai",
+            "origin_terminal_idx": 2,
+            "dest_terminal_idx": 2,
+            "min_pts": 10,
+        },
+        {
+            "origin": "laem_chabang_port",
+            "dest": "hiep_phuoc_port",
+            "name": "Laem Chabang -> Hiep Phuoc (RoRo)",
+            "origin_terminal_idx": 2,
+            "dest_terminal_idx": 2,
+            "min_pts": 10,
+        },
+        {
+            "origin": "yantian_port",
+            "dest": "hai_phong_port",
+            "name": "Yantian -> Hai Phong",
+            "origin_terminal_idx": 3,
+            "dest_terminal_idx": 2,
+            "min_pts": 15,
+        },
+        {
+            "origin": "shanghai_port",
+            "dest": "hai_phong_port",
+            "name": "Shanghai -> Hai Phong",
+            "origin_terminal_idx": 3,
+            "dest_terminal_idx": 2,
+            "min_pts": 25,
+        },
+        {
+            "origin": "port_klang",
+            "dest": "cat_lai_port",
+            "name": "Port Klang -> Cat Lai",
+            "origin_terminal_idx": 3,
+            "dest_terminal_idx": 2,
+            "min_pts": 12,
+        },
+        {
+            "origin": "yokohama_port",
+            "dest": "hai_phong_port",
+            "name": "Yokohama -> Hai Phong",
+            "origin_terminal_idx": 4,
+            "dest_terminal_idx": 2,
+            "min_pts": 25,
         },
     ]
 
@@ -313,7 +357,8 @@ def test_ocean_routes_land_collision(detector: LandCollisionDetector):
         route = get_route_coordinates(r_info["origin"], r_info["dest"], shipping_method="Ocean", use_cache=False)
         coords = route["coordinates"]  # [[lon, lat], ...]
         total_pts = len(coords)
-        assert total_pts >= 50, f"Expected > 50 points, got {total_pts}"
+        min_pts = r_info.get("min_pts", 50)
+        assert total_pts >= min_pts, f"Expected >= {min_pts} points, got {total_pts}"
 
         orig_term = r_info["origin_terminal_idx"]
         dest_term = total_pts - r_info["dest_terminal_idx"]

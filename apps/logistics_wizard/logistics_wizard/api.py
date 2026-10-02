@@ -82,10 +82,15 @@ except ImportError:
     sys.modules["frappe"] = mock_frappe
     frappe = mock_frappe
 
-# 1. Module Workflow: Quản lý chuỗi tiến trình 6 bước
+# 1. Module Workflow: Quản lý chuỗi tiến trình Nhập khẩu & Xuất khẩu
 from .workflow import (
     WORKFLOW_STEPS,
+    IMPORT_WORKFLOW_STEPS,
+    EXPORT_WORKFLOW_STEPS,
+    detect_workflow_flow_type,
     get_workflow_chain_status,
+    get_import_workflow_chain_status,
+    get_export_workflow_chain_status,
 )
 
 # 2. Module Routing Engine (Layer 2 - High Performance & Caching)
@@ -539,7 +544,7 @@ def sync_transit_route_with_status(shipment_doc, ahub_name=None, dest_name=None)
 
     def is_delivered(text):
         t = (text or "").lower()
-        return "delivered" in t or "giao hàng thành công" in t or "nhập kho" in t
+        return "deliver" in t or "giao hàng thành công" in t or "nhập kho" in t
 
     has_customs = any(is_customs(r.activity) for r in routes)
     has_delivered = any(is_delivered(r.activity) for r in routes)
@@ -555,6 +560,7 @@ def sync_transit_route_with_status(shipment_doc, ahub_name=None, dest_name=None)
 
         if not has_customs:
             shipment_doc.append("transit_route", {
+                "milestone": "DISCHARGED",
                 "date": today_date,
                 "activity": "Làm thủ tục thông quan Hải quan (Customs Clearance) (Current Position)",
                 "location": ahub,
@@ -580,6 +586,7 @@ def sync_transit_route_with_status(shipment_doc, ahub_name=None, dest_name=None)
 
         if not has_customs:
             shipment_doc.append("transit_route", {
+                "milestone": "DISCHARGED",
                 "date": today_date,
                 "activity": "Làm thủ tục thông quan Hải quan (Customs Clearance)",
                 "location": ahub,
@@ -589,6 +596,7 @@ def sync_transit_route_with_status(shipment_doc, ahub_name=None, dest_name=None)
 
         if not has_delivered:
             shipment_doc.append("transit_route", {
+                "milestone": "DELIVERED",
                 "date": today_date,
                 "activity": "Đã giao hàng thành công tại Kho đích (Delivered) (Current Position)",
                 "location": dest,
@@ -808,6 +816,51 @@ def _find_standalone_harness():
     return None
 
 
+def align_route_to_pacific_frame(route_coords: Any, ref_lon: float = 150.0) -> Any:
+    """
+    Normalizes a sequence of [lat, lon] coordinates into a unified Pacific-Asia
+    frame centered around ref_lon (default 150.0°). Prevents 360-degree antimeridian
+    split and eliminates world-repetition on Leaflet fleet overview maps.
+    """
+    if not route_coords or not isinstance(route_coords, list):
+        return route_coords
+
+    unwrapped = []
+    prev_lon = None
+    cum_shift = 0.0
+    for p in route_coords:
+        if not isinstance(p, (list, tuple)) or len(p) < 2 or not isinstance(p[1], (int, float)):
+            continue
+        lat = float(p[0])
+        lon = float(p[1]) + cum_shift
+        if prev_lon is not None:
+            delta = lon - prev_lon
+            if delta > 180.0:
+                cum_shift -= 360.0
+                lon -= 360.0
+            elif delta < -180.0:
+                cum_shift += 360.0
+                lon += 360.0
+        prev_lon = lon
+        unwrapped.append([lat, lon])
+
+    if not unwrapped:
+        return route_coords
+
+    lons = [p[1] for p in unwrapped]
+    avg_lon = sum(lons) / len(lons)
+    best_shift = 0.0
+    min_diff = abs(avg_lon - ref_lon)
+    for k in [-2, -1, 1, 2]:
+        diff = abs((avg_lon + k * 360.0) - ref_lon)
+        if diff < min_diff:
+            min_diff = diff
+            best_shift = k * 360.0
+    if best_shift != 0.0:
+        return [[round(p[0], 6), round(p[1] + best_shift, 6)] for p in unwrapped]
+    return unwrapped
+
+
 @frappe.whitelist(allow_guest=True)
 def get_shipment_tracking_hub_data(shipment: Optional[str] = None,
                                    filter_status: Optional[str] = None,
@@ -827,6 +880,12 @@ def get_shipment_tracking_hub_data(shipment: Optional[str] = None,
     filter_status = filter_status or kwargs.get("filter_status") or kwargs.get("status")
     search_term = search_term or kwargs.get("search_term") or kwargs.get("search") or kwargs.get("q")
 
+    if frappe and hasattr(frappe, "local"):
+        if getattr(frappe.local, "module_app", None) is not None and isinstance(frappe.local.module_app, dict):
+            frappe.local.module_app.setdefault("logistics_wizard", "logistics_wizard")
+        if getattr(frappe.local, "app_modules", None) is not None and isinstance(frappe.local.app_modules, dict):
+            frappe.local.app_modules.setdefault("logistics_wizard", ["logistics_wizard"])
+
     harness = _find_standalone_harness()
     all_shipments: List[Dict[str, Any]] = []
     all_exceptions: List[Dict[str, Any]] = []
@@ -839,7 +898,7 @@ def get_shipment_tracking_hub_data(shipment: Optional[str] = None,
         all_exceptions = [dict(e) for e in raw_exceptions]
 
     # Layer 2: Frappe DB ORM (if connected to live bench database)
-    elif frappe and hasattr(frappe, "db") and getattr(frappe.db, "is_connected", None) and frappe.db.is_connected():
+    elif frappe and hasattr(frappe, "db") and bool(frappe.db):
         try:
             fields = [
                 "name", "tracking_number", "container_id", "carrier", "shipping_method",
@@ -849,10 +908,17 @@ def get_shipment_tracking_hub_data(shipment: Optional[str] = None,
                 "bill_of_lading", "air_waybill"
             ]
             all_shipments = frappe.get_all("Shipment Tracking", fields=fields, order_by="modified desc")
-            all_exceptions = frappe.get_all("Shipment Exception", fields=["*"], order_by="modified desc")
         except Exception as e:
-            logger.warning(f"Error querying Frappe DB for Hub data: {e}")
+            logger.warning(f"Error querying Shipment Tracking for Hub: {e}")
             all_shipments = []
+
+        try:
+            if hasattr(frappe.db, "table_exists") and frappe.db.table_exists("Shipment Exception"):
+                all_exceptions = frappe.get_all("Shipment Exception", fields=["*"], order_by="modified desc")
+            else:
+                all_exceptions = []
+        except Exception as e:
+            logger.warning(f"Error querying Shipment Exception for Hub: {e}")
             all_exceptions = []
 
     # Layer 3: In-memory DB from tracking_service
@@ -1023,6 +1089,55 @@ def get_shipment_tracking_hub_data(shipment: Optional[str] = None,
 
         filtered_shipments.append(s)
 
+    # Enrich each shipment with route coordinates for fleet overview
+    for s in filtered_shipments:
+        s_method = s.get("shipping_method") or "Ocean"
+        dep_hub = s.get("origin_port") or s.get("departure_hub")
+        arr_hub = s.get("destination_port") or s.get("arrival_hub")
+        if not s.get("progress"):
+            if s.get("status") in ["Delivered", "Completed"]:
+                s["progress"] = 1.0
+            elif s.get("status") == "Customs Clearance":
+                s["progress"] = 0.88
+            elif s.get("status") == "In Transit":
+                s["progress"] = 0.55
+            else:
+                s["progress"] = 0.1
+        if dep_hub and arr_hub and not s.get("full_route"):
+            try:
+                r_calc = calculate_multimodal_route(
+                    origin_facility=dep_hub,
+                    departure_hub=dep_hub,
+                    arrival_hub=arr_hub,
+                    dest_facility=arr_hub,
+                    shipping_method=s_method,
+                    use_cache=True
+                )
+                raw_full = r_calc.get("full_route") or []
+                s["full_route"] = align_route_to_pacific_frame(raw_full)
+                s["route"] = s["full_route"]
+                raw_legs = r_calc.get("legs") or []
+                aligned_legs = []
+                for leg in raw_legs:
+                    l_dict = dict(leg)
+                    if l_dict.get("coordinates_latlon"):
+                        l_dict["coordinates_latlon"] = align_route_to_pacific_frame(l_dict["coordinates_latlon"])
+                    if l_dict.get("coordinates"):
+                        l_dict["coordinates"] = align_route_to_pacific_frame(l_dict["coordinates"])
+                    aligned_legs.append(l_dict)
+                s["legs"] = aligned_legs
+                s["distance_km"] = r_calc.get("distance_km", 0.0)
+                if s.get("full_route"):
+                    pts = s["full_route"]
+                    p_idx = max(0, min(len(pts) - 1, int(len(pts) * s["progress"])))
+                    s["current_lat"] = pts[p_idx][0]
+                    s["current_lon"] = pts[p_idx][1]
+            except Exception as e:
+                logger.warning(f"Error calculating route for shipment {s.get('name')}: {e}")
+        elif s.get("full_route"):
+            s["full_route"] = align_route_to_pacific_frame(s["full_route"])
+            s["route"] = s["full_route"]
+
     # Filter Active Exceptions (Open / Acknowledged / Investigating, excludes Resolved)
     active_exceptions = [
         dict(e) for e in all_exceptions
@@ -1039,9 +1154,16 @@ def get_shipment_tracking_hub_data(shipment: Optional[str] = None,
                 selected = doc.as_dict()
             except Exception:
                 selected = None
-        elif frappe and hasattr(frappe, "db") and getattr(frappe.db, "is_connected", None) and frappe.db.is_connected():
+        elif frappe and hasattr(frappe, "db") and bool(frappe.db):
             try:
-                doc = frappe.get_doc("Shipment Tracking", shipment_name)
+                target_docname = shipment_name
+                if not frappe.db.exists("Shipment Tracking", target_docname):
+                    found_name = frappe.db.get_value("Shipment Tracking", {"purchase_order": shipment_name}, "name") or \
+                                 frappe.db.get_value("Shipment Tracking", {"tracking_number": shipment_name}, "name") or \
+                                 frappe.db.get_value("Shipment Tracking", {"container_id": shipment_name}, "name")
+                    if found_name:
+                        target_docname = found_name
+                doc = frappe.get_doc("Shipment Tracking", target_docname)
                 selected = doc.as_dict()
             except Exception:
                 selected = None
@@ -1055,38 +1177,61 @@ def get_shipment_tracking_hub_data(shipment: Optional[str] = None,
         # Fallback search within loaded shipments
         if not selected:
             for s in all_shipments:
-                if s.get("name") == shipment_name or s.get("tracking_number") == shipment_name:
+                if s.get("name") == shipment_name or s.get("tracking_number") == shipment_name or s.get("purchase_order") == shipment_name or s.get("container_id") == shipment_name:
                     selected = dict(s)
                     break
-
-    # If still not selected, pick first filtered shipment or first all shipment
-    if not selected:
-        if filtered_shipments:
-            target_first = filtered_shipments[0]
-            name = target_first.get("name")
-            if harness is not None:
-                try:
-                    selected = harness.get_doc("Shipment Tracking", name).as_dict()
-                except Exception:
-                    selected = dict(target_first)
-            elif frappe and hasattr(frappe, "db") and getattr(frappe.db, "is_connected", None) and frappe.db.is_connected():
-                try:
-                    selected = frappe.get_doc("Shipment Tracking", name).as_dict()
-                except Exception:
-                    selected = dict(target_first)
-            else:
-                selected = dict(target_first)
-        elif all_shipments:
-            selected = dict(all_shipments[0])
 
     # Clean transit_route in selected_shipment (ensure dicts and DCSA standard)
     if selected:
         route = selected.get("transit_route") or []
         cleaned_route = []
         for item in route:
-            d_item = item.as_dict() if hasattr(item, "as_dict") else dict(item)
+            d_item = item.as_dict() if callable(getattr(item, "as_dict", None)) else (dict(item) if isinstance(item, dict) else item)
             cleaned_route.append(d_item)
         selected["transit_route"] = cleaned_route
+
+        # Enrich selected shipment with rich multimodal routing engine coordinates
+        s_method = selected.get("shipping_method") or "Ocean"
+        dep_hub = selected.get("origin_port") or selected.get("departure_hub")
+        arr_hub = selected.get("destination_port") or selected.get("arrival_hub")
+
+        if dep_hub and arr_hub:
+            try:
+                route_calc = calculate_multimodal_route(
+                    origin_facility=dep_hub,
+                    departure_hub=dep_hub,
+                    arrival_hub=arr_hub,
+                    dest_facility=arr_hub,
+                    shipping_method=s_method,
+                    use_cache=True
+                )
+                raw_full = route_calc.get("full_route") or []
+                selected["full_route"] = align_route_to_pacific_frame(raw_full)
+                selected["route"] = selected["full_route"]
+                raw_legs = route_calc.get("legs") or []
+                aligned_legs = []
+                for leg in raw_legs:
+                    l_dict = dict(leg)
+                    if l_dict.get("coordinates_latlon"):
+                        l_dict["coordinates_latlon"] = align_route_to_pacific_frame(l_dict["coordinates_latlon"])
+                    if l_dict.get("coordinates"):
+                        l_dict["coordinates"] = align_route_to_pacific_frame(l_dict["coordinates"])
+                    aligned_legs.append(l_dict)
+                selected["legs"] = aligned_legs
+                selected["distance_km"] = route_calc.get("distance_km", 0.0)
+                selected["progress_thresholds"] = route_calc.get("progress_thresholds", [0.0, 0.05, 0.95, 1.0])
+                if not selected.get("progress"):
+                    selected["progress"] = 0.55 if selected.get("status") == "In Transit" else (1.0 if selected.get("status") in ["Delivered", "Completed"] else 0.1)
+                if selected.get("full_route"):
+                    pts = selected["full_route"]
+                    p_idx = max(0, min(len(pts) - 1, int(len(pts) * selected["progress"])))
+                    selected["current_lat"] = pts[p_idx][0]
+                    selected["current_lon"] = pts[p_idx][1]
+            except Exception as e:
+                logger.warning(f"Error calculating direct multimodal route for Hub: {e}")
+        elif selected.get("full_route"):
+            selected["full_route"] = align_route_to_pacific_frame(selected["full_route"])
+            selected["route"] = selected["full_route"]
 
     return {
         "status": "success",
@@ -1241,7 +1386,12 @@ def validate_purchase_receipt_shipment_status(doc, method=None):
 
 __all__ = [
     "WORKFLOW_STEPS",
+    "IMPORT_WORKFLOW_STEPS",
+    "EXPORT_WORKFLOW_STEPS",
+    "detect_workflow_flow_type",
     "get_workflow_chain_status",
+    "get_import_workflow_chain_status",
+    "get_export_workflow_chain_status",
     "get_active_shipments",
     "get_shipment_tracking",
     "get_route_coordinates",

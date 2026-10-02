@@ -19,6 +19,9 @@
   },
   {
    "role": "Purchase User"
+  },
+  {
+   "role": "All"
   }
  ],
  "standard": "Yes",

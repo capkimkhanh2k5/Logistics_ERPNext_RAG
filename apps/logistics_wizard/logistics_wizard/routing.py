@@ -262,7 +262,7 @@ def get_location_coords(identifier: Union[str, Tuple[float, float], List[float]]
             pt = OFFLINE_LOCATION_COORDINATES[q]
             return (float(pt[0]), float(pt[1]))
         for k, v in OFFLINE_LOCATION_COORDINATES.items():
-            if k in q or q in k:
+            if len(k) >= 3 and re.search(r'\b' + re.escape(k) + r'\b', q):
                 return (float(v[0]), float(v[1]))
     except Exception:
         pass
@@ -285,10 +285,70 @@ def get_location_coords(identifier: Union[str, Tuple[float, float], List[float]]
         "hà nội": (21.0285, 105.8542),
         "ho chi minh": (10.8231, 106.6297),
         "tp. hồ chí minh": (10.8231, 106.6297),
+        "kho nhà máy xuất phát": (37.7955, -122.2779),
+        "kho đích nhận hàng": (10.7626, 106.7898),
+        "kho": (10.7626, 106.7898),
+        "stores": (10.7626, 106.7898),
+        "warehouse": (10.7626, 106.7898),
+        "vietnam": (10.7626, 106.7898),
+        "việt nam": (10.7626, 106.7898),
+        "usa": (37.7955, -122.2779),
+        "united states": (37.7955, -122.2779),
+        "china": (31.2304, 121.4737),
+        "trung quốc": (31.2304, 121.4737),
+        "japan": (35.6762, 139.6503),
+        "nhật bản": (35.6762, 139.6503),
+        "korea": (37.5665, 126.9780),
+        "hàn quốc": (37.5665, 126.9780),
+        "laem chabang": (13.0800, 100.8800),
+        "thlch": (13.0800, 100.8800),
+        "suvarnabhumi": (13.6900, 100.7501),
+        "bkk": (13.6900, 100.7501),
+        "vtbs": (13.6900, 100.7501),
+        "yantian": (22.5700, 114.2800),
+        "cnytn": (22.5700, 114.2800),
+        "shenzhen baoan": (22.6393, 113.8107),
+        "szx": (22.6393, 113.8107),
+        "zgsz": (22.6393, 113.8107),
+        "hefei xinqiao": (31.9897, 116.9744),
+        "hfe": (31.9897, 116.9744),
+        "shanghai pudong": (31.1443, 121.8083),
+        "pvg": (31.1443, 121.8083),
+        "shanghai port": (31.3400, 121.6000),
+        "cnshg": (31.3400, 121.6000),
+        "cnsha": (31.3400, 121.6000),
+        "port klang": (3.0000, 101.3900),
+        "mypkg": (3.0000, 101.3900),
+        "penang port": (5.4167, 100.3500),
+        "mypen": (5.4167, 100.3500),
+        "penang airport": (5.2971, 100.2768),
+        "pen": (5.2971, 100.2768),
+        "wmkp": (5.2971, 100.2768),
+        "kuala lumpur airport": (2.7456, 101.7099),
+        "kul": (2.7456, 101.7099),
+        "wmkk": (2.7456, 101.7099),
+        "yokohama port": (35.4400, 139.6400),
+        "jpyok": (35.4400, 139.6400),
+        "haneda airport": (35.5494, 139.7798),
+        "hnd": (35.5494, 139.7798),
+        "rjtt": (35.5494, 139.7798),
+        "hiep phuoc": (10.6300, 106.7500),
+        "cảng hiệp phước": (10.6300, 106.7500),
+        "vnhcm": (10.6300, 106.7500),
+        "spct": (10.6300, 106.7500),
+        "vn-north-dc": (21.1200, 105.9500),
+        "vn-south-dc": (10.9000, 106.7500),
+        "toyota vn vehicle dc": (10.6500, 106.7400),
+        "honda vn vehicle dc": (21.2800, 105.7200),
+        "vn-north vehicle dc": (21.1500, 105.9000)
     }
     for k, v in fallback_map.items():
-        if k in q or q in k:
+        if len(k) <= 4:
+            if re.search(r'\b' + re.escape(k) + r'\b', q):
+                return v
+        elif k in q or q in k:
             return v
+
 
     # Fallback to geocode_location (Nominatim / online geocoding with cache)
     try:
@@ -300,6 +360,7 @@ def get_location_coords(identifier: Union[str, Tuple[float, float], List[float]]
         pass
 
     return None
+
 
 
 def find_nearest_hub(coords: Union[Tuple[float, float], List[float], str],
@@ -435,6 +496,96 @@ def _matches_us_vn_corridor(o_lat: float, o_lon: float, d_lat: float, d_lon: flo
     return (o_lon < -60 and 100 < d_lon < 130) or (d_lon < -60 and 100 < o_lon < 130)
 
 
+def get_regional_maritime_chokepoints(o_lat: float, o_lon: float,
+                                      d_lat: float, d_lon: float) -> Optional[List[Tuple[float, float]]]:
+    """
+    Returns curated maritime chokepoints strictly avoiding land for Asian corridors
+    when searoute is unavailable or returns an empty route.
+    """
+    # 1. Gulf of Thailand <-> Southern Vietnam (e.g. Laem Chabang <-> Cat Lai / Hiep Phuoc)
+    if (100.0 <= min(o_lon, d_lon) and max(o_lon, d_lon) <= 108.0 and
+        8.0 <= min(o_lat, d_lat) and max(o_lat, d_lat) <= 14.5):
+        pts = [
+            (o_lat, o_lon),
+            (12.2622, 101.1130), # Rayong fairway
+            (10.3095, 103.0353), # Gulf of Thailand mid-basin
+            (8.4832, 104.6283),  # Approaching Cape Ca Mau West
+            (8.3691, 105.0568),  # South of Cape Ca Mau (strictly avoids Indochina landmass)
+            (9.5000, 107.0000),  # South China Sea off Con Dao
+            (10.3095, 106.8640), # Vung Tau pilot fairway
+            (d_lat, d_lon)
+        ]
+        return pts if o_lon < d_lon else list(reversed(pts))
+
+    # 2. Malacca Strait <-> Southern Vietnam (e.g. Port Klang <-> Cat Lai)
+    if (100.0 <= min(o_lon, d_lon) and max(o_lon, d_lon) <= 108.0 and
+        1.0 <= min(o_lat, d_lat) and max(o_lat, d_lat) <= 11.5):
+        pts = [
+            (o_lat, o_lon),
+            (2.5861, 101.3164),  # Malacca Strait North
+            (2.0000, 102.0000),  # Malacca Strait Mid
+            (1.1000, 103.6000),  # Singapore Strait West Gateway
+            (1.1714, 103.8611),  # Singapore Southern Fairway
+            (1.3413, 104.4823),  # Singapore East Exit into SCS
+            (7.6091, 107.3207),  # South China Sea Corridor
+            (9.8000, 107.2500),  # Off Vung Tau
+            (10.3095, 106.8640), # Vung Tau Pilot Station
+            (d_lat, d_lon)
+        ]
+        return pts if o_lon < d_lon else list(reversed(pts))
+
+    # 3. Yantian / South China <-> Gulf of Tonkin / Hai Phong
+    if (106.0 <= min(o_lon, d_lon) and max(o_lon, d_lon) <= 116.0 and
+        19.0 <= min(o_lat, d_lat) and max(o_lat, d_lat) <= 24.0):
+        pts = [
+            (o_lat, o_lon),
+            (22.0000, 114.1000), # South of Hong Kong
+            (21.2000, 112.5000), # South of Yangjiang
+            (20.5000, 111.0000), # Northeast of Hainan
+            (20.1100, 109.8800), # Qiongzhou Strait East
+            (20.1500, 109.5000), # Qiongzhou Strait Mid
+            (20.3000, 108.8000), # Gulf of Tonkin North
+            (20.8000, 107.0000), # Hai Phong Fairway
+            (d_lat, d_lon)
+        ]
+        return pts if o_lon > d_lon else list(reversed(pts))
+
+    # 4. East China Sea / Shanghai <-> Gulf of Tonkin / Hai Phong
+    if (106.0 <= min(o_lon, d_lon) and max(o_lon, d_lon) <= 123.0 and
+        19.0 <= min(o_lat, d_lat) and max(o_lat, d_lat) <= 33.0):
+        pts = [
+            (o_lat, o_lon),
+            (30.5000, 122.5000), # Off Yangtze mouth
+            (28.0000, 122.0000), # East China Sea
+            (25.7000, 120.0000), # Taiwan Strait North
+            (23.5000, 117.8000), # Taiwan Strait South
+            (22.0000, 114.1000), # South of Hong Kong
+            (20.1100, 109.8800), # Qiongzhou Strait East
+            (20.3000, 108.8000), # Gulf of Tonkin
+            (d_lat, d_lon)
+        ]
+        return pts if o_lon > d_lon else list(reversed(pts))
+
+    # 5. Japan / Yokohama <-> Gulf of Tonkin / Hai Phong
+    if (106.0 <= min(o_lon, d_lon) and max(o_lon, d_lon) <= 141.0 and
+        19.0 <= min(o_lat, d_lat) and max(o_lat, d_lat) <= 36.5):
+        pts = [
+            (o_lat, o_lon),
+            (34.5000, 139.0000), # Tokyo Bay exit
+            (33.0000, 135.5000), # South of Kii Peninsula
+            (30.0000, 130.5000), # South of Kyushu
+            (27.0000, 125.0000), # East China Sea
+            (25.7000, 120.0000), # Taiwan Strait North
+            (23.5000, 117.8000), # Taiwan Strait South
+            (20.1100, 109.8800), # Qiongzhou Strait
+            (20.3000, 108.8000), # Gulf of Tonkin
+            (d_lat, d_lon)
+        ]
+        return pts if o_lon > d_lon else list(reversed(pts))
+
+    return None
+
+
 def calculate_ocean_route(origin_coords: Tuple[float, float],
                           dest_coords: Tuple[float, float]) -> Dict[str, Any]:
     """
@@ -465,7 +616,20 @@ def calculate_ocean_route(origin_coords: Tuple[float, float],
 
     # Fallback if searoute unavailable or returned empty
     if not geojson_coords or len(geojson_coords) < 2:
-        if _matches_us_vn_corridor(o_lat, o_lon, d_lat, d_lon):
+        asian_chokepoints = get_regional_maritime_chokepoints(o_lat, o_lon, d_lat, d_lon)
+        if asian_chokepoints:
+            source = "maritime_corridor_fallback_asia"
+            interp_pts: List[List[float]] = []
+            for i in range(len(asian_chokepoints) - 1):
+                p1, p2 = asian_chokepoints[i], asian_chokepoints[i+1]
+                seg = interpolate_great_circle(p1[0], p1[1], p2[0], p2[1], num_segments=4, split_antimeridian=False)[0]
+                if i > 0:
+                    seg = seg[1:]
+                for lat, lon in seg:
+                    norm_lon = ((lon + 180.0) % 360.0) - 180.0
+                    interp_pts.append([round(norm_lon, 6), round(lat, 6)])
+            geojson_coords = interp_pts
+        elif _matches_us_vn_corridor(o_lat, o_lon, d_lat, d_lon):
             source = "maritime_corridor_fallback_us_vn"
             # US West Coast <-> Vietnam transpacific maritime chokepoints
             chokepoints = [
@@ -587,16 +751,36 @@ def interpolate_great_circle(lat1: float, lon1: float,
     return [seg1, seg2]
 
 
-def calculate_air_route(origin_coords: Tuple[float, float],
-                        dest_coords: Tuple[float, float],
-                        num_segments: int = 24) -> Dict[str, Any]:
+def calculate_air_route(origin_coords: Any = None,
+                        dest_coords: Any = None,
+                        num_segments: int = 24,
+                        origin: Any = None,
+                        dest: Any = None,
+                        use_cache: bool = False) -> Dict[str, Any]:
     """
     Computes genuine Great-Circle air route using 3D Cartesian SLERP.
     Handles Antimeridian crossing continuously (unwrapped for smooth Leaflet rendering)
     and provides mathematically rigorous orthodromic Great-Circle distance.
+    Supports either coordinate tuples or location names/codes.
     """
-    o_lat, o_lon = float(origin_coords[0]), float(origin_coords[1])
-    d_lat, d_lon = float(dest_coords[0]), float(dest_coords[1])
+    orig = origin if origin is not None else origin_coords
+    dst = dest if dest is not None else dest_coords
+
+    if isinstance(orig, (list, tuple)) and len(orig) >= 2 and isinstance(orig[0], (int, float)):
+        o_lat, o_lon = float(orig[0]), float(orig[1])
+    else:
+        resolved_o = get_location_coords(orig)
+        if not resolved_o:
+            raise ValueError(f"Could not resolve air route coordinates for origin '{orig}'")
+        o_lat, o_lon = float(resolved_o[0]), float(resolved_o[1])
+
+    if isinstance(dst, (list, tuple)) and len(dst) >= 2 and isinstance(dst[0], (int, float)):
+        d_lat, d_lon = float(dst[0]), float(dst[1])
+    else:
+        resolved_d = get_location_coords(dst)
+        if not resolved_d:
+            raise ValueError(f"Could not resolve air route coordinates for destination '{dst}'")
+        d_lat, d_lon = float(resolved_d[0]), float(resolved_d[1])
 
     geodesic_distance = great_circle_distance(o_lat, o_lon, d_lat, d_lon)
     distance_km = round(geodesic_distance, 2)
@@ -636,6 +820,7 @@ def calculate_air_route(origin_coords: Tuple[float, float],
         "type": "LineString",
         "coordinates": geojson_coords,
         "coordinates_latlon": leaflet_coords,
+        "route": leaflet_coords,
         "distance_km": distance_km,
         "geodesic_distance_km": distance_km,
         "method": "Air",
@@ -655,7 +840,7 @@ def calculate_air_route(origin_coords: Tuple[float, float],
 
 def fetch_osrm_driving_route(o_lat: float, o_lon: float,
                              d_lat: float, d_lon: float,
-                             timeout: float = 3.5) -> Optional[Dict[str, Any]]:
+                             timeout: float = 0.5) -> Optional[Dict[str, Any]]:
     """
     Queries OSRM (Open Source Routing Machine) public driving API.
     Returns:
@@ -717,7 +902,25 @@ def get_inland_fallback_corridor(o_lat: float, o_lon: float,
             filtered = [p for p in reversed(vn_corridor) if o_lat <= p[0] <= d_lat]
             return [(o_lat, o_lon)] + filtered + [(d_lat, d_lon)]
 
-    # 2. California SF Bay Area corridor (Cupertino / San Jose <-> Oakland)
+    # 2. Vietnam Southern Logistics corridor (Cat Lai / Hiep Phuoc <-> VN-SOUTH-DC / Song Than)
+    if (10.4 <= min(o_lat, d_lat) and max(o_lat, d_lat) <= 11.3 and
+        106.4 <= min(o_lon, d_lon) and max(o_lon, d_lon) <= 107.2):
+        mid_pt = (10.8231, 106.6297)
+        return [(o_lat, o_lon), mid_pt, (d_lat, d_lon)]
+
+    # 3. Vietnam Northern Logistics corridor (Hai Phong / Noi Bai <-> VN-NORTH-DC / Bac Ninh)
+    if (20.5 <= min(o_lat, d_lat) and max(o_lat, d_lat) <= 21.6 and
+        105.5 <= min(o_lon, d_lon) and max(o_lon, d_lon) <= 107.0):
+        mid_pt = (21.0285, 105.8542)
+        return [(o_lat, o_lon), mid_pt, (d_lat, d_lon)]
+
+    # 4. Thailand Logistics corridor (Bangkok / Ayutthaya / Chachoengsao <-> Laem Chabang)
+    if (12.8 <= min(o_lat, d_lat) and max(o_lat, d_lat) <= 14.5 and
+        100.5 <= min(o_lon, d_lon) and max(o_lon, d_lon) <= 101.6):
+        mid_pt = (13.3611, 100.9847)
+        return [(o_lat, o_lon), mid_pt, (d_lat, d_lon)]
+
+    # 5. California SF Bay Area corridor (Cupertino / San Jose <-> Oakland)
     if (37.2 <= min(o_lat, d_lat) and max(o_lat, d_lat) <= 38.0 and
         -122.5 <= min(o_lon, d_lon) and max(o_lon, d_lon) <= -121.8):
         if o_lat < d_lat:
@@ -753,8 +956,26 @@ def calculate_road_route(origin_coords: Tuple[float, float],
         if cached:
             return cached
 
-    # 1. Attempt OSRM real-world highway routing
-    osrm_data = fetch_osrm_driving_route(o_lat, o_lon, d_lat, d_lon)
+    dist_direct = great_circle_distance(o_lat, o_lon, d_lat, d_lon)
+    if dist_direct < 0.1:
+        pts = [(o_lat, o_lon), (d_lat, d_lon)]
+        result = {
+            "type": "LineString",
+            "coordinates": [[round(o_lon, 6), round(o_lat, 6)], [round(d_lon, 6), round(d_lat, 6)]],
+            "coordinates_latlon": pts,
+            "distance_km": 0.0,
+            "method": "Road",
+            "waypoints_count": 2,
+            "cached": False,
+        }
+        if use_cache:
+            set_cached_route(cache_key, result)
+        return result
+
+    # 1. Attempt OSRM real-world highway routing (only for feasible driving distances <= 1500km)
+    osrm_data = None
+    if dist_direct <= 1500.0:
+        osrm_data = fetch_osrm_driving_route(o_lat, o_lon, d_lat, d_lon, timeout=0.5)
     if osrm_data and osrm_data.get("coordinates"):
         raw_coords = osrm_data["coordinates"]  # [[lon, lat], ...]
         geojson_coords = [[round(p[0], 6), round(p[1], 6)] for p in raw_coords]

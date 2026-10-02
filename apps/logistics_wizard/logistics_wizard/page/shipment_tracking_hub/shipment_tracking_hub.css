@@ -105,6 +105,38 @@
     flex-shrink: 0;
 }
 
+.hub-title-icon svg,
+.kpi-icon-wrap svg,
+.header-icon svg {
+    display: block;
+}
+
+.header-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#hub-map-reset-btn.active {
+    background-color: #0284c7;
+    color: #ffffff;
+    border-color: #0284c7;
+}
+
+.hub-stepper-empty-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px 18px;
+    color: #64748b;
+    font-size: 13px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px dashed #cbd5e1;
+    width: 100%;
+}
+
 .kpi-total .kpi-icon-wrap { background-color: #f1f5f9; }
 .kpi-transit .kpi-icon-wrap { background-color: #e0f2fe; }
 .kpi-delayed .kpi-icon-wrap { background-color: #fef2f2; }

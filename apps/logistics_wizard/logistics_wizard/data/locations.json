@@ -2,8 +2,8 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "LogisticsWizardLocations",
   "description": "Authoritative Single Source of Truth for Logistics Stations, Ports, Airports, and Navigation Corridors",
-  "version": "1.0.0",
-  "updated_at": "2026-09-20T08:00:00Z",
+  "version": "2.0.0",
+  "updated_at": "2026-10-02T08:00:00Z",
   "locations": {
     "apple_park_cupertino": {
       "id": "apple_park_cupertino",
@@ -174,7 +174,13 @@
         "cảng cát lái",
         "tân cảng cát lái",
         "vncli",
-        "vnsgn port"
+        "vnsgn port",
+        "cat lai",
+        "cát lái",
+        "cảng tân cảng cát lái",
+        "cat lai port (vnsgn)",
+        "vnsgn seaport",
+        "cat lai port - ck"
       ],
       "reference": {
         "authority": "NGA World Port Index Pub. 150 #57370 / UN/CEFACT UN/LOCODE VNCLI",
@@ -208,7 +214,9 @@
         "hai phong port",
         "cảng hải phòng",
         "dinh vu port",
-        "vnhph"
+        "vnhph",
+        "hai phong port - ck",
+        "hai phong port (vnhph)"
       ],
       "reference": {
         "authority": "NGA World Port Index Pub. 150 #57240 / UN/CEFACT UN/LOCODE VNHPH",
@@ -244,7 +252,10 @@
         "sân bay tân sơn nhất",
         "sgn airport",
         "sgn",
-        "vvts"
+        "vvts",
+        "tan son nhat airport (sgn)",
+        "vnsgn airport",
+        "tan son nhat airport - ck"
       ],
       "reference": {
         "authority": "OurAirports ID 26724 / CAAV AIP VVTS",
@@ -280,7 +291,9 @@
         "sân bay nội bài",
         "han airport",
         "han",
-        "vvnb"
+        "vvnb",
+        "noi bai airport - ck",
+        "noi bai airport (han)"
       ],
       "reference": {
         "authority": "OurAirports ID 26710 / CAAV AIP VVNB",
@@ -1111,6 +1124,1021 @@
           108.1994
         ],
         "precision_meters": 15
+      }
+    },
+    "pandora_gemopolis_hub": {
+      "id": "pandora_gemopolis_hub",
+      "name": "Pandora Production Co., Ltd. (Gemopolis Hub Bangkok)",
+      "name_vi": "Tổ hợp Sản xuất Trang sức Pandora Gemopolis (Bangkok, Thái Lan)",
+      "type": "facility",
+      "country_code": "TH",
+      "country_name": "Thailand",
+      "subdivision": "10",
+      "coordinates": {
+        "latitude": 13.6875,
+        "longitude": 100.7025
+      },
+      "codes": {
+        "un_locode": null,
+        "iata": null,
+        "icao": null,
+        "wpi_id": null,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "pandora gemopolis hub",
+        "pandora gemopolis hub (bangkok)",
+        "pandora gemopolis",
+        "pandora bangkok",
+        "pandora jewelry",
+        "gemopolis industrial estate",
+        "pandora production co. ltd",
+        "dok mai prawet"
+      ],
+      "reference": {
+        "authority": "Industrial Estate Authority of Thailand (IEAT) / Gemopolis Industrial Estate / OSM Dokmai",
+        "benchmark_coordinates": [
+          13.6875,
+          100.7025
+        ],
+        "precision_meters": 5
+      }
+    },
+    "pandora_lamphun_facility": {
+      "id": "pandora_lamphun_facility",
+      "name": "Pandora Production Co., Ltd. (Lamphun Facility PPT2)",
+      "name_vi": "Nhà máy Chế tác Trang sức Pandora Lamphun (KCN Miền Bắc Lamphun)",
+      "type": "facility",
+      "country_code": "TH",
+      "country_name": "Thailand",
+      "subdivision": "51",
+      "coordinates": {
+        "latitude": 18.5985,
+        "longitude": 99.0435
+      },
+      "codes": {
+        "un_locode": null,
+        "iata": null,
+        "icao": null,
+        "wpi_id": null,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "pandora lamphun facility",
+        "pandora lamphun",
+        "pandora ppt2",
+        "lamphun facility",
+        "northern region industrial estate",
+        "mueang lamphun"
+      ],
+      "reference": {
+        "authority": "Industrial Estate Authority of Thailand (IEAT) / Northern Region Industrial Estate (NRIE)",
+        "benchmark_coordinates": [
+          18.5985,
+          99.0435
+        ],
+        "precision_meters": 10
+      }
+    },
+    "toyota_gateway_plant": {
+      "id": "toyota_gateway_plant",
+      "name": "Toyota Motor Thailand (Gateway Plant)",
+      "name_vi": "Nhà máy Lắp ráp Ô tô Toyota Gateway (Chachoengsao, Thái Lan)",
+      "type": "facility",
+      "country_code": "TH",
+      "country_name": "Thailand",
+      "subdivision": "24",
+      "coordinates": {
+        "latitude": 13.5855,
+        "longitude": 101.3712
+      },
+      "codes": {
+        "un_locode": null,
+        "iata": null,
+        "icao": null,
+        "wpi_id": null,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "toyota gateway plant",
+        "toyota gateway plant (chachoengsao)",
+        "toyota gateway",
+        "toyota chachoengsao",
+        "gateway plant",
+        "toyota motor thailand gateway",
+        "gateway city industrial estate",
+        "hua samrong plaeng yao"
+      ],
+      "reference": {
+        "authority": "Toyota Motor Thailand Manufacturing Directory / Gateway City IE Benchmark",
+        "benchmark_coordinates": [
+          13.5855,
+          101.3712
+        ],
+        "precision_meters": 10
+      }
+    },
+    "toyota_samrong_plant": {
+      "id": "toyota_samrong_plant",
+      "name": "Toyota Motor Thailand (Samrong Plant & Headquarters)",
+      "name_vi": "Trụ sở & Nhà máy Toyota Samrong (Samut Prakan, Thái Lan)",
+      "type": "facility",
+      "country_code": "TH",
+      "country_name": "Thailand",
+      "subdivision": "11",
+      "coordinates": {
+        "latitude": 13.636,
+        "longitude": 100.575
+      },
+      "codes": {
+        "un_locode": null,
+        "iata": null,
+        "icao": null,
+        "wpi_id": null,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "toyota samrong plant",
+        "toyota samrong",
+        "toyota samut prakan",
+        "samrong plant",
+        "toyota motor thailand head office",
+        "samrong tai"
+      ],
+      "reference": {
+        "authority": "Toyota Motor Corporation Global Plants Directory / 186/1 Moo 1 Sukhumvit Samrong Tai",
+        "benchmark_coordinates": [
+          13.636,
+          100.575
+        ],
+        "precision_meters": 10
+      }
+    },
+    "honda_ayutthaya_plant": {
+      "id": "honda_ayutthaya_plant",
+      "name": "Honda Automobile & Motorcycle Plant (Rojana Industrial Park, Ayutthaya)",
+      "name_vi": "Nhà máy Ô tô & Xe máy Honda (KCN Rojana, Ayutthaya, Thái Lan)",
+      "type": "facility",
+      "country_code": "TH",
+      "country_name": "Thailand",
+      "subdivision": "14",
+      "coordinates": {
+        "latitude": 14.3388,
+        "longitude": 100.6338
+      },
+      "codes": {
+        "un_locode": null,
+        "iata": null,
+        "icao": null,
+        "wpi_id": null,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "honda automobile & motorcycle plant",
+        "honda ayutthaya plant",
+        "honda rojana",
+        "thai honda manufacturing",
+        "honda thailand plant",
+        "rojana industrial park",
+        "uthai ayutthaya"
+      ],
+      "reference": {
+        "authority": "OpenStreetMap Way 478201294 / Industrial Estate Authority of Thailand Rojana",
+        "benchmark_coordinates": [
+          14.338765,
+          100.633782
+        ],
+        "precision_meters": 10
+      }
+    },
+    "laem_chabang_port": {
+      "id": "laem_chabang_port",
+      "name": "Port of Laem Chabang (RoRo & Container Terminals)",
+      "name_vi": "Cảng biển Quốc tế Laem Chabang (Chonburi, Thái Lan)",
+      "type": "seaport",
+      "country_code": "TH",
+      "country_name": "Thailand",
+      "subdivision": "20",
+      "coordinates": {
+        "latitude": 13.0833,
+        "longitude": 100.8833
+      },
+      "codes": {
+        "un_locode": "THLCH",
+        "iata": null,
+        "icao": null,
+        "wpi_id": 57675,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "laem chabang port",
+        "port of laem chabang",
+        "laem chabang",
+        "cảng laem chabang",
+        "thlch",
+        "laem chabang roro terminal",
+        "chonburi port"
+      ],
+      "reference": {
+        "authority": "NGA World Port Index Pub. 150 #57675 / Port Authority of Thailand (PAT) / UN/LOCODE THLCH",
+        "benchmark_coordinates": [
+          13.083333,
+          100.883333
+        ],
+        "precision_meters": 10
+      }
+    },
+    "suvarnabhumi_airport": {
+      "id": "suvarnabhumi_airport",
+      "name": "Suvarnabhumi International Airport (Bangkok)",
+      "name_vi": "Sân bay Quốc tế Suvarnabhumi (Bangkok, Thái Lan)",
+      "type": "airport",
+      "country_code": "TH",
+      "country_name": "Thailand",
+      "subdivision": "11",
+      "coordinates": {
+        "latitude": 13.6811,
+        "longitude": 100.7473
+      },
+      "codes": {
+        "un_locode": "THBKK",
+        "iata": "BKK",
+        "icao": "VTBS",
+        "wpi_id": null,
+        "ourairports_id": 26555
+      },
+      "aliases": [
+        "suvarnabhumi airport",
+        "suvarnabhumi international airport",
+        "bkk airport",
+        "bkk",
+        "vtbs",
+        "sân bay suvarnabhumi",
+        "bangkok airport",
+        "suvarnabhumi"
+      ],
+      "reference": {
+        "authority": "OurAirports ID 26555 / CAAT AIP Thailand VTBS / IATA BKK",
+        "benchmark_coordinates": [
+          13.681108,
+          100.747283
+        ],
+        "precision_meters": 25
+      }
+    },
+    "south_china_consolidation_hub": {
+      "id": "south_china_consolidation_hub",
+      "name": "South China Consolidation Hub (Shenzhen Longhua / Yantian)",
+      "name_vi": "Trung tâm Gom hàng Nam Trung Quốc (Long Hoa / Diêm Điền, Thâm Quyến)",
+      "type": "facility",
+      "country_code": "CN",
+      "country_name": "China",
+      "subdivision": "GD",
+      "coordinates": {
+        "latitude": 22.65,
+        "longitude": 114.0167
+      },
+      "codes": {
+        "un_locode": null,
+        "iata": null,
+        "icao": null,
+        "wpi_id": null,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "south china consolidation hub",
+        "shenzhen consolidation hub",
+        "foxconn longhua",
+        "longhua hub",
+        "shenzhen longhua",
+        "apple shenzhen hub",
+        "longhua science park"
+      ],
+      "reference": {
+        "authority": "Shenzhen Municipal Bureau of Commerce / OpenStreetMap Node / Foxconn Technology Group",
+        "benchmark_coordinates": [
+          22.65,
+          114.0167
+        ],
+        "precision_meters": 10
+      }
+    },
+    "yantian_port": {
+      "id": "yantian_port",
+      "name": "Port of Yantian (Yantian International Container Terminals)",
+      "name_vi": "Cảng biển Quốc tế Diêm Điền (Yantian, Thâm Quyến)",
+      "type": "seaport",
+      "country_code": "CN",
+      "country_name": "China",
+      "subdivision": "GD",
+      "coordinates": {
+        "latitude": 22.574,
+        "longitude": 114.2749
+      },
+      "codes": {
+        "un_locode": "CNYTN",
+        "iata": null,
+        "icao": null,
+        "wpi_id": 57795,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "yantian port",
+        "port of yantian",
+        "yict",
+        "yantian international container terminals",
+        "cảng diêm điền",
+        "cnytn",
+        "shenzhen port",
+        "yantian"
+      ],
+      "reference": {
+        "authority": "NGA World Port Index Pub. 150 #57795 / UN/CEFACT UN/LOCODE CNYTN / YICT Authority",
+        "benchmark_coordinates": [
+          22.574011,
+          114.274937
+        ],
+        "precision_meters": 10
+      }
+    },
+    "shenzhen_baoan_airport": {
+      "id": "shenzhen_baoan_airport",
+      "name": "Shenzhen Bao'an International Airport",
+      "name_vi": "Sân bay Quốc tế Bảo An Thâm Quyến",
+      "type": "airport",
+      "country_code": "CN",
+      "country_name": "China",
+      "subdivision": "GD",
+      "coordinates": {
+        "latitude": 22.6393,
+        "longitude": 113.8107
+      },
+      "codes": {
+        "un_locode": "CNSZX",
+        "iata": "SZX",
+        "icao": "ZGSZ",
+        "wpi_id": null,
+        "ourairports_id": 27150
+      },
+      "aliases": [
+        "shenzhen baoan airport",
+        "shenzhen bao'an airport",
+        "shenzhen bao'an international airport",
+        "szx airport",
+        "szx",
+        "zgsz",
+        "sân bay bảo an thâm quyến",
+        "shenzhen airport",
+        "baoan airport"
+      ],
+      "reference": {
+        "authority": "OurAirports ID 27150 / CAAC AIP ZGSZ / IATA SZX",
+        "benchmark_coordinates": [
+          22.639258,
+          113.810664
+        ],
+        "precision_meters": 25
+      }
+    },
+    "lenovo_lcfc_hefei_hub": {
+      "id": "lenovo_lcfc_hefei_hub",
+      "name": "Lenovo / LCFC Hefei Manufacturing Hub",
+      "name_vi": "Tổ hợp Sản xuất Máy tính Lenovo / LCFC Hợp Phì (An Huy, Trung Quốc)",
+      "type": "facility",
+      "country_code": "CN",
+      "country_name": "China",
+      "subdivision": "AH",
+      "coordinates": {
+        "latitude": 31.7685,
+        "longitude": 117.1852
+      },
+      "codes": {
+        "un_locode": null,
+        "iata": null,
+        "icao": null,
+        "wpi_id": null,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "lenovo lcfc hefei hub",
+        "lcfc hefei",
+        "lenovo hefei",
+        "lcfc electronics",
+        "hefei manufacturing hub",
+        "lenovo factory hefei",
+        "lcfc"
+      ],
+      "reference": {
+        "authority": "Hefei Economic & Technological Development Area / LCFC Corporate Directory / OpenStreetMap",
+        "benchmark_coordinates": [
+          31.7685,
+          117.1852
+        ],
+        "precision_meters": 10
+      }
+    },
+    "hefei_xinqiao_airport": {
+      "id": "hefei_xinqiao_airport",
+      "name": "Hefei Xinqiao International Airport",
+      "name_vi": "Sân bay Quốc tế Tân Kiều Hợp Phì (An Huy, Trung Quốc)",
+      "type": "airport",
+      "country_code": "CN",
+      "country_name": "China",
+      "subdivision": "AH",
+      "coordinates": {
+        "latitude": 31.9883,
+        "longitude": 116.9678
+      },
+      "codes": {
+        "un_locode": "CNHFE",
+        "iata": "HFE",
+        "icao": "ZSOF",
+        "wpi_id": null,
+        "ourairports_id": 307379
+      },
+      "aliases": [
+        "hefei xinqiao airport",
+        "hefei airport",
+        "xinqiao airport",
+        "hfe airport",
+        "hfe",
+        "zsof",
+        "sân bay hợp phì",
+        "sân bay tân kiều hợp phì"
+      ],
+      "reference": {
+        "authority": "OurAirports ID 307379 / CAAC AIP ZSOF / IATA HFE",
+        "benchmark_coordinates": [
+          31.988328,
+          116.967842
+        ],
+        "precision_meters": 25
+      }
+    },
+    "shanghai_pudong_airport": {
+      "id": "shanghai_pudong_airport",
+      "name": "Shanghai Pudong International Airport",
+      "name_vi": "Sân bay Quốc tế Phố Đông Thượng Hải",
+      "type": "airport",
+      "country_code": "CN",
+      "country_name": "China",
+      "subdivision": "SH",
+      "coordinates": {
+        "latitude": 31.1427,
+        "longitude": 121.8041
+      },
+      "codes": {
+        "un_locode": "CNPVG",
+        "iata": "PVG",
+        "icao": "ZSPD",
+        "wpi_id": null,
+        "ourairports_id": 27159
+      },
+      "aliases": [
+        "shanghai pudong airport",
+        "pudong airport",
+        "pvg airport",
+        "pvg",
+        "zspd",
+        "sân bay phố đông thượng hải",
+        "sân bay pudong",
+        "shanghai airport"
+      ],
+      "reference": {
+        "authority": "OurAirports ID 27159 / CAAC AIP ZSPD / IATA PVG",
+        "benchmark_coordinates": [
+          31.142736,
+          121.804113
+        ],
+        "precision_meters": 25
+      }
+    },
+    "dell_apcc2_penang_hub": {
+      "id": "dell_apcc2_penang_hub",
+      "name": "Dell Asia Pacific Customer Centre 2 (APCC2 Bukit Minyak / Bayan Lepas)",
+      "name_vi": "Tổ hợp Công nghệ Dell APCC2 Bukit Minyak (Penang, Malaysia)",
+      "type": "facility",
+      "country_code": "MY",
+      "country_name": "Malaysia",
+      "subdivision": "07",
+      "coordinates": {
+        "latitude": 5.2862,
+        "longitude": 100.4635
+      },
+      "codes": {
+        "un_locode": null,
+        "iata": null,
+        "icao": null,
+        "wpi_id": null,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "dell apcc2 bukit minyak",
+        "dell bukit minyak",
+        "dell apcc2",
+        "dell penang hub",
+        "dell malaysia",
+        "bayan lepas hub",
+        "bukit minyak industrial park"
+      ],
+      "reference": {
+        "authority": "InvestPenang / Dell Global Business Operations / OpenStreetMap",
+        "benchmark_coordinates": [
+          5.2862,
+          100.4635
+        ],
+        "precision_meters": 10
+      }
+    },
+    "port_klang": {
+      "id": "port_klang",
+      "name": "Port of Port Klang (Northport & Westport Terminals)",
+      "name_vi": "Cảng biển Quốc tế Port Klang (Selangor, Malaysia)",
+      "type": "seaport",
+      "country_code": "MY",
+      "country_name": "Malaysia",
+      "subdivision": "10",
+      "coordinates": {
+        "latitude": 2.9998,
+        "longitude": 101.3928
+      },
+      "codes": {
+        "un_locode": "MYPKG",
+        "iata": null,
+        "icao": null,
+        "wpi_id": 50460,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "port klang",
+        "port of port klang",
+        "pelabuhan klang",
+        "mypkg",
+        "northport klang",
+        "westport klang",
+        "cảng port klang",
+        "klang port"
+      ],
+      "reference": {
+        "authority": "NGA World Port Index Pub. 150 #50460 / Port Klang Authority (PKA) / UN/LOCODE MYPKG",
+        "benchmark_coordinates": [
+          2.9998,
+          101.3928
+        ],
+        "precision_meters": 10
+      }
+    },
+    "penang_port": {
+      "id": "penang_port",
+      "name": "Port of Penang (North Butterworth Container Terminal)",
+      "name_vi": "Cảng biển Penang (Bến Container Bắc Butterworth, Malaysia)",
+      "type": "seaport",
+      "country_code": "MY",
+      "country_name": "Malaysia",
+      "subdivision": "07",
+      "coordinates": {
+        "latitude": 5.4165,
+        "longitude": 100.3665
+      },
+      "codes": {
+        "un_locode": "MYPEN",
+        "iata": null,
+        "icao": null,
+        "wpi_id": 50440,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "penang port",
+        "port of penang",
+        "mypen",
+        "north butterworth container terminal",
+        "nbct",
+        "pelabuhan pulau pinang",
+        "cảng penang",
+        "butterworth port"
+      ],
+      "reference": {
+        "authority": "NGA World Port Index Pub. 150 #50440 / Penang Port Commission / UN/LOCODE MYPEN",
+        "benchmark_coordinates": [
+          5.4165,
+          100.3665
+        ],
+        "precision_meters": 10
+      }
+    },
+    "penang_airport": {
+      "id": "penang_airport",
+      "name": "Penang International Airport (Bayan Lepas)",
+      "name_vi": "Sân bay Quốc tế Penang (Bayan Lepas, Malaysia)",
+      "type": "airport",
+      "country_code": "MY",
+      "country_name": "Malaysia",
+      "subdivision": "07",
+      "coordinates": {
+        "latitude": 5.2971,
+        "longitude": 100.2769
+      },
+      "codes": {
+        "un_locode": "MYPEN",
+        "iata": "PEN",
+        "icao": "WMKP",
+        "wpi_id": null,
+        "ourairports_id": 26647
+      },
+      "aliases": [
+        "penang international airport",
+        "penang airport",
+        "pen airport",
+        "pen",
+        "wmkp",
+        "bayan lepas airport",
+        "sân bay penang"
+      ],
+      "reference": {
+        "authority": "OurAirports ID 26647 / CAAM AIP WMKP / IATA PEN",
+        "benchmark_coordinates": [
+          5.297139,
+          100.276861
+        ],
+        "precision_meters": 25
+      }
+    },
+    "kuala_lumpur_airport": {
+      "id": "kuala_lumpur_airport",
+      "name": "Kuala Lumpur International Airport (KLIA)",
+      "name_vi": "Sân bay Quốc tế Kuala Lumpur (KLIA, Malaysia)",
+      "type": "airport",
+      "country_code": "MY",
+      "country_name": "Malaysia",
+      "subdivision": "10",
+      "coordinates": {
+        "latitude": 2.7456,
+        "longitude": 101.7099
+      },
+      "codes": {
+        "un_locode": "MYKUL",
+        "iata": "KUL",
+        "icao": "WMKK",
+        "wpi_id": null,
+        "ourairports_id": 26649
+      },
+      "aliases": [
+        "kuala lumpur international airport",
+        "kuala lumpur airport",
+        "klia",
+        "kul airport",
+        "kul",
+        "wmkk",
+        "sân bay kuala lumpur",
+        "kl airport"
+      ],
+      "reference": {
+        "authority": "OurAirports ID 26649 / CAAM AIP WMKK / IATA KUL",
+        "benchmark_coordinates": [
+          2.745578,
+          101.709917
+        ],
+        "precision_meters": 25
+      }
+    },
+    "yamaha_motor_iwata_plant": {
+      "id": "yamaha_motor_iwata_plant",
+      "name": "Yamaha Motor Co., Ltd. (Main Headquarters & Iwata Plant)",
+      "name_vi": "Trụ sở Chính & Nhà máy Yamaha Motor Iwata (Shizuoka, Nhật Bản)",
+      "type": "facility",
+      "country_code": "JP",
+      "country_name": "Japan",
+      "subdivision": "22",
+      "coordinates": {
+        "latitude": 34.7228,
+        "longitude": 137.8773
+      },
+      "codes": {
+        "un_locode": null,
+        "iata": null,
+        "icao": null,
+        "wpi_id": null,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "yamaha motor main hq & iwata plant",
+        "yamaha motor iwata",
+        "yamaha iwata plant",
+        "yamaha headquarters",
+        "yamaha motor shizuoka",
+        "yamaha motor co",
+        "iwata plant"
+      ],
+      "reference": {
+        "authority": "Yamaha Motor Co., Ltd. Global Headquarters Directory / Geospatial Information Authority of Japan (GSI)",
+        "benchmark_coordinates": [
+          34.722848,
+          137.877315
+        ],
+        "precision_meters": 10
+      }
+    },
+    "yokohama_port": {
+      "id": "yokohama_port",
+      "name": "Port of Yokohama (Daikoku & Minami-Honmoku RoRo/Container Terminals)",
+      "name_vi": "Cảng biển Quốc tế Yokohama (Kanagawa, Nhật Bản)",
+      "type": "seaport",
+      "country_code": "JP",
+      "country_name": "Japan",
+      "subdivision": "14",
+      "coordinates": {
+        "latitude": 35.4435,
+        "longitude": 139.6644
+      },
+      "codes": {
+        "un_locode": "JPYOK",
+        "iata": null,
+        "icao": null,
+        "wpi_id": 50940,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "yokohama port",
+        "port of yokohama",
+        "jpyok",
+        "cảng yokohama",
+        "daikoku pier",
+        "minami honmoku terminal",
+        "yokohama roro terminal"
+      ],
+      "reference": {
+        "authority": "NGA World Port Index Pub. 150 #50940 / City of Yokohama Port & Harbor Bureau / UN/LOCODE JPYOK",
+        "benchmark_coordinates": [
+          35.4435,
+          139.6644
+        ],
+        "precision_meters": 10
+      }
+    },
+    "tokyo_haneda_airport": {
+      "id": "tokyo_haneda_airport",
+      "name": "Tokyo Haneda International Airport (Tokyo International Airport)",
+      "name_vi": "Sân bay Quốc tế Haneda Tokyo (Nhật Bản)",
+      "type": "airport",
+      "country_code": "JP",
+      "country_name": "Japan",
+      "subdivision": "13",
+      "coordinates": {
+        "latitude": 35.5457,
+        "longitude": 139.7761
+      },
+      "codes": {
+        "un_locode": "JPHND",
+        "iata": "HND",
+        "icao": "RJTT",
+        "wpi_id": null,
+        "ourairports_id": 5530
+      },
+      "aliases": [
+        "tokyo haneda airport",
+        "haneda airport",
+        "haneda",
+        "hnd airport",
+        "hnd",
+        "rjtt",
+        "jphnd",
+        "sân bay haneda",
+        "tokyo international airport"
+      ],
+      "reference": {
+        "authority": "OurAirports ID 5530 / MLIT JCAB AIP RJTT / IATA HND",
+        "benchmark_coordinates": [
+          35.545692,
+          139.776099
+        ],
+        "precision_meters": 25
+      }
+    },
+    "hiep_phuoc_port": {
+      "id": "hiep_phuoc_port",
+      "name": "Port of Hiep Phuoc / Saigon Premier Container Terminal (SPCT)",
+      "name_vi": "Cảng Hiệp Phước / SPCT (Khu bến Chuyên dụng RoRo & Container Ô tô)",
+      "type": "seaport",
+      "country_code": "VN",
+      "country_name": "Vietnam",
+      "subdivision": "SG",
+      "coordinates": {
+        "latitude": 10.6375,
+        "longitude": 106.7642
+      },
+      "codes": {
+        "un_locode": "VNHCM",
+        "iata": null,
+        "icao": null,
+        "wpi_id": 57380,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "hiep phuoc port",
+        "cảng hiệp phước",
+        "spct",
+        "saigon premier container terminal",
+        "tân cảng hiệp phước",
+        "vnhcm",
+        "cảng roro hiệp phước",
+        "hiep phuoc roro terminal",
+        "hiep phuoc / spct",
+        "hiep phuoc",
+        "spct port"
+      ],
+      "reference": {
+        "authority": "Vietnam Seaports Association (VPA) / SPCT Nautical Coordinates 10°38'15\"N 106°45'51\"E / UN/LOCODE VNHCM",
+        "benchmark_coordinates": [
+          10.6375,
+          106.764167
+        ],
+        "precision_meters": 10
+      }
+    },
+    "vn_north_dc": {
+      "id": "vn_north_dc",
+      "name": "Vietnam Northern Distribution Center (VSIP Bac Ninh Hub)",
+      "name_vi": "Trung tâm Phân phối Miền Bắc VN-NORTH-DC (KCN VSIP Bắc Ninh)",
+      "type": "facility",
+      "country_code": "VN",
+      "country_name": "Vietnam",
+      "subdivision": "BN",
+      "coordinates": {
+        "latitude": 21.14,
+        "longitude": 105.95
+      },
+      "codes": {
+        "un_locode": null,
+        "iata": null,
+        "icao": null,
+        "wpi_id": null,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "vn-north-dc",
+        "vn_north_dc",
+        "kho vn-north-dc",
+        "trung tâm phân phối miền bắc",
+        "vsip bac ninh dc",
+        "vsip bac ninh",
+        "bac ninh dc",
+        "hanoi distribution center"
+      ],
+      "reference": {
+        "authority": "VSIP Bac Ninh Logistics Master Plan / Ministry of Planning & Investment (MPI) Industrial Parks Registry",
+        "benchmark_coordinates": [
+          21.14,
+          105.95
+        ],
+        "precision_meters": 10
+      }
+    },
+    "vn_south_dc": {
+      "id": "vn_south_dc",
+      "name": "Vietnam Southern Distribution Center (Song Than Logistics Hub)",
+      "name_vi": "Trung tâm Phân phối Miền Nam VN-SOUTH-DC (ICD Sóng Thần, Bình Dương)",
+      "type": "facility",
+      "country_code": "VN",
+      "country_name": "Vietnam",
+      "subdivision": "BD",
+      "coordinates": {
+        "latitude": 10.9143,
+        "longitude": 106.7295
+      },
+      "codes": {
+        "un_locode": null,
+        "iata": null,
+        "icao": null,
+        "wpi_id": null,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "vn-south-dc",
+        "vn_south_dc",
+        "kho vn-south-dc",
+        "trung tâm phân phối miền nam",
+        "icd song than",
+        "song than logistics",
+        "binh duong dc",
+        "hcmc distribution center"
+      ],
+      "reference": {
+        "authority": "Saigon Newport Corporation (SNP) / ICD Tan Cang Song Than Geodesic Landmark",
+        "benchmark_coordinates": [
+          10.914348,
+          106.729483
+        ],
+        "precision_meters": 10
+      }
+    },
+    "toyota_vn_vehicle_dc": {
+      "id": "toyota_vn_vehicle_dc",
+      "name": "Toyota Vietnam Vehicle DC / Southern PDI Yard (Hiep Phuoc Hub)",
+      "name_vi": "Trung tâm Phân phối & Kiểm định Xe Toyota VN (PDI Yard Hiệp Phước)",
+      "type": "facility",
+      "country_code": "VN",
+      "country_name": "Vietnam",
+      "subdivision": "SG",
+      "coordinates": {
+        "latitude": 10.6385,
+        "longitude": 106.7455
+      },
+      "codes": {
+        "un_locode": null,
+        "iata": null,
+        "icao": null,
+        "wpi_id": null,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "toyota vn vehicle dc",
+        "toyota vn vehicle dc / pdi yard",
+        "toyota pdi yard",
+        "toyota vehicle dc",
+        "kho pdi toyota",
+        "bãi xe pdi toyota hiệp phước",
+        "toyota southern pdi"
+      ],
+      "reference": {
+        "authority": "Hiep Phuoc Automotive Logistics Cluster / Toyota Motor Vietnam Southern Logistics Hub",
+        "benchmark_coordinates": [
+          10.6385,
+          106.7455
+        ],
+        "precision_meters": 10
+      }
+    },
+    "honda_vn_vehicle_dc": {
+      "id": "honda_vn_vehicle_dc",
+      "name": "Honda Vietnam Vehicle DC / PDI Yard (Southern Hub)",
+      "name_vi": "Trung tâm Phân phối Xe Ô tô & Xe máy Honda VN (PDI Yard Miền Nam)",
+      "type": "facility",
+      "country_code": "VN",
+      "country_name": "Vietnam",
+      "subdivision": "SG",
+      "coordinates": {
+        "latitude": 10.642,
+        "longitude": 106.749
+      },
+      "codes": {
+        "un_locode": null,
+        "iata": null,
+        "icao": null,
+        "wpi_id": null,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "honda vn vehicle dc",
+        "honda vn vehicle dc / pdi yard",
+        "honda vehicle dc",
+        "honda pdi yard",
+        "kho xe honda vn",
+        "bãi xe honda hiệp phước"
+      ],
+      "reference": {
+        "authority": "Honda Vietnam Co., Ltd. Supply Chain Logistics Directory / Hiep Phuoc Automotive Hub",
+        "benchmark_coordinates": [
+          10.642,
+          106.749
+        ],
+        "precision_meters": 10
+      }
+    },
+    "vn_north_vehicle_dc": {
+      "id": "vn_north_vehicle_dc",
+      "name": "Vietnam Northern Vehicle Distribution Center (Dinh Vu Automotive Hub)",
+      "name_vi": "Trung tâm Phân phối Phương tiện Miền Bắc (KCN Đình Vũ, Hải Phòng)",
+      "type": "facility",
+      "country_code": "VN",
+      "country_name": "Vietnam",
+      "subdivision": "HP",
+      "coordinates": {
+        "latitude": 20.835,
+        "longitude": 106.785
+      },
+      "codes": {
+        "un_locode": null,
+        "iata": null,
+        "icao": null,
+        "wpi_id": null,
+        "ourairports_id": null
+      },
+      "aliases": [
+        "vn-north vehicle dc",
+        "vn_north_vehicle_dc",
+        "trung tâm phân phối xe miền bắc",
+        "dinh vu vehicle dc",
+        "kho xe đình vũ",
+        "kho xe hải phòng",
+        "yamaha vehicle dc"
+      ],
+      "reference": {
+        "authority": "Hai Phong Economic Zone Authority (HEZA) / Deep C Industrial Zone Logistics Center",
+        "benchmark_coordinates": [
+          20.835,
+          106.785
+        ],
+        "precision_meters": 10
       }
     }
   }
