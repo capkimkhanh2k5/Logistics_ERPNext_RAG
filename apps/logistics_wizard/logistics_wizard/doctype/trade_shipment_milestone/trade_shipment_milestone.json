@@ -1,0 +1,98 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-10-02 20:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "milestone_code",
+  "milestone_name",
+  "status",
+  "column_break_dates",
+  "planned_date",
+  "actual_date",
+  "variance_days",
+  "section_break_notes",
+  "updated_by",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "milestone_code",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Mã mốc / Milestone Code",
+   "options": "\nM01_PO_ISSUED\nM02_CARGO_READY\nM03_RISK_TRANSFER\nM04_ETD\nM05_ETA\nM06_CUSTOMS_REG\nM07_CUSTOMS_CLEAR\nM08_DEM_DET_DEADLINE\nM09_WH_RECEIPT",
+   "reqd": 1
+  },
+  {
+   "fieldname": "milestone_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tên mốc nghiệp vụ / Milestone Name",
+   "reqd": 1
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Trạng thái / Status",
+   "options": "Pending\nIn Progress\nCompleted\nDelayed"
+  },
+  {
+   "fieldname": "column_break_dates",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "planned_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Ngày Kế hoạch / Planned Date"
+  },
+  {
+   "fieldname": "actual_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Ngày Thực tế / Actual Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "variance_days",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Lệch ngày / Variance (+Trễ / -Sớm)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_notes",
+   "fieldtype": "Section Break",
+   "label": "Ghi chú & Người cập nhật"
+  },
+  {
+   "fieldname": "updated_by",
+   "fieldtype": "Link",
+   "label": "Người cập nhật",
+   "options": "User"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Ghi chú hiện trường / Remarks"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-02 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Trade Shipment Milestone",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

@@ -1,0 +1,134 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-10-02 20:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item_code",
+  "item_name",
+  "qty",
+  "uom",
+  "column_break_metrics",
+  "volume_cbm",
+  "gross_weight_kg",
+  "goods_value_vnd",
+  "section_break_allocated",
+  "allocated_freight_vnd",
+  "allocated_other_cost_vnd",
+  "column_break_landed",
+  "total_allocated_cost_vnd",
+  "final_unit_landed_cost_vnd"
+ ],
+ "fields": [
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Mã mặt hàng / Item Code",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "item_code.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tên mặt hàng / Item Name",
+   "read_only": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Số lượng / Qty",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "item_code.stock_uom",
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "label": "ĐVT / UOM",
+   "options": "UOM"
+  },
+  {
+   "fieldname": "column_break_metrics",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "volume_cbm",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Thể tích (CBM)"
+  },
+  {
+   "default": "0",
+   "fieldname": "gross_weight_kg",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Trọng lượng (Gross Weight - KGS)"
+  },
+  {
+   "default": "0",
+   "fieldname": "goods_value_vnd",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Tiền hàng mua gốc (VND)"
+  },
+  {
+   "fieldname": "section_break_allocated",
+   "fieldtype": "Section Break",
+   "label": "Kết quả Phân bổ Chi phí Lô hàng"
+  },
+  {
+   "default": "0",
+   "fieldname": "allocated_freight_vnd",
+   "fieldtype": "Currency",
+   "label": "Cước vận chuyển phân bổ (CBM / Weight)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "allocated_other_cost_vnd",
+   "fieldtype": "Currency",
+   "label": "Thuế & Phí khác phân bổ (Value)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_landed",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_allocated_cost_vnd",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Tổng chi phí phân bổ (VND)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "final_unit_landed_cost_vnd",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Giá vốn 1 đơn vị sau phân bổ (VND)",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-02 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Trade Shipment Item Allocation",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

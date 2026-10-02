@@ -1,0 +1,168 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-10-02 20:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "charge_type",
+  "cost_category",
+  "include_in_valuation",
+  "section_break_budget",
+  "budgeted_currency",
+  "budgeted_amount_cur",
+  "budgeted_fx_rate",
+  "budgeted_amount_vnd",
+  "column_break_actual",
+  "actual_currency",
+  "actual_amount_cur",
+  "actual_fx_rate",
+  "actual_amount_vnd",
+  "section_break_variance",
+  "variance_vnd",
+  "price_variance_vnd",
+  "fx_variance_vnd",
+  "invoice_reference",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "charge_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Loại chi phí / Charge Type",
+   "options": "Charge Type",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "charge_type.cost_category",
+   "fieldname": "cost_category",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nhóm chi phí / Category",
+   "read_only": 1
+  },
+  {
+   "default": "1",
+   "fetch_from": "charge_type.include_in_valuation",
+   "fieldname": "include_in_valuation",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Tính vào giá vốn"
+  },
+  {
+   "fieldname": "section_break_budget",
+   "fieldtype": "Section Break",
+   "label": "Dự toán Ban đầu (Budgeted Cost)"
+  },
+  {
+   "default": "USD",
+   "fieldname": "budgeted_currency",
+   "fieldtype": "Link",
+   "label": "Tiền tệ dự toán",
+   "options": "Currency"
+  },
+  {
+   "default": "0",
+   "fieldname": "budgeted_amount_cur",
+   "fieldtype": "Float",
+   "label": "Số tiền dự toán (Nguyên tệ)"
+  },
+  {
+   "default": "25400",
+   "fieldname": "budgeted_fx_rate",
+   "fieldtype": "Float",
+   "label": "Tỷ giá dự toán"
+  },
+  {
+   "default": "0",
+   "fieldname": "budgeted_amount_vnd",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Dự toán (VND)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_actual",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "USD",
+   "fieldname": "actual_currency",
+   "fieldtype": "Link",
+   "label": "Tiền tệ thực tế",
+   "options": "Currency"
+  },
+  {
+   "default": "0",
+   "fieldname": "actual_amount_cur",
+   "fieldtype": "Float",
+   "label": "Số tiền thực tế (Nguyên tệ)"
+  },
+  {
+   "default": "25450",
+   "fieldname": "actual_fx_rate",
+   "fieldtype": "Float",
+   "label": "Tỷ giá thực tế"
+  },
+  {
+   "default": "0",
+   "fieldname": "actual_amount_vnd",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Thực tế (VND)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_variance",
+   "fieldtype": "Section Break",
+   "label": "Bóc tách Chênh lệch Giá vs Tỷ giá (Variance Analysis)"
+  },
+  {
+   "default": "0",
+   "fieldname": "variance_vnd",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Tổng chênh lệch (VND)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "price_variance_vnd",
+   "fieldtype": "Currency",
+   "label": "Lệch do Đơn giá (Price Variance)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "fx_variance_vnd",
+   "fieldtype": "Currency",
+   "label": "Lệch do Tỷ giá (FX Variance)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "invoice_reference",
+   "fieldtype": "Data",
+   "label": "Số Hóa đơn / Tờ khai đối chiếu"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Ghi chú nguyên nhân chênh lệch"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-02 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Trade Shipment Cost Item",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

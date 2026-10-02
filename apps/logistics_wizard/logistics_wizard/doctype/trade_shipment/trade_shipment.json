@@ -1,0 +1,329 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "naming_series:",
+ "creation": "2026-10-02 20:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "shipment_name",
+  "supplier",
+  "status",
+  "cost_status",
+  "column_break_shipping",
+  "incoterm",
+  "named_place",
+  "transport_mode",
+  "forwarder",
+  "shipping_line",
+  "section_break_routing",
+  "master_bl",
+  "house_bl",
+  "origin_port",
+  "column_break_pod",
+  "destination_port",
+  "customs_declaration_no",
+  "section_break_cost_summary",
+  "planned_currency",
+  "planned_exchange_rate",
+  "total_budgeted_cost",
+  "column_break_actual_cost",
+  "total_actual_cost",
+  "cost_variance_amount",
+  "cost_variance_pct",
+  "section_break_milestones",
+  "milestones",
+  "section_break_containers",
+  "containers",
+  "section_break_costs",
+  "cost_items",
+  "section_break_alloc",
+  "item_allocations"
+ ],
+ "fields": [
+  {
+   "default": "TS-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Mã Lô hàng / Series",
+   "no_copy": 1,
+   "options": "TS-.YYYY.-.#####",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "shipment_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tên gợi nhớ Lô hàng / Shipment Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Nhà cung cấp / Supplier",
+   "options": "Supplier",
+   "reqd": 1
+  },
+  {
+   "default": "Planning",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Trạng thái hành trình / Status",
+   "options": "Planning\nCargo Ready\nIn Transit\nCustoms Clearance\nCompleted\nCancelled",
+   "reqd": 1
+  },
+  {
+   "default": "Open",
+   "fieldname": "cost_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Trạng thái quyết toán / Cost Status",
+   "options": "Open\nPending Review\nClosed"
+  },
+  {
+   "fieldname": "column_break_shipping",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "incoterm",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Điều kiện Incoterms",
+   "options": "Incoterm",
+   "reqd": 1
+  },
+  {
+   "fieldname": "named_place",
+   "fieldtype": "Data",
+   "label": "Địa điểm chỉ định Incoterm"
+  },
+  {
+   "default": "Ocean FCL",
+   "fieldname": "transport_mode",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Phương thức vận tải",
+   "options": "Ocean FCL\nOcean LCL\nAir Freight\nRoad",
+   "reqd": 1
+  },
+  {
+   "fieldname": "forwarder",
+   "fieldtype": "Link",
+   "label": "Đại lý Forwarder",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "shipping_line",
+   "fieldtype": "Link",
+   "label": "Hãng tàu / Carrier",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "section_break_routing",
+   "fieldtype": "Section Break",
+   "label": "Hành trình & Vận đơn / Routing & B/L"
+  },
+  {
+   "fieldname": "master_bl",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Số Master B/L (Hãng tàu)"
+  },
+  {
+   "fieldname": "house_bl",
+   "fieldtype": "Data",
+   "label": "Số House B/L (Forwarder)"
+  },
+  {
+   "fieldname": "origin_port",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Cảng đi / Port of Loading (POL)"
+  },
+  {
+   "fieldname": "column_break_pod",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "destination_port",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Cảng đến / Port of Discharge (POD)"
+  },
+  {
+   "fieldname": "customs_declaration_no",
+   "fieldtype": "Data",
+   "label": "Số Tờ khai Hải quan liên kết"
+  },
+  {
+   "fieldname": "section_break_cost_summary",
+   "fieldtype": "Section Break",
+   "label": "Tổng hợp Ngân sách & Quyết toán Chi phí (Cost Variance Summary)"
+  },
+  {
+   "default": "USD",
+   "fieldname": "planned_currency",
+   "fieldtype": "Link",
+   "label": "Tiền tệ dự toán",
+   "options": "Currency"
+  },
+  {
+   "default": "25400",
+   "fieldname": "planned_exchange_rate",
+   "fieldtype": "Float",
+   "label": "Tỷ giá dự toán ban đầu"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_budgeted_cost",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Tổng Chi phí Dự toán (VND)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_actual_cost",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_actual_cost",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Tổng Chi phí Thực tế (VND)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "cost_variance_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Chênh lệch Ngân sách (VND)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "cost_variance_pct",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Tỷ lệ vượt ngân sách (%)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_milestones",
+   "fieldtype": "Section Break",
+   "label": "Tiến độ 9 Mốc Kiểm Soát Vòng Đời Lô Hàng (Milestones)"
+  },
+  {
+   "fieldname": "milestones",
+   "fieldtype": "Table",
+   "label": "Danh sách 9 Mốc tiến độ",
+   "options": "Trade Shipment Milestone"
+  },
+  {
+   "fieldname": "section_break_containers",
+   "fieldtype": "Section Break",
+   "label": "Danh sách Vỏ Container & Hạn Free-time (Containers)"
+  },
+  {
+   "fieldname": "containers",
+   "fieldtype": "Table",
+   "label": "Danh sách Container",
+   "options": "Trade Shipment Container"
+  },
+  {
+   "fieldname": "section_break_costs",
+   "fieldtype": "Section Break",
+   "label": "Bảng Chi phí Dự toán vs Thực tế (Cost Items)"
+  },
+  {
+   "fieldname": "cost_items",
+   "fieldtype": "Table",
+   "label": "Chi tiết các khoản phí",
+   "options": "Trade Shipment Cost Item"
+  },
+  {
+   "fieldname": "section_break_alloc",
+   "fieldtype": "Section Break",
+   "label": "Bảng Phân bổ Mặt hàng & Giá vốn (Item Allocations)"
+  },
+  {
+   "fieldname": "item_allocations",
+   "fieldtype": "Table",
+   "label": "Danh sách phân bổ mặt hàng",
+   "options": "Trade Shipment Item Allocation"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-02 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Trade Shipment",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Purchase Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 0,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 0,
+   "write": 0
+  }
+ ],
+ "quick_entry": 1,
+ "search_fields": "shipment_name,supplier,master_bl,customs_declaration_no",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

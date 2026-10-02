@@ -5,15 +5,24 @@ import json
 import os
 import frappe
 
-def install_phase1_doctypes():
-    print("=== [BẮT ĐẦU CÀI ĐẶT DOCTYPES GIAI ĐOẠN 1] ===")
+def install_all_doctypes():
+    print("=== [BẮT ĐẦU CÀI ĐẶT DOCTYPES GIAI ĐOẠN 1 & 2] ===")
 
     doctype_files = [
-        # (dt_name, folder_name, file_name)
+        # Giai đoạn 1
         ("HS Preferential Rate", "hs_preferential_rate", "hs_preferential_rate.json"),
         ("Charge Type", "charge_type", "charge_type.json"),
         ("HS Tariff Rate", "hs_tariff_rate", "hs_tariff_rate.json"),
-        ("Customs Exchange Rate", "customs_exchange_rate", "customs_exchange_rate.json")
+        ("Customs Exchange Rate", "customs_exchange_rate", "customs_exchange_rate.json"),
+
+        # Giai đoạn 2 - Child Tables trước
+        ("Trade Shipment Milestone", "trade_shipment_milestone", "trade_shipment_milestone.json"),
+        ("Trade Shipment Container", "trade_shipment_container", "trade_shipment_container.json"),
+        ("Trade Shipment Cost Item", "trade_shipment_cost_item", "trade_shipment_cost_item.json"),
+        ("Trade Shipment Item Allocation", "trade_shipment_item_allocation", "trade_shipment_item_allocation.json"),
+
+        # Giai đoạn 2 - Master DocType sau
+        ("Trade Shipment", "trade_shipment", "trade_shipment.json")
     ]
 
     base_path = frappe.get_app_path("logistics_wizard")
@@ -29,10 +38,12 @@ def install_phase1_doctypes():
         if frappe.db.exists("DocType", dt_name):
             print(f"  * Cập nhật DocType hiện có: {dt_name}")
             doc = frappe.get_doc("DocType", dt_name)
-            doc.fields = []
-            for k, v in dt_data.items():
-                if k not in ["name", "doctype"]:
-                    setattr(doc, k, v)
+            doc.set("fields", [])
+            for field in dt_data.get("fields", []):
+                doc.append("fields", field)
+            for k in ["field_order", "search_fields", "sort_field", "sort_order", "track_changes"]:
+                if k in dt_data:
+                    setattr(doc, k, dt_data[k])
             doc.save(ignore_permissions=True)
         else:
             print(f"  + Tạo mới DocType: {dt_name}")
@@ -44,4 +55,4 @@ def install_phase1_doctypes():
     print("=== [HOÀN TẤT CÀI ĐẶT VÀ ĐỒNG BỘ DOCTYPES] ===")
 
 if __name__ == "__main__":
-    install_phase1_doctypes()
+    install_all_doctypes()

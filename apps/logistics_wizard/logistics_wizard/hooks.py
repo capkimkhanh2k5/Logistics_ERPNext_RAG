@@ -23,7 +23,8 @@ doctype_js = {
     "Shipment Tracking": "public/js/shipment_tracking.js",
     "Charge Type": "doctype/charge_type/charge_type.js",
     "HS Tariff Rate": "doctype/hs_tariff_rate/hs_tariff_rate.js",
-    "Customs Exchange Rate": "doctype/customs_exchange_rate/customs_exchange_rate.js"
+    "Customs Exchange Rate": "doctype/customs_exchange_rate/customs_exchange_rate.js",
+    "Trade Shipment": "doctype/trade_shipment/trade_shipment.js"
 }
 
 doc_events = {
@@ -41,6 +42,9 @@ doc_events = {
     },
     "Customs Exchange Rate": {
         "validate": "logistics_wizard.doctype.customs_exchange_rate.customs_exchange_rate.validate_customs_exchange_rate"
+    },
+    "Trade Shipment": {
+        "validate": "logistics_wizard.doctype.trade_shipment.trade_shipment.validate_trade_shipment"
     }
 }
 

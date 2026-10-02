@@ -1,0 +1,122 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-10-02 20:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "container_no",
+  "container_type",
+  "seal_no",
+  "status",
+  "column_break_specs",
+  "gross_weight_kg",
+  "volume_cbm",
+  "section_break_freetime",
+  "demurrage_free_days",
+  "demurrage_deadline",
+  "column_break_det",
+  "detention_free_days",
+  "empty_return_deadline",
+  "empty_returned_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "container_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Số Container / Cont No (4 chữ + 7 số)",
+   "reqd": 1
+  },
+  {
+   "default": "40ft HC",
+   "fieldname": "container_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Loại Container",
+   "options": "20ft GP\n40ft GP\n40ft HC\n20ft RF (Lạnh)\n40ft RF (Lạnh)\nFlat Rack",
+   "reqd": 1
+  },
+  {
+   "fieldname": "seal_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Số Niêm chì / Seal No"
+  },
+  {
+   "default": "On Vessel",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Trạng thái Cont",
+   "options": "Loaded at Origin\nOn Vessel\nDischarged at Port\nTrucking\nAt Warehouse\nEmpty Returned"
+  },
+  {
+   "fieldname": "column_break_specs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "gross_weight_kg",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Trọng lượng cả vỏ (Gross Weight - KGS)"
+  },
+  {
+   "fieldname": "volume_cbm",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Thể tích (CBM)"
+  },
+  {
+   "fieldname": "section_break_freetime",
+   "fieldtype": "Section Break",
+   "label": "Quản trị Hạn Free-time & Chặn Phạt Bãi (Demurrage / Detention)"
+  },
+  {
+   "default": "7",
+   "fieldname": "demurrage_free_days",
+   "fieldtype": "Int",
+   "label": "Số ngày miễn phí lưu bãi (DEM Free Days)"
+  },
+  {
+   "fieldname": "demurrage_deadline",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Hạn chót lưu bãi (DEM Deadline)"
+  },
+  {
+   "fieldname": "column_break_det",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "14",
+   "fieldname": "detention_free_days",
+   "fieldtype": "Int",
+   "label": "Số ngày miễn phí lưu cont (DET Free Days)"
+  },
+  {
+   "fieldname": "empty_return_deadline",
+   "fieldtype": "Date",
+   "label": "Hạn chót trả vỏ rỗng (DET Deadline)"
+  },
+  {
+   "fieldname": "empty_returned_date",
+   "fieldtype": "Date",
+   "label": "Ngày thực tế trả vỏ rỗng"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-02 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Trade Shipment Container",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
