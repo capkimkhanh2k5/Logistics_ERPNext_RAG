@@ -123,6 +123,34 @@ def seed_shipment():
         doc.append("milestones", {"milestone_code": "M08_DEM_DET_DEADLINE", "milestone_name": "Hạn chót miễn phí lưu bãi/cont (Free-time Deadline)", "planned_date": add_days(curr_today, 15), "status": "Pending"})
         doc.append("milestones", {"milestone_code": "M09_WH_RECEIPT", "milestone_name": "Nhập kho hoàn tất (Warehouse Receipt)", "planned_date": add_days(curr_today, 12), "status": "Pending"})
 
+        # 4. Bảng phân bổ mặt hàng & giá vốn
+        doc.append("item_allocations", {
+            "item_code": "IPHONE-16-PROMAX",
+            "item_name": "Apple iPhone 16 Pro Max 256GB Desert Titanium",
+            "qty": 800.0,
+            "uom": "Nos",
+            "volume_cbm": 40.0,
+            "gross_weight_kg": 14000.0,
+            "goods_value_vnd": 20360000000.0,
+            "allocated_freight_vnd": 57008000.0,
+            "allocated_other_cost_vnd": 14000000.0,
+            "total_allocated_cost_vnd": 71008000.0,
+            "final_unit_landed_cost_vnd": 25538760.0
+        })
+        doc.append("item_allocations", {
+            "item_code": "AIRPODS-PRO-2",
+            "item_name": "Apple AirPods Pro 2 MagSafe USB-C (2nd Gen)",
+            "qty": 1000.0,
+            "uom": "Nos",
+            "volume_cbm": 18.5,
+            "gross_weight_kg": 4500.0,
+            "goods_value_vnd": 5090000000.0,
+            "allocated_freight_vnd": 24432000.0,
+            "allocated_other_cost_vnd": 6000000.0,
+            "total_allocated_cost_vnd": 30432000.0,
+            "final_unit_landed_cost_vnd": 5120432.0
+        })
+
         doc.insert(ignore_permissions=True)
         frappe.db.commit()
         print(f"  + Tạo thành công Lô hàng mẫu: {doc.name} - {shipment_title}")
@@ -130,7 +158,40 @@ def seed_shipment():
         print(f"    • Tổng thực tế: {doc.total_actual_cost:,.0f} VND")
         print(f"    • Chênh lệch: +{doc.cost_variance_amount:,.0f} VND ({doc.cost_variance_pct}%)")
     else:
-        print(f"  * Lô hàng đã tồn tại: {existing}")
+        # Cập nhật thêm bảng phân bổ vào lô hàng hiện có
+        doc = frappe.get_doc("Trade Shipment", existing)
+        if not doc.item_allocations:
+            doc.append("item_allocations", {
+                "item_code": "IPHONE-16-PROMAX",
+                "item_name": "Apple iPhone 16 Pro Max 256GB Desert Titanium",
+                "qty": 800.0,
+                "uom": "Nos",
+                "volume_cbm": 40.0,
+                "gross_weight_kg": 14000.0,
+                "goods_value_vnd": 20360000000.0,
+                "allocated_freight_vnd": 57008000.0,
+                "allocated_other_cost_vnd": 14000000.0,
+                "total_allocated_cost_vnd": 71008000.0,
+                "final_unit_landed_cost_vnd": 25538760.0
+            })
+            doc.append("item_allocations", {
+                "item_code": "AIRPODS-PRO-2",
+                "item_name": "Apple AirPods Pro 2 MagSafe USB-C (2nd Gen)",
+                "qty": 1000.0,
+                "uom": "Nos",
+                "volume_cbm": 18.5,
+                "gross_weight_kg": 4500.0,
+                "goods_value_vnd": 5090000000.0,
+                "allocated_freight_vnd": 24432000.0,
+                "allocated_other_cost_vnd": 6000000.0,
+                "total_allocated_cost_vnd": 30432000.0,
+                "final_unit_landed_cost_vnd": 5120432.0
+            })
+            doc.save(ignore_permissions=True)
+            frappe.db.commit()
+            print(f"  + Đã cập nhật Bảng Phân Bổ Mặt Hàng vào lô {existing} thành công!")
+        else:
+            print(f"  * Lô hàng đã tồn tại và đã có phân bổ mặt hàng: {existing}")
 
 def ensure_suppliers():
     """Tạo nhanh nhà cung cấp và hãng tàu nếu chưa có"""
