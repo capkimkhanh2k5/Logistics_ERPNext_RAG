@@ -19,36 +19,34 @@
     "scope": "HS_Index/HS_2022_SCOPE_INDEX_VI_FINAL.json",
     "tt31_section_xvi_nodes": "TT31/Section-XVI/SECTION_XVI_GRAPH_STRUCTURAL_NODES.jsonl",
     "tt31_section_xvi_edges": "TT31/Section-XVI/SECTION_XVI_GRAPH_EDGES.jsonl",
-    "tt31_assembly_annotations": "TT31/Section-XVII/supporting/SECTION_XVII_ENRICHED_CATALOG.json"
+    "tt31_pdf_graph": "TT31/PDF_SOURCE_GRAPH.json",
+    "pdf_provenance": "PDF_SOURCE_PROVENANCE.json",
+    "tt31_pdf_text_corrections": "TT31/PDF_SOURCE_TEXT_CORRECTIONS.json"
   },
   "tariffs": [
     {
       "records": "tt31_section_xvi",
       "master": "tt31_section_xvi_master",
       "nodes": "tt31_section_xvi_nodes",
-      "edges": "tt31_section_xvi_edges"
+      "edges": "tt31_section_xvi_edges",
+      "source_pdf": "data/raw/TT_31-Section-XVI.pdf",
+      "pdf_graph": "tt31_pdf_graph"
     },
     {
       "records": "tt31_section_xiv",
       "master": "tt31_section_xiv_master",
       "nodes": "tt31_section_xiv_nodes",
-      "edges": "tt31_section_xiv_edges"
+      "edges": "tt31_section_xiv_edges",
+      "source_pdf": "data/raw/TT31-Section-XIV.pdf",
+      "pdf_graph": "tt31_pdf_graph"
     },
     {
       "records": "tt31_section_xvii",
       "master": "tt31_section_xvii_master",
       "nodes": "tt31_section_xvii_master",
       "edges": "tt31_section_xvii_edges",
-      "annotations": {
-        "file": "tt31_assembly_annotations",
-        "fields": {
-          "assembly_form": "Dạng lắp ráp theo nguồn"
-        },
-        "omit_values": [
-          "NOT_APPLICABLE"
-        ],
-        "source_document": "TT31-Section-XVII.pdf"
-      }
+      "source_pdf": "data/raw/TT31-Section-XVII.pdf",
+      "pdf_graph": "tt31_pdf_graph"
     }
   ]
 }

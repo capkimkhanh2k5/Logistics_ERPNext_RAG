@@ -18,7 +18,7 @@ from rag.data import ROOT, digest, read  # noqa: E402
 from rag.evaluation import query_for  # noqa: E402
 from rag.experiments import build_eval_groups  # noqa: E402
 
-DEFAULT_OUTPUT = ROOT / "data/verified/hs/dev_test"
+DEFAULT_OUTPUT = ROOT / "data/verified/hs"
 ARCHIVE = ROOT / "artifacts/experiments/run_shared_dev_v3/legacy_data/archive_manifest.json"
 DEFAULT_SEED = 20261001
 N_FOLDS = 5
@@ -214,6 +214,14 @@ def export_split(
             for name in exports
         },
     }
+    frozen_path = output_dir / "manifest.json"
+    if frozen_path.exists() and not replace:
+        frozen = read(frozen_path)
+        comparison = {k: v for k, v in manifest.items() if k != "split_code_sha256"}
+        original = {k: v for k, v in frozen.items() if k != "split_code_sha256"}
+        if comparison == original:
+            # Keep the creator's code fingerprints when verifying an unchanged frozen split.
+            manifest = frozen
     payloads["manifest.json"] = json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
     for name, text in payloads.items():
         path = output_dir / name
@@ -233,7 +241,7 @@ def main() -> None:
     parser.add_argument("--replace", action="store_true")
     args = parser.parse_args()
     for dataset in ("hs", "qa") if args.dataset == "all" else (args.dataset,):
-        output = args.output_dir or ROOT / f"data/verified/{dataset}/dev_test"
+        output = args.output_dir or ROOT / f"data/verified/{dataset}"
         manifest = export_split(output, args.seed, dataset, args.replace)
         print(
             json.dumps(

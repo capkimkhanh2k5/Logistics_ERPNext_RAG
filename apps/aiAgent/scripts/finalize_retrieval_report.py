@@ -75,8 +75,6 @@ def main() -> None:
         for split in ("dev", "test")
     }
     paired = paired_cluster_interval(cases, manifest, predictions["B0"], predictions[production])
-    old_metrics_path = ROOT / "artifacts/experiments/run_hs_grouped_cv_v1/M5_metrics.json"
-    old_metrics = read(old_metrics_path) if old_metrics_path.exists() else None
     previous_folder = ROOT / "artifacts/experiments/run_generic_graph_v2_final"
     previous_metrics = {
         m: read(previous_folder / f"{m}_metrics.json")
@@ -96,7 +94,6 @@ def main() -> None:
         "production_splits": splits,
         "failure_stages": dict(stages),
         "paired": paired,
-        "historical_M5_reference": old_metrics,
         "previous_v2_diagnostic": previous_metrics,
         "verification": verification,
         "cleanup": cleanup,
@@ -229,26 +226,6 @@ def main() -> None:
                 "",
                 f"Ở lượt trước, thêm Notes vào reranker: Hit@1 {b1['hit@1']:.1%} → {b2['hit@1']:.1%}, R@5 {b1['recall@5']:.1%} → {b2['recall@5']:.1%}. Vì vậy B1 được chọn từ regression đã xem; Notes được giữ riêng sau xếp hạng. Chưa suy ra rằng mọi cách dùng Notes đều kém hoặc B2 hiện tại đã được đo đủ.",
             ]
-    if old_metrics:
-        lines += [
-            "",
-            "### Tham chiếu M5 cũ → B1 hiện tại",
-            "",
-            "Cùng bộ ca/query đã làm sạch; source views và policy khác nhau. Đây là tham chiếu lịch sử, không phải ablation chỉ thay một thành phần. Số M5 lấy từ artifact hiện có, có thể khác báo cáo đã dán trước đó.",
-            "",
-            "| Phạm vi | M5 Hit@1 | B1 Hit@1 | M5 R@5 | B1 R@5 |",
-            "|---|---:|---:|---:|---:|",
-        ]
-        for scope in ("XIV", "XVI", "XVII", "ALL"):
-            before = old_metrics[scope]
-            after = (
-                all_metrics[production]["ALL"]
-                if scope == "ALL"
-                else all_metrics[production]["sections"][scope]
-            )
-            lines.append(
-                f"| {scope} | {before['hit@1']:.1%} | {after['hit@1']:.1%} | {before['recall@5']:.1%} | {after['recall@5']:.1%} |"
-            )
     lines += [
         "",
         "CI mô tả tính ổn định có điều kiện trên bộ hồi quy; không chứng minh tổng quát hóa trên một miền chưa đo.",

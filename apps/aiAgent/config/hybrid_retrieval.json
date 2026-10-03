@@ -1,5 +1,5 @@
 {
-  "version": "generic-graph-v2-budget",
+  "version": "pdf-source-graph-v4-dev-selected",
   "mode": "full_hybrid",
   "weights": {
     "dense": 0.35,
@@ -11,8 +11,8 @@
   "rrf_k": 60,
   "candidate_pool": 100,
   "reranker": "cross_encoder",
-  "rerank_pool": 40,
-  "rank_weight": 0.85,
+  "rerank_pool": 60,
+  "rank_weight": 1.0,
   "graph_context_weight": 0.25,
   "context_char_budget": 5000,
   "note_char_budget": 1500,
@@ -20,5 +20,11 @@
   "top_k": 10,
   "default_method": "B1",
   "candidate_allocation": "WEIGHTED_CHANNEL_BUDGET_IN_EVERY_PREFIX",
-  "selection_scope": "B1_DEFAULT_FROM_PREVIOUSLY_SEEN_V2_REGRESSION; NO_CHAPTER_TUNING"
+  "selection_scope": "ONE_SHARED_POLICY_SELECTED_ON_752_DEV_CASES_TEST_NOT_USED",
+  "graph_dense_weight": 0.5,
+  "reranker_model": "BAAI/bge-reranker-v2-m3",
+  "reranker_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+  "reranker_backend": "cross_encoder",
+  "reranker_batch_size": 4,
+  "context_format": "plain"
 }

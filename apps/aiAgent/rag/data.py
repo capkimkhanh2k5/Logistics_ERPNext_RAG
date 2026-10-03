@@ -6,6 +6,7 @@ import re
 from collections import Counter
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import jsonschema
 import yaml
@@ -13,7 +14,6 @@ import yaml
 from rag.sources import (
     canonical_edge,
     canonical_tariff,
-    context_scope_edges,
     first,
     source_manifest,
     source_path,
@@ -39,7 +39,12 @@ def read(path: Path) -> Any:
 
 def write_json(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n")
+    temporary = path.with_name(f".{path.name}.{uuid4().hex}.tmp")
+    try:
+        temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n")
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def config() -> dict:
@@ -64,6 +69,8 @@ def source_files() -> dict:
 def audit() -> dict:
     data = source_files()
     registered = source_manifest(ROOT)
+    repairs = {r["id"]: r for r in data.get("tt31_pdf_text_corrections", {}).get("records", [])}
+    verified_repairs = set()
     validator = jsonschema.Draft202012Validator(data["tt31_unified_rag_schema"])
     taxonomy = {r["chapter_code"]: r["section_code"] for r in data["scope"]["records"]}
     quality, codes = {}, set()
@@ -72,11 +79,21 @@ def audit() -> dict:
     graph_edges = 0
     for source in registered["tariffs"]:
         records = data[source["records"]]
+        masters = {first(r, "id", "record_id"): r for r in data.get(source.get("master"), [])}
         ids = {r["id"] for r in records}
         if len(ids) != len(records):
             raise ValueError("Duplicate tariff source IDs")
         for r in records:
             validator.validate(r)
+            repair = repairs.get("tt31:" + r["id"])
+            if repair:
+                canonical = canonical_tariff(r, masters.get(r["id"]))
+                if canonical["source_text"] != repair["corrected_source_text"]:
+                    raise ValueError(f"PDF source text repair drifted: {r['id']}")
+                pdf = ROOT / "data/raw" / repair["locator"]["document"]
+                if hashlib.sha256(pdf.read_bytes()).hexdigest() != repair["locator"]["sha256"]:
+                    raise ValueError(f"PDF repair authority changed: {r['id']}")
+                verified_repairs.add(repair["id"])
             md = r["metadata"]
             if md.get("chapter") and taxonomy.get(md["chapter"]) != md["section"]:
                 raise ValueError(f"Source Section/Chapter mismatch: {r['id']}")
@@ -100,6 +117,8 @@ def audit() -> dict:
         }
     if broken:
         raise ValueError("Broken source graph endpoints")
+    if verified_repairs != set(repairs):
+        raise ValueError("A reviewed PDF source repair has no registered record")
     for key, id_field, text_field in [("gir", "id", "text_vi"), ("tt85", "chunk_id", "text")]:
         rows = data[key]
         if len({r[id_field] for r in rows}) != len(rows) or any(
@@ -111,13 +130,10 @@ def audit() -> dict:
             "duplicate_wording": len(rows) - len({r[text_field] for r in rows}),
             "short_ids": [r[id_field] for r in rows if len(r[text_field]) < 40],
         }
-    gold = [r for path in sorted((GOLD / "hs/dev_test").glob("*.jsonl")) for r in read(path)]
-    raw = ROOT / "data/raw/ThongTu_85-2026_TT-BTC.docx"
-    hash_matches = (
-        hashlib.sha256(raw.read_bytes()).hexdigest() == data["tt85_metadata"]["source_sha256"]
-    )
-    if not hash_matches:
-        raise ValueError("TT85 source hash mismatch")
+    gold = [r for path in sorted((GOLD / "hs").glob("*.jsonl")) for r in read(path)]
+    for relative, expected in data["pdf_provenance"]["pdf_hashes"].items():
+        if hashlib.sha256(source_path(ROOT, relative).read_bytes()).hexdigest() != expected:
+            raise ValueError(f"Authoritative PDF source hash mismatch: {relative}")
     return {
         "quality": quality,
         "scope_count": len(taxonomy),
@@ -127,8 +143,9 @@ def audit() -> dict:
         "gold_count": len(gold),
         "unique_gold_codes": len({g["expected_hs_8"] for g in gold}),
         "gold_missing": [r["record_id"] for r in gold if r["expected_hs_8"] not in codes],
-        "tt85_source_hash_matches": hash_matches,
-        "legal_verification": "LOCAL_METADATA_ONLY",
+        "tt85_source_hash_matches": True,
+        "legal_verification": "PDF_HASH_BOUND_WITH_TEXT_COMPARISON_AND_OCR_REVIEW_LIMITATIONS",
+        "verified_pdf_text_repairs": len(verified_repairs),
         "source_hashes": {
             path: hashlib.sha256(source_path(NORMALIZED, path).read_bytes()).hexdigest()
             for path in registered["files"].values()
@@ -177,49 +194,19 @@ def tariff_bundle(source: dict, data: dict) -> tuple[list[dict], list[dict], lis
                         },
                     }
                 )
-    edges.extend(context_scope_edges(rows, masters))
-    annotations = source.get("annotations")
-    if annotations:
-        by_code = {r["code"]: r for r in rows if r["code"]}
-        for code, info in data[annotations["file"]].items():
-            candidate_row = by_code.get(code)
-            if candidate_row is None:
-                raise ValueError(f"Annotation has no registered source code: {code}")
-            row = candidate_row
-            parts = [
-                f"{label}: {info[field]}"
-                for field, label in annotations["fields"].items()
-                if info.get(field) and info[field] not in annotations.get("omit_values", [])
-            ]
-            if not parts:
-                continue
-            nid = "tt31:SOURCE_ANNOTATION_" + digest([annotations["file"], code])[:20]
-            locator = {
-                "source_key": annotations["file"],
-                "source_code": code,
-                "document": annotations["source_document"],
-                "page": info.get("page"),
-                "basis": "REGISTERED_SOURCE_ANNOTATION",
-            }
-            nodes[nid] = {
-                "id": nid,
-                "metadata": {
-                    "role": "context",
-                    "section": row["section"],
-                    "chapter": row["chapter"],
-                    "source_text": "\n".join(parts),
-                    "locator": locator,
-                    "annotation": info,
-                },
-            }
-            edges.append(
-                {
-                    "source": nid,
-                    "target": row["id"],
-                    "relation": "CONTEXT_FOR",
-                    "metadata": {"basis": "REGISTERED_SOURCE_ANNOTATION", "locator": locator},
-                }
-            )
+    if source.get("pdf_graph"):
+        graph = data[source["pdf_graph"]]
+        section = rows[0]["section"]
+        for relative, expected in graph["pdf_hashes"].items():
+            path = source_path(ROOT, relative)
+            if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+                raise ValueError(f"Authoritative PDF graph source changed: {relative}")
+        # PDF edges replace legacy scope inference and manually enriched annotations.
+        edges = [e for e in edges if e["relation"] not in {"CONTEXT_FOR", "CONTEXT_WITHIN"}]
+        for node in graph["nodes"]:
+            if node["metadata"]["section"] == section:
+                nodes[node["id"]] = node
+        edges.extend(e for e in graph["edges"] if e["metadata"]["section"] == section)
     unique: dict[tuple, dict] = {}
     for e in edges:
         key = (e["source"], e["relation"], e["target"])
@@ -334,7 +321,7 @@ def build_corpus() -> dict:
                 "unit_level": r["unit_level"],
                 "unit_label": r["unit_label"],
                 "context_source_ids": ids,
-                "file": "data/raw/ThongTu_85-2026_TT-BTC.docx",
+                "file": "data/raw/85-btc.signed.pdf",
             },
             effective_from=r["effective_from"],
             effective_to=None,
@@ -372,6 +359,14 @@ def build_corpus() -> dict:
         "legal_clause",
     }
     for row in rows:
+        pdf_proof = data["pdf_provenance"]["records"].get(row["id"])
+        if pdf_proof:
+            row["locator"] = {
+                **row["locator"],
+                **pdf_proof,
+                "legacy_normalization_locator": row["locator"],
+            }
+            row["source"] = pdf_proof
         row["input_hash"] = digest(row["embedding_text"])
         md = row["metadata"]
         dataset = row["dataset"]
@@ -512,7 +507,7 @@ def build_corpus() -> dict:
         "strategy": cfg["chunk_strategy"],
         "source_hashes": report["source_hashes"],
         "source_manifest_hash": digest(registered),
-        "graph_version": "source-context-v2",
+        "graph_version": "pdf-source-context-v4",
         "count": len(rows),
         "roles": dict(Counter(r["role"] for r in rows)),
         "namespaces": dict(Counter(r["namespace"] for r in rows)),

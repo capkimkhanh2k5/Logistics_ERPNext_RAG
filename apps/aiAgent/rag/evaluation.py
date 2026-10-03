@@ -111,7 +111,7 @@ def discover_gold(partitions: tuple[str, ...] = ("dev", "test")) -> tuple[list[d
         ]
     }
     for partition in partitions:
-        path = ROOT / f"data/verified/hs/dev_test/HS_RAG_{partition.upper()}.jsonl"
+        path = ROOT / f"data/verified/hs/HS_RAG_{partition.upper()}.jsonl"
         paths.append(str(path.relative_to(ROOT)))
         for row in read(path):
             code = str(row["expected_hs_8"]).replace(".", "").strip()
@@ -463,8 +463,8 @@ def discover_qa(bundle: dict, split: str | None = None) -> list[dict]:
         raise ValueError("QA split must be dev, test, or None")
     root = ROOT / "data/verified/qa"
     paths = {
-        "dev": root / "dev_test/LEGAL_RETRIEVAL_DEV.jsonl",
-        "test": root / "dev_test/LEGAL_RETRIEVAL_TEST.jsonl",
+        "dev": root / "LEGAL_RETRIEVAL_DEV.jsonl",
+        "test": root / "LEGAL_RETRIEVAL_TEST.jsonl",
     }
     partitions = (split,) if split else ("dev", "test")
     rows = []

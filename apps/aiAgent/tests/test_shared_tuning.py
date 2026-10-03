@@ -1,10 +1,14 @@
 """Source-only vector cache identity and offline/runtime ranking equivalence."""
 
+import datetime
+import json
+
 import numpy as np
 import pytest
 
 from rag.embedding import Embedder
 from rag.retrieval import rerank_candidates
+from scripts.benchmark_pdf_rerankers import compact_prediction
 from scripts.tune_shared_retrieval import candidate_policies, rank_scored_pool
 
 
@@ -67,3 +71,25 @@ def test_policy_grid_is_shared_and_includes_baseline():
     assert any(p["weights"] == baseline["weights"] for p in grid.values())
     assert {p["rerank_pool"] for p in grid.values()} == {40, 60, 80}
     assert not any("section_policies" in p or "attribute_penalty" in p for p in grid.values())
+
+
+def test_runtime_checkpoint_serializes_database_dates_without_changing_rank_or_source_proof():
+    row = {
+        "id": "source-row",
+        "code": "99010000",
+        "level": 8,
+        "rerank_score": 0.42,
+        "rerank_text": "Actual fitted source description",
+        "metadata": {"effective_date": datetime.date(2026, 10, 2)},
+        "hierarchy_citations": [{"id": "source-parent"}],
+        "note_citations": [],
+        "rerank_omitted_ids": ["long-optional-note"],
+    }
+    result = compact_prediction({"ranked": [row], "pool_codes": [row["code"]], "latency_ms": 1.0})
+    restored = json.loads(json.dumps(result))
+    assert restored["ranked"][0]["code"] == row["code"]
+    assert restored["ranked"][0]["rerank_score"] == row["rerank_score"]
+    assert restored["ranked"][0]["used_citation_ids"] == ["source-parent"]
+    assert restored["ranked"][0]["rerank_omitted_ids"] == ["long-optional-note"]
+    assert len(restored["ranked"][0]["model_input_text_hash"]) == 64
+    assert row["metadata"]["effective_date"] == datetime.date(2026, 10, 2)

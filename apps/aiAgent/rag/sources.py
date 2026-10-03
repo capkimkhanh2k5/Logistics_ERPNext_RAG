@@ -1,8 +1,6 @@
 """Adapters for source formats, independent of tariff chapters and product names."""
 
 import json
-import re
-from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -150,96 +148,3 @@ def canonical_edge(edge: dict, namespace: str = "tt31:") -> dict:
         "relation": relation,
         "metadata": edge,
     }
-
-
-def context_scope_edges(records: list[dict], masters: dict[str, dict]) -> list[dict]:
-    """Materialize declared context sequence boundaries, never product-to-code rules.
-
-    Legacy exports declare the parent, following source code and indentation depth.
-    An unanchored context remains a node; it is never applied to every child by default.
-    """
-    by_code = {r["code"]: r for r in records if r.get("code")}
-    contexts: dict[str, list[dict]] = defaultdict(list)
-    for row in records:
-        if row["role"] != "context":
-            continue
-        master = masters.get(row["source_id"], {})
-        following = compact(first(master, "context.sequence_following_code", "next_code"))
-        parent = first(master, "hierarchy.parent_id", "parent_record_id")
-        raw = first(master, "text.source_raw_vi", "text_vi", default="")
-        markers = re.match(r"^\s*((?:[-–—]\s*)+)", raw)
-        depth = first(
-            master,
-            "context_depth",
-            default=(len(re.findall(r"[-–—]", markers[1])) if markers else None),
-        )
-        if not following or following not in by_code or not parent or depth is None:
-            continue
-        contexts[parent].append({"row": row, "following": following, "depth": int(depth)})
-    result = []
-    for parent, labels in contexts.items():
-        # These are source code sequence positions, not hand-written HS value intervals.
-        ordered_codes = sorted(
-            c
-            for c in by_code
-            if c.startswith(by_code.get(compact(parent.split(":")[-1]), {}).get("code", "\0"))
-        )
-        if not ordered_codes:
-            parent_codes = {
-                r["code"] for r in records if r["source_id"] == parent and r.get("code")
-            }
-            ordered_codes = sorted(c for c in by_code if any(c.startswith(p) for p in parent_codes))
-        positions = {c: i for i, c in enumerate(ordered_codes)}
-        labels = sorted(
-            (x for x in labels if x["following"] in positions),
-            key=lambda x: (positions[x["following"]], x["depth"], x["row"]["id"]),
-        )
-        for i, label in enumerate(labels):
-            start = positions[label["following"]]
-            stop = next(
-                (
-                    positions[n["following"]]
-                    for n in labels[i + 1 :]
-                    if n["depth"] <= label["depth"]
-                ),
-                len(ordered_codes),
-            )
-            anchor = by_code[label["following"]]
-            anchor_master = masters.get(anchor["source_id"], {})
-            anchor_parent = first(anchor_master, "hierarchy.parent_id", "parent_record_id")
-            parent_code = next(
-                (r["code"] for r in records if r["source_id"] == anchor_parent and r.get("code")),
-                None,
-            )
-            # The next printed leaf's declared parent bounds deep legacy labels.
-            # A context before a nonleaf with no closing label has only that subtree
-            # as a safe scope. Broader applicability needs an explicit source edge.
-            boundary_prefix = (
-                parent_code
-                if anchor["level"] == 8
-                else (anchor["code"] if stop == len(ordered_codes) else None)
-            )
-            for code in ordered_codes[start:stop]:
-                # An inferred HS6 prefix can sort before the following source HS8 row.
-                # Attach sequence labels to the actual leaves, not to such virtual parents.
-                if by_code[code]["level"] != 8:
-                    continue
-                if boundary_prefix and not code.startswith(boundary_prefix):
-                    continue
-                result.append(
-                    {
-                        "source": label["row"]["id"],
-                        "target": by_code[code]["id"],
-                        "relation": "CONTEXT_FOR",
-                        "metadata": {
-                            "basis": "DECLARED_SOURCE_SEQUENCE",
-                            "parent_source_id": parent,
-                            "following_source_code": label["following"],
-                            "context_depth": label["depth"],
-                            "boundary_basis": "DECLARED_PARENT_OR_CLOSED_SEQUENCE",
-                            "boundary_prefix": boundary_prefix,
-                            "locator": label["row"]["locator"],
-                        },
-                    }
-                )
-    return result

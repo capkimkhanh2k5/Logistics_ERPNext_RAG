@@ -25,10 +25,11 @@ from scripts.run_retrieval_experiment import (  # noqa: E402
     cache_identity,
     compute_metrics,
     paired_cluster_interval,
+    save_json,
 )
 
 RUN_DIR = ROOT / "artifacts/experiments/run_shared_dev_v3"
-SPLIT_DIR = ROOT / "data/verified/hs/dev_test"
+SPLIT_DIR = ROOT / "data/verified/hs"
 LATENCY_BUDGET_MS = 3000
 
 
@@ -282,7 +283,7 @@ def evaluate_test(retriever: Retriever, protocol: dict, manifest: dict) -> None:
         ),
     }
     write_json(RUN_DIR / "test_metrics.json", result)
-    write_json(RUN_DIR / "test_predictions.json", predictions)
+    save_json(RUN_DIR / "test_predictions.json", predictions)
     print(json.dumps(results, indent=2), flush=True)
 
 

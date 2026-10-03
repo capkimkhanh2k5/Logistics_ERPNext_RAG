@@ -7,7 +7,7 @@ from datetime import date
 import psycopg
 import pytest
 
-from rag.data import digest, load_corpus
+from rag.data import ROOT, config, digest, load_corpus, read
 from rag.db import connect, counts, ingest, migrate
 from rag.embedding import load_embeddings
 from rag.retrieval import Retriever
@@ -35,6 +35,15 @@ def test_database_idempotency_and_exact_codes(conn):
     assert retriever.lookup("99999999")["status"] == "CODE_NOT_IN_CORPUS"
     with pytest.raises(ValueError):
         retriever.lookup("85171300; DROP TABLE rag.chunks")
+
+
+def test_active_snapshot_and_runtime_config_accept_the_frozen_qa_policy(conn):
+    selected = read(ROOT / "config/selected_retrieval.json")
+    retriever = Retriever(conn)
+    assert selected["snapshot"] == retriever.snapshot
+    assert selected["profile"] == retriever.profile
+    assert selected["retrieval"] == config()
+    assert retriever.qa_policy == selected["qa"]
 
 
 def test_fts_unaccent_and_source_citations(conn):
@@ -278,6 +287,11 @@ def test_registered_new_chapter_runs_shared_hybrid_context_and_reranker(conn):
                 "cache_hit": False,
             }
 
+        def source_context_vectors(self, snapshot, views):
+            assert snapshot == bundle["snapshot"]
+            assert all(view["hierarchy_citations"] for view in views)
+            return self.encode([view["rerank_text"] for view in views])["dense"]
+
     class Reranker:
         def __init__(self):
             self.model = self
@@ -294,16 +308,17 @@ def test_registered_new_chapter_runs_shared_hybrid_context_and_reranker(conn):
         ingest(
             conn, bundle, manifest, np.stack([vector for _ in rows]), [{} for _ in rows], apply=True
         )
-        retriever = Retriever(conn, Encoder())
+        retriever = Retriever(conn, Encoder(), load_unified_policy=False)
         reranker = Reranker()
-        retriever._reranker = reranker
+        retriever._product_reranker = reranker
         assert retriever.coverage == {"sections": ["XV"], "chapters": ["72"]}
         assert retriever.route("72071000")["status"] == "IN_SCOPE"
         result = retriever.adaptive_search("Nhãn trung gian từ nguồn", use_cache=False)
         assert result["candidates"][0]["code"] == "72071000"
         assert result["section_candidates"][0]["section"] == "XV"
         assert any("Nhãn trung gian từ nguồn" in text for text in reranker.seen)
-        assert result["policy"]["version"] == "generic-graph-v2-budget"
+        assert result["policy"] == retriever.product_policy
+        assert result["policy"]["graph_dense_weight"] == 0.5
         assert result["reader_notes"][0]["id"] == "tt31:NOTE"
         assert not result["candidates"][0]["note_citations"]
     assert conn.execute("SELECT * FROM rag.active").fetchone() == active

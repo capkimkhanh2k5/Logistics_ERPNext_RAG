@@ -1,0 +1,540 @@
+{
+  "version": 1,
+  "basis": "SOURCE_PDF_TRANSCRIPTION_REPAIR_NOT_RETRIEVAL_RULES",
+  "records": [
+    {
+      "id": "tt31:SXVI-T-851120",
+      "code": "851120",
+      "previous_source_text": "Magneto đánh lửa; dynamo mangneto; bánh đà từ",
+      "corrected_source_text": "Magneto đánh lửa; dynamo mangneto; bánh đà từ tính:",
+      "raw_pdf_text": "- Magneto đánh lửa; dynamo mangneto; bánh đà từ tính:",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 151,
+        "bbox": [
+          102.0,
+          485.5,
+          361.0,
+          513.5
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVI-T-851420",
+      "code": "851420",
+      "previous_source_text": "Lò luyện, nung và lò sấy hoạt động bằng cảm ứng",
+      "corrected_source_text": "Lò luyện, nung và lò sấy hoạt động bằng cảm ứng điện hoặc tổn hao điện môi:",
+      "raw_pdf_text": "- Lò luyện, nung và lò sây hoạt động băng cảm ứng điện hoặc tổn hao điện môi:",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 155,
+        "bbox": [
+          102.0,
+          88.5,
+          361.0,
+          117.0
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVI-T-85269110",
+      "code": "85269110",
+      "previous_source_text": "Thiết bị dẫn đường bằng sóng vô tuyến, loại",
+      "corrected_source_text": "Thiết bị dẫn đường bằng sóng vô tuyến, loại dùng trên máy bay dân dụng, hoặc chỉ dùng cho tàu thuyền đi biển",
+      "raw_pdf_text": "-----Thiêt bị dẫn đường băng sóng vô tuyên, loại dùng trên máy bay dân dụng, hoặc chỉ dùng cho tàu thuyên đi biên",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 173,
+        "bbox": [
+          102.0,
+          103.5,
+          361.0,
+          145.0
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVI-T-85361093",
+      "code": "85361093",
+      "previous_source_text": "Khối cầu chì, loại sử dụng cho xe có động cơ",
+      "corrected_source_text": "Khối cầu chì, loại sử dụng cho xe có động cơ (SEN)",
+      "raw_pdf_text": "---- Khối cầu chì, loại sử dụng cho xe có động cơ (SEN)",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 180,
+        "bbox": [
+          102.0,
+          540.0,
+          361.0,
+          554.5
+        ],
+        "continuations": [
+          {
+            "physical_page": 181,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVI-T-853690",
+      "code": "853690",
+      "previous_source_text": "Thiết bị khác: - Đầu nối và các bộ phận dùng để nối cho dây dẫn và cáp; đầu dò tiếp xúc dùng cho tấm wafer:",
+      "corrected_source_text": "Thiết bị khác:",
+      "raw_pdf_text": "- Thiêt bị khác:",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 184,
+        "bbox": [
+          102.0,
+          60.5,
+          361.0,
+          75.0
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVI-T-85399090",
+      "code": "85399090",
+      "previous_source_text": "Loại khác Đèn điện tử và ống điện tử dùng nhiệt điện tử, ca-tốt lạnh hoặc ca-tốt quang điện (ví dụ, đèn điện tử và ống đèn chân không hoặc hoặc hơi, đèn và ống điện tử chỉnh lưu h nạp khí ồ quang thuỷ ngân, ống điện tử dùng tia ca-tốt, ống điện tử camera truyền hình).",
+      "corrected_source_text": "Loại khác",
+      "raw_pdf_text": "- - Loại khác",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 189,
+        "bbox": [
+          102.0,
+          75.0,
+          361.0,
+          88.5
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVI-T-85437021",
+      "code": "85437021",
+      "previous_source_text": "Thiết bị điều khiển từ xa hồng ngoại không dây dùng cho máy chơi trò chơi điện tử video, trừ loại thuộc phân nhóm 9504.50",
+      "corrected_source_text": "Thiết bị điều khiển từ xa hồng ngoại không dây dùng cho máy chơi trò chơi điện tử video, trừ bộ điều khiển trò chơi thuộc nhóm 95.04",
+      "raw_pdf_text": "-----Thiết bị điều khiển từ xa hồng ngoại không dây dùng cho máy chơi trò chơi điện tử video, trừ bộ điêu khiên trò chơi thuộc nhóm 95.04",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 191,
+        "bbox": [
+          102.0,
+          526.0,
+          361.0,
+          554.5
+        ],
+        "continuations": [
+          {
+            "physical_page": 192,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVI-T-854991",
+      "code": "854991",
+      "previous_source_text": "Chứa pin, bộ pin, ắc qui điện, công tắc thủy",
+      "corrected_source_text": "Chứa pin, bộ pin, ắc qui điện, công tắc thủy ngân, thủy tinh từ ống tia ca-tốt hoặc thủy tinh hoạt hóa khác, hoặc các thành phần điện hoặc điện tử có chứa cadmium, thủy ngân, chì hoặc polychlorinated biphenyls (PCB):",
+      "raw_pdf_text": "- - Chứa pin, bộ pin, ăc qui điện, công tăc thủy ngân, thủy tinh từ ống tia ca-tốt hoặc thủy tinh hoạt hóa khác, hoặc các thành phần điện hoặc điện tử có chứa cadmium, thủy ngân, chì hoặc polychlorinated biphenyls (PCB):",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 200,
+        "bbox": [
+          102.0,
+          229.5,
+          361.0,
+          312.5
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87021042",
+      "code": "87021042",
+      "previous_source_text": "------ Khối lượng toàn bộ theo thiết kế (SEN) trên 24",
+      "corrected_source_text": "------ Khối lượng toàn bộ theo thiết kế (SEN) trên 24 tấn",
+      "raw_pdf_text": "------ Khối lượng toàn bộ theo thiêt kê (SEN) trên 24 tân",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 13,
+        "bbox": [
+          102.0,
+          543.0,
+          361.0,
+          557.5
+        ],
+        "continuations": [
+          {
+            "physical_page": 14,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87029051",
+      "code": "87029051",
+      "previous_source_text": "------ Khối lượng toàn bộ theo thiết kế (SEN) trên 24",
+      "corrected_source_text": "------ Khối lượng toàn bộ theo thiết kế (SEN) trên 24 tấn",
+      "raw_pdf_text": "------ Khối lượng toàn bộ theo thiết kế (SEN) trên 24 tân",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 18,
+        "bbox": [
+          102.0,
+          540.0,
+          361.0,
+          554.5
+        ],
+        "continuations": [
+          {
+            "physical_page": 19,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032323",
+      "code": "87032323",
+      "previous_source_text": "- - - - - Dung tích xi lanh trên 2.000 cc nhưng",
+      "corrected_source_text": "- - - - - Dung tích xi lanh trên 2.000 cc nhưng không quá 2.500 cc",
+      "raw_pdf_text": "- - - - - Dung tích xi lanh trên 2.000 cc nhưng không quá 2.500 cc",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 21,
+        "bbox": [
+          102.0,
+          542.5,
+          361.0,
+          557.5
+        ],
+        "continuations": [
+          {
+            "physical_page": 22,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87033331",
+      "code": "87033331",
+      "previous_source_text": "- - - - - Dung tích xi lanh trên 2.500 cc nhưng",
+      "corrected_source_text": "- - - - - Dung tích xi lanh trên 2.500 cc nhưng không quá 3.000 cc",
+      "raw_pdf_text": "- - - - - Dung tích xi lanh trên 2.500 cc nhưng không quá 3.000 cc",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 28,
+        "bbox": [
+          102.0,
+          539.5,
+          361.0,
+          554.5
+        ],
+        "continuations": [
+          {
+            "physical_page": 29,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87034045",
+      "code": "87034045",
+      "previous_source_text": "------ Dung tích xi lanh trên 2.000 cc nhưng không",
+      "corrected_source_text": "------ Dung tích xi lanh trên 2.000 cc nhưng không quá 2.500 cc",
+      "raw_pdf_text": "------ Dung tích xi lanh trên 2.000 cc nhưng không quá 2.500 cc",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 31,
+        "bbox": [
+          102.0,
+          540.0,
+          361.0,
+          554.5
+        ],
+        "continuations": [
+          {
+            "physical_page": 32,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87035053",
+      "code": "87035053",
+      "previous_source_text": "------ Dung tích xi lanh trên 1.500 cc nhưng không",
+      "corrected_source_text": "------ Dung tích xi lanh trên 1.500 cc nhưng không quá 1.800 cc",
+      "raw_pdf_text": "------ Dung tích xi lanh trên 1.500 cc nhưng không quá 1.800 cc",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 36,
+        "bbox": [
+          102.0,
+          540.0,
+          361.0,
+          554.5
+        ],
+        "continuations": [
+          {
+            "physical_page": 37,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87036062",
+      "code": "87036062",
+      "previous_source_text": "------ Dung tích xi lanh trên 1.000 cc nhưng không",
+      "corrected_source_text": "------ Dung tích xi lanh trên 1.000 cc nhưng không quá 1.500 cc",
+      "raw_pdf_text": "------ Dung tích xi lanh trên 1.000 cc nhưng không quá 1.500 cc",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 41,
+        "bbox": [
+          102.0,
+          539.0,
+          361.0,
+          554.0
+        ],
+        "continuations": [
+          {
+            "physical_page": 42,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87071030",
+      "code": "87071030",
+      "previous_source_text": "- - Dùng cho xe được thiết kế đặc biệt để đi trên",
+      "corrected_source_text": "- - Dùng cho xe được thiết kế đặc biệt để đi trên tuyết",
+      "raw_pdf_text": "- - Dùng cho xe được thiết kế đặc biệt để đi trên tuyêt",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 64,
+        "bbox": [
+          102.0,
+          540.5,
+          361.0,
+          555.0
+        ],
+        "continuations": [
+          {
+            "physical_page": 65,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87085096",
+      "code": "87085096",
+      "previous_source_text": "-------Bánh răng vành khăn và bánh răng quả dứa",
+      "corrected_source_text": "-------Bánh răng vành khăn và bánh răng quả dứa (SEN)",
+      "raw_pdf_text": "-------Bánh răng vành khăn và bánh răng quả dứa (SEN)",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 67,
+        "bbox": [
+          102.0,
+          531.0,
+          361.0,
+          545.5
+        ],
+        "continuations": [
+          {
+            "physical_page": 68,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87116012",
+      "code": "87116012",
+      "previous_source_text": "- - - Xe \"kick scooter\"; xe tự cân bằng \"self-",
+      "corrected_source_text": "- - - Xe \"kick scooter\"; xe tự cân bằng \"self-balancing cycle\"; xe \"pocket motorcycle\" (SEN)",
+      "raw_pdf_text": "- - - Xe \"kick scooter\"; xe tự cân bằng \"self- balancing cycle\"; xe \"pocket motorcycle” (SEN)",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 73,
+        "bbox": [
+          102.0,
+          542.5,
+          361.0,
+          557.5
+        ],
+        "continuations": [
+          {
+            "physical_page": 74,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVII_HS6_871493",
+      "code": "871493",
+      "previous_source_text": "- - Moay ơ, trừ moay ơ kèm phanh (coaster braking",
+      "corrected_source_text": "- - Moay ơ, trừ moay ơ kèm phanh (coaster braking hub) và phanh moay ơ, và líp xe:",
+      "raw_pdf_text": "- - Moay ơ, trừ moay ơ kèm phanh (coaster braking hub) và phanh moay ơ, và líp xe:",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 75,
+        "bbox": [
+          102.0,
+          532.5,
+          361.0,
+          547.0
+        ],
+        "continuations": [
+          {
+            "physical_page": 76,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87169022",
+      "code": "87169022",
+      "previous_source_text": "-----Bánh xe đây (castor), có đường kính (kể cả lốp) trên 75 mm nhưng không quá 100 mm, hoặc",
+      "corrected_source_text": "-----Bánh xe đẩy (castor), có đường kính (kể cả lốp) trên 75 mm nhưng không quá 100 mm, hoặc hơn 250 mm với điều kiện là chiều rộng của bánh xe hoặc lốp lắp vào không nhỏ hơn 30 mm",
+      "raw_pdf_text": "-----Bánh xe đây (castor), có đường kính (kê cả lốp) trên 75 mm nhưng không quá 100 mm, hoặc hơn 250 mm với điều kiện là chiều rộng của bánh xe hoặc lốp lắp vào không nhỏ hơn 30 mm",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 77,
+        "bbox": [
+          102.0,
+          527.0,
+          361.0,
+          555.0
+        ],
+        "continuations": [
+          {
+            "physical_page": 78,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              102.5
+            ]
+          }
+        ]
+      },
+      "review": "PDF_IMAGE_REVIEW_SOURCE_TRANSCRIPTION_NO_EVALUATION_LABELS"
+    }
+  ]
+}

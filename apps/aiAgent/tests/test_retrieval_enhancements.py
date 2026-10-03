@@ -70,7 +70,8 @@ def test_source_context_separates_diamonds_without_keyword_rules():
     assert "Kim cương phi công nghiệp:" in nonindustrial
     assert not any("dùng làm trang sức" in text for text in nonindustrial)
     assert "CKD" in rows["87024021"]["rerank_text"]
-    assert "CBU" in rows["87024061"]["rerank_text"]
+    assert "Loại khác:" in rows["87024061"]["intermediate_branches"]
+    assert "Dạng CKD (SEN):" not in rows["87024061"]["intermediate_branches"]
 
 
 def test_exclusion_edge_never_becomes_positive_note_context():

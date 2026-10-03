@@ -8,6 +8,27 @@ from rag.data import load_corpus
 from rag.sources import first
 
 
+def context_text(row: dict, hierarchy: list[dict], notes: list[dict], style: str) -> str:
+    if style not in {"plain", "structured"}:
+        raise ValueError(f"Unsupported shared context format: {style}")
+    parts = [row.get("embedding_text") or row["leaf_text"]]
+    seen = {" ".join(parts[0].split())}
+    for c in [*hierarchy, *notes]:
+        text = " ".join(c["text"].split())
+        if text in seen:
+            continue
+        seen.add(text)
+        label = (
+            "Chú giải nguồn"
+            if c in notes
+            else "Nhánh nguồn"
+            if c["kind"] == "context"
+            else "Phân cấp nguồn"
+        )
+        parts.append(f"{label}: {text}" if style == "structured" else text)
+    return "\n".join(parts)
+
+
 def fit_rerank_context(
     query: str, rows: list[dict], tokenizer, max_tokens: int = 1152
 ) -> list[dict]:
@@ -29,7 +50,12 @@ def fit_rerank_context(
                 omitted.append(hierarchy.pop()["id"])
             else:
                 raise ValueError(f"Atomic source and query exceed reranker budget: {row['id']}")
-            text = "\n".join([base, *[c["text"] for c in hierarchy], *[c["text"] for c in notes]])
+            text = context_text(
+                {**row, "embedding_text": base},
+                hierarchy,
+                notes,
+                row.get("context_format", "plain"),
+            )
         fitted.append(
             {
                 **row,
@@ -100,9 +126,17 @@ class GraphContext:
     def citation(self, node_id: str) -> dict | None:
         row = self.records.get(node_id)
         md = self.nodes.get(node_id, {})
+        if row is None and not first(md, "locator.sha256", "provenance.sha256", "source.sha256"):
+            # Navigation-only nodes remain traversable but are not quoted as source evidence.
+            return None
         # Nonprinted/derived nodes remain in the path but never become legal wording.
         original = row.get("metadata", {}).get("original", {}) if row else md
         if md.get("virtual") or first(original, "hs.source_explicit") is False:
+            return None
+        if row and row.get("locator", {}).get("basis") in {
+            "UNPRINTED_TAXONOMY_NODE_NOT_LEGAL_WORDING",
+            "NORMALIZED_TERM_INDEX_LABEL_NOT_LEGAL_WORDING",
+        }:
             return None
         text = (
             row.get("source_text")
@@ -125,6 +159,7 @@ class GraphContext:
             "text": " ".join(str(text).split()),
             "locator": locator or {"graph_source_node": node_id},
             "kind": "context" if (row or md).get("role") == "context" else "source",
+            "depth": md.get("depth"),
         }
 
     def source_view(self, row: dict) -> dict:
@@ -165,18 +200,26 @@ class GraphContext:
             view = self.source_view(row)
             base = row.get("embedding_text") or row.get("source_text") or ""
             parts, used, omitted, citations = [base], len(base), [], []
+            included_text = {" ".join(base.split())}
             if include_hierarchy:
                 ordered = sorted(
                     view["citations"],
                     key=lambda c: (
                         0 if c["id"] in view["context_ids"] else 1,
-                        -(self.records.get(c["id"], {}).get("level") or 0),
+                        (c.get("depth") or 0)
+                        if c["id"] in view["context_ids"]
+                        else -(self.records.get(c["id"], {}).get("level") or 0),
                         c["id"],
                     ),
                 )
                 for citation in ordered:
+                    normalized = " ".join(citation["text"].split())
+                    if normalized in included_text:
+                        citations.append(citation)
+                        continue
                     if used + len(citation["text"]) + 1 <= context_budget:
                         parts.append(citation["text"])
+                        included_text.add(normalized)
                         used += len(citation["text"]) + 1
                         citations.append(citation)
                     else:
@@ -214,6 +257,18 @@ class GraphContext:
                 }
             )
         return enriched
+
+    def format_candidates(self, rows: list[dict], style: str) -> list[dict]:
+        return [
+            {
+                **r,
+                "rerank_text": context_text(
+                    r, r["hierarchy_citations"], r["note_citations"], style
+                ),
+                "context_format": style,
+            }
+            for r in rows
+        ]
 
     def candidate_views(self) -> dict[str, dict]:
         rows = [

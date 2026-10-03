@@ -218,8 +218,8 @@ def test_verified_gold_uses_supplied_partitions_and_normalized_grid():
     rows, paths = discover_gold()
     assert len(rows) == 940
     assert paths == [
-        "data/verified/hs/dev_test/HS_RAG_DEV.jsonl",
-        "data/verified/hs/dev_test/HS_RAG_TEST.jsonl",
+        "data/verified/hs/HS_RAG_DEV.jsonl",
+        "data/verified/hs/HS_RAG_TEST.jsonl",
     ]
     assert all(r["expected_hs_8"] not in r["query"] for r in rows)
     grid = weight_grid(("dense", "sparse", "bm25", "fts", "exact"))
@@ -562,5 +562,5 @@ def test_routed_legal_query_uses_trained_qa_without_changing_product_dispatch(mo
         retriever, "adaptive_search", lambda query, **kw: {"candidates": [{"id": "hs"}]}
     )
     retriever.cfg = {"rrf_k": 60}
-    assert retriever.routed_search("Quy tắc GIR 6 là gì?")["matches"] == [{"id": "qa"}]
-    assert retriever.routed_search("Máy bơm nước 65W")["candidates"] == [{"id": "hs"}]
+    assert retriever.legacy_routed_search("Quy tắc GIR 6 là gì?")["matches"] == [{"id": "qa"}]
+    assert retriever.legacy_routed_search("Máy bơm nước 65W")["candidates"] == [{"id": "hs"}]

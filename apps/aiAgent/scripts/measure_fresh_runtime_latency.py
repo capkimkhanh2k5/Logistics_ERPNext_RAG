@@ -8,6 +8,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
+import torch
 
 AGENT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(AGENT_ROOT))
@@ -33,6 +34,7 @@ def main() -> None:
     parser.add_argument("--per-section", type=int, default=10)
     parser.add_argument("--run-id", default="run_generic_graph_v2")
     args = parser.parse_args()
+    torch.set_num_threads(4)
     if args.per_section < 1:
         raise ValueError("Sample count must be positive")
     cases, _ = discover_gold(("test",))
@@ -68,6 +70,7 @@ def main() -> None:
             "profile": retriever.profile,
             "policy": retriever.product_policy,
             "protocol": "WARM_MODELS_COLD_QUERY_AND_RERANK_CACHES_SINGLE_WORKER",
+            "torch_num_threads": 4,
             "overall": stats([r["elapsed_ms"] for r in rows]),
             "sections": {
                 s: stats([r["elapsed_ms"] for r in rows if r["section"] == s])

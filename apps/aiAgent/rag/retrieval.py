@@ -399,7 +399,11 @@ def rerank_candidates(
 
 class Retriever:
     def __init__(
-        self, conn: psycopg.Connection[dict[str, Any]], embedder: Embedder | None = None
+        self,
+        conn: psycopg.Connection[dict[str, Any]],
+        embedder: Embedder | None = None,
+        *,
+        load_unified_policy: bool = True,
     ) -> None:
         register_vector(conn)
         self.conn = conn
@@ -432,6 +436,14 @@ class Retriever:
                     "weights", self.router_policy.get("weights", self.weights)
                 )
         self.product_policy = read(ROOT / "config/hybrid_retrieval.json")
+        unified_path = ROOT / "config/unified_retrieval.json"
+        if load_unified_policy and unified_path.exists():
+            self.unified_policy = read(unified_path)
+            if (
+                self.unified_policy["snapshot"] != self.snapshot
+                or self.unified_policy["profile"] != self.profile
+            ):
+                raise ValueError("Unified retrieval policy differs from the active source/profile")
         self.default_mode = self.product_policy["mode"]
         self.weights = self.product_policy["weights"]
         coverage = conn.execute(
@@ -1689,24 +1701,50 @@ class Retriever:
             return {"intent": "tt85", "status": "LEGAL_QUERY", "reason": "PROCEDURE_INTENT"}
         return {"intent": "product", "status": "UNCERTAIN", "reason": "SOFT_CROSS_SECTION"}
 
-    def routed_search(self, query: str, mode: str | None = None) -> dict:
-        routing = self.route(query)
+    def routed_search(self, query: str, mode: str | None = None, intent: str = "auto") -> dict:
+        if intent not in {"auto", "product", "qa"}:
+            raise ValueError("Intent must be auto, product or qa")
+        if not getattr(self, "unified_policy", None):
+            raise ValueError("Activate a locked unified retrieval policy before using Auto")
+        if mode not in (None, "full_hybrid"):
+            raise ValueError("Unified retrieval uses the locked full_hybrid policy")
+        return self.unified_search(query, intent_hint=intent)
+
+    def legacy_routed_search(
+        self, query: str, mode: str | None = None, intent: str = "auto"
+    ) -> dict:
+        """Explicit v4 dispatch for historical reproduction only."""
+        if intent not in {"auto", "product", "qa"}:
+            raise ValueError("Intent must be auto, product or qa")
+        routing = (
+            self.route(query)
+            if intent == "auto"
+            else {
+                "intent": "product" if intent == "product" else "legal",
+                "status": "EXPLICIT_TASK",
+                "reason": "CALLER_SELECTED_TASK",
+            }
+        )
         if routing["status"] in ("OUT_OF_SCOPE", "INVALID_CODE"):
             return {"routing": routing, "candidates": [], "evidence": {"records": []}}
         if routing["intent"] == "lookup":
             return {"routing": routing, **self.lookup(routing["code"])}
         if routing["intent"] == "product" and mode is None:
-            result = self.adaptive_search(
-                query,
-                weights=self.weights,
-                section_policies=getattr(self, "section_policies", {}),
-                rrf_k=getattr(self, "router_policy", {}).get("k", self.cfg["rrf_k"]),
-            )
+            result = self.adaptive_search(query)
         elif mode is None and getattr(self, "qa_policy", None):
             result = self.qa_search(query)
         else:
             result = self.search(query, intent=routing["intent"], mode=mode)
         return {"routing": routing, **result}
+
+    def unified_search(self, query: str, intent_hint: str = "auto") -> dict:
+        from rag.unified import UnifiedRetrieval
+
+        if not self.embedder:
+            raise ValueError("Unified retrieval requires an embedder")
+        if not hasattr(self, "_unified_retrieval"):
+            self._unified_retrieval = UnifiedRetrieval(self, self.unified_policy)
+        return self._unified_retrieval.search(query, intent_hint)
 
     def registered_chapters(self) -> set[str]:
         if hasattr(self, "coverage"):
@@ -1801,7 +1839,7 @@ class Retriever:
         notes = []
         if method == "B2":
             notes = self.product_notes(query, use_cache)
-        return graph.enrich(
+        enriched = graph.enrich(
             candidates,
             context_budget=policy["context_char_budget"],
             note_budget=policy["note_char_budget"],
@@ -1809,6 +1847,7 @@ class Retriever:
             include_hierarchy=True,
             include_notes=method == "B2",
         )
+        return graph.format_candidates(enriched, policy.get("context_format", "plain"))
 
     def product_notes(self, query: str, use_cache: bool = True) -> list[dict]:
         policy = self.product_policy
@@ -1835,22 +1874,39 @@ class Retriever:
         policy = self.product_policy
         if self.embedder is None:
             raise ValueError("Product ranking requires an embedder")
-        if not hasattr(self, "_reranker"):
+        model_identity = (
+            policy.get("reranker_model", self.cfg["reranker_model"]),
+            policy.get("reranker_revision", self.cfg["reranker_revision"]),
+            policy.get("reranker_backend", "cross_encoder"),
+            policy.get("reranker_batch_size", 4),
+        )
+        if (
+            not hasattr(self, "_product_reranker")
+            or getattr(self, "_product_reranker_identity", model_identity) != model_identity
+        ):
             import torch
 
-            self._reranker = CrossEncoder(
-                self.cfg["reranker_model"],
-                self.cfg["reranker_revision"],
+            self._product_reranker = CrossEncoder(
+                policy.get("reranker_model", self.cfg["reranker_model"]),
+                policy.get("reranker_revision", self.cfg["reranker_revision"]),
                 device="mps" if torch.backends.mps.is_available() else "cpu",
+                backend=policy.get("reranker_backend", "cross_encoder"),
+                batch_size=policy.get("reranker_batch_size", 4),
             )
+            self._product_reranker_identity = model_identity
         pool = rerank_pool or policy["rerank_pool"]
-        candidates = fit_rerank_context(query, candidates[:pool], self._reranker.model.tokenizer)
+        candidates = fit_rerank_context(
+            query,
+            candidates[:pool],
+            self._product_reranker.model.tokenizer,
+            max_tokens=1152 if model_identity[2] == "cross_encoder" else 1000,
+        )
         return rerank_candidates(
             query,
             candidates,
             policy["reranker"],
             self.embedder,
-            self._reranker,
+            self._product_reranker,
             pool,
             policy["rank_weight"],
             policy["rrf_k"],
@@ -1889,7 +1945,7 @@ class Retriever:
         candidates = self.prepare_product_candidates(query, base["candidates"], method, use_cache)
         ranked = self.rank_product_candidates(query, candidates, rerank_pool, use_cache)
         ranked = ranked[: policy["top_k"]]
-        # Notes support the downstream reader without changing production ranking.
+        # B1 attaches Notes for reading; B2 also includes linked Notes in reranker context.
         retrieved_notes = self.product_notes(query, use_cache)
         linked = set().union(*(self.graph_context().source_view(r)["note_ids"] for r in ranked))
         reader_notes = [r for r in retrieved_notes if r["id"] in linked]
@@ -1906,7 +1962,11 @@ class Retriever:
             "section_candidates": self.section_candidates(candidates),
             "evidence": evidence,
             "reader_notes": reader_notes,
-            "notes_role": "SOURCE_EVIDENCE_AFTER_RANKING",
+            "notes_role": (
+                "LINKED_SOURCE_NOTES_IN_RERANK_CONTEXT_AND_READER_EVIDENCE"
+                if method == "B2"
+                else "SOURCE_EVIDENCE_AFTER_RANKING"
+            ),
             "policy": policy,
             "coverage": self.coverage,
             "timings": {**base["timings"], "total_ms": (time.perf_counter() - started) * 1000},
