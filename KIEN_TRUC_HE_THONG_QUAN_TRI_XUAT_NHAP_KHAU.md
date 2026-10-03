@@ -23,112 +23,130 @@ Hệ thống được thiết kế theo tiêu chuẩn khung kiến trúc mở **
 
 ## 📐 CHƯƠNG 2: BẢN VẼ KIẾN TRÚC TỔNG THỂ SONG TRỤC (TOGAF 6 LAYERS)
 
-Bản vẽ phân tách rõ ràng 6 tầng kiến trúc, từ con người, giao diện, trung tâm nghiệp vụ, bộ não thuật toán, chứng từ ERPNext đến nền tảng hạ tầng Container kỹ thuật:
+Bản vẽ được thiết kế theo **Bố cục Ma trận 3 Cột Ngang (Horizontal 3-Column Matrix)** giúp bao quát toàn diện 6 tầng kiến trúc từ Con người, Trục quản trị Ngoại thương, Chứng từ ERPNext đến Hạ tầng Container kỹ thuật mà không bị dài dọc:
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '13px'}}}%%
-flowchart TD
-    %% TẦNG 1: VAI TRÒ TÁC NGHIỆP
-    subgraph TANG_1["TẦNG 1: NGƯỜI DÙNG & VAI TRÒ NGHIỆP VỤ (ENTERPRISE ROLES)"]
-        direction LR
-        U_BUY["🛒 Mua Hàng (Buyer)"]
-        U_SAL["🌍 Bán Hàng QT (Export Sales)"]
-        U_LOG["🚢 Logistics (Điều Phối)"]
-        U_CUS["🏛️ Hải Quan (Tuân Thủ)"]
-        U_WH["📦 Thủ Kho (Giao Nhận)"]
-        U_ACC["💰 Kế Toán (Giá Vốn/DT)"]
-        U_CFO["👑 Giám Đốc (Phê Duyệt)"]
-    end
-
-    %% TẦNG 2: GIAO DIỆN & TRẠM ĐIỀU HÀNH
-    subgraph TANG_2["TẦNG 2: TRẠM ĐIỀU HÀNH & GIAO DIỆN (PRESENTATION)"]
-        direction LR
-        DASH["📊 THÁP CHỈ HUY CONTROL TOWER<br>Giám sát định vị tàu biển 3D • Cảnh báo phạt bãi cont • Báo cáo biến động tỷ giá"]
-        WORK["📋 WORKSPACE CHUYÊN BIỆT THEO VAI TRÒ<br>Giao diện tác nghiệp độc lập cho từng vị trí (Role-based Views & Quick Actions)"]
-    end
-
-    %% TẦNG 3: TRUNG TÂM QUẢN TRỊ XNK
-    subgraph TANG_3["TẦNG 3: TRUNG TÂM QUẢN TRỊ NGOẠI THƯƠNG (SHARED LOGISTICS CORE)"]
+%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '12px'}}}%%
+flowchart LR
+    %% ==========================================
+    %% CỘT 1: VAI TRÒ & TRẠM ĐIỀU HÀNH
+    %% ==========================================
+    subgraph COT_1["🏛️ CỘT 1: VAI TRÒ & ĐIỀU HÀNH"]
         direction TB
         
-        TC["📂 <b>TRADE CASE: HỒ SƠ DỰ ÁN NGOẠI THƯƠNG (IMPORT / EXPORT)</b><br>Quản lý Hợp đồng • Đơn mua PO / Đơn bán SO • Khách hàng/Nhà cung cấp • Incoterms • Tổng ngân sách Case"]
-        
-        TS["🚢 <b>TRADE SHIPMENT: CHUYẾN VẬN TẢI VẬT LÝ (1 HOẶC NHIỀU ĐỢT GIAO)</b><br>Hãng tàu • Vận đơn B/L • Cảng đi/đến • 9 Mốc hành trình • Container & Hạn Free-time • Chi phí thực tế"]
+        subgraph T1["TẦNG 1: VAI TRÒ TÁC NGHIỆP (ROLES)"]
+            direction TB
+            U_IN["🛒 Mua Hàng (Buyer)<br>📦 Thủ Kho (Warehouse)"]
+            U_OUT["🌍 Bán Hàng QT (Export Sales)<br>💰 Kế Toán (Finance)"]
+            U_MID["🚢 Logistics (Forwarder)<br>🏛️ Hải Quan (Customs)"]
+            U_LEAD["👑 Giám Đốc / CFO (Phê Duyệt)"]
+        end
 
-        VNACCS["🏛️ <b>CUSTOMS DECLARATION & TARIFF ENGINE</b><br>Tờ khai chuẩn quốc gia 11 số (VNACCS) • Biểu thuế HS 8 số • Tỷ giá Hải quan tuần BTC"]
+        subgraph T2["TẦNG 2: TRẠM ĐIỀU HÀNH (PRESENTATION)"]
+            direction TB
+            DASH["📊 THÁP CHỈ HUY CONTROL TOWER<br>Giám sát GPS tàu 3D • Cảnh báo phạt cont • Báo cáo tỷ giá"]
+            WORK["📋 WORKSPACE CHUYÊN BIỆT THEO VAI TRÒ<br>Giao diện tác nghiệp độc lập cho từng vị trí"]
+        end
 
-        DOCS["📋 <b>TRADE DOCUMENT ITEM: CHECKLIST CHỨNG TỪ SỐ</b><br>Kiểm soát Readiness 100% hồ sơ pháp lý (C/O, Packing List, Invoice, VGM, Giấy phép)"]
-
-        TC ==>|"1 Case có 1 hoặc nhiều đợt giao"| TS
-        TS <==> VNACCS
-        TS <==> DOCS
+        T1 ==> T2
     end
 
-    %% TẦNG 4: THUẬT TOÁN & BẢO VỆ CHÍNH SÁCH
-    subgraph TANG_4["TẦNG 4: ĐỘNG CƠ THUẬT TOÁN & BẢO VỆ CHÍNH SÁCH (LOGIC ENGINE)"]
-        direction LR
-        E_ALLOC["🧮 PHÂN BỔ GIÁ VỐN<br>Cước tàu chia CBM<br>Phí khác chia Trị giá"]
-        E_VAR["📐 BÓC TÁCH LỆCH GIÁ<br>Lệch do Cước hãng tàu<br>Lệch do Tỷ giá ngoại tệ"]
-        E_GATE["🛡️ CỔNG KIỂM SOÁT<br>Gate 1: Đủ hồ sơ mới mở TK<br>Gate 2: Thông quan mới nhập kho"]
-        E_RAG["🤖 DỊCH VỤ AI / RAG<br>Tra cứu căn cứ pháp lý<br>Gợi ý phân loại mã HS"]
-    end
-
-    %% TẦNG 5: ERPNEXT CORE & HAI LUỒNG SONG SONG
-    subgraph TANG_5["TẦNG 5: LÕI ERPNEXT GỐC VỚI 2 LUỒNG CHỨNG TỪ ĐỐI XỨNG"]
+    %% ==========================================
+    %% CỘT 2: TRỤC LÕI NGOẠI THƯƠNG & THUẬT TOÁN
+    %% ==========================================
+    subgraph COT_2["🌐 CỘT 2: TRỤC LÕI XNK & THUẬT TOÁN"]
         direction TB
-        subgraph LUONG_IN["LUỒNG 1: NHẬP KHẨU (INBOUND)"]
-            direction LR
-            PO_DOC["Purchase Order (PO)"] --> PR_DOC["Purchase Receipt (PR)"] --> PI_DOC["Purchase Invoice (PI)"] --> LCV_DOC["Landed Cost (LCV)"]
+
+        subgraph T3["TẦNG 3: TRUNG TÂM QUẢN TRỊ NGOẠI THƯƠNG"]
+            direction TB
+            TC["📂 <b>TRADE CASE (HỒ SƠ MẸ: IMPORT / EXPORT)</b><br>Hợp đồng • Đơn mua PO / Đơn bán SO • Ngân sách"]
+            TS["🚢 <b>TRADE SHIPMENT (CHUYẾN TÀU VẬT LÝ)</b><br>9 Mốc hành trình • Container & Free-time • Chi phí"]
+            VNACCS["🏛️ <b>CUSTOMS & TARIFF ENGINE</b><br>Tờ khai VNACCS 11 số • Biểu thuế HS • Tỷ giá tuần"]
+            DOCS["📋 <b>TRADE DOCUMENT CHECKLIST</b><br>Kiểm soát 100% hồ sơ pháp lý số (C/O, Packing List, VGM)"]
+            
+            TC ==> TS
+            TS <==> VNACCS
+            TS <==> DOCS
         end
-        subgraph LUONG_OUT["LUỒNG 2: XUẤT KHẨU (OUTBOUND)"]
-            direction LR
-            SO_DOC["Sales Order (SO)"] --> DN_DOC["Delivery Note (DN)"] --> SI_DOC["Sales Invoice (SI)"] --> EXP_PAY["Thu ngoại tệ L/C, TT"]
+
+        subgraph T4["TẦNG 4: ĐỘNG CƠ THUẬT TOÁN (LOGIC ENGINE)"]
+            direction TB
+            E_ALLOC["🧮 Phân Bổ Giá Vốn VAS 02 (CBM / Trị Giá)"]
+            E_VAR["📐 Bóc Tách Lệch Giá Cước & Tỷ Giá Ngoại Tệ"]
+            E_GATE["🛡️ Hệ Thống 3 Cổng Kiểm Soát (Stage Gates)"]
+            E_RAG["🤖 Trợ Lý AI / RAG Gợi Ý Mã HS & Văn Bản Pháp Lý"]
         end
+
+        T3 <===> T4
     end
 
-    %% TẦNG 6: HẠ TẦNG KỸ THUẬT & CƠ SỞ DỮ LIỆU
-    subgraph TANG_6["TẦNG 6: NỀN TẢNG HẠ TẦNG KỸ THUẬT & HỆ ĐIỀU HÀNH CONTAINER (INFRASTRUCTURE)"]
-        direction LR
-        INFRA_DB["🗄️ CƠ SỞ DỮ LIỆU<br><b>MariaDB 11.8</b><br>Lưu trữ giao dịch ACID • InnoDB Engine"]
-        INFRA_REDIS["⚡ BỘ NHỚ ĐỆM & HÀNG ĐỢI<br><b>Redis Cache & Redis Queue</b><br>Cache tọa độ tàu biển • Job ngầm"]
-        INFRA_APP["🐳 MÔI TRƯỜNG ỨNG DỤNG<br><b>Frappe Backend & Frontend (Port 2828)</b><br>Python 3.11 • Gunicorn • Bench CLI"]
-        INFRA_SOCK["🔄 THỜI GIAN THỰC & LỊCH TRÌNH<br><b>Websocket & Celery Scheduler</b><br>Push tọa độ tàu Leaflet • Quét hạn phạt bãi"]
+    %% ==========================================
+    %% CỘT 3: THỰC THI ERPNEXT & HẠ TẦNG KỸ THUẬT
+    %% ==========================================
+    subgraph COT_3["⚙️ CỘT 3: THỰC THI ERPNEXT & HẠ TẦNG"]
+        direction TB
+
+        subgraph T5["TẦNG 5: CHỨNG TỪ LÕI ERPNEXT SONG TRỤC"]
+            direction TB
+            subgraph L_IN["Luồng Nhập Khẩu (Inbound)"]
+                direction LR
+                PO["PO (Mua)"] --> PR["PR (Kho)"] --> PI["PI (Hóa đơn)"] --> LCV["LCV (Giá vốn)"]
+            end
+            subgraph L_OUT["Luồng Xuất Khẩu (Outbound)"]
+                direction LR
+                SO["SO (Bán)"] --> DN["DN (Kho xuất)"] --> SI["SI (Hóa đơn)"] --> PAY["Thu Ngoại Tệ"]
+            end
+        end
+
+        subgraph T6["TẦNG 6: HẠ TẦNG CONTAINER (DOCKER)"]
+            direction TB
+            subgraph INFRA_DATA["Dữ Liệu & Bộ Nhớ Đệm"]
+                direction LR
+                DB["🗄️ MariaDB 11.8 (ACID)"] --- REDIS["⚡ Redis Cache & Queue"]
+            end
+            subgraph INFRA_APP["Môi Trường Ứng Dụng & Thời Gian Thực"]
+                direction LR
+                APP["🐳 Frappe Backend/Frontend (:2828)"] --- SOCK["🔄 WebSocket & Cron Scheduler"]
+            end
+        end
+
+        T5 ==> T6
     end
 
-    %% LIÊN KẾT ĐA TẦNG
-    TANG_1 ==> TANG_2
-    TANG_2 ==> TANG_3
-    TANG_3 <==> TANG_4
-    TANG_4 ==> TANG_5
-    TANG_5 ==> TANG_6
+    %% ==========================================
+    %% KẾT NỐI TƯƠNG TÁC NGANG GIỮA CÁC CỘT
+    %% ==========================================
+    COT_1 ==>|"Tác nghiệp & Giám sát"| COT_2
+    COT_2 <===>|"Đồng bộ dữ liệu & Chặn cổng"| COT_3
 
-    %% MÀU SẮC ĐỘ TƯƠNG PHẢN CAO
-    style TANG_1 fill:#0F172A,stroke:#38BDF8,stroke-width:2px,color:#FFFFFF
-    style TANG_2 fill:#0F172A,stroke:#0284C7,stroke-width:2px,color:#FFFFFF
-    style TANG_3 fill:#1E1B4B,stroke:#818CF8,stroke-width:2px,color:#FFFFFF
-    style TANG_4 fill:#18181B,stroke:#F59E0B,stroke-width:2px,color:#FFFFFF
-    style TANG_5 fill:#064E3B,stroke:#10B981,stroke-width:2px,color:#FFFFFF
-    style TANG_6 fill:#1E293B,stroke:#94A3B8,stroke-width:2px,color:#FFFFFF
-    style LUONG_IN fill:#022C22,stroke:#34D399,color:#FFFFFF
-    style LUONG_OUT fill:#064E3B,stroke:#6EE7B7,color:#FFFFFF
+    %% ==========================================
+    %% PHỐI MÀU GIAO DIỆN DARK TECH HIỆN ĐẠI
+    %% ==========================================
+    style COT_1 fill:#0B132B,stroke:#38BDF8,stroke-width:2px,color:#FFFFFF
+    style COT_2 fill:#1C1942,stroke:#818CF8,stroke-width:2px,color:#FFFFFF
+    style COT_3 fill:#0A251D,stroke:#10B981,stroke-width:2px,color:#FFFFFF
 
-    style INFRA_DB fill:#334155,stroke:#94A3B8,color:#FFFFFF
-    style INFRA_REDIS fill:#334155,stroke:#94A3B8,color:#FFFFFF
-    style INFRA_APP fill:#334155,stroke:#94A3B8,color:#FFFFFF
-    style INFRA_SOCK fill:#334155,stroke:#94A3B8,color:#FFFFFF
+    style T1 fill:#0F172A,stroke:#38BDF8,color:#FFFFFF
+    style T2 fill:#0F172A,stroke:#0284C7,color:#FFFFFF
+    style T3 fill:#1E1B4B,stroke:#818CF8,color:#FFFFFF
+    style T4 fill:#18181B,stroke:#F59E0B,color:#FFFFFF
+    style T5 fill:#064E3B,stroke:#10B981,color:#FFFFFF
+    style T6 fill:#1E293B,stroke:#94A3B8,color:#FFFFFF
 
-    style U_BUY fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
-    style U_SAL fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
-    style U_LOG fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
-    style U_CUS fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
-    style U_WH fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
-    style U_ACC fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
-    style U_CFO fill:#D97706,stroke:#FBBF24,color:#FFFFFF
+    style L_IN fill:#022C22,stroke:#34D399,color:#FFFFFF
+    style L_OUT fill:#064E3B,stroke:#6EE7B7,color:#FFFFFF
+    style INFRA_DATA fill:#0F172A,stroke:#94A3B8,color:#FFFFFF
+    style INFRA_APP fill:#0F172A,stroke:#94A3B8,color:#FFFFFF
+
+    style U_IN fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
+    style U_OUT fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
+    style U_MID fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
+    style U_LEAD fill:#D97706,stroke:#FBBF24,color:#FFFFFF
 
     style DASH fill:#0369A1,stroke:#38BDF8,color:#FFFFFF
     style WORK fill:#0369A1,stroke:#38BDF8,color:#FFFFFF
 
-    style TC fill:#4338CA,stroke:#C7D2FE,color:#FFFFFF,stroke-width:3px
+    style TC fill:#4338CA,stroke:#C7D2FE,color:#FFFFFF,stroke-width:2px
     style TS fill:#6D28D9,stroke:#DDD6FE,color:#FFFFFF,stroke-width:2px
     style VNACCS fill:#4C1D95,stroke:#DDD6FE,color:#FFFFFF
     style DOCS fill:#4C1D95,stroke:#DDD6FE,color:#FFFFFF
@@ -138,8 +156,10 @@ flowchart TD
     style E_GATE fill:#B91C1C,stroke:#FCA5A5,color:#FFFFFF
     style E_RAG fill:#4F46E5,stroke:#C7D2FE,color:#FFFFFF
 
-    style ERP_DOCS fill:#047857,stroke:#6EE7B7,color:#FFFFFF
-    style INFRA_DB fill:#047857,stroke:#6EE7B7,color:#FFFFFF
+    style DB fill:#334155,stroke:#94A3B8,color:#FFFFFF
+    style REDIS fill:#334155,stroke:#94A3B8,color:#FFFFFF
+    style APP fill:#334155,stroke:#94A3B8,color:#FFFFFF
+    style SOCK fill:#334155,stroke:#94A3B8,color:#FFFFFF
 ```
 
 ---
@@ -149,7 +169,7 @@ flowchart TD
 Giải quyết trọn vẹn bài toán: **1 Đơn hàng mua lớn (PO) được nhà máy chia làm 2 đợt giao trên 2 chuyến tàu khác nhau**:
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Arial, sans-serif', 'fontSize': '13px'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '13px'}}}%%
 flowchart TD
     %% TẦNG HỒ SƠ THƯƠNG MẠI
     subgraph S_CASE["📂 TẦNG HỒ SƠ THƯƠNG MẠI: TRADE CASE (MÃ: IMP-2026-00001)"]
