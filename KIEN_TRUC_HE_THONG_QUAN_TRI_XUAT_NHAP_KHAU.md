@@ -21,9 +21,9 @@ Hệ thống được thiết kế theo tiêu chuẩn khung kiến trúc mở **
 
 ---
 
-## 📐 CHƯƠNG 2: BẢN VẼ KIẾN TRÚC TỔNG THỂ SONG TRỤC (DUAL-STREAM ARCHITECTURE)
+## 📐 CHƯƠNG 2: BẢN VẼ KIẾN TRÚC TỔNG THỂ SONG TRỤC (TOGAF 6 LAYERS)
 
-Bản vẽ phân tách rõ ràng 5 tầng kiến trúc, kết nối đối xứng luồng Mua hàng quốc tế (Nhập khẩu) và Bán hàng quốc tế (Xuất khẩu) vào Trung tâm Quản trị Ngoại thương:
+Bản vẽ phân tách rõ ràng 6 tầng kiến trúc, từ con người, giao diện, trung tâm nghiệp vụ, bộ não thuật toán, chứng từ ERPNext đến nền tảng hạ tầng Container kỹ thuật:
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '13px'}}}%%
@@ -86,11 +86,21 @@ flowchart TD
         end
     end
 
+    %% TẦNG 6: HẠ TẦNG KỸ THUẬT & CƠ SỞ DỮ LIỆU
+    subgraph TANG_6["TẦNG 6: NỀN TẢNG HẠ TẦNG KỸ THUẬT & HỆ ĐIỀU HÀNH CONTAINER (INFRASTRUCTURE)"]
+        direction LR
+        INFRA_DB["🗄️ CƠ SỞ DỮ LIỆU<br><b>MariaDB 11.8</b><br>Lưu trữ giao dịch ACID • InnoDB Engine"]
+        INFRA_REDIS["⚡ BỘ NHỚ ĐỆM & HÀNG ĐỢI<br><b>Redis Cache & Redis Queue</b><br>Cache tọa độ tàu biển • Job ngầm"]
+        INFRA_APP["🐳 MÔI TRƯỜNG ỨNG DỤNG<br><b>Frappe Backend & Frontend (Port 2828)</b><br>Python 3.11 • Gunicorn • Bench CLI"]
+        INFRA_SOCK["🔄 THỜI GIAN THỰC & LỊCH TRÌNH<br><b>Websocket & Celery Scheduler</b><br>Push tọa độ tàu Leaflet • Quét hạn phạt bãi"]
+    end
+
     %% LIÊN KẾT ĐA TẦNG
     TANG_1 ==> TANG_2
     TANG_2 ==> TANG_3
     TANG_3 <==> TANG_4
     TANG_4 ==> TANG_5
+    TANG_5 ==> TANG_6
 
     %% MÀU SẮC ĐỘ TƯƠNG PHẢN CAO
     style TANG_1 fill:#0F172A,stroke:#38BDF8,stroke-width:2px,color:#FFFFFF
@@ -98,8 +108,14 @@ flowchart TD
     style TANG_3 fill:#1E1B4B,stroke:#818CF8,stroke-width:2px,color:#FFFFFF
     style TANG_4 fill:#18181B,stroke:#F59E0B,stroke-width:2px,color:#FFFFFF
     style TANG_5 fill:#064E3B,stroke:#10B981,stroke-width:2px,color:#FFFFFF
+    style TANG_6 fill:#1E293B,stroke:#94A3B8,stroke-width:2px,color:#FFFFFF
     style LUONG_IN fill:#022C22,stroke:#34D399,color:#FFFFFF
     style LUONG_OUT fill:#064E3B,stroke:#6EE7B7,color:#FFFFFF
+
+    style INFRA_DB fill:#334155,stroke:#94A3B8,color:#FFFFFF
+    style INFRA_REDIS fill:#334155,stroke:#94A3B8,color:#FFFFFF
+    style INFRA_APP fill:#334155,stroke:#94A3B8,color:#FFFFFF
+    style INFRA_SOCK fill:#334155,stroke:#94A3B8,color:#FFFFFF
 
     style U_BUY fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
     style U_SAL fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
