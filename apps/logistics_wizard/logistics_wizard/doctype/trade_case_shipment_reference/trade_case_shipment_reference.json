@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "creation": "2026-10-02 21:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "shipment_tracking",
+  "carrier",
+  "tracking_number",
+  "container_id",
+  "status",
+  "eta",
+  "delay_days",
+  "is_primary"
+ ],
+ "fields": [
+  {
+   "fieldname": "shipment_tracking",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Vận đơn liên kết (Shipment Tracking)",
+   "options": "Shipment Tracking",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "shipment_tracking.carrier",
+   "fieldname": "carrier",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Hãng vận chuyển (Carrier)"
+  },
+  {
+   "fetch_from": "shipment_tracking.tracking_number",
+   "fieldname": "tracking_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Số vận đơn (Tracking No)"
+  },
+  {
+   "fetch_from": "shipment_tracking.container_id",
+   "fieldname": "container_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Số Container / Kiện"
+  },
+  {
+   "default": "In Transit",
+   "fetch_from": "shipment_tracking.status",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Trạng thái (Status)",
+   "options": "Draft\nIn Transit\nCustoms Clearance\nArrived\nDelivered\nCompleted\nDelayed"
+  },
+  {
+   "fetch_from": "shipment_tracking.eta",
+   "fieldname": "eta",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Ngày dự kiến đến (ETA)"
+  },
+  {
+   "default": "0",
+   "fetch_from": "shipment_tracking.delay_days",
+   "fieldname": "delay_days",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Số ngày trễ (Delay Days)"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_primary",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Vận đơn chính (Is Primary)"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-02 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Trade Case Shipment Reference",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

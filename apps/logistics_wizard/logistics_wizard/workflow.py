@@ -49,7 +49,7 @@ IMPORT_WORKFLOW_STEPS = [
         "step": 4,
         "doctype": "Shipment Tracking",
         "label": "4. Theo dõi hành trình (Shipment Tracking)",
-        "slug": "shipment-tracking-hub",
+        "slug": "managementLogistic",
     },
     {
         "step": 5,
@@ -101,7 +101,7 @@ EXPORT_WORKFLOW_STEPS = [
         "step": 5,
         "doctype": "Shipment Tracking",
         "label": "5. Theo dõi hành trình (Shipment Tracking)",
-        "slug": "shipment-tracking-hub",
+        "slug": "managementLogistic",
     },
     {
         "step": 6,

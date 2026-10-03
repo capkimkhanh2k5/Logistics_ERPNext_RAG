@@ -6,7 +6,7 @@ function initSmartWorkflowWidget() {
         { doctype: "Material Request", id: "wiz-Material-Request", slug: "material-request", label: "1. Yêu cầu mua hàng (Material Request)" },
         { doctype: "Purchase Order", id: "wiz-Purchase-Order", slug: "purchase-order", label: "2. Đơn đặt hàng (Purchase Order)" },
         { doctype: "Payment Entry", id: "wiz-Payment-Entry", slug: "payment-entry", label: "3. Đặt cọc / Tạm ứng (Payment Entry)" },
-        { doctype: "Shipment Tracking", id: "wiz-Shipment-Tracking", slug: "shipment-tracking-hub", label: "4. Theo dõi hành trình (Shipment Tracking)" },
+        { doctype: "Shipment Tracking", id: "wiz-Shipment-Tracking", slug: "managementLogistic", label: "4. Theo dõi hành trình (Shipment Tracking)" },
         { doctype: "Purchase Receipt", id: "wiz-Purchase-Receipt", slug: "purchase-receipt", label: "5. Nhận hàng (Purchase Receipt)" },
         { doctype: "Landed Cost Voucher", id: "wiz-Landed-Cost-Voucher", slug: "landed-cost-voucher", label: "6. Phân bổ giá vốn (Landed Cost)" },
         { doctype: "Stock Entry", id: "wiz-Stock-Entry", slug: "stock-entry", label: "7. Nhập kho (Stock Entry)" }
@@ -17,7 +17,7 @@ function initSmartWorkflowWidget() {
         { doctype: "Payment Entry", id: "wiz-exp-Payment-Entry-Deposit", slug: "payment-entry", label: "2. Thu tiền cọc (Payment Entry)" },
         { doctype: "Stock Entry", id: "wiz-exp-Stock-Entry", slug: "stock-entry", label: "3. Chuyển kho cảng (Stock Entry)" },
         { doctype: "Delivery Note", id: "wiz-exp-Delivery-Note", slug: "delivery-note", label: "4. Xuất kho giao hàng (Delivery Note)" },
-        { doctype: "Shipment Tracking", id: "wiz-exp-Shipment-Tracking", slug: "shipment-tracking-hub", label: "5. Theo dõi hành trình (Shipment Tracking)" },
+        { doctype: "Shipment Tracking", id: "wiz-exp-Shipment-Tracking", slug: "managementLogistic", label: "5. Theo dõi hành trình (Shipment Tracking)" },
         { doctype: "Sales Invoice", id: "wiz-exp-Sales-Invoice", slug: "sales-invoice", label: "6. Hóa đơn thương mại (Sales Invoice)" },
         { doctype: "Payment Entry", id: "wiz-exp-Payment-Entry-Final", slug: "payment-entry", label: "7. Tất toán ngoại tệ (Payment Entry)" }
     ];
@@ -102,8 +102,209 @@ function initSmartWorkflowWidget() {
         }
     }
 
+    function ensure_widget_styles() {
+        if ($('#lw-smart-widget-styles').length === 0) {
+            $('head').append(`
+                <style id="lw-smart-widget-styles">
+                    #lw-fab-container {
+                        position: fixed !important;
+                        bottom: 32px !important;
+                        left: 32px !important;
+                        z-index: 9999 !important;
+                        display: flex !important;
+                        flex-direction: column-reverse !important;
+                        align-items: center !important;
+                        gap: 14px !important;
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+                    }
+                    .lw-fab {
+                        width: 58px !important;
+                        height: 58px !important;
+                        border-radius: 50% !important;
+                        background: rgba(255, 255, 255, 0.94) !important;
+                        backdrop-filter: blur(25px) !important;
+                        -webkit-backdrop-filter: blur(25px) !important;
+                        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06), inset 0 1px 1px #ffffff !important;
+                        border: 1px solid rgba(226, 232, 240, 0.9) !important;
+                        display: flex !important;
+                        justify-content: center !important;
+                        align-items: center !important;
+                        cursor: pointer !important;
+                        position: relative !important;
+                        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                        outline: none !important;
+                    }
+                    .lw-fab:hover {
+                        transform: scale(1.08) translateY(-2px) !important;
+                        background: #ffffff !important;
+                        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.16), inset 0 1px 1px #ffffff !important;
+                    }
+                    .lw-fab:active {
+                        transform: scale(0.95) !important;
+                    }
+                    .lw-fab.active {
+                        background: #f1f5f9 !important;
+                        border-color: #cbd5e1 !important;
+                    }
+                    .lw-fab .fab-icon {
+                        position: absolute !important;
+                        width: 32px !important;
+                        height: 32px !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        pointer-events: none !important;
+                        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+                    }
+                    .lw-fab:hover .fab-icon svg {
+                        transform: scale(1.08) rotate(12deg) !important;
+                    }
+                    .lw-fab.active .fab-icon {
+                        opacity: 0 !important;
+                        transform: scale(0.3) rotate(-90deg) !important;
+                    }
+                    .lw-fab .fab-close-icon {
+                        position: absolute !important;
+                        color: #475569 !important;
+                        font-size: 22px !important;
+                        font-weight: 400 !important;
+                        line-height: 1 !important;
+                        opacity: 0 !important;
+                        transform: scale(0.3) rotate(-90deg) !important;
+                        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+                        pointer-events: none !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                    }
+                    .lw-fab.active .fab-close-icon {
+                        opacity: 1 !important;
+                        transform: scale(1) rotate(0deg) !important;
+                    }
+                    #lw-fab-menu {
+                        display: flex !important;
+                        flex-direction: column-reverse !important;
+                        gap: 12px !important;
+                        pointer-events: none !important;
+                    }
+                    #lw-fab-menu.show {
+                        pointer-events: auto !important;
+                    }
+                    .lw-sub-fab {
+                        width: 48px !important;
+                        height: 48px !important;
+                        border-radius: 50% !important;
+                        background: rgba(255, 255, 255, 0.95) !important;
+                        backdrop-filter: blur(20px) !important;
+                        -webkit-backdrop-filter: blur(20px) !important;
+                        border: 1px solid rgba(226, 232, 240, 0.9) !important;
+                        color: #0f172a !important;
+                        display: flex !important;
+                        justify-content: center !important;
+                        align-items: center !important;
+                        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+                        cursor: pointer !important;
+                        position: relative !important;
+                        opacity: 0 !important;
+                        transform: translateY(16px) scale(0.8) !important;
+                        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+                    }
+                    #lw-fab-menu.show .lw-sub-fab:nth-child(1) { transition-delay: 0.04s; opacity: 1 !important; transform: translateY(0) scale(1) !important; }
+                    #lw-fab-menu.show .lw-sub-fab:nth-child(2) { transition-delay: 0.08s; opacity: 1 !important; transform: translateY(0) scale(1) !important; }
+                    #lw-fab-menu.show .lw-sub-fab:nth-child(3) { transition-delay: 0.12s; opacity: 1 !important; transform: translateY(0) scale(1) !important; }
+                    .lw-sub-fab:hover {
+                        background: #ffffff !important;
+                        transform: scale(1.1) !important;
+                        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12) !important;
+                    }
+                    .lw-sub-fab::after {
+                        content: attr(data-tooltip);
+                        position: absolute;
+                        left: 100%;
+                        margin-left: 12px;
+                        background: rgba(15, 23, 42, 0.88);
+                        backdrop-filter: blur(15px);
+                        -webkit-backdrop-filter: blur(15px);
+                        color: #ffffff;
+                        padding: 6px 12px;
+                        border-radius: 6px;
+                        font-size: 12px;
+                        font-weight: 500;
+                        white-space: nowrap;
+                        pointer-events: none;
+                        opacity: 0;
+                        transform: translateX(-6px) scale(0.95);
+                        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                    }
+                    .lw-sub-fab:hover::after {
+                        opacity: 1;
+                        transform: translateX(0) scale(1);
+                    }
+                    .lw-popup {
+                        position: fixed !important;
+                        bottom: 32px !important;
+                        left: 104px !important;
+                        width: 360px !important;
+                        max-width: calc(100vw - 120px) !important;
+                        background: rgba(255, 255, 255, 0.98) !important;
+                        backdrop-filter: blur(25px) !important;
+                        -webkit-backdrop-filter: blur(25px) !important;
+                        border-radius: 18px !important;
+                        border: 1px solid rgba(226, 232, 240, 0.9) !important;
+                        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+                        z-index: 1040 !important;
+                        display: none;
+                        overflow: hidden !important;
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+                        animation: lwPopupFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+                    }
+                    @keyframes lwPopupFadeIn {
+                        from { opacity: 0; transform: scale(0.96) translateY(8px); }
+                        to { opacity: 1; transform: scale(1) translateY(0); }
+                    }
+                    .lw-popup-large {
+                        width: 680px !important;
+                        max-width: calc(100vw - 120px) !important;
+                    }
+                    .lw-popup-header {
+                        padding: 12px 16px !important;
+                        background: #f8fafc !important;
+                        border-bottom: 1px solid #e2e8f0 !important;
+                        font-weight: 700 !important;
+                        font-size: 13.5px !important;
+                        color: #0f172a !important;
+                        display: flex !important;
+                        justify-content: space-between !important;
+                        align-items: center !important;
+                    }
+                    .lw-popup-close {
+                        color: #94a3b8 !important;
+                        cursor: pointer !important;
+                        font-size: 14px !important;
+                        padding: 4px 6px !important;
+                        border-radius: 4px !important;
+                        transition: all 0.15s ease !important;
+                    }
+                    .lw-popup-close:hover {
+                        color: #0f172a !important;
+                        background: #e2e8f0 !important;
+                    }
+                    .lw-popup-body {
+                        padding: 16px !important;
+                        max-height: 72vh !important;
+                        overflow-y: auto !important;
+                    }
+                </style>
+            `);
+        }
+    }
+
     // Inject FAB and Modals
     function inject_fab() {
+        ensure_widget_styles();
         if ($('#lw-fab-container').length === 0) {
             let fab_html = `
                 <div id="lw-fab-container" style="position: fixed !important; bottom: 32px !important; left: 32px !important; z-index: 9999 !important;">
@@ -209,12 +410,7 @@ function initSmartWorkflowWidget() {
                             </svg>
                             Bản đồ & Hành trình Vận chuyển Toàn cầu
                         </span>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
-                            <button id="lw-btn-open-full-hub" class="btn btn-xs" style="background: #0071E3; color: #ffffff; border: none; border-radius: 5px; font-size: 11px; font-weight: 600; padding: 3px 9px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15);" title="Mở trang Quản trị Vận chuyển Chuyên sâu">
-                                <span>Mở toàn trang Quản trị Hub</span> ↗
-                            </button>
-                            <span class="lw-popup-close" data-target="#lw-popup-shipment" style="cursor: pointer; font-size: 13px; padding: 2px 4px;">✖</span>
-                        </div>
+                        <span class="lw-popup-close" data-target="#lw-popup-shipment" style="cursor: pointer; font-size: 13px; padding: 2px 4px; margin-left: auto;">✖</span>
                     </div>
                     <div class="lw-popup-body" id="lw-shipment-content">
                         <div style="text-align: center; color: #8d99a6; padding: 25px 0;">
@@ -278,25 +474,28 @@ function initSmartWorkflowWidget() {
                 $('#lw-fab-main').removeClass('active');
 
                 let route = (typeof frappe !== 'undefined' && frappe.get_route) ? frappe.get_route() : [];
-                let routeOpts = {};
+                let routeOpts = { tab: 'tracking' };
                 if (route && route[0] === 'Form' && ['Purchase Order', 'Shipment Tracking', 'Purchase Receipt'].includes(route[1]) && route[2]) {
-                    routeOpts = { shipment: route[2], doctype: route[1] };
+                    routeOpts.shipment = route[2];
+                    routeOpts.doctype = route[1];
                 }
                 if (typeof frappe !== 'undefined' && frappe.set_route) {
-                    frappe.set_route('shipment-tracking-hub', routeOpts);
+                    frappe.route_options = routeOpts;
+                    frappe.set_route('managementLogistic');
                 } else {
-                    window.location.href = '/app/shipment-tracking-hub' + (routeOpts.shipment ? '?shipment=' + encodeURIComponent(routeOpts.shipment) : '');
+                    window.location.href = '/app/managementLogistic' + (routeOpts.shipment ? '?shipment=' + encodeURIComponent(routeOpts.shipment) : '');
                 }
             });
 
-            // Click Shipment Tracking step -> Navigate to Shipment Tracking Hub page
+            // Click Shipment Tracking step -> Navigate to Management Logistic page
             $(document).on('click', '#wiz-Shipment-Tracking a, #wiz-exp-Shipment-Tracking a', function (e) {
                 if (typeof frappe !== 'undefined' && frappe.set_route) {
                     e.preventDefault();
                     $('.lw-popup').hide();
                     $('#lw-fab-menu').removeClass('show');
                     $('#lw-fab-main').removeClass('active');
-                    frappe.set_route('shipment-tracking-hub');
+                    frappe.route_options = { tab: 'tracking' };
+                    frappe.set_route('managementLogistic');
                 }
             });
 
@@ -451,17 +650,21 @@ function initSmartWorkflowWidget() {
                         $('#lw-fab-menu').removeClass('show');
                         $('#lw-fab-main').removeClass('active');
 
-                        // Navigate directly to Shipment Tracking Hub page and open that exact shipment
+                        // Navigate directly to Management Logistic page and focus that shipment in Tracking tab
                         if (typeof frappe !== 'undefined' && frappe.set_route) {
                             let currentRoute = frappe.get_route_str ? frappe.get_route_str() : '';
-                            if (currentRoute === 'shipment-tracking-hub' && frappe.pages['shipment-tracking-hub'] && frappe.pages['shipment-tracking-hub'].shipment_tracking_hub) {
-                                frappe.pages['shipment-tracking-hub'].shipment_tracking_hub.select_shipment(targetShipment);
+                            if ((currentRoute === 'managementLogistic' || currentRoute === 'manageLogistic') && frappe.pages['managementLogistic'] && frappe.pages['managementLogistic'].shipment_tracking_hub) {
+                                if (frappe.pages['managementLogistic'].switch_to_tab) {
+                                    frappe.pages['managementLogistic'].switch_to_tab('tracking', targetShipment);
+                                } else {
+                                    frappe.pages['managementLogistic'].shipment_tracking_hub.select_shipment(targetShipment);
+                                }
                             } else {
-                                frappe.route_options = { shipment: targetShipment };
-                                frappe.set_route('shipment-tracking-hub');
+                                frappe.route_options = { shipment: targetShipment, tab: 'tracking' };
+                                frappe.set_route('managementLogistic');
                             }
                         } else {
-                            window.location.href = '/app/shipment-tracking-hub?shipment=' + encodeURIComponent(targetShipment);
+                            window.location.href = '/app/managementLogistic?shipment=' + encodeURIComponent(targetShipment);
                         }
                     });
                 } else {
@@ -1372,6 +1575,16 @@ function initSmartWorkflowWidget() {
     // Bind route change event
     if (typeof frappe !== 'undefined' && frappe.router) {
         frappe.router.on("change", function () {
+            let r = (typeof frappe.get_route === 'function') ? frappe.get_route() : [];
+            if (r && r[0] === 'shipment-tracking-hub') {
+                frappe.route_options = Object.assign({}, frappe.route_options, { tab: 'tracking' });
+                frappe.set_route('managementLogistic');
+                return;
+            } else if (r && r[0] === 'trade-case-overview') {
+                frappe.route_options = Object.assign({}, frappe.route_options, { tab: 'overview' });
+                frappe.set_route('managementLogistic');
+                return;
+            }
             inject_fab();
             update_widget_state();
         });

@@ -7,10 +7,10 @@
  "modified": "2026-10-03 16:40:00.000000",
  "modified_by": "Administrator",
  "module": "Logistics Wizard",
- "name": "shipment-tracking-hub",
+ "name": "trade-case-overview",
  "owner": "Administrator",
- "page_name": "shipment-tracking-hub",
+ "page_name": "trade-case-overview",
  "roles": [],
  "standard": "Yes",
- "title": "Shipment Tracking Hub"
+ "title": "Trade Case Overview"
 }
