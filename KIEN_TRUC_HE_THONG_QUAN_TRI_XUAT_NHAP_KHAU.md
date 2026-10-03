@@ -21,46 +21,46 @@ Hệ thống được thiết kế theo tiêu chuẩn khung kiến trúc mở **
 
 ---
 
-## 📐 CHƯƠNG 2: BẢN VẼ KIẾN TRÚC TỔNG THỂ SONG TRỤC (TOGAF ENTERPRISE ARCHITECTURE)
+## 📐 CHƯƠNG 2: BẢN VẼ KIẾN TRÚC HỆ THỐNG 4 PHÂN TẦNG (MICROSOFT ENTERPRISE ARCHITECTURE)
 
-Bản vẽ được thiết kế theo phong cách chuẩn **Microsoft Enterprise Architecture** (tham chiếu kiến trúc Microsoft Teams): phân lớp rõ ràng, nền sáng thanh lịch, độ tương phản cao, trực quan và không bị rối mắt:
+Bản vẽ kiến trúc hệ thống được thiết kế theo mô hình **4 Phân Tầng Doanh Nghiệp (Enterprise 4-Tier Architecture)** chuẩn Microsoft Teams (tham chiếu tài liệu kiến trúc kỹ thuật `KTHT_MSTeams`): phân định rạch ròi giữa giao diện người dùng, lớp dịch vụ ngoại thương chuyên biệt & AI, lớp chứng từ lõi ERPNext và nền tảng hạ tầng container:
 
 ```mermaid
 %%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '12px', 'lineColor': '#64748B'}}}%%
 flowchart TD
     %% ==========================================
-    %% LỚP 1: CON NGƯỜI & ĐIỀU HÀNH (CLIENTS & WORKSPACES)
+    %% TẦNG 1: GIAO DIỆN & ĐIỀU HÀNH (PRESENTATION & CLIENTS)
     %% ==========================================
-    subgraph T1["LỚP 1: NGƯỜI DÙNG & GIAO DIỆN TÁC NGHIỆP (CLIENTS & PRESENTATION)"]
+    subgraph T1["TẦNG 1: GIAO DIỆN NGƯỜI DÙNG & ĐIỀU HÀNH (CLIENTS & PRESENTATION)"]
         direction LR
         ROLES["👥 <b>ĐỘI NGŨ TÁC NGHIỆP ĐA PHÒNG BAN</b><br>🛒 Mua Hàng • 🌍 Bán Hàng QT • 🚢 Logistics • 🏛️ Hải Quan<br>📦 Thủ Kho • 💰 Kế Toán • 👑 Ban Giám Đốc / CFO"]
-        DASH["📊 <b>THÁP CHỈ HUY TRUNG TÂM (CONTROL TOWER)</b><br>Bản đồ định vị tàu biển 3D • Cảnh báo phạt bãi cont<br>Báo cáo trễ hạn tàu • Cảnh báo rủi ro biến động tỷ giá"]
+        DASH["📊 <b>THÁP CHỈ HUY TRUNG TÂM (CONTROL TOWER)</b><br>Định vị GPS & Hành trình tàu biển 3D • Cảnh báo phạt bãi cont<br>Báo cáo trễ hạn tàu • Cảnh báo rủi ro biến động tỷ giá USD/VND"]
         ROLES <==> DASH
     end
 
     %% ==========================================
-    %% LỚP 2: TRUNG TÂM QUẢN TRỊ NGOẠI THƯƠNG
+    %% TẦNG 2: DỊCH VỤ NGOẠI THƯƠNG & TRÍ TUỆ NHÂN TẠO
     %% ==========================================
-    subgraph T2["LỚP 2: DỊCH VỤ NGOẠI THƯƠNG & THUẬT TOÁN (CORE TRADE SERVICES)"]
+    subgraph T2["TẦNG 2: DỊCH VỤ NGOẠI THƯƠNG & TRÍ TUỆ NHÂN TẠO (GLOBAL TRADE SERVICES & AI)"]
         direction LR
-        TC["📂 <b>Trade Case</b><br>Hồ sơ mẹ (Import/Export)<br>Hợp đồng • PO/SO • Ngân sách"]
-        TS["🚢 <b>Trade Shipment</b><br>Chuyến tàu • 9 Mốc tiến độ<br>Cont & Hạn Free-time"]
-        VNACCS["🏛️ <b>Customs Engine</b><br>Tờ khai VNACCS 11 số<br>Biểu thuế HS • Tỷ giá tuần"]
-        LOGIC["🧮 <b>Động Cơ Thuật Toán</b><br>Phân bổ giá vốn VAS 02<br>Bóc tách lệch giá • Stage Gates"]
+        TC["📂 <b>Trade Case Management</b><br>Hồ sơ mẹ (Import / Export)<br>Quản lý Hợp đồng & Ngân sách"]
+        TS["🚢 <b>Shipment Tracking Hub</b><br>Quản lý Chuyến tàu & 9 Mốc tiến độ<br>Hạn Free-time & Phạt Demurrage"]
+        AIRAG["🤖 <b>AI/RAG HS & Legal Engine</b><br>Tư vấn mã HS theo thông số kỹ thuật<br>Tra cứu biểu thuế & căn cứ pháp lý"]
+        LOGIC["🧮 <b>Động Cơ Thuật Toán Lõi</b><br>Phân bổ Landed Cost (VAS 02 / IAS 2)<br>Bóc tách lệch giá • Cổng Stage Gates"]
         
         TC ==>|"1 Case nhiều đợt giao"| TS
-        TS <==> VNACCS
+        TS <==> AIRAG
         TS <==> LOGIC
     end
 
     %% ==========================================
-    %% LỚP 3: HAI LUỒNG CHỨNG TỪ SONG SONG
+    %% TẦNG 3: CHỨNG TỪ & QUY TRÌNH LÕI ERPNEXT
     %% ==========================================
-    subgraph T3["LỚP 3: CHỨNG TỪ LÕI ERPNEXT SONG TRỤC (INBOUND & OUTBOUND WORKFLOWS)"]
+    subgraph T3["TẦNG 3: CHỨNG TỪ & QUY TRÌNH LÕI ERPNEXT (ERPNEXT CORE WORKFLOWS)"]
         direction TB
         subgraph LUONG_NHAP["🔵 LUỒNG NHẬP KHẨU (INBOUND PROCUREMENT)"]
             direction LR
-            PO["1. Đơn Mua (PO)"] --> PR["2. Nhập Kho (PR)<br><i>Gate 2: Thông quan</i>"] --> PI["3. Hóa Đơn Mua (PI)"] --> LCV["4. Phân Bổ Giá Vốn (LCV)"]
+            PO["1. Đơn Mua (PO)"] --> PR["2. Nhập Kho (PR)<br><i>Gate 2: Thông quan</i>"] --> PI["3. Hóa Đơn Mua (PI)<br><i>Cấn trừ 30% cọc</i>"] --> LCV["4. Phân Bổ Giá Vốn (LCV)<br><i>Chuẩn VAS 02</i>"]
         end
         subgraph LUONG_XUAT["🟢 LUỒNG XUẤT KHẨU (OUTBOUND SALES)"]
             direction LR
@@ -69,14 +69,14 @@ flowchart TD
     end
 
     %% ==========================================
-    %% LỚP 4: HẠ TẦNG KỸ THUẬT CONTAINER
+    %% TẦNG 4: HẠ TẦNG KỸ THUẬT & DỮ LIỆU
     %% ==========================================
-    subgraph T4["LỚP 4: NỀN TẢNG HẠ TẦNG KỸ THUẬT & DỮ LIỆU (INFRASTRUCTURE & PLATFORM)"]
+    subgraph T4["TẦNG 4: NỀN TẢNG HẠ TẦNG KỸ THUẬT & DỮ LIỆU (INFRASTRUCTURE & PLATFORM LAYER)"]
         direction LR
-        INFRA_DB["🗄️ <b>MariaDB 11.8</b><br>Giao dịch ACID • InnoDB"]
-        INFRA_REDIS["⚡ <b>Redis Cache & Queue</b><br>Đệm tọa độ • Job ngầm"]
-        INFRA_APP["💻 <b>Frappe App Cluster</b><br>Backend & Frontend (:2828)"]
-        INFRA_SOCK["🔄 <b>WebSocket & Scheduler</b><br>Tọa độ 3D • Quét hạn phạt"]
+        INFRA_APP["💻 <b>Frappe App Cluster</b><br>Python 3.11 / Desk (:2828)"]
+        INFRA_DB["🗄️ <b>MariaDB 11.8</b><br>Giao dịch ACID • InnoDB Engine"]
+        INFRA_REDIS["⚡ <b>Redis Cache & Queue</b><br>Celery Worker • Job tính ngầm"]
+        INFRA_SOCK["🔄 <b>WebSocket / Socket.io</b><br>Cập nhật tọa độ 3D & Chuông báo"]
     end
 
     %% ==========================================
@@ -102,7 +102,7 @@ flowchart TD
 
     style TC fill:#EFF6FF,stroke:#2563EB,stroke-width:2px,color:#1E40AF
     style TS fill:#FFFFFF,stroke:#64748B,stroke-width:1.5px,color:#0F172A
-    style VNACCS fill:#FFFFFF,stroke:#64748B,stroke-width:1px,color:#0F172A
+    style AIRAG fill:#EFF6FF,stroke:#2563EB,stroke-width:1px,color:#1E40AF
     style LOGIC fill:#FFFFFF,stroke:#64748B,stroke-width:1px,color:#0F172A
 
     style PO fill:#EFF6FF,stroke:#3B82F6,stroke-width:1px,color:#1E3A8A
@@ -115,52 +115,123 @@ flowchart TD
     style SI fill:#F0FDF4,stroke:#10B981,stroke-width:1px,color:#064E3B
     style PAY fill:#FEF3C7,stroke:#D97706,stroke-width:1px,color:#78350F
 
+    style INFRA_APP fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#0F172A
     style INFRA_DB fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#0F172A
     style INFRA_REDIS fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#0F172A
-    style INFRA_APP fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#0F172A
     style INFRA_SOCK fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#0F172A
 ```
 
 ---
 
-## 🎯 CHƯƠNG 3: MÔ HÌNH PHÂN TÁCH `TRADE CASE` VS `TRADE SHIPMENT` (PARTIAL SHIPMENT)
+## 🔄 CHƯƠNG 3: LUỒNG NGHIỆP VỤ 5 GIAI ĐOẠN VÒNG ĐỜI LÔ HÀNG (GLOBAL TRADE LIFECYCLE WORKFLOW)
 
-Giải quyết trọn vẹn bài toán: **1 Đơn hàng mua lớn (PO) được nhà máy chia làm 2 đợt giao trên 2 chuyến tàu khác nhau**:
+Toàn bộ hoạt động xuất nhập khẩu được quản trị khép kín qua **5 Giai Đoạn Vòng Đời Chuẩn (End-to-End Lifecycle Stages)**, bảo đảm tính liên tục của dòng hàng vật lý và tính chính xác của dòng tài chính kế toán:
 
 ```mermaid
-%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '13px', 'lineColor': '#64748B'}}}%%
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '12px', 'lineColor': '#64748B'}}}%%
 flowchart TD
-    %% TẦNG HỒ SƠ THƯƠNG MẠI
-    subgraph S_CASE["HỒ SƠ DỰ ÁN NGOẠI THƯƠNG: TRADE CASE (MÃ: IMP-2026-00001)"]
-        direction TB
-        PO["Đơn Mua Hàng PO: 1,000 iPhone 16 Pro Max ($1,000,000 USD) • Nhà cung cấp: Apple Inc"]
-        POL_GOV["Chính Sách & Ngân Sách: Incoterm CIF Cát Lái • Biểu thuế HS 8517.13.00 (Thuế 0%) • Ngân sách: 25.5 Tỷ VND"]
-        PO --- POL_GOV
+    %% ==========================================
+    %% GIAI ĐOẠN 1: CHUẨN BỊ ĐƠN HÀNG & THƯƠNG MẠI
+    %% ==========================================
+    subgraph STAGE1["GIAI ĐOẠN 1: CHUẨN BỊ ĐƠN HÀNG & HỒ SƠ NGOẠI THƯƠNG (TRADE PREPARATION)"]
+        direction LR
+        S1_PO["📝 <b>Đơn Hàng & Hợp Đồng</b><br>Tạo Purchase Order (PO) / Sales Order (SO)<br>Chốt đơn giá ngoại tệ, Incoterms (CIF/FOB)"]
+        S1_RAG["🤖 <b>AI/RAG Tư Vấn Mã HS</b><br>Tra cứu thông số kỹ thuật sản phẩm<br>Đề xuất mã HS & Biểu thuế ưu đãi FTA"]
+        S1_CASE["📂 <b>Khởi Tạo Trade Case</b><br>Mở Hồ sơ mẹ liên kết chứng từ<br>Lập Ngân sách dự toán chi phí lô hàng"]
+        S1_PO --> S1_RAG --> S1_CASE
     end
 
-    %% TẦNG CHUYẾN TÀU CON
-    subgraph S_SHP1["🚢 CHUYẾN TÀU 1 (SHIPMENT 1: TS-2026-00001)"]
-        direction TB
-        SHP1_INFO["<b>Giao Đợt 1: 600 iPhone</b><br>Tàu: Maersk Mc-Kinney Moller • Vận đơn: MAEU11223344<br>Container: MSKU1234567 (40ft HC) • Hạn Free-time: 7 ngày<br>Trạng thái: <b>Đã hoàn tất nhập kho & Landed Cost đợt 1</b>"]
+    %% ==========================================
+    %% GIAI ĐOẠN 2: LOGISTICS & VẬN TẢI BIỂN
+    %% ==========================================
+    subgraph STAGE2["GIAI ĐOẠN 2: LOGISTICS, VẬN TẢI QUỐC TẾ & CONTAINER (SHIPMENT TRACKING)"]
+        direction LR
+        S2_BOOK["🚢 <b>Booking & Vận Đơn B/L</b><br>Mở Trade Shipment, số vận đơn B/L<br>Cập nhật số Container & Số chì Seal"]
+        S2_MILE["⏱️ <b>Giám Sát 9 Mốc Hành Trình</b><br>Theo dõi M01 ➔ M04 Tàu chạy (Lock PO)<br>Dự báo ngày tàu cập cảng (M05_ETA)"]
+        S2_WARN["🚨 <b>Cảnh Báo Hạn Phạt Bãi</b><br>Đếm ngược Free-time lưu bãi cảng<br>Báo động đỏ trước 3 ngày chạm hạn phạt"]
+        S2_BOOK --> S2_MILE --> S2_WARN
     end
 
-    subgraph S_SHP2["🚢 CHUYẾN TÀU 2 (SHIPMENT 2: TS-2026-00002)"]
-        direction TB
-        SHP2_INFO["<b>Giao Đợt 2: 400 iPhone</b><br>Tàu: MSC Oscar • Vận đơn: MSCU99887766<br>Container: MSCU7654321 (40ft HC) • Hạn Free-time: 7 ngày<br>Trạng thái: <b>Đang trên biển (In Transit)</b>"]
+    %% ==========================================
+    %% GIAI ĐOẠN 3: THỦ TỤC HẢI QUAN
+    %% ==========================================
+    subgraph STAGE3["GIAI ĐOẠN 3: THỦ TỤC HẢI QUAN & PHÁP LÝ (CUSTOMS CLEARANCE)"]
+        direction LR
+        S3_DOC["📋 <b>Checklist Chứng Từ (Gate 1)</b><br>Rà soát Hợp đồng, Invoice, P/L, C/O<br>Đảm bảo đủ 100% điều kiện khai báo"]
+        S3_VNACCS["🏛️ <b>Tờ Khai VNACCS 11 Số</b><br>Truyền tờ khai điện tử hải quan<br>Khớp tỷ giá tuần của Bộ Tài chính"]
+        S3_TAX["💰 <b>Nộp Thuế & Thông Quan</b><br>Kế toán nộp thuế XNK & VAT vào kho bạc<br>Hoàn tất mốc M07_CUSTOMS_CLEAR"]
+        S3_DOC --> S3_VNACCS --> S3_TAX
     end
 
-    S_CASE ==>|"Đợt giao hàng 1 (Lập phiếu PR-001)"| S_SHP1
-    S_CASE ==>|"Đợt giao hàng 2 (Lập phiếu PR-002)"| S_SHP2
+    %% ==========================================
+    %% GIAI ĐOẠN 4: KHO BÃI VẬT LÝ
+    %% ==========================================
+    subgraph STAGE4["GIAI ĐOẠN 4: GIAO NHẬN KHO VẬT LÝ & KIỂM ĐẾM (PHYSICAL RECEIVING)"]
+        direction LR
+        S4_GATE["🚪 <b>Cổng Kiểm Soát Poka-Yoke (Gate 2)</b><br>Kiểm tra cờ Thông quan (M07)<br>Khóa dỡ hàng nếu chưa thông quan"]
+        S4_COUNT["📦 <b>Kiểm Đếm Thực Tế & KCS</b><br>Cắt chì seal, kiểm tra dập vỡ/ẩm mốc<br>Tách hàng hỏng (Rejected Qty) sang TK 1388"]
+        S4_PR["📑 <b>Phiếu Nhập Kho (Purchase Receipt)</b><br>Chỉ nhập hàng đạt chuẩn vào Kho (TK 156)<br>Tự động chốt mốc M09_WH_RECEIPT"]
+        S4_GATE --> S4_COUNT --> S4_PR
+    end
 
-    style S_CASE fill:#EFF6FF,stroke:#2563EB,stroke-width:2px,color:#1E40AF
-    style S_SHP1 fill:#F0FDF4,stroke:#10B981,stroke-width:1.5px,color:#064E3B
-    style S_SHP2 fill:#F8FAFC,stroke:#64748B,stroke-width:1.5px,color:#0F172A
+    %% ==========================================
+    %% GIAI ĐOẠN 5: QUYẾT TOÁN GIÁ VỐN
+    %% ==========================================
+    subgraph STAGE5["GIAI ĐOẠN 5: QUYẾT TOÁN CHI PHÍ & GIÁ VỐN ĐÍCH THỰC (LANDED COST VAS 02)"]
+        direction LR
+        S5_COLLECT["🧾 <b>Tập Hợp Hóa Đơn Chi Phí</b><br>Cước biển, phí D/O, nâng hạ, kiểm định<br>Cấn trừ 30% tiền cọc tạm ứng"]
+        S5_LCV["🧮 <b>Động Cơ Phân Bổ Landed Cost</b><br>Cước biển phân bổ theo Thể tích (CBM)<br>Thuế & Phí khác phân bổ theo Trị giá"]
+        S5_CLOSE["🔒 <b>Thẩm Định Ngân Sách & Đóng Lô (Gate 3)</b><br>Bóc tách lệch giá cước vs lệch tỷ giá<br>Chốt giá vốn bất biến (cost_status = Closed)"]
+        S5_COLLECT --> S5_LCV --> S5_CLOSE
+    end
 
-    style PO fill:#FFFFFF,stroke:#3B82F6,stroke-width:1px,color:#1E3A8A
-    style POL_GOV fill:#FFFFFF,stroke:#3B82F6,stroke-width:1px,color:#1E3A8A
-    style SHP1_INFO fill:#FFFFFF,stroke:#10B981,stroke-width:1px,color:#064E3B
-    style SHP2_INFO fill:#FFFFFF,stroke:#64748B,stroke-width:1px,color:#0F172A
+    %% ==========================================
+    %% DÒNG CHẢY XUYÊN SUỐT 5 GIAI ĐOẠN
+    %% ==========================================
+    STAGE1 ==>|"Khởi tạo chuyến tàu & bàn giao vận tải"| STAGE2
+    STAGE2 ==>|"Tàu cập cảng & cung cấp B/L, chứng từ"| STAGE3
+    STAGE3 ==>|"Thông quan hoàn tất (Đèn xanh cho kho)"| STAGE4
+    STAGE4 ==>|"Hàng vào kho an toàn & hóa đơn dịch vụ đủ"| STAGE5
+
+    %% ==========================================
+    %% PHỐI MÀU CHUẨN MSTEAMS (LIGHT ENTERPRISE CLEAN)
+    %% ==========================================
+    style STAGE1 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.5px,color:#0F172A
+    style STAGE2 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.5px,color:#0F172A
+    style STAGE3 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.5px,color:#0F172A
+    style STAGE4 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.5px,color:#0F172A
+    style STAGE5 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.5px,color:#0F172A
+
+    style S1_PO fill:#FFFFFF,stroke:#3B82F6,stroke-width:1px,color:#1E3A8A
+    style S1_RAG fill:#EFF6FF,stroke:#2563EB,stroke-width:1px,color:#1E40AF
+    style S1_CASE fill:#EFF6FF,stroke:#2563EB,stroke-width:1.5px,color:#1E40AF
+
+    style S2_BOOK fill:#FFFFFF,stroke:#64748B,stroke-width:1px,color:#0F172A
+    style S2_MILE fill:#FFFFFF,stroke:#64748B,stroke-width:1px,color:#0F172A
+    style S2_WARN fill:#FEF2F2,stroke:#DC2626,stroke-width:1px,color:#991B1B
+
+    style S3_DOC fill:#FFFFFF,stroke:#64748B,stroke-width:1px,color:#0F172A
+    style S3_VNACCS fill:#FFFFFF,stroke:#3B82F6,stroke-width:1px,color:#1E3A8A
+    style S3_TAX fill:#F0FDF4,stroke:#16A34A,stroke-width:1px,color:#166534
+
+    style S4_GATE fill:#FEF2F2,stroke:#DC2626,stroke-width:1.5px,color:#991B1B
+    style S4_COUNT fill:#FFFFFF,stroke:#64748B,stroke-width:1px,color:#0F172A
+    style S4_PR fill:#F0FDF4,stroke:#16A34A,stroke-width:1.5px,color:#166534
+
+    style S5_COLLECT fill:#FFFFFF,stroke:#64748B,stroke-width:1px,color:#0F172A
+    style S5_LCV fill:#EFF6FF,stroke:#2563EB,stroke-width:1.5px,color:#1E40AF
+    style S5_CLOSE fill:#FEF3C7,stroke:#D97706,stroke-width:1.5px,color:#78350F
 ```
+
+### 📋 Bảng Đặc Tả Nghiệp Vụ & Chứng Từ 5 Giai Đoạn Vòng Đời
+
+| Giai Đoạn | Chứng Từ / Dữ Liệu Tác Nghiệp | Vai Trò Chính | Đầu Ra Nghiệp Vụ & Rào Chắn Poka-Yoke |
+| :--- | :--- | :---: | :--- |
+| **Giai đoạn 1: Chuẩn bị Đơn hàng** | `Purchase Order` (PO), `Sales Order` (SO), `Trade Case`, Tra cứu HS Code (AI RAG) | 🛒 Thu Mua / 🌍 Sales | Khởi tạo hồ sơ mẹ `IMP-xxxx`, chốt dự toán ngân sách; Đơn PO/SO được Giám đốc ký duyệt. |
+| **Giai đoạn 2: Logistics & Tàu biển** | `Trade Shipment`, Master/House B/L, Container, Booking Confirmation | 🚢 Logistics | Cập nhật số Cont/Seal; giám sát mốc M01-M05; khóa cứng đơn PO khi tàu rời cảng (M04); đếm ngược Free-time. |
+| **Giai đoạn 3: Thủ tục Hải quan** | `Customs Declaration`, C/O Form E/D/AK, Packing List, Tờ khai VNACCS 11 số | 🏛️ Hải Quan / 💰 Kế Toán | Stage Gate 1: đủ 100% chứng từ mới mở tờ khai; nộp thuế kho bạc; chốt mốc thông quan M07_CUSTOMS_CLEAR. |
+| **Giai đoạn 4: Kho bãi Vật lý** | `Purchase Receipt` (PR), `Delivery Note` (DN), Biên bản đồng kiểm, KCS | 📦 Thủ Kho | Stage Gate 2: Chặn dỡ hàng và cấm submit PR nếu chưa thông quan; tách hàng hỏng ra TK 1388; chốt mốc M09. |
+| **Giai đoạn 5: Quyết toán Giá vốn** | `Purchase Invoice` (PI), Hóa đơn cước forwarder, `Landed Cost Voucher` (LCV) | 💰 Kế Toán / 👑 CFO | Stage Gate 3: Tự cấn trừ 30% cọc; phân bổ chi phí theo CBM & Trị giá (VAS 02); khóa đóng lô nếu vượt dự toán > 10%. |
 
 ---
 
