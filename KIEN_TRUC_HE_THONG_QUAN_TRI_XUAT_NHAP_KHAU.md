@@ -21,105 +21,270 @@ Hệ thống được thiết kế theo tiêu chuẩn khung kiến trúc mở **
 
 ---
 
-## 📐 CHƯƠNG 2: BẢN VẼ KIẾN TRÚC HỆ THỐNG 4 PHÂN TẦNG (MICROSOFT ENTERPRISE ARCHITECTURE)
+## 📐 CHƯƠNG 2: BẢN VẼ KIẾN TRÚC HỆ THỐNG TỔNG THỂ (ENTERPRISE SOLUTION ARCHITECTURE)
 
-Bản vẽ kiến trúc hệ thống được thiết kế theo mô hình **4 Phân Tầng Doanh Nghiệp (Enterprise 4-Tier Architecture)** chuẩn Microsoft Teams (tham chiếu tài liệu kiến trúc kỹ thuật `KTHT_MSTeams`): phân định rạch ròi giữa giao diện người dùng, lớp dịch vụ ngoại thương chuyên biệt & AI, lớp chứng từ lõi ERPNext và nền tảng hạ tầng container:
+Bản vẽ kiến trúc hệ thống được chuẩn hóa theo mô hình **Kiến Trúc Giải Pháp Doanh Nghiệp (Enterprise Solution Architecture)** chuẩn TOGAF. Bản vẽ phân định rạch ròi 3 phân vùng độc lập: **Khung Chuẩn & Quy Định** (cột trái), **Hệ Thống 4 Tầng Kỹ Thuật Nội Bộ** (khối trung tâm) và **Ranh Giới Tích Hợp Hệ Thống Bên Ngoài** (cột phải):
 
 ```mermaid
-%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '12px', 'lineColor': '#64748B'}}}%%
-flowchart TD
+%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '12px', 'primaryTextColor': '#FFFFFF'}}}%%
+flowchart LR
     %% ==========================================
-    %% TẦNG 1: GIAO DIỆN & ĐIỀU HÀNH (PRESENTATION & CLIENTS)
+    %% CỘT TRÁI: CHUẨN & QUY ĐỊNH
     %% ==========================================
-    subgraph T1["TẦNG 1: GIAO DIỆN NGƯỜI DÙNG & ĐIỀU HÀNH (CLIENTS & PRESENTATION)"]
-        direction LR
-        ROLES["👥 <b>ĐỘI NGŨ TÁC NGHIỆP ĐA PHÒNG BAN</b><br>🛒 Mua Hàng • 🌍 Bán Hàng QT • 🚢 Logistics • 🏛️ Hải Quan<br>📦 Thủ Kho • 💰 Kế Toán • 👑 Ban Giám Đốc / CFO"]
-        DASH["📊 <b>THÁP CHỈ HUY TRUNG TÂM (CONTROL TOWER)</b><br>Định vị GPS & Hành trình tàu biển 3D • Cảnh báo phạt bãi cont<br>Báo cáo trễ hạn tàu • Cảnh báo rủi ro biến động tỷ giá USD/VND"]
-        ROLES <==> DASH
-    end
-
-    %% ==========================================
-    %% TẦNG 2: DỊCH VỤ NGOẠI THƯƠNG & TRÍ TUỆ NHÂN TẠO
-    %% ==========================================
-    subgraph T2["TẦNG 2: DỊCH VỤ NGOẠI THƯƠNG & TRÍ TUỆ NHÂN TẠO (GLOBAL TRADE SERVICES & AI)"]
-        direction LR
-        TC["📂 <b>Trade Case Management</b><br>Hồ sơ mẹ (Import / Export)<br>Quản lý Hợp đồng & Ngân sách"]
-        TS["🚢 <b>Shipment Tracking Hub</b><br>Quản lý Chuyến tàu & 9 Mốc tiến độ<br>Hạn Free-time & Phạt Demurrage"]
-        AIRAG["🤖 <b>AI/RAG HS & Legal Engine</b><br>Tư vấn mã HS theo thông số kỹ thuật<br>Tra cứu biểu thuế & căn cứ pháp lý"]
-        LOGIC["🧮 <b>Động Cơ Thuật Toán Lõi</b><br>Phân bổ Landed Cost (VAS 02 / IAS 2)<br>Bóc tách lệch giá • Cổng Stage Gates"]
-        
-        TC ==>|"1 Case nhiều đợt giao"| TS
-        TS <==> AIRAG
-        TS <==> LOGIC
-    end
-
-    %% ==========================================
-    %% TẦNG 3: CHỨNG TỪ & QUY TRÌNH LÕI ERPNEXT
-    %% ==========================================
-    subgraph T3["TẦNG 3: CHỨNG TỪ & QUY TRÌNH LÕI ERPNEXT (ERPNEXT CORE WORKFLOWS)"]
+    subgraph COL_LEFT["<b>Chuẩn & quy định</b>"]
         direction TB
-        subgraph LUONG_NHAP["🔵 LUỒNG NHẬP KHẨU (INBOUND PROCUREMENT)"]
-            direction LR
-            PO["1. Đơn Mua (PO)"] --> PR["2. Nhập Kho (PR)<br><i>Gate 2: Thông quan</i>"] --> PI["3. Hóa Đơn Mua (PI)<br><i>Cấn trừ 30% cọc</i>"] --> LCV["4. Phân Bổ Giá Vốn (LCV)<br><i>Chuẩn VAS 02</i>"]
-        end
-        subgraph LUONG_XUAT["🟢 LUỒNG XUẤT KHẨU (OUTBOUND SALES)"]
-            direction LR
-            SO["1. Đơn Bán (SO)"] --> DN["2. Xuất Kho Đóng Cont (DN)<br><i>Gate 1: SI/VGM Cut-off</i>"] --> SI["3. Hóa Đơn Xuất Khẩu (SI)"] --> PAY["4. Thu Ngoại Tệ (L/C, TT)"]
-        end
+        C_TOGAF["TOGAF"]
+        C_VAS["VAS 02"]
+        C_IAS["IAS 2"]
+        C_INCO["Incoterms"]
+        C_LAW["Luật HQ"]
+        C_POKA["Poka-Yoke"]
+        
+        C_TOGAF ~~~ C_VAS ~~~ C_IAS ~~~ C_INCO ~~~ C_LAW ~~~ C_POKA
     end
 
     %% ==========================================
-    %% TẦNG 4: HẠ TẦNG KỸ THUẬT & DỮ LIỆU
+    %% CỘT GIỮA: 4 TẦNG HỆ THỐNG NỘI BỘ
     %% ==========================================
-    subgraph T4["TẦNG 4: NỀN TẢNG HẠ TẦNG KỸ THUẬT & DỮ LIỆU (INFRASTRUCTURE & PLATFORM LAYER)"]
-        direction LR
-        INFRA_APP["💻 <b>Frappe App Cluster</b><br>Python 3.11 / Desk (:2828)"]
-        INFRA_DB["🗄️ <b>MariaDB 11.8</b><br>Giao dịch ACID • InnoDB Engine"]
-        INFRA_REDIS["⚡ <b>Redis Cache & Queue</b><br>Celery Worker • Job tính ngầm"]
-        INFRA_SOCK["🔄 <b>WebSocket / Socket.io</b><br>Cập nhật tọa độ 3D & Chuông báo"]
+    subgraph COL_MID["<b>Hệ Thống Quản Trị Xuất Nhập Khẩu (ERPNext & logistics_wizard)</b>"]
+        direction TB
+
+        %% TẦNG 1: NGƯỜI DÙNG
+        subgraph T1["<b>Người dùng</b>"]
+            direction LR
+            U1["Nhân viên<br>tác nghiệp"]
+            U2["CFO duyệt<br>trên mobile"]
+            U3["Control Tower<br>màn hình lớn"]
+            U4["Đối tác<br>NCC, hãng tàu"]
+        end
+
+        %% TẦNG 2: CỔNG TRUY CẬP
+        subgraph T2["<b>Cổng truy cập</b>"]
+            direction TB
+            subgraph T2_PROTO[" "]
+                direction LR
+                G_HTTPS["HTTPS<br>REST API"]
+                G_WS["WebSocket<br>Socket.io"]
+                G_HOOK["Webhook<br>API đối tác"]
+                G_NOTIF["Email / SMS<br>thông báo"]
+            end
+            G_GATEWAY["<b>Gateway: Nginx, đăng nhập, RBAC, API key</b>"]
+            T2_PROTO --- G_GATEWAY
+        end
+
+        %% TẦNG 3: TẦNG DỊCH VỤ
+        subgraph T3["<b>Tầng dịch vụ</b>"]
+            direction TB
+
+            %% Truyền thông dịch vụ
+            subgraph S_COMM["Truyền thông dịch vụ"]
+                direction LR
+                CM_REST["REST API"]
+                CM_CELERY["Celery queue"]
+                CM_SOCK["Socket.io"]
+                CM_HOOK["Webhook"]
+            end
+
+            %% Khối Dịch vụ Nghiệp vụ + AI + Nền tảng + Giám sát
+            subgraph S_CORE_WRAP[" "]
+                direction LR
+
+                %% Cột trái: Nghiệp vụ, AI, Nền tảng
+                subgraph S_LEFT_BLOCK[" "]
+                    direction TB
+
+                    %% Dịch vụ nghiệp vụ
+                    subgraph S_BIZ["Dịch vụ nghiệp vụ"]
+                        direction TB
+                        subgraph S_BIZ_R1[" "]
+                            direction LR
+                            B_PO["Mua hàng<br>PO, PI"]
+                            B_SO["Bán hàng<br>SO, SI"]
+                            B_WH["Kho vận<br>PR, DN"]
+                        end
+                        subgraph S_BIZ_R2[" "]
+                            direction LR
+                            B_ACC["Kế toán<br>GL, công nợ"]
+                            B_CASE["Trade Case<br>hồ sơ mẹ"]
+                            B_SHP["Shipment<br>9 mốc tiến độ"]
+                        end
+                        subgraph S_BIZ_R3[" "]
+                            direction LR
+                            B_VNACCS["Tờ khai HQ<br>VNACCS 11 số"]
+                            B_LCV["Landed Cost<br>VAS 02"]
+                            B_GATES["Stage Gates<br>Poka-Yoke"]
+                        end
+                        S_BIZ_R1 ~~~ S_BIZ_R2 ~~~ S_BIZ_R3
+                    end
+
+                    %% Dịch vụ AI
+                    subgraph S_AI["Dịch vụ AI"]
+                        direction LR
+                        AI_RAG["RAG chatbot<br>luật XNK"]
+                        AI_HS["HS Code AI<br>gợi ý mã HS"]
+                        AI_OCR["OCR chứng từ<br>mở rộng"]
+                    end
+
+                    %% Dịch vụ nền tảng
+                    subgraph S_PLAT["Dịch vụ nền tảng"]
+                        direction TB
+                        subgraph S_PLAT_R1[" "]
+                            direction LR
+                            P_USER["Người dùng<br>phân quyền"]
+                            P_AUDIT["Audit log<br>Track Changes"]
+                            P_ALERT["Thông báo<br>mail, chuông"]
+                        end
+                        subgraph S_PLAT_R2[" "]
+                            direction LR
+                            P_DOC["Tệp chứng từ<br>B/L, C/O, PDF"]
+                            P_SCHED["Lịch tự động<br>Scheduler"]
+                            P_CAT["Danh mục<br>HS, tỷ giá"]
+                        end
+                        S_PLAT_R1 ~~~ S_PLAT_R2
+                    end
+
+                    S_BIZ ~~~ S_AI ~~~ S_PLAT
+                end
+
+                %% Cột phải: Giám sát
+                subgraph S_MON["Giám sát"]
+                    direction TB
+                    M_TOWER["Control<br>Tower"]
+                    M_FREE["Cảnh báo<br>Free-time"]
+                    M_BUDGET["Vượt<br>ngân sách"]
+                    M_MBE["Báo cáo<br>MBE"]
+                    M_PL["Lãi/lỗ<br>thực tế"]
+                    M_JOB["Giám sát<br>job, log"]
+
+                    M_TOWER ~~~ M_FREE ~~~ M_BUDGET ~~~ M_MBE ~~~ M_PL ~~~ M_JOB
+                end
+            end
+
+            S_COMM ~~~ S_CORE_WRAP
+        end
+
+        %% TẦNG 4: TẦNG LƯU TRỮ
+        subgraph T4["<b>Tầng lưu trữ</b>"]
+            direction LR
+            DB_FILES["Kho tệp<br>chứng từ"]
+            DB_SQL["MariaDB<br>ACID, InnoDB"]
+            DB_REDIS["Redis<br>cache, queue"]
+            DB_VEC["Vector DB<br>luật, mã HS"]
+        end
+
+        T1 ~~~ T2 ~~~ T3 ~~~ T4
     end
 
     %% ==========================================
-    %% LIÊN KẾT ĐA TẦNG DỌC CHUẨN MSTEAMS
+    %% CỘT PHẢI: TÍCH HỢP HỆ THỐNG NGOÀI
     %% ==========================================
-    T1 ==>|"Thao tác nghiệp vụ & Ra quyết định"| T2
-    T2 <===>|"Đồng bộ tiến độ & Kiểm soát Stage Gate"| T3
-    T3 ==>|"Lưu trữ dữ liệu & Thực thi container ngầm"| T4
+    subgraph COL_RIGHT["<b>Tích hợp<br>hệ thống ngoài</b>"]
+        direction TB
+        EX_VNACCS["VNACCS<br>/ ECUS"]
+        EX_SHIP["Hãng tàu<br>tracking"]
+        EX_BANK["Ngân hàng<br>L/C, TT"]
+        EX_EXCH["Tỷ giá<br>Bộ TC"]
+        EX_LLM["LLM API<br>(AI)"]
+
+        EX_VNACCS ~~~ EX_SHIP ~~~ EX_BANK ~~~ EX_EXCH ~~~ EX_LLM
+    end
 
     %% ==========================================
-    %% PHỐI MÀU CHUẨN MSTEAMS (LIGHT ENTERPRISE CLEAN)
+    %% LIÊN KẾT LIÊN VÙNG
     %% ==========================================
-    style T1 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.5px,color:#0F172A
-    style T2 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.5px,color:#0F172A
-    style T3 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.5px,color:#0F172A
-    style T4 fill:#F1F5F9,stroke:#CBD5E1,stroke-width:1.5px,color:#0F172A
+    COL_LEFT -.-> COL_MID
+    COL_MID <===> COL_RIGHT
 
-    style LUONG_NHAP fill:#FFFFFF,stroke:#3B82F6,stroke-width:1.5px,color:#1E3A8A
-    style LUONG_XUAT fill:#FFFFFF,stroke:#10B981,stroke-width:1.5px,color:#064E3B
+    %% ==========================================
+    %% STYLING VÀ PHÂN ĐỊNH MÀU SẮC (LEGEND)
+    %% ==========================================
+    classDef erpnext fill:#1E3A5F,stroke:#2563EB,stroke-width:1.5px,color:#FFFFFF;
+    classDef customApp fill:#064E3B,stroke:#059669,stroke-width:1.5px,color:#FFFFFF;
+    classDef aiRag fill:#3B1C54,stroke:#7C3AED,stroke-width:1.5px,color:#FFFFFF;
+    classDef neutralBox fill:#272A30,stroke:#64748B,stroke-width:1.5px,color:#FFFFFF;
 
-    style ROLES fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#0F172A
-    style DASH fill:#EFF6FF,stroke:#2563EB,stroke-width:1.5px,color:#1E40AF
+    classDef erpnextDashed fill:#1E3A5F,stroke:#2563EB,stroke-width:1.5px,color:#FFFFFF,stroke-dasharray: 4 4;
+    classDef customAppDashed fill:#064E3B,stroke:#059669,stroke-width:1.5px,color:#FFFFFF,stroke-dasharray: 4 4;
+    classDef aiRagDashed fill:#3B1C54,stroke:#7C3AED,stroke-width:1.5px,color:#FFFFFF,stroke-dasharray: 4 4;
+    classDef neutralDashed fill:#272A30,stroke:#64748B,stroke-width:1.5px,color:#FFFFFF,stroke-dasharray: 4 4;
 
-    style TC fill:#EFF6FF,stroke:#2563EB,stroke-width:2px,color:#1E40AF
-    style TS fill:#FFFFFF,stroke:#64748B,stroke-width:1.5px,color:#0F172A
-    style AIRAG fill:#EFF6FF,stroke:#2563EB,stroke-width:1px,color:#1E40AF
-    style LOGIC fill:#FFFFFF,stroke:#64748B,stroke-width:1px,color:#0F172A
+    class B_PO,B_SO,B_WH,B_ACC,P_USER,P_AUDIT,P_ALERT,P_DOC,DB_SQL,DB_REDIS,M_JOB erpnext;
+    class B_CASE,B_SHP,B_LCV,B_GATES,M_TOWER,M_FREE,M_BUDGET,M_MBE,M_PL customApp;
+    class B_VNACCS,P_CAT customAppDashed;
+    class AI_RAG,AI_HS aiRag;
+    class AI_OCR,DB_VEC aiRagDashed;
+    class DB_FILES,P_SCHED erpnextDashed;
+    class U1,U2,U3,G_HTTPS,G_WS,G_GATEWAY,CM_REST,CM_CELERY,CM_SOCK,C_TOGAF,C_VAS,C_IAS,C_INCO,C_LAW,C_POKA,EX_VNACCS,EX_SHIP,EX_BANK,EX_EXCH,EX_LLM neutralBox;
+    class U4,G_HOOK,G_NOTIF,CM_HOOK neutralDashed;
 
-    style PO fill:#EFF6FF,stroke:#3B82F6,stroke-width:1px,color:#1E3A8A
-    style PR fill:#EFF6FF,stroke:#3B82F6,stroke-width:1px,color:#1E3A8A
-    style PI fill:#EFF6FF,stroke:#3B82F6,stroke-width:1px,color:#1E3A8A
-    style LCV fill:#FEF3C7,stroke:#D97706,stroke-width:1px,color:#78350F
-
-    style SO fill:#F0FDF4,stroke:#10B981,stroke-width:1px,color:#064E3B
-    style DN fill:#F0FDF4,stroke:#10B981,stroke-width:1px,color:#064E3B
-    style SI fill:#F0FDF4,stroke:#10B981,stroke-width:1px,color:#064E3B
-    style PAY fill:#FEF3C7,stroke:#D97706,stroke-width:1px,color:#78350F
-
-    style INFRA_APP fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#0F172A
-    style INFRA_DB fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#0F172A
-    style INFRA_REDIS fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#0F172A
-    style INFRA_SOCK fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#0F172A
+    style COL_LEFT fill:#202327,stroke:#4B5563,stroke-width:1.5px,color:#FFFFFF
+    style COL_MID fill:#181A1F,stroke:#4B5563,stroke-width:1.5px,color:#FFFFFF
+    style COL_RIGHT fill:#202327,stroke:#4B5563,stroke-width:1.5px,color:#FFFFFF
+    style T1 fill:#23272E,stroke:#4B5563,stroke-width:1px,color:#FFFFFF
+    style T2 fill:#23272E,stroke:#4B5563,stroke-width:1px,color:#FFFFFF
+    style T3 fill:#23272E,stroke:#4B5563,stroke-width:1px,color:#FFFFFF
+    style T4 fill:#23272E,stroke:#4B5563,stroke-width:1px,color:#FFFFFF
+    style S_COMM fill:#1C1F26,stroke:#374151,stroke-width:1px,stroke-dasharray: 3 3,color:#FFFFFF
+    style S_BIZ fill:#1C1F26,stroke:#374151,stroke-width:1px,color:#FFFFFF
+    style S_AI fill:#1C1F26,stroke:#374151,stroke-width:1px,stroke-dasharray: 3 3,color:#FFFFFF
+    style S_PLAT fill:#1C1F26,stroke:#374151,stroke-width:1px,color:#FFFFFF
+    style S_MON fill:#1C1F26,stroke:#374151,stroke-width:1px,color:#FFFFFF
 ```
+
+### 🎨 Chú Giải Mã Màu & Phân Định Trách Nhiệm (Legend)
+
+* 🟦 **Màu Xanh Dương (ERPNext có sẵn):** Kế thừa 100% các phân hệ ổn định của ERPNext lõi (Đơn mua PO, Đơn bán SO, Phiếu kho PR/DN, Sổ cái kế toán GL, Phân quyền RBAC, Audit log, MariaDB, Redis).
+* 🟩 **Màu Xanh Lục (App tự phát triển - `logistics_wizard`):** Toàn bộ năng lực chuyên biệt do nhóm tự thiết kế và phát triển mới (Hồ sơ mẹ `Trade Case`, Quản trị chuyến tàu `Trade Shipment`, 9 mốc tiến độ, Thuật toán Landed Cost VAS 02, Cơ chế cổng Poka-Yoke Stage Gates, Tháp chỉ huy Control Tower, Cảnh báo sớm Demurrage).
+* 🟪 **Màu Tím (Phân hệ AI / RAG):** Cấu phần trí tuệ nhân tạo độc lập phục vụ đề tài nghiên cứu (Chatbot RAG tra cứu văn bản pháp luật XNK, Mô hình gợi ý mã HS theo thông số kỹ thuật, Vector DB embedding).
+* 🔲 **Viền Đứt Nét (Cấu phần Mở rộng / Định hướng Tích hợp):** Phân định rạch ròi giữa **Phần lõi đã hoàn thiện phục vụ đánh giá giữa kỳ/cuối kỳ** (viền nét liền) và **Năng lực tích hợp mở rộng với các đối tác bên ngoài** (viền nét đứt: OCR chứng từ, Webhook đối tác, Kho tệp đám mây, API ngân hàng/hải quan).
+
+---
+
+### 🔬 Thuyết Minh Chi Tiết 4 Tầng Kỹ Thuật Nội Bộ
+
+#### 1. Tầng Người Dùng (Presentation Tier)
+* **Nhân viên tác nghiệp:** Làm việc trên giao diện Web Desk của ERPNext (Thu mua, Sales, Logistics, Kế toán, Thủ kho).
+* **CFO / Ban Giám Đốc:** Phê duyệt nhanh đơn hàng PO giá trị lớn, ủy quyền chi cọc và duyệt vượt ngân sách trên Mobile App (Android/iOS).
+* **Tháp chỉ huy (Control Tower):** Hiển thị màn hình lớn (Dashboard) dành cho người quản trị: giám sát hành trình tàu biển 3D, đếm ngược hạn lưu bãi cont, cảnh báo vượt chi phí theo thời gian thực.
+* **Cổng thông tin đối tác (Partner Portal - Viền đứt):** Cho phép nhà cung cấp quốc tế và forwarder tra cứu trạng thái đơn hàng.
+
+#### 2. Tầng Cổng Truy Cập & Bảo Mật (Access / Gateway Tier)
+* **API Gateway & Reverse Proxy:** Sử dụng Nginx quản lý cổng truy cập tập trung, mã hóa SSL/TLS, ngăn chặn tấn công DDoS.
+* **Xác thực & Bảo vệ:** Kiểm soát phiên đăng nhập (Session Authentication), xác thực API Key đối tác, thực thi ma trận phân quyền dựa trên vai trò (**RBAC**).
+* **Đa kênh truyền tải:** Hỗ trợ song song REST API (giao tác dữ liệu), WebSocket Socket.io (push sự kiện thời gian thực), Webhook (nhận callback từ đối tác) và Mail/SMS service.
+
+#### 3. Tầng Dịch Vụ Nghiệp Vụ & AI (Services Tier) — "Bộ Não Hệ Thống"
+* **Kênh truyền thông nội bộ:** REST API kết hợp **Celery Task Queue** và Redis để đẩy các tác vụ nặng (tính phân bổ giá vốn đa tiêu chí, quét đếm ngược hạn bãi mỗi đêm) xuống chạy ngầm (asynchronous background workers), giữ cho giao diện luôn phản hồi tức thì.
+* **Dịch vụ Nghiệp vụ:** Kết hợp hoàn hảo giữa các DocType lõi của ERPNext và app `logistics_wizard`.
+* **Dịch vụ AI & RAG:** Cung cấp Chatbot hỏi đáp chính sách thuế, thủ tục thông quan và Engine gợi ý mã HS dựa trên cơ sở tri thức pháp lý đã được số hóa.
+* **Phân hệ Giám Sát Chuyên Trách (Monitoring):** Thực thi nguyên lý *Quản trị theo Ngoại lệ (Management by Exception - MBE)*: tự động lọc và chỉ báo động đỏ các trường hợp khẩn cấp (sắp hết hạn Free-time <= 3 ngày, chi phí thực tế đội > 10% ngân sách).
+
+#### 4. Tầng Lưu Trữ Đa Mô Hình (Storage Tier)
+* **MariaDB (ACID, InnoDB Engine):** Lưu trữ toàn bộ dữ liệu quan hệ giao dịch, bảo đảm toàn vẹn tài chính kế toán tuyệt đối.
+* **Redis In-Memory:** Bộ nhớ đệm tốc độ cao (Cache), quản lý session đăng nhập và hàng đợi tác vụ nền (Queue).
+* **Kho Tệp Chứng Từ (File Storage):** Lưu trữ các file scan PDF gốc (Vận đơn B/L, Chứng nhận xuất xứ C/O, Hóa đơn thương mại, Giấy phép chuyên ngành).
+* **Vector Database (ChromaDB / FAISS):** Lưu trữ embedding các văn bản pháp luật hải quan và chú giải HS Code, phục vụ thuật toán tìm kiếm ngữ nghĩa (Semantic Search) trong RAG.
+
+---
+
+### 🌐 Ranh Giới Tích Hợp Hệ Thống Bên Ngoài (External Integrations)
+
+Khắc phục hoàn toàn tư duy "hệ thống cô lập", kiến trúc thiết lập các điểm kết nối chuẩn xác ra thế giới thực:
+1. **Hệ thống Hải quan Điện tử (VNACCS / ECUS):** Xuất/nhập dữ liệu tờ khai hải quan điện tử 11 số.
+2. **Hệ thống Tracking Hãng Tàu (Carriers / Forwarders):** Kết nối API định vị AIS / Tracking sự kiện container, cập nhật tọa độ tàu biển và ngày cập cảng thực tế (ATA).
+3. **Ngân Hàng Thương Mại (Fintech / Banking):** Kết nối cổng thanh toán quốc tế (L/C, T/T), tự động đối soát sổ phụ ngân hàng khi chi tiền cọc ngoại tệ.
+4. **Cổng Thông Tin Bộ Tài Chính:** Tự động đồng bộ Bảng tỷ giá tính thuế XNK hàng tuần của Tổng cục Hải quan.
+5. **Dịch Vụ Mô Hình Ngôn Ngữ Lớn (LLM API):** Kết nối mô hình ngôn ngữ phục vụ tác vụ trích xuất thông tin chứng từ và trả lời pháp lý trong phân hệ RAG.
+
+---
+
+### 💡 Giải Quyết Mâu Thuẫn Nghiệp Vụ: Cơ Chế "Kho Chờ Thông Quan" (Suspense / Bonded Warehouse)
+
+Để đồng bộ hoàn hảo giữa **Cổng kiểm soát 2 (Chặn dỡ hàng)** và **Tình huống thực tế 4 (Hàng được kéo về kho bảo quản khi chưa có C/O)**:
+* Hệ thống thiết lập phân định 2 trạng thái kho vật lý trong ERPNext:
+  1. **Kho Bảo Quản Tạm / Kho Chờ Thông Quan (`Suspense Warehouse`):** Khi tàu cập cảng nhưng hàng đang nợ C/O hoặc kiểm tra chuyên ngành, cơ quan Hải quan cho phép kéo hàng về kho công ty để tránh phạt lưu bãi tại cảng. Thủ kho tiếp nhận vào *Kho Bảo Quản* (hàng nằm dưới sự giám sát hải quan, cấm xuất bán, không ghi nhận tăng tài sản thương mại TK 156).
+  2. **Kho Chính Thương Mại (`Main Finished Goods Warehouse`):** Ngay khi chuyên viên Hải quan cập nhật tờ khai sang trạng thái `Cleared` (mốc M07 hoàn tất), hệ thống mới tự động giải phóng Cổng Stage Gate 2, cho phép lập phiếu chuyển kho (`Stock Entry`) từ *Kho Bảo Quản* sang *Kho Chính* để chính thức xuất bán ra thị trường.
+* Cơ chế này giúp doanh nghiệp vừa bảo vệ tuyệt đối tính pháp lý, vừa chủ động cắt giảm hàng chục triệu đồng tiền phạt lưu bãi cảng!
 
 ---
 
