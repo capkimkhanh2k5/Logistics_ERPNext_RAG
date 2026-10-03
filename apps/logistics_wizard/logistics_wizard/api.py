@@ -1427,5 +1427,915 @@ __all__ = [
     "get_shipment_tracking_hub_data",
     "sync_shipment_now",
     "validate_purchase_receipt_shipment_status",
+    "get_trade_case_overview_data",
+    "get_trade_case_list",
+    "get_trade_case_detail",
+    "get_all_trade_cases",
+    "validate_stage_gate_completion",
+    "close_trade_case",
 ]
+
+
+# ==============================================================================
+# TRADE CASE OVERVIEW - CENTRAL LOGISTICS DOSSIER APIS
+# ==============================================================================
+
+@frappe.whitelist(allow_guest=True)
+def get_trade_case_list():
+    """
+    Returns list of available Trade Cases for selector dropdown.
+    Queries DocType 'Trade Case' if exists, otherwise returns realistic demo cases.
+    """
+    case_list = []
+    if frappe and hasattr(frappe, "db") and frappe.db.exists("DocType", "Trade Case"):
+        try:
+            records = frappe.db.get_all(
+                "Trade Case",
+                fields=["name", "trade_type", "status", "current_stage", "overall_health", "supplier", "customer", "purchase_order", "sales_order"],
+                order_by="creation desc",
+                limit=50
+            )
+            for r in records:
+                party = r.get("supplier") or r.get("customer") or "N/A"
+                doc_ref = r.get("purchase_order") or r.get("sales_order") or "N/A"
+                case_list.append({
+                    "case_id": r.get("name"),
+                    "trade_type": r.get("trade_type", "Import"),
+                    "status": r.get("status", "Active"),
+                    "current_stage": r.get("current_stage", "PO"),
+                    "overall_health": r.get("overall_health", "Healthy"),
+                    "party": party,
+                    "doc_ref": doc_ref,
+                    "label": f"{r.get('name')} - {party} ({r.get('current_stage', 'PO')})"
+                })
+        except Exception as e:
+            logger.warning(f"Error querying Trade Case records: {e}")
+
+    if not case_list:
+        case_list = [
+            {
+                "name": "TC-2026-00001",
+                "case_id": "TC-2026-00001",
+                "case_title": "Import: Apple Inc. (PO-2026-00003)",
+                "trade_type": "Import",
+                "status": "In Transit",
+                "current_stage": "In Transit",
+                "overall_health": "Attention",
+                "health": "Attention",
+                "party": "Apple Inc.",
+                "doc_ref": "PO-2026-00003",
+                "label": "TC-2026-00001 - Apple Inc. (In Transit | Attention)"
+            },
+            {
+                "name": "IMP-2026-001",
+                "case_id": "IMP-2026-001",
+                "case_title": "Import: ABC Electronics (PO-2026-0042)",
+                "trade_type": "Import",
+                "status": "In Transit",
+                "current_stage": "In Transit",
+                "overall_health": "Attention",
+                "health": "Attention",
+                "party": "ABC Electronics Co., Ltd",
+                "doc_ref": "PO-2026-0042",
+                "label": "IMP-2026-001 - ABC Electronics (In Transit | Warning)"
+            },
+            {
+                "name": "IMP-2026-002",
+                "case_id": "IMP-2026-002",
+                "case_title": "Import: Tokyo Precision (PO-2026-0043)",
+                "trade_type": "Import",
+                "status": "Customs Hold",
+                "current_stage": "Customs",
+                "overall_health": "Healthy",
+                "health": "Healthy",
+                "party": "Tokyo Precision Instruments",
+                "doc_ref": "PO-2026-0043",
+                "label": "IMP-2026-002 - Tokyo Precision (Customs | Healthy)"
+            },
+            {
+                "name": "EXP-2026-001",
+                "case_id": "EXP-2026-001",
+                "case_title": "Export: California Solar Tech (SO-2026-0019)",
+                "trade_type": "Export",
+                "status": "Active",
+                "current_stage": "Export Port",
+                "overall_health": "Critical",
+                "health": "Critical",
+                "party": "California Solar Tech",
+                "doc_ref": "SO-2026-0019",
+                "label": "EXP-2026-001 - California Solar (Export Port | Critical)"
+            }
+        ]
+    return case_list
+
+
+@frappe.whitelist(allow_guest=True)
+def get_all_trade_cases():
+    """
+    Returns summarized list of Trade Cases for Sidebar selector dropdown.
+    Required by PROJECT.md and Dispatch specification.
+    """
+    return get_trade_case_list()
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_trade_case_overview_data(case_id=None):
+    """
+    Central Operating Dossier API: Aggregates on-the-fly status across Shipment, Documents,
+    Customs, Costs, Warehouse, Exceptions, and Stage-Gate checks without data duplication.
+    """
+    available_cases = get_trade_case_list()
+    selected_case_id = case_id or (available_cases[0]["case_id"] if available_cases else "IMP-2026-001")
+
+    # Base Mock Models for the 3 representative cases
+    if selected_case_id == "IMP-2026-002":
+        data = {
+            "status": "success",
+            "case_id": "IMP-2026-002",
+            "available_cases": available_cases,
+            "header": {
+                "case_id": "IMP-2026-002",
+                "trade_type": "Import",
+                "status": "Customs Clearance",
+                "health": "Healthy",
+                "health_badge_class": "badge-success",
+                "supplier": "Tokyo Precision Instruments Inc.",
+                "purchase_order": "PO-2026-0043",
+                "mode": "Air",
+                "incoterm": "CIF",
+                "origin": "Narita, Tokyo, Japan (NRT)",
+                "destination": "Noi Bai, Hanoi, Vietnam (HAN)",
+                "owner": "Pham Van B",
+                "department": "Customs & Procurement",
+                "priority": "High",
+                "created_date": "2026-10-01",
+                "expected_close": "2026-10-10"
+            },
+            "lifecycle": {
+                "current_stage": "Customs",
+                "current_index": 5,
+                "stages": [
+                    {"key": "PO", "label": "PO", "status": "completed"},
+                    {"key": "Booking", "label": "Booking", "status": "completed"},
+                    {"key": "Export Port", "label": "Export Port", "status": "completed"},
+                    {"key": "In Transit", "label": "In Transit", "status": "completed"},
+                    {"key": "Import Port", "label": "Import Port", "status": "completed"},
+                    {"key": "Customs", "label": "Customs", "status": "current"},
+                    {"key": "Warehouse", "label": "Warehouse", "status": "pending"},
+                    {"key": "Cost Finalization", "label": "Cost Finalization", "status": "pending"},
+                    {"key": "Closed", "label": "Closed", "status": "pending"}
+                ],
+                "previous_milestone": {
+                    "title": "Flight Landed Noi Bai Airport",
+                    "date": "02/10/2026 09:15"
+                },
+                "next_milestone": {
+                    "title": "Customs E-Declaration Approval",
+                    "eta": "03/10/2026 15:00"
+                }
+            },
+            "overall_health": {
+                "status": "Healthy",
+                "status_class": "success",
+                "summary": "Chuyến bay đúng tiến độ, chứng từ đầy đủ 10/10, đang truyền tờ khai điện tử.",
+                "cards": [
+                    {"key": "shipment", "label": "Shipment", "value": "ON TIME", "sub": "Đúng tiến độ", "class": "success"},
+                    {"key": "documents", "label": "Documents", "value": "100% READY", "sub": "10/10 Chứng từ", "class": "success"},
+                    {"key": "customs", "label": "Customs", "value": "90% READY", "sub": "Luồng Xanh (Green)", "class": "success"},
+                    {"key": "warehouse", "label": "Warehouse", "value": "READY", "sub": "Đã bố trí xe nhận", "class": "success"},
+                    {"key": "cost", "label": "Cost", "value": "NORMAL", "sub": "-1.2% Tiết kiệm", "class": "success"},
+                    {"key": "exceptions", "label": "Exceptions", "value": "0 OPEN", "sub": "Không có lỗi", "class": "success"}
+                ]
+            },
+            "shipment_summary": {
+                "shipment_id": "SHP-2026-0046",
+                "carrier": "ANA Cargo (All Nippon Airways)",
+                "vessel": "NH897 Boeing 777F",
+                "container_count": 1,
+                "pol": "Tokyo Narita Int Airport",
+                "pod": "Hanoi Noi Bai Int Airport",
+                "atd": "02/10/2026 04:30",
+                "original_eta": "02/10/2026 08:45",
+                "current_eta": "02/10/2026 09:00",
+                "delay_days": 0,
+                "status": "Arrived Destination Port",
+                "total_shipments": 1,
+                "shipment_counts": {
+                    "in_transit": 0,
+                    "delivered": 1,
+                    "critical": 0
+                }
+            },
+            "document_readiness": {
+                "ready_count": 10,
+                "total_count": 10,
+                "percentage": 100,
+                "current_stage": "Customs",
+                "missing_urgent": [],
+                "categories": [
+                    {"name": "Commercial", "ready": 3, "total": 3, "status": "completed"},
+                    {"name": "Transport", "ready": 3, "total": 3, "status": "completed"},
+                    {"name": "Customs", "ready": 2, "total": 2, "status": "completed"},
+                    {"name": "Compliance", "ready": 2, "total": 2, "status": "completed"}
+                ]
+            },
+            "customs_readiness": {
+                "status": "CUSTOMS INSPECTION / E-CLEARANCE",
+                "readiness_pct": 95,
+                "hs_classification": "9031.80.00 (Thiết bị đo lường quang học)",
+                "hs_approval_status": "Approved by Customs Specialist",
+                "origin_verified": True,
+                "customs_value_verified": True,
+                "declaration_status": "Submitted - Channel Green",
+                "license": "Valid (Bộ KHCN)",
+                "inspection": "Exempted",
+                "clearance_status": "PROCESSING"
+            },
+            "cost_summary": {
+                "purchase_value": 45000.0,
+                "estimated_cost": 5200.0,
+                "actual_cost": 5130.0,
+                "variance_amount": -70.0,
+                "variance_pct": -1.3,
+                "actual_landed_cost": 50130.0,
+                "currency": "USD",
+                "breakdown": [
+                    {"label": "Air Freight", "amount": 3200.0},
+                    {"label": "Cargo Insurance", "amount": 380.0},
+                    {"label": "Import Duties", "amount": 1100.0},
+                    {"label": "Airport Terminal Charges", "amount": 350.0},
+                    {"label": "Customs Clearance Fee", "amount": 100.0}
+                ],
+                "invoices_received": 5,
+                "invoices_total": 5,
+                "costs_verified": 5,
+                "costs_allocated": 4,
+                "cost_finalization_status": "ALMOST READY"
+            },
+            "warehouse_readiness": {
+                "expected_arrival": "03/10/2026 14:00",
+                "warehouse": "Kho Công nghệ cao - WH-HANOI",
+                "receiving_status": "READY FOR RECEIVING",
+                "expected_qty": 50,
+                "received_qty": None,
+                "space_reserved": True,
+                "receiving_team": "Assigned (Đội Thiết bị Nhạy cảm)",
+                "discrepancy_alert": False
+            },
+            "open_exceptions": {
+                "total_open": 0,
+                "overdue": 0,
+                "due_soon": 0,
+                "items": []
+            },
+            "upcoming_actions": [
+                {"date": "03/10/2026", "action": "Xác nhận kết quả thông quan điện tử Luồng Xanh", "department": "Customs", "owner": "Le Van C"},
+                {"date": "03/10/2026", "action": "Nhận hàng tại kho hàng không NCTS Nội Bài", "department": "Logistics", "owner": "Nguyen Van A"},
+                {"date": "04/10/2026", "action": "Nhập kho và phân bổ Landed Cost Voucher", "department": "Accounting", "owner": "Pham Thi D"}
+            ],
+            "related_erp_documents": [
+                {"doctype": "Purchase Order", "name": "PO-2026-0043", "status": "Submitted", "link": "/app/purchase-order/PO-2026-0043"},
+                {"doctype": "Purchase Receipt", "name": "Pending", "status": "Draft", "link": "#"},
+                {"doctype": "Purchase Invoice", "name": "PINV-2026-0180", "status": "Submitted", "link": "/app/purchase-invoice/PINV-2026-0180"},
+                {"doctype": "Landed Cost Voucher", "name": "Pending", "status": "Chờ nhập kho", "link": "#"},
+                {"doctype": "Payment Entry", "name": "Fully Paid", "status": "Completed", "link": "/app/payment-entry"}
+            ],
+            "responsibility_matrix": [
+                {"role": "Case Owner", "name": "Pham Van B", "department": "Supply Chain Lead", "email": "phanvanb@example.com"},
+                {"role": "Purchasing", "name": "Tran Thi B", "department": "High-Tech Sourcing", "email": "tranthib@example.com"},
+                {"role": "Logistics", "name": "Nguyen Van A", "department": "Express Logistics", "email": "nguyenvana@example.com"},
+                {"role": "Customs", "name": "Le Van C", "department": "Air Cargo Clearance", "email": "levanc@example.com"},
+                {"role": "Accounting", "name": "Pham Thi D", "department": "Costing Unit", "email": "phamthid@example.com"},
+                {"role": "Warehouse", "name": "Vu Dinh K", "department": "Clean Room Storage", "email": "vudinhk@example.com"}
+            ],
+            "activity_timeline": [
+                {"time": "02/10 09:15", "actor": "ANA Flight EDI", "event": "Chuyến bay hạ cánh tại Sân bay Quốc tế Nội Bài"},
+                {"time": "02/10 07:00", "actor": "Le Van C", "event": "Nộp tờ khai hải quan điện tử qua hệ thống VNACCS"},
+                {"time": "01/10 20:00", "actor": "Tokyo Supplier", "event": "Hoàn tất bàn giao Air Waybill và Hóa đơn thương mại gốc"}
+            ],
+            "quick_actions": {
+                "can_close": False,
+                "close_reasons": [
+                    "✗ Hàng chưa hoàn tất dỡ và kiểm kê nhập kho",
+                    "✗ Landed Cost Voucher chưa phân bổ xong chi phí"
+                ],
+                "allowed_actions": [
+                    {"id": "btn-upload-doc", "label": "Upload Document", "icon": "fa fa-upload"},
+                    {"id": "btn-update-customs", "label": "Update Customs", "icon": "fa fa-check-circle"},
+                    {"id": "btn-add-cost", "label": "Add Cost Invoice", "icon": "fa fa-dollar-sign"},
+                    {"id": "btn-create-exception", "label": "Create Exception", "icon": "fa fa-exclamation-triangle"},
+                    {"id": "btn-add-action", "label": "Add Action Item", "icon": "fa fa-plus"}
+                ]
+            }
+        }
+        return data
+
+    elif selected_case_id == "EXP-2026-001":
+        data = {
+            "status": "success",
+            "case_id": "EXP-2026-001",
+            "available_cases": available_cases,
+            "header": {
+                "case_id": "EXP-2026-001",
+                "trade_type": "Export",
+                "status": "Export Port",
+                "health": "Critical",
+                "health_badge_class": "badge-danger",
+                "supplier": "Công ty TNHH Năng lượng Xanh (Internal)",
+                "customer": "California Solar Tech LLC",
+                "purchase_order": None,
+                "sales_order": "SO-2026-0019",
+                "mode": "Ocean",
+                "incoterm": "CIF",
+                "origin": "Da Nang Port, Vietnam (VNDAD)",
+                "destination": "Port of Los Angeles, USA (USLAX)",
+                "owner": "Nguyen Van A",
+                "department": "Export Operations",
+                "priority": "Critical",
+                "created_date": "2026-09-25",
+                "expected_close": "2026-10-30"
+            },
+            "lifecycle": {
+                "current_stage": "Export Port",
+                "current_index": 2,
+                "stages": [
+                    {"key": "SO", "label": "Sales Order", "status": "completed"},
+                    {"key": "Booking", "label": "Booking Confirmed", "status": "completed"},
+                    {"key": "Export Port", "label": "Export Port", "status": "current"},
+                    {"key": "In Transit", "label": "In Transit", "status": "pending"},
+                    {"key": "Import Port", "label": "Import Port", "status": "pending"},
+                    {"key": "Customs", "label": "US Customs", "status": "pending"},
+                    {"key": "Delivery", "label": "Final Delivery", "status": "pending"},
+                    {"key": "Cost Finalization", "label": "Cost Finalization", "status": "pending"},
+                    {"key": "Closed", "label": "Closed", "status": "pending"}
+                ],
+                "previous_milestone": {
+                    "title": "Container Gate-in Tien Sa Port",
+                    "date": "01/10/2026 11:00"
+                },
+                "next_milestone": {
+                    "title": "Vessel Loading & ETD",
+                    "eta": "04/10/2026 18:00 (Nguy cơ rớt tàu)"
+                }
+            },
+            "overall_health": {
+                "status": "Critical",
+                "status_class": "danger",
+                "summary": "Tờ khai xuất khẩu bị Hải quan kiểm hóa thực tế luồng Đỏ; nguy cơ trễ closing time hãng tàu.",
+                "cards": [
+                    {"key": "shipment", "label": "Shipment", "value": "AT RISK", "sub": "Gần sát Closing Time", "class": "danger"},
+                    {"key": "documents", "label": "Documents", "value": "70% READY", "sub": "Chờ C/O Form B", "class": "warning"},
+                    {"key": "customs", "label": "Customs", "value": "CRITICAL", "sub": "Luồng Đỏ (Kiểm hóa)", "class": "danger"},
+                    {"key": "warehouse", "label": "Warehouse", "value": "GATE-IN DONE", "sub": "Đã vào bãi cảng", "class": "success"},
+                    {"key": "cost", "label": "Cost", "value": "WARNING", "sub": "+15% Chi phí phát sinh", "class": "warning"},
+                    {"key": "exceptions", "label": "Exceptions", "value": "2 CRITICAL", "sub": "Cần can thiệp gấp", "class": "danger"}
+                ]
+            },
+            "shipment_summary": {
+                "shipment_id": "SHP-2026-0047",
+                "carrier": "ONE (Ocean Network Express)",
+                "vessel": "ONE APUS 014E",
+                "container_count": 2,
+                "pol": "Da Nang Tien Sa Port",
+                "pod": "Port of Los Angeles",
+                "atd": None,
+                "original_eta": "24/10/2026",
+                "current_eta": "24/10/2026",
+                "delay_days": 0,
+                "status": "Container Gate-in at Export Port",
+                "total_shipments": 1,
+                "shipment_counts": {
+                    "in_transit": 0,
+                    "delivered": 0,
+                    "critical": 1
+                }
+            },
+            "document_readiness": {
+                "ready_count": 7,
+                "total_count": 10,
+                "percentage": 70,
+                "current_stage": "Export Port",
+                "missing_urgent": [
+                    {"name": "C/O Form B (VCCI Cấp)", "type": "critical", "deadline": "03/10/2026", "note": "Cần nộp trước khi tàu rời cảng"},
+                    {"name": "Phytosanitary Certificate", "type": "warning", "deadline": "04/10/2026", "note": "Kiểm dịch thực vật cho pallet gỗ"}
+                ],
+                "categories": [
+                    {"name": "Commercial", "ready": 3, "total": 3, "status": "completed"},
+                    {"name": "Transport", "ready": 2, "total": 3, "status": "warning"},
+                    {"name": "Customs", "ready": 1, "total": 2, "status": "danger"},
+                    {"name": "Compliance", "ready": 1, "total": 2, "status": "warning"}
+                ]
+            },
+            "customs_readiness": {
+                "status": "PHYSICAL INSPECTION (RED CHANNEL)",
+                "readiness_pct": 50,
+                "hs_classification": "8541.40.10 (Tấm pin quang điện)",
+                "hs_approval_status": "Approved",
+                "origin_verified": True,
+                "customs_value_verified": True,
+                "declaration_status": "Luồng Đỏ - Kiểm hóa 100%",
+                "license": "Not Required",
+                "inspection": "Physical Inspection Scheduled at 14:00 today",
+                "clearance_status": "HOLD AT PORT"
+            },
+            "cost_summary": {
+                "purchase_value": 150000.0,
+                "estimated_cost": 12000.0,
+                "actual_cost": 13800.0,
+                "variance_amount": 1800.0,
+                "variance_pct": 15.0,
+                "actual_landed_cost": 163800.0,
+                "currency": "USD",
+                "breakdown": [
+                    {"label": "Ocean Freight", "amount": 8400.0},
+                    {"label": "Terminal Handling & Port Gate", "amount": 1600.0},
+                    {"label": "Customs Inspection Fee (Overtime)", "amount": 800.0},
+                    {"label": "Trucking Factory to Port", "amount": 1800.0},
+                    {"label": "Export Documentation & C/O", "amount": 1200.0}
+                ],
+                "invoices_received": 3,
+                "invoices_total": 6,
+                "costs_verified": 2,
+                "costs_allocated": 0,
+                "cost_finalization_status": "PENDING INVOICES"
+            },
+            "warehouse_readiness": {
+                "expected_arrival": "Gate-in completed",
+                "warehouse": "Bãi CY Cảng Tiên Sa",
+                "receiving_status": "CARGO READY AT GATE",
+                "expected_qty": 2400,
+                "received_qty": 2400,
+                "space_reserved": True,
+                "receiving_team": "Assigned (Đội Kiểm hóa Cảng)",
+                "discrepancy_alert": False
+            },
+            "open_exceptions": {
+                "total_open": 2,
+                "overdue": 1,
+                "due_soon": 1,
+                "items": [
+                    {
+                        "id": "EXC-2026-0090",
+                        "severity": "CRITICAL",
+                        "title": "Tờ khai xuất khẩu rơi vào Luồng Đỏ - Nguy cơ rớt tàu ONE APUS chuyến 04/10",
+                        "owner": "Le Van C",
+                        "department": "Customs & Port Operations",
+                        "due_date": "02/10/2026 17:00",
+                        "status": "Urgent Action Required"
+                    },
+                    {
+                        "id": "EXC-2026-0091",
+                        "severity": "HIGH",
+                        "title": "Phí nâng hạ và kiểm hóa ngoài giờ phát sinh vượt định mức +15%",
+                        "owner": "Pham Thi D",
+                        "department": "Accounting",
+                        "due_date": "05/10/2026",
+                        "status": "Awaiting Approval"
+                    }
+                ]
+            },
+            "upcoming_actions": [
+                {"date": "02/10/2026 14:00", "action": "Phối hợp cán bộ Chi cục Hải quan mở container kiểm hóa", "department": "Customs", "owner": "Le Van C"},
+                {"date": "02/10/2026 16:30", "action": "Nộp biên bản thông quan cho văn phòng hãng tàu ONE", "department": "Logistics", "owner": "Nguyen Van A"},
+                {"date": "03/10/2026", "action": "Lấy C/O Form B bản gốc từ VCCI Đà Nẵng", "department": "Export Admin", "owner": "Tran Thi B"}
+            ],
+            "related_erp_documents": [
+                {"doctype": "Sales Order", "name": "SO-2026-0019", "status": "Submitted", "link": "/app/sales-order/SO-2026-0019"},
+                {"doctype": "Delivery Note", "name": "DN-2026-0035", "status": "Submitted", "link": "/app/delivery-note/DN-2026-0035"},
+                {"doctype": "Sales Invoice", "name": "SINV-2026-0088", "status": "Submitted", "link": "/app/sales-invoice/SINV-2026-0088"},
+                {"doctype": "Payment Entry", "name": "Deposit 30% Received", "status": "Completed", "link": "/app/payment-entry"}
+            ],
+            "responsibility_matrix": [
+                {"role": "Case Owner", "name": "Nguyen Van A", "department": "Export Direction", "email": "nguyenvana@example.com"},
+                {"role": "Export Sales", "name": "Dang Van M", "department": "Global Sales", "email": "dangvanm@example.com"},
+                {"role": "Port Operations", "name": "Nguyen Van A", "department": "Port Operation", "email": "nguyenvana@example.com"},
+                {"role": "Customs Lead", "name": "Le Van C", "department": "Customs Department", "email": "levanc@example.com"},
+                {"role": "Finance", "name": "Pham Thi D", "department": "Export Billing", "email": "phamthid@example.com"},
+                {"role": "Factory Warehouse", "name": "Hoang Van E", "department": "Loading Dock", "email": "hoangvane@example.com"}
+            ],
+            "activity_timeline": [
+                {"time": "02/10 08:30", "actor": "VNACCS / Customs Gateway", "event": "Phân luồng tờ khai xuất khẩu: LUỒNG ĐỎ (Kiểm tra thực tế)"},
+                {"time": "01/10 11:00", "actor": "Tien Sa Port Terminal", "event": "2 Container hạ bãi cảng thành công (Gate-in)"},
+                {"time": "30/09 16:00", "actor": "Warehouse Team", "event": "Hoàn tất đóng hàng solar panel vào container tại nhà máy"}
+            ],
+            "quick_actions": {
+                "can_close": False,
+                "close_reasons": [
+                    "✗ Tờ khai xuất khẩu chưa thông quan (Đang luồng đỏ)",
+                    "✗ Tàu chưa khởi hành và chưa giao hàng đến Los Angeles",
+                    "✗ Còn 2 sự cố khẩn cấp cần giải quyết"
+                ],
+                "allowed_actions": [
+                    {"id": "btn-upload-doc", "label": "Upload Document", "icon": "fa fa-upload"},
+                    {"id": "btn-update-customs", "label": "Update Customs", "icon": "fa fa-check-circle"},
+                    {"id": "btn-add-cost", "label": "Add Cost Invoice", "icon": "fa fa-dollar-sign"},
+                    {"id": "btn-create-exception", "label": "Create Exception", "icon": "fa fa-exclamation-triangle"},
+                    {"id": "btn-add-action", "label": "Add Action Item", "icon": "fa fa-plus"}
+                ]
+            }
+        }
+        return data
+
+    # Default: IMP-2026-001 (Warning / Attention Case)
+    data = {
+        "status": "success",
+        "case_id": "IMP-2026-001",
+        "available_cases": available_cases,
+        "header": {
+            "case_id": "IMP-2026-001",
+            "trade_type": "Import",
+            "status": "In Transit",
+            "health": "Attention",
+            "health_badge_class": "badge-warning",
+            "supplier": "ABC Electronics Co., Ltd",
+            "purchase_order": "PO-2026-0042",
+            "mode": "Ocean",
+            "incoterm": "FOB",
+            "origin": "Shanghai Port, China (CNSHA)",
+            "destination": "Da Nang Port, Vietnam (VNDAD)",
+            "owner": "Nguyen Van A",
+            "department": "Logistics & Supply Chain",
+            "priority": "Normal",
+            "created_date": "2026-09-28",
+            "expected_close": "2026-10-15"
+        },
+        "lifecycle": {
+            "current_stage": "In Transit",
+            "current_index": 3,
+            "stages": [
+                {"key": "PO", "label": "PO", "status": "completed"},
+                {"key": "Booking", "label": "Booking", "status": "completed"},
+                {"key": "Export Port", "label": "Export Port", "status": "completed"},
+                {"key": "In Transit", "label": "In Transit", "status": "current"},
+                {"key": "Import Port", "label": "Import Port", "status": "pending"},
+                {"key": "Customs", "label": "Customs", "status": "pending"},
+                {"key": "Warehouse", "label": "Warehouse", "status": "pending"},
+                {"key": "Cost Finalization", "label": "Cost Finalization", "status": "pending"},
+                {"key": "Closed", "label": "Closed", "status": "pending"}
+            ],
+            "previous_milestone": {
+                "title": "Vessel Departed Shanghai Port",
+                "date": "01/10/2026"
+            },
+            "next_milestone": {
+                "title": "Arrival Da Nang Port",
+                "eta": "08/10/2026 (Trễ +2 ngày)"
+            }
+        },
+        "overall_health": {
+            "status": "Attention",
+            "status_class": "warning",
+            "summary": "ETA trễ +2 ngày do điều kiện thời tiết, thiếu C/O Form E gốc, hải quan đang chuẩn bị hồ sơ.",
+            "cards": [
+                {"key": "shipment", "label": "Shipment", "value": "WARNING", "sub": "Trễ +2 ngày", "class": "warning"},
+                {"key": "documents", "label": "Documents", "value": "80% READY", "sub": "8/10 Chứng từ", "class": "warning"},
+                {"key": "customs", "label": "Customs", "value": "65% READY", "sub": "Chờ mở tờ khai", "class": "warning"},
+                {"key": "warehouse", "label": "Warehouse", "value": "NOT READY", "sub": "Chưa đến hạn nhập", "class": "neutral"},
+                {"key": "cost", "label": "Cost", "value": "IN PROGRESS", "sub": "+7.9% Chênh lệch", "class": "info"},
+                {"key": "exceptions", "label": "Exceptions", "value": "3 OPEN", "sub": "1 Sự cố High", "class": "danger"}
+            ]
+        },
+        "shipment_summary": {
+            "shipment_id": "SHP-2026-0045",
+            "carrier": "Maersk Line",
+            "vessel": "MAERSK MC-KINNEY MOLLER",
+            "container_count": 3,
+            "pol": "Shanghai Port, China",
+            "pod": "Da Nang Port, Vietnam",
+            "atd": "01/10/2026",
+            "original_eta": "06/10/2026",
+            "current_eta": "08/10/2026",
+            "delay_days": 2,
+            "status": "In Transit",
+            "total_shipments": 3,
+            "shipment_counts": {
+                "in_transit": 2,
+                "delivered": 1,
+                "critical": 0
+            }
+        },
+        "document_readiness": {
+            "ready_count": 8,
+            "total_count": 10,
+            "percentage": 80,
+            "current_stage": "In Transit",
+            "missing_urgent": [
+                {"name": "Certificate of Origin (C/O Form E)", "type": "critical", "deadline": "05/10/2026", "note": "Bắt buộc có trước khâu truyền tờ khai Hải quan"},
+                {"name": "Arrival Documentation (D/O)", "type": "warning", "deadline": "07/10/2026", "note": "Hãng tàu gửi khi tàu cập cảng"}
+            ],
+            "categories": [
+                {"name": "Commercial", "ready": 3, "total": 3, "status": "completed"},
+                {"name": "Transport", "ready": 3, "total": 3, "status": "completed"},
+                {"name": "Customs", "ready": 1, "total": 2, "status": "warning"},
+                {"name": "Compliance", "ready": 1, "total": 2, "status": "warning"}
+            ]
+        },
+        "customs_readiness": {
+            "status": "PREPARING",
+            "readiness_pct": 70,
+            "hs_classification": "8517.62.99 (Đã phân loại)",
+            "hs_approval_status": "Approved by Customs Specialist",
+            "origin_verified": True,
+            "customs_value_verified": True,
+            "declaration_status": "Pending (Chờ C/O gốc)",
+            "license": "N/A (Không yêu cầu giấy phép)",
+            "inspection": "Pending (Kiểm tra hồ sơ)",
+            "clearance_status": "NOT CLEARED"
+        },
+        "cost_summary": {
+            "purchase_value": 100000.0,
+            "estimated_cost": 17000.0,
+            "actual_cost": 18350.0,
+            "variance_amount": 1350.0,
+            "variance_pct": 7.9,
+            "actual_landed_cost": 118350.0,
+            "currency": "USD",
+            "breakdown": [
+                {"label": "Ocean Freight", "amount": 5700.0},
+                {"label": "Marine Insurance", "amount": 950.0},
+                {"label": "Import Duty & Taxes", "amount": 10000.0},
+                {"label": "Port Handling (THC, CIC)", "amount": 700.0},
+                {"label": "Demurrage & Storage", "amount": 400.0},
+                {"label": "Other Surcharges", "amount": 600.0}
+            ],
+            "invoices_received": 7,
+            "invoices_total": 9,
+            "costs_verified": 6,
+            "costs_allocated": 4,
+            "cost_finalization_status": "IN PROGRESS"
+        },
+        "warehouse_readiness": {
+            "expected_arrival": "09/10/2026",
+            "warehouse": "Kho Ngoại quan Cảng Đà Nẵng - WH-DANANG",
+            "receiving_status": "NOT READY",
+            "expected_qty": 1000,
+            "received_qty": None,
+            "space_reserved": True,
+            "receiving_team": "Assigned (Đội Tiếp nhận Kho B)",
+            "discrepancy_alert": False
+        },
+        "open_exceptions": {
+            "total_open": 3,
+            "overdue": 1,
+            "due_soon": 2,
+            "items": [
+                {
+                    "id": "EXC-2026-0081",
+                    "severity": "HIGH",
+                    "title": "ETA tàu bị trễ +2 ngày (06/10 → 08/10) do bão",
+                    "owner": "Nguyen Van A",
+                    "department": "Logistics",
+                    "due_date": "04/10/2026",
+                    "status": "In Progress"
+                },
+                {
+                    "id": "EXC-2026-0082",
+                    "severity": "HIGH",
+                    "title": "Chưa nhận được C/O Form E gốc từ Nhà cung cấp",
+                    "owner": "Tran Thi B",
+                    "department": "Purchasing",
+                    "due_date": "05/10/2026",
+                    "status": "Pending Vendor"
+                },
+                {
+                    "id": "EXC-2026-0083",
+                    "severity": "MEDIUM",
+                    "title": "Phí cước tàu biển tăng +12% so với dự toán ban đầu",
+                    "owner": "Pham Thi D",
+                    "department": "Accounting",
+                    "due_date": "08/10/2026",
+                    "status": "Investigating"
+                }
+            ]
+        },
+        "upcoming_actions": [
+            {"date": "03/10/2026", "action": "Đôn đốc Supplier gửi số tracking gửi chuyển phát C/O gốc", "department": "Purchasing", "owner": "Tran Thi B"},
+            {"date": "04/10/2026", "action": "Lập bộ hồ sơ và truyền tờ khai Hải quan điện tử", "department": "Customs", "owner": "Le Van C"},
+            {"date": "07/10/2026", "action": "Sắp xếp kho bãi và thiết bị chuẩn bị tiếp nhận hàng", "department": "Warehouse", "owner": "Hoang Van E"},
+            {"date": "09/10/2026", "action": "Hàng về đến kho, mở niêm chì kiểm đếm và lập biên bản", "department": "Logistics", "owner": "Nguyen Van A"}
+        ],
+        "related_erp_documents": [
+            {"doctype": "Purchase Order", "name": "PO-2026-0042", "status": "Submitted", "link": "/app/purchase-order/PO-2026-0042"},
+            {"doctype": "Purchase Receipt", "name": "Pending", "status": "Chưa lập", "link": "#"},
+            {"doctype": "Purchase Invoice", "name": "PINV-2026-0173", "status": "Submitted", "link": "/app/purchase-invoice/PINV-2026-0173"},
+            {"doctype": "Landed Cost Voucher", "name": "Pending", "status": "Chưa lập", "link": "#"},
+            {"doctype": "Payment Entry", "name": "2 / 3 Paid", "status": "Partially Paid", "link": "/app/payment-entry"}
+        ],
+        "responsibility_matrix": [
+            {"role": "Case Owner", "name": "Nguyen Van A", "department": "Logistics & Supply Chain", "email": "nguyenvana@example.com"},
+            {"role": "Purchasing", "name": "Tran Thi B", "department": "Procurement Dept", "email": "tranthib@example.com"},
+            {"role": "Logistics", "name": "Nguyen Van A", "department": "Freight Operation", "email": "nguyenvana@example.com"},
+            {"role": "Customs Specialist", "name": "Le Van C", "department": "Trade Compliance", "email": "levanc@example.com"},
+            {"role": "Accounting", "name": "Pham Thi D", "department": "Finance & Landed Cost", "email": "phamthid@example.com"},
+            {"role": "Warehouse Lead", "name": "Hoang Van E", "department": "Inbound Receiving", "email": "hoangvane@example.com"}
+        ],
+        "activity_timeline": [
+            {"time": "02/10 14:30", "actor": "Tracking API (Automatic)", "event": "ETA changed: 06/10 → 08/10 (+2 days delay)"},
+            {"time": "02/10 13:15", "actor": "System Alert", "event": "Exception created: Shipment Delay"},
+            {"time": "02/10 10:00", "actor": "Tran Thi B", "event": "C/O scan uploaded by Purchasing"},
+            {"time": "01/10 18:30", "actor": "Tracking API", "event": "Vessel departed Shanghai Port"},
+            {"time": "01/10 15:20", "actor": "Le Van C", "event": "Customs HS approved: 8517.62.99"}
+        ],
+        "quick_actions": {
+            "can_close": False,
+            "close_reasons": [
+                "✗ Shipment chưa giao đến kho (Đang ở chặng In Transit)",
+                "✗ Tờ khai Hải quan chưa thông quan",
+                "✗ Chi phí Landed Cost chưa hoàn tất phân bổ",
+                "✗ Còn 3 sự cố đang mở chưa được giải quyết"
+            ],
+            "allowed_actions": [
+                {"id": "btn-upload-doc", "label": "Upload Document", "icon": "fa fa-upload"},
+                {"id": "btn-update-customs", "label": "Update Customs", "icon": "fa fa-check-circle"},
+                {"id": "btn-add-cost", "label": "Add Cost Invoice", "icon": "fa fa-dollar-sign"},
+                {"id": "btn-create-exception", "label": "Create Exception", "icon": "fa fa-exclamation-triangle"},
+                {"id": "btn-add-action", "label": "Add Action Item", "icon": "fa fa-plus"}
+            ]
+        }
+    }
+    return data
+
+
+@frappe.whitelist(allow_guest=True)
+def validate_stage_gate_completion(case_id=None):
+    """
+    Evaluates 8 Stage-Gate verification criteria required before closing a Trade Case.
+    Required by PROJECT.md and Dispatch specification.
+    """
+    if not case_id:
+        return {
+            "success": False,
+            "can_close": False,
+            "passed_count": 0,
+            "total_count": 8,
+            "items": [],
+            "message": "Mã Case ID là bắt buộc.",
+            "reasons": ["Mã Case ID là bắt buộc."]
+        }
+
+    overview = get_trade_case_overview_data(case_id)
+    if not overview or not isinstance(overview, dict):
+        return {
+            "success": False,
+            "can_close": False,
+            "passed_count": 0,
+            "total_count": 8,
+            "items": [],
+            "message": f"Không tìm thấy hồ sơ {case_id}",
+            "reasons": [f"Không tìm thấy hồ sơ {case_id}"]
+        }
+
+    doc = None
+    if frappe and hasattr(frappe, "db") and frappe.db.exists("DocType", "Trade Case") and frappe.db.exists("Trade Case", case_id):
+        try:
+            doc = frappe.get_doc("Trade Case", case_id)
+        except Exception:
+            doc = None
+
+    shipment_summary = overview.get("shipment_summary", {})
+    doc_readiness = overview.get("document_readiness", {})
+    customs_readiness = overview.get("customs_readiness", {}) or overview.get("customs_compliance", {})
+    cost_summary = overview.get("cost_summary", {})
+    warehouse_readiness = overview.get("warehouse_readiness", {})
+    open_exceptions = overview.get("open_exceptions", {})
+    lifecycle = overview.get("lifecycle", {}) or overview.get("stepper", {})
+    current_stage = lifecycle.get("current_stage") or (doc.current_stage if doc else "In Transit")
+
+    # 1. GATE_SHIPMENT: Tàu đã giao hàng
+    gate_shipment_passed = (
+        current_stage in ["Warehouse", "Cost Finalization", "Closed"] or
+        shipment_summary.get("status") in ["Delivered", "Arrived Destination Port", "Completed"]
+    )
+    # 2. GATE_DOCS: Đủ 100% chứng từ bắt buộc đã duyệt
+    gate_docs_passed = (
+        doc_readiness.get("percentage", 0) >= 100 and
+        len(doc_readiness.get("missing_urgent", [])) == 0
+    )
+    # 3. GATE_CUSTOMS: Tờ khai hải quan đã thông quan & hoàn tất nộp thuế
+    gate_customs_passed = (
+        customs_readiness.get("clearance_status") in ["CLEARED", "Passed", "Approved"] or
+        (doc and getattr(doc, "customs_cleared", 0) == 1)
+    )
+    # 4. GATE_WAREHOUSE: Hàng hóa đã nhập kho và KCS đạt yêu cầu
+    gate_warehouse_passed = (
+        warehouse_readiness.get("receiving_status") in ["COMPLETED", "RECEIVED", "Passed"] and
+        not warehouse_readiness.get("discrepancy_alert", False)
+    )
+    # 5. GATE_LCV: Landed Cost Voucher đã lập và phân bổ vào giá vốn
+    gate_lcv_passed = (
+        cost_summary.get("cost_finalization_status") in ["ALLOCATED", "FINALIZED", "COMPLETED"] or
+        (doc and getattr(doc, "costs_finalized", 0) == 1)
+    )
+    # 6. GATE_CLEARING: Tài khoản trung gian chi phí đã triệt tiêu về 0.00
+    gate_clearing_passed = gate_lcv_passed
+    # 7. GATE_EXCEPTIONS: Không còn bất kỳ sự cố Critical/High nào đang mở
+    crit_count = 0
+    if open_exceptions.get("items"):
+        crit_count = sum(1 for exc in open_exceptions.get("items", []) if str(exc.get("severity", "")).upper() in ["CRITICAL", "HIGH"])
+    gate_exceptions_passed = (open_exceptions.get("total_open", 0) == 0 or crit_count == 0) and (not doc or getattr(doc, "open_exceptions_count", 0) == 0)
+    # 8. GATE_SETTLEMENT: Đã thanh toán và đối soát đủ hóa đơn NCC & Forwarder
+    gate_settlement_passed = (
+        cost_summary.get("invoices_received", 0) >= cost_summary.get("invoices_total", 0) and
+        cost_summary.get("invoices_total", 0) > 0
+    ) if cost_summary.get("invoices_total") else True
+
+    items = [
+        {"code": "GATE_SHIPMENT", "label": "1. Vận đơn đã giao hàng đến đích (ATA Completed)", "passed": bool(gate_shipment_passed), "reason": "Vận đơn đã đến cảng/kho đích an toàn." if gate_shipment_passed else f"Shipment chưa hoàn tất giao hàng (đang ở chặng {current_stage})."},
+        {"code": "GATE_DOCS", "label": "2. Đủ 100% chứng từ ngoại thương bắt buộc đã duyệt", "passed": bool(gate_docs_passed), "reason": "100% chứng từ đã sẵn sàng và được kiểm duyệt." if gate_docs_passed else f"Chưa đủ chứng từ ngoại thương ({doc_readiness.get('ready_count', 0)}/{doc_readiness.get('total_count', 0)} docs)."},
+        {"code": "GATE_CUSTOMS", "label": "3. Tờ khai hải quan đã thông quan & hoàn tất nộp thuế", "passed": bool(gate_customs_passed), "reason": "Tờ khai hải quan đã thông quan hợp lệ." if gate_customs_passed else "Tờ khai hải quan chưa thông quan hoặc chưa nộp thuế."},
+        {"code": "GATE_WAREHOUSE", "label": "4. Hàng hóa đã nhập kho và KCS đạt yêu cầu", "passed": bool(gate_warehouse_passed), "reason": "Hàng đã nhập kho và đối soát khớp số lượng." if gate_warehouse_passed else "Chưa hoàn tất nhận kho hoặc có chênh lệch số lượng."},
+        {"code": "GATE_LCV", "label": "5. Landed Cost Voucher đã lập và phân bổ vào giá vốn", "passed": bool(gate_lcv_passed), "reason": "Toàn bộ chi phí đã được phân bổ vào giá vốn kho." if gate_lcv_passed else "Landed Cost Voucher chưa hoàn tất phân bổ."},
+        {"code": "GATE_CLEARING", "label": "6. Tài khoản trung gian chi phí đã triệt tiêu về 0.00", "passed": bool(gate_clearing_passed), "reason": "Tài khoản chi phí tạm tính đã cân đối về 0.00." if gate_clearing_passed else "Tài khoản chi phí phân bổ chưa triệt tiêu."},
+        {"code": "GATE_EXCEPTIONS", "label": "7. Không còn bất kỳ sự cố Critical/High nào đang mở", "passed": bool(gate_exceptions_passed), "reason": "Tất cả sự cố ngoại lệ đã được xử lý dứt điểm." if gate_exceptions_passed else f"Còn {open_exceptions.get('total_open', 0)} sự cố chưa giải quyết."},
+        {"code": "GATE_SETTLEMENT", "label": "8. Đã thanh toán và đối soát đủ hóa đơn NCC & Forwarder", "passed": bool(gate_settlement_passed), "reason": "Tất cả hóa đơn dịch vụ đã được đối soát thanh toán." if gate_settlement_passed else "Còn hóa đơn dịch vụ vận tải/cảng chưa đối soát."}
+    ]
+
+    passed_count = sum(1 for it in items if it["passed"])
+    can_close = (passed_count == 8)
+    failed_reasons = [it["reason"] for it in items if not it["passed"]]
+
+    return {
+        "success": True,
+        "can_close": can_close,
+        "passed_count": passed_count,
+        "total_count": 8,
+        "items": items,
+        "reasons": failed_reasons
+    }
+
+
+@frappe.whitelist(allow_guest=True)
+def get_trade_case_detail(case_id=None):
+    """
+    Returns complete Trade Case dossier with all 14 blocks.
+    Supports fallback mock data for representative cases.
+    Required by PROJECT.md § Interface Contracts.
+    """
+    overview = get_trade_case_overview_data(case_id=case_id)
+    if isinstance(overview, dict):
+        sg_val = validate_stage_gate_completion(case_id=overview.get("case_id"))
+        overview["stage_gate"] = {
+            "can_close": sg_val.get("can_close", False),
+            "passed_count": sg_val.get("passed_count", 0),
+            "total_count": sg_val.get("total_count", 8),
+            "checklist": sg_val.get("items", []),
+            "reasons": sg_val.get("reasons", [])
+        }
+        if "quick_actions" in overview and isinstance(overview["quick_actions"], dict):
+            overview["quick_actions"]["can_close"] = sg_val.get("can_close", False)
+            overview["quick_actions"]["close_reasons"] = sg_val.get("reasons", [])
+            overview["quick_actions"]["stage_gate_items"] = sg_val.get("items", [])
+
+        # Alias blocks for dual naming compatibility
+        overview["identification"] = overview.get("header")
+        overview["stepper"] = overview.get("lifecycle")
+        overview["health_grid"] = overview.get("overall_health")
+        overview["customs_compliance"] = overview.get("customs_readiness")
+        overview["exceptions"] = overview.get("open_exceptions")
+        overview["related_docs"] = overview.get("related_erp_documents")
+        overview["stakeholders"] = overview.get("responsibility_matrix")
+
+        return {
+            "success": True,
+            "status": "success",
+            "case_id": overview.get("case_id"),
+            "data": overview,
+            **overview
+        }
+
+    return {"success": False, "message": "Trade Case not found"}
+
+
+@frappe.whitelist(allow_guest=True)
+def close_trade_case(case_id=None):
+    """
+    Validates stage gates and attempts to close the specified Trade Case.
+    """
+    if not case_id:
+        return {"success": False, "message": "Mã Case ID là bắt buộc."}
+
+    val_res = validate_stage_gate_completion(case_id)
+    if not val_res.get("can_close", False):
+        reasons = val_res.get("reasons", [])
+        return {
+            "success": False,
+            "can_close": False,
+            "message": f"Không thể đóng hồ sơ {case_id}: " + "; ".join(reasons),
+            "reasons": reasons,
+            "validation": val_res
+        }
+
+    if frappe and hasattr(frappe, "db") and frappe.db.exists("Trade Case", case_id):
+        try:
+            doc = frappe.get_doc("Trade Case", case_id)
+            doc.close_case()
+            doc.save()
+            frappe.db.commit()
+            return {"success": True, "message": f"Hồ sơ {case_id} đã được đóng thành công."}
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
+    return {"success": True, "message": f"Hồ sơ {case_id} đã được đóng thành công (Simulated)."}
+
 

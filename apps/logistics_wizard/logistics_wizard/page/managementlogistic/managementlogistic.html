@@ -1,0 +1,498 @@
+<div class="logistics-page-container">
+    <!-- TOP TAB NAVIGATION BAR -->
+    <div class="logistics-tabs-nav">
+        <button class="logistics-nav-tab active" data-tab="trade-case-overview" data-target="overview" id="btn-tab-overview">
+            <span class="tab-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+            </span>
+            <span class="tab-text">Trade Case Overview</span>
+            <span class="tab-badge" id="tc-current-case-badge">IMP-2026-001</span>
+        </button>
+        <button class="logistics-nav-tab" data-tab="shipment-tracking-hub" data-target="tracking" id="btn-tab-tracking">
+            <span class="tab-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                </svg>
+            </span>
+            <span class="tab-text">Shipment Tracking Hub</span>
+        </button>
+    </div>
+
+    <!-- TAB 1: TRADE CASE OVERVIEW -->
+    <div class="logistics-tab-pane active" id="tab-pane-trade-case">
+        <!-- NÚT CHỌN HỒ SƠ NẰM NGAY TRONG TAB NÀY -->
+        <div class="tc-tab-control-bar">
+            <div class="tc-select-case-group">
+                <label for="tc-case-selector" class="tc-select-label">
+                    <i class="fa fa-folder-open" style="color: #0284c7;"></i> Chọn hồ sơ Trade Case:
+                </label>
+                <div class="tc-select-wrapper">
+                    <select id="tc-case-selector" class="form-control tc-case-select-dropdown">
+                        <!-- Populated dynamically via API -->
+                    </select>
+                </div>
+            </div>
+            <div class="tc-tab-control-actions">
+                <button class="btn btn-default btn-sm" id="tc-btn-refresh-case" title="Làm mới tổng quan">
+                    <i class="fa fa-refresh"></i> Làm mới
+                </button>
+                <button class="btn btn-default btn-sm" id="tc-btn-edit-case" title="Chỉnh sửa hồ sơ DocType">
+                    <i class="fa fa-pencil"></i> Chỉnh sửa Case
+                </button>
+            </div>
+        </div>
+
+        <!-- KHỐI 1: HEADER IDENTIFICATION -->
+        <div class="tc-card" id="tc-header-card">
+            <div class="tc-header-top">
+                <div class="tc-id-badges">
+                    <span class="tc-badge-id" id="tc-id-text"><span id="tc-header-id">IMP-2026-001</span></span>
+                    <span class="tc-badge-status" id="tc-status-badge"><span id="tc-header-status">IN TRANSIT</span></span>
+                    <span class="tc-badge-health warning" id="tc-health-badge"><span id="tc-header-health">Health: ATTENTION</span></span>
+                    <span class="tc-badge-priority" id="tc-priority-badge"><span id="tc-header-priority">Normal Priority</span></span>
+                </div>
+                <div class="tc-header-actions">
+                    <button class="btn btn-xs btn-default" id="tc-btn-refresh" title="Làm mới"><i class="fa fa-refresh"></i> Làm mới</button>
+                </div>
+            </div>
+            <div class="tc-master-grid" id="tc-master-details">
+                <div class="tc-detail-col">
+                    <div class="tc-detail-label">Loại hình / Đối tác:</div>
+                    <div class="tc-detail-val" id="tc-party-text"><span id="tc-meta-party">Import Case — ABC Electronics Co., Ltd</span></div>
+                </div>
+                <div class="tc-detail-col">
+                    <div class="tc-detail-label">Đơn mua hàng (PO/SO):</div>
+                    <div class="tc-detail-val" id="tc-docref-text"><span id="tc-meta-po"><a href="/app/purchase-order/PO-2026-0042" class="tc-link">PO-2026-0042</a></span></div>
+                </div>
+                <div class="tc-detail-col">
+                    <div class="tc-detail-label">Phương thức & Incoterm:</div>
+                    <div class="tc-detail-val" id="tc-mode-incoterm"><span id="tc-meta-mode-incoterm">Ocean • FOB</span></div>
+                </div>
+                <div class="tc-detail-col">
+                    <div class="tc-detail-label">Tuyến đường (Origin ➔ Dest):</div>
+                    <div class="tc-detail-val" id="tc-route-text"><span id="tc-meta-route">Shanghai Port, China ➔ Da Nang Port, Vietnam</span></div>
+                </div>
+                <div class="tc-detail-col">
+                    <div class="tc-detail-label">Người phụ trách chính:</div>
+                    <div class="tc-detail-val" id="tc-owner-text"><span id="tc-meta-owner">Nguyen Van A (Logistics)</span></div>
+                </div>
+                <div class="tc-detail-col">
+                    <div class="tc-detail-label">Thời hạn dự kiến đóng:</div>
+                    <div class="tc-detail-val" id="tc-expected-close"><span id="tc-meta-expected-close">2026-10-15</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KHỐI 2: LIFECYCLE STEPPER -->
+        <div class="tc-card" id="tc-lifecycle-card">
+            <div class="tc-card-header">
+                <div class="tc-card-title">
+                    <i class="fa fa-map-signs" style="color: #0284c7;"></i> Tiến Trình Nghiệp Vụ Toàn Vòng Đời (Trade Case Lifecycle)
+                </div>
+                <div class="tc-current-stage-callout" id="tc-current-stage-callout">
+                    <span id="tc-lifecycle-current-label">Giai đoạn hiện tại: <strong>In Transit</strong></span>
+                </div>
+            </div>
+            <div class="tc-lifecycle-stepper" id="tc-lifecycle-stepper">
+                <!-- Rendered dynamically via JS -->
+            </div>
+            <div class="tc-milestone-subgrid">
+                <div class="tc-milestone-box prev">
+                    <div class="tc-ms-tag">MỐC VỪA QUA (PREVIOUS)</div>
+                    <div class="tc-ms-title" id="tc-prev-ms-title"><span id="tc-ms-prev-title">Vessel Departed Shanghai Port</span></div>
+                    <div class="tc-ms-date" id="tc-prev-ms-date"><span id="tc-ms-prev-date">01/10/2026</span></div>
+                </div>
+                <div class="tc-milestone-box next">
+                    <div class="tc-ms-tag">MỐC KẾ TIẾP (NEXT)</div>
+                    <div class="tc-ms-title" id="tc-next-ms-title"><span id="tc-ms-next-title">Arrival Da Nang Port</span></div>
+                    <div class="tc-ms-date" id="tc-next-ms-date"><span id="tc-ms-next-date">08/10/2026 (Trễ +2 ngày)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KHỐI 3: OVERALL HEALTH & READINESS GRID -->
+        <div class="tc-health-grid" id="tc-health-grid">
+            <!-- 6 thẻ trạng thái Rendered dynamically via JS -->
+        </div>
+
+        <!-- KHỐI 4 & 5: SHIPMENT SUMMARY & DOCUMENT READINESS -->
+        <div class="tc-two-col-grid">
+            <!-- KHỐI 4: SHIPMENT SUMMARY -->
+            <div class="tc-card" id="tc-shipment-card">
+                <div class="tc-card-header">
+                    <div class="tc-card-title">
+                        <i class="fa fa-ship" style="color: #0284c7;"></i> Vận Đơn & Hành Trình (Shipment Summary)
+                    </div>
+                    <button class="btn btn-xs btn-primary font-weight-bold tc-btn-goto-shipment tc-drill-down-shipment" id="tc-btn-goto-shipment" name="tc-btn-goto-shipment">
+                        Xem Shipment Tracking <i class="fa fa-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="tc-shipment-summary-content" id="tc-shipment-body">
+                    <div id="tc-shipment-summary-body"></div>
+                    <!-- Rendered dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- KHỐI 5: DOCUMENT READINESS -->
+            <div class="tc-card" id="tc-documents-card">
+                <div class="tc-card-header">
+                    <div class="tc-card-title">
+                        <i class="fa fa-file-text-o" style="color: #0284c7;"></i> Hồ Sơ & Chứng Từ (Document Readiness)
+                    </div>
+                    <span class="tc-badge-soft" id="tc-docs-pct-badge"><span id="tc-doc-readiness-badge">8 / 10 Sẵn sàng (80%)</span></span>
+                </div>
+                <div class="tc-docs-content" id="tc-docs-body"><div id="tc-doc-readiness-body"></div>
+                    <!-- Rendered dynamically via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- KHỐI 6 & 7: CUSTOMS & LANDED COST -->
+        <div class="tc-two-col-grid">
+            <!-- KHỐI 6: CUSTOMS & COMPLIANCE -->
+            <div class="tc-card" id="tc-customs-card">
+                <div class="tc-card-header">
+                    <div class="tc-card-title">
+                        <i class="fa fa-gavel" style="color: #0284c7;"></i> Hải Quan & Tuân Thủ (Customs & Compliance)
+                    </div>
+                    <span class="tc-badge-soft" id="tc-customs-status-badge"><span id="tc-customs-badge">PREPARING (70%)</span></span>
+                </div>
+                <div class="tc-customs-content" id="tc-customs-body">
+                    <!-- Rendered dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- KHỐI 7: COST SUMMARY (LANDED COST) -->
+            <div class="tc-card" id="tc-cost-card">
+                <div class="tc-card-header">
+                    <div class="tc-card-title">
+                        <i class="fa fa-calculator" style="color: #0284c7;"></i> Chi Phí & Giá Thành Nhập Khẩu (Landed Cost Summary)
+                    </div>
+                    <span class="tc-badge-soft" id="tc-cost-status-badge">IN PROGRESS (+7.9%)</span>
+                </div>
+                <div class="tc-cost-content" id="tc-cost-body">
+                    <!-- Rendered dynamically via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- KHỐI 8 & 9: WAREHOUSE & OPEN EXCEPTIONS -->
+        <div class="tc-two-col-grid">
+            <!-- KHỐI 8: WAREHOUSE READINESS -->
+            <div class="tc-card" id="tc-warehouse-card">
+                <div class="tc-card-header">
+                    <div class="tc-card-title">
+                        <i class="fa fa-building-o" style="color: #0284c7;"></i> Kho Hàng & Giao Nhận (Warehouse Readiness)
+                    </div>
+                    <span class="tc-badge-soft" id="tc-warehouse-status-badge"><span id="tc-wh-badge">NOT READY</span></span>
+                </div>
+                <div class="tc-warehouse-content" id="tc-warehouse-body"><div id="tc-wh-body"></div>
+                    <!-- Rendered dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- KHỐI 9: OPEN EXCEPTIONS -->
+            <div class="tc-card" id="tc-exceptions-card">
+                <div class="tc-card-header">
+                    <div class="tc-card-title">
+                        <i class="fa fa-exclamation-triangle" style="color: #d97706;"></i> Sự Cố & Ngoại Lệ Đang Mở (Top Open Exceptions)
+                    </div>
+                    <span class="tc-badge-soft danger" id="tc-open-exceptions-badge"><span id="tc-exceptions-badge">3 Open (1 Quá hạn)</span></span>
+                </div>
+                <div class="tc-exceptions-content" id="tc-exceptions-body"><div id="tc-exceptions-body-inner"></div>
+                    <!-- Rendered dynamically via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- KHỐI 10 & 11: UPCOMING ACTIONS & ERP DOCUMENTS -->
+        <div class="tc-two-col-grid">
+            <!-- KHỐI 10: UPCOMING ACTIONS & DEADLINES -->
+            <div class="tc-card" id="tc-actions-card">
+                <div class="tc-card-header">
+                    <div class="tc-card-title">
+                        <i class="fa fa-calendar-check-o" style="color: #0284c7;"></i> Hành Động Tiếp Theo & Hạn Định (Upcoming Actions)
+                    </div>
+                    <span class="tc-subtitle-tag">Bây giờ cần làm gì tiếp theo?</span>
+                </div>
+                <div class="tc-actions-content" id="tc-actions-body">
+                    <!-- Rendered dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- KHỐI 11: RELATED ERP DOCUMENTS -->
+            <div class="tc-card" id="tc-erp-docs-card">
+                <div class="tc-card-header">
+                    <div class="tc-card-title">
+                        <i class="fa fa-link" style="color: #0284c7;"></i> Chứng Từ ERPNext Liên Kết (Related ERP Documents)
+                    </div>
+                </div>
+                <div class="tc-erp-docs-content" id="tc-related-erp-body">
+                    <!-- Rendered dynamically via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- KHỐI 12 & 13: RESPONSIBILITY MATRIX & ACTIVITY TIMELINE -->
+        <div class="tc-two-col-grid">
+            <!-- KHỐI 12: RESPONSIBILITY MATRIX -->
+            <div class="tc-card" id="tc-responsibility-card">
+                <div class="tc-card-header">
+                    <div class="tc-card-title">
+                        <i class="fa fa-users" style="color: #0284c7;"></i> Phân Công Trách Nhiệm (Responsibility Matrix)
+                    </div>
+                </div>
+                <div class="tc-responsibility-content" id="tc-responsibility-body">
+                    <!-- Rendered dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- KHỐI 13: ACTIVITY TIMELINE -->
+            <div class="tc-card" id="tc-timeline-card">
+                <div class="tc-card-header">
+                    <div class="tc-card-title">
+                        <i class="fa fa-history" style="color: #0284c7;"></i> Nhật Ký Hoạt Động & Lịch Sử (Activity Audit Timeline)
+                    </div>
+                </div>
+                <div class="tc-timeline-content" id="tc-activity-body">
+                    <!-- Rendered dynamically via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- KHỐI 14: QUICK ACTIONS & STAGE GATE -->
+        <div class="tc-card" id="tc-stage-gate-card">
+            <div class="tc-card-header">
+                <div class="tc-card-title">
+                    <i class="fa fa-bolt" style="color: #0284c7;"></i> Thao Tác Nhanh & Chốt Chặn Hồ Sơ (Quick Actions & Stage Gate)
+                </div>
+            </div>
+            <div class="tc-stage-gate-content" id="tc-stage-gate-body">
+                <!-- Rendered dynamically via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: SHIPMENT TRACKING HUB (100% NGUYÊN BẢN CỦA 7d1ef41) -->
+    <div class="logistics-tab-pane" id="tab-pane-shipment-tracking" style="display: none;">
+        <div class="shipment-tracking-hub-container">
+            <!-- Top Action Header -->
+            <div class="hub-header-bar">
+                <div class="hub-title-block">
+                    <h2 class="hub-title">
+                        <span class="hub-title-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                            </svg>
+                        </span>
+                        <span class="hub-title-text">Trung Tâm Quản Trị Vận Chuyển Toàn Cầu</span>
+                    </h2>
+                    <p class="hub-subtitle">Giám sát hành trình container, tiến độ mốc DCSA quốc tế và phát hiện lệch lịch trình theo thời gian thực</p>
+                </div>
+                <div class="hub-header-actions">
+                    <button class="btn btn-default btn-sm hub-btn-refresh" id="hub-btn-refresh" title="Làm mới dữ liệu">
+                        <i class="fa fa-refresh"></i> Làm mới
+                    </button>
+                    <button class="btn btn-primary btn-sm hub-btn-sync" id="hub-btn-sync-now" title="Đồng bộ dữ liệu tức thì từ hãng vận tải">
+                        <i class="fa fa-cloud-download"></i> Đồng bộ tức thì (Sync Now)
+                    </button>
+                </div>
+            </div>
+
+            <!-- KHỐI 1: 4 Thẻ KPI Metrics (Icon Vector SVG Monoline) -->
+            <div class="hub-kpi-grid">
+                <div class="hub-kpi-card kpi-total" data-filter="all">
+                    <div class="kpi-icon-wrap">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/>
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                            <line x1="12" y1="22.08" x2="12" y2="12"/>
+                        </svg>
+                    </div>
+                    <div class="kpi-data">
+                        <div class="kpi-label">Tổng số lô hàng</div>
+                        <div class="kpi-value" id="kpi-val-total">0</div>
+                        <div class="kpi-desc">Tất cả vận đơn trong hệ thống</div>
+                    </div>
+                </div>
+                <div class="hub-kpi-card kpi-transit active" data-filter="In Transit">
+                    <div class="kpi-icon-wrap">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 19 21 12 17 5 21 12 2"/>
+                        </svg>
+                    </div>
+                    <div class="kpi-data">
+                        <div class="kpi-label">Đang vận chuyển</div>
+                        <div class="kpi-value" id="kpi-val-transit">0</div>
+                        <div class="kpi-desc">Tàu biển & máy bay đang hành trình</div>
+                    </div>
+                </div>
+                <div class="hub-kpi-card kpi-delayed" data-filter="Delayed">
+                    <div class="kpi-icon-wrap">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                    </div>
+                    <div class="kpi-data">
+                        <div class="kpi-label">Chậm tiến độ</div>
+                        <div class="kpi-value" id="kpi-val-delayed">0</div>
+                        <div class="kpi-desc">Hành trình bị lệch ETA > 1 ngày</div>
+                    </div>
+                </div>
+                <div class="hub-kpi-card kpi-stale" data-filter="Stale">
+                    <div class="kpi-icon-wrap">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </div>
+                    <div class="kpi-data">
+                        <div class="kpi-label">Cảnh báo ngoại lệ</div>
+                        <div class="kpi-value" id="kpi-val-stale">0</div>
+                        <div class="kpi-desc">Chưa có tín hiệu mới từ carrier</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KHỐI 2: Bản đồ Giám sát Toàn cầu Tương tác -->
+            <div class="hub-map-card">
+                <div class="hub-card-header">
+                    <div class="card-header-title">
+                        <span class="header-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="2" y1="12" x2="22" y2="12"/>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                        </span>
+                        <span class="header-text" id="hub-map-title">Bản đồ Giám sát Toàn cầu (Fleet Overview)</span>
+                    </div>
+                    <div class="card-header-controls">
+                        <span class="badge badge-info" id="hub-selected-shipment-badge" style="display:none;"></span>
+                        <button class="btn btn-xs btn-default" id="hub-map-reset-btn" title="Trở về góc nhìn toàn cầu">
+                            <i class="fa fa-globe"></i> Toàn cảnh
+                        </button>
+                    </div>
+                </div>
+                <div class="hub-map-wrapper">
+                    <div id="lw-hub-map" class="lw-hub-map-canvas"></div>
+                    <div id="hub-map-loading" class="hub-map-loading-overlay" style="display:none;">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <span>Đang tải lộ trình & định vị phương tiện...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KHỐI 4: Visual Milestones Timeline Stepper (9 Mốc DCSA) -->
+            <div class="hub-timeline-card" id="hub-stepper-card">
+                <div class="hub-card-header">
+                    <div class="card-header-title">
+                        <span class="header-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="4"/>
+                                <line x1="1.05" y1="12" x2="8" y2="12"/>
+                                <line x1="16" y1="12" x2="22.95" y2="12"/>
+                            </svg>
+                        </span>
+                        <span class="header-text">Tiến Trình 9 Mốc Sự Kiện Quốc Tế DCSA (Milestones Stepper)</span>
+                    </div>
+                    <div class="card-header-actions">
+                        <span class="hub-stepper-shipment-name" id="stepper-shipment-name">Chưa chọn lô hàng</span>
+                    </div>
+                </div>
+                <div class="hub-stepper-container">
+                    <div class="hub-stepper-track" id="hub-stepper-track">
+                        <!-- Sẽ được render động qua JS (9 mốc: BOOKED, GATE_IN, LOADED, DEPARTED, TRANSSHIPMENT, ARRIVED, DISCHARGED, GATE_OUT, DELIVERED) -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TẦNG DƯỚI: Chia 2 Cột (Bảng lô hàng chi tiết 65% + Trung tâm Cảnh báo 35%) -->
+            <div class="hub-split-section">
+                <!-- KHỐI 3: Bảng Quản trị Lô hàng Chi tiết (65%) -->
+                <div class="hub-table-panel">
+                    <div class="hub-card-header">
+                        <div class="card-header-title">
+                            <span class="header-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="8" y1="6" x2="21" y2="6"/>
+                                    <line x1="8" y1="12" x2="21" y2="12"/>
+                                    <line x1="8" y1="18" x2="21" y2="18"/>
+                                    <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                    <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                                </svg>
+                            </span>
+                            <span class="header-text">Danh Sách Lô Hàng Quốc Tế</span>
+                        </div>
+                        <div class="hub-search-box">
+                            <i class="fa fa-search hub-search-icon"></i>
+                            <input type="text" id="hub-search-input" class="form-control input-sm" placeholder="Tìm mã vận đơn, container, B/L, PO, hãng tàu...">
+                        </div>
+                    </div>
+
+                    <!-- Filter Tabs -->
+                    <div class="hub-filter-tabs">
+                        <button class="hub-tab-btn active" data-tab="all">Tất cả (<span id="tab-cnt-all">0</span>)</button>
+                        <button class="hub-tab-btn" data-tab="In Transit">Đang vận chuyển (<span id="tab-cnt-transit">0</span>)</button>
+                        <button class="hub-tab-btn" data-tab="Delayed">Trễ hạn (<span id="tab-cnt-delayed">0</span>)</button>
+                        <button class="hub-tab-btn" data-tab="Stale">Mất tín hiệu (<span id="tab-cnt-stale">0</span>)</button>
+                        <button class="hub-tab-btn" data-tab="Delivered">Đã giao hàng (<span id="tab-cnt-delivered">0</span>)</button>
+                    </div>
+
+                    <!-- Shipment Data Table -->
+                    <div class="hub-table-wrapper">
+                        <table class="table table-hover hub-data-table" id="hub-shipments-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 22%;">Vận đơn / Container</th>
+                                    <th style="width: 18%;">Hãng tàu & Phương tiện</th>
+                                    <th style="width: 20%;">Cảng Đi ➔ Đến</th>
+                                    <th style="width: 15%;">Lịch trình (ETD / ETA)</th>
+                                    <th style="width: 13%;">Độ trễ</th>
+                                    <th style="width: 12%; text-align: center;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hub-shipments-tbody">
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted" style="padding: 30px;">
+                                        <i class="fa fa-spinner fa-spin"></i> Đang tải dữ liệu vận chuyển...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- KHỐI 5: Trung Tâm Cảnh Báo Ngoại Lệ & Biến Động ETA (35%) -->
+                <div class="hub-exceptions-panel">
+                    <div class="hub-card-header">
+                        <div class="card-header-title">
+                            <span class="header-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    <line x1="12" y1="8" x2="12" y2="12"/>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                </svg>
+                            </span>
+                            <span class="header-text">Trung Tâm Ngoại Lệ & Cảnh Báo (Exception Center)</span>
+                        </div>
+                        <span class="badge badge-warning" id="hub-exception-count-badge">0 sự cố</span>
+                    </div>
+                    <div class="hub-exceptions-list" id="hub-exceptions-list">
+                        <!-- Sẽ được render động qua JS -->
+                        <div class="text-center text-muted" style="padding: 35px 15px;">
+                            <i class="fa fa-check-circle text-success" style="font-size: 28px; margin-bottom: 8px;"></i>
+                            <p style="margin: 0; font-size: 13px;">Không có sự cố hoặc cảnh báo ngoại lệ đang mở.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
