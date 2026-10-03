@@ -913,7 +913,8 @@ class ShipmentTrackingHub {
 
         shipments.forEach(s => {
             let isSelected = self.selectedShipment && self.selectedShipment.name === s.name;
-            let methodIcon = s.shipping_method === 'Air' ? '✈️' : (s.shipping_method === 'Road' ? '🚚' : '🚢');
+            let currentVehMode = s.current_vehicle || self.get_active_vehicle_mode(s, s.progress);
+            let vehIconChar = (currentVehMode === 'Air' || currentVehMode === 'Plane') ? '✈️' : ((currentVehMode === 'Ocean' || currentVehMode === 'Ship') ? '🚢' : '🚚');
 
             // Status Badge
             let statusClass = 'badge-in-transit';
@@ -932,7 +933,7 @@ class ShipmentTrackingHub {
                 <tr class="hub-row-clickable ${isSelected ? 'selected' : ''}" data-name="${s.name}">
                     <td>
                         <div style="font-weight: 700; color: #0284c7;">
-                            ${methodIcon} ${s.name}
+                            ${vehIconChar} ${s.name}
                         </div>
                         <div style="font-size: 11px; color: #64748b; font-family: monospace;">
                             ${s.container_id ? 'Cont: ' + s.container_id : (s.tracking_number ? 'Track: ' + s.tracking_number : '')}
@@ -1241,6 +1242,54 @@ class ShipmentTrackingHub {
         }
     }
 
+    get_active_vehicle_mode(shipment, currentProgress) {
+        if (!shipment) return 'Ocean';
+        const sMethod = shipment.shipping_method || 'Ocean';
+        const status = (shipment.status || '').toLowerCase();
+
+        // 1. Giai đoạn hoàn tất hoặc nhập kho đích -> Xe tải (Truck / Road)
+        if (['delivered', 'completed', 'received', 'closed', 'giao hàng thành công', 'giao hàng', 'nhập kho', 'chuẩn bị nhập kho'].some(st => status.includes(st))) {
+            return 'Road';
+        }
+
+        // 2. Giai đoạn thông quan hải quan tại cảng/sân bay đến -> Xe tải (Truck / Road)
+        if (['customs clearance', 'customs', 'thông quan', 'hải quan', 'chờ nhập kho'].some(st => status.includes(st))) {
+            return 'Road';
+        }
+
+        // 3. Kiểm tra DCSA milestones (nếu có mốc hiện tại)
+        if (shipment.transit_route && Array.isArray(shipment.transit_route)) {
+            const currMs = shipment.transit_route.find(r => r.is_current == 1 || (r.activity && r.activity.includes('(Current Position)')));
+            if (currMs) {
+                const ms = (currMs.milestone || '').toUpperCase();
+                if (['ARRIVED', 'DISCHARGED', 'GATE_OUT', 'DELIVERED'].includes(ms)) {
+                    return 'Road';
+                }
+                if (['BOOKED', 'GATE_IN'].includes(ms)) {
+                    return 'Road';
+                }
+            }
+        }
+
+        // 4. Kiểm tra theo Progress Thresholds của tuyến 3 chặng
+        const curP = (typeof currentProgress === 'number') ? currentProgress : ((typeof shipment.progress === 'number') ? shipment.progress : 0.55);
+        const thresholds = shipment.progress_thresholds || [0.0, 0.05, 0.95, 1.0];
+        const p1 = (thresholds[1] !== undefined) ? thresholds[1] : 0.05;
+        const p2 = (thresholds[2] !== undefined) ? thresholds[2] : 0.95;
+
+        // Chặng 1 (First-mile Road từ kho nguồn ra cảng/sân bay)
+        if (curP <= p1) {
+            return 'Road';
+        }
+        // Chặng 3 (Last-mile Road từ cảng/sân bay về kho Cáp Kim Khánh Đà Nẵng)
+        if (curP >= p2) {
+            return 'Road';
+        }
+
+        // Chặng 2 (Main-haul quốc tế vượt biển / đường bay)
+        return (sMethod === 'Air') ? 'Air' : 'Ocean';
+    }
+
     calculateBearing(lat1, lon1, lat2, lon2) {
         const toRad = Math.PI / 180;
         const toDeg = 180 / Math.PI;
@@ -1394,6 +1443,21 @@ class ShipmentTrackingHub {
 
             const iconEl = marker.getElement ? marker.getElement() : null;
             if (iconEl) {
+                if (marker._shipment) {
+                    const activeMode = self.get_active_vehicle_mode(marker._shipment, curP);
+                    if (marker._lastActiveMode !== activeMode) {
+                        marker._lastActiveMode = activeMode;
+                        const svgWrap = iconEl.querySelector('.lw-vehicle-icon-svg');
+                        if (svgWrap) {
+                            svgWrap.innerHTML = self.get_vehicle_svg(activeMode);
+                        }
+                        const boxEl = iconEl.querySelector('.lw-vehicle-box');
+                        if (boxEl) {
+                            boxEl.style.borderColor = activeMode === 'Air' ? '#007AFF' : (activeMode === 'Ocean' ? '#0055B3' : '#EA580C');
+                        }
+                    }
+                }
+
                 const rotEl = iconEl.querySelector('.lw-vehicle-icon-svg') || iconEl.querySelector('svg');
                 if (rotEl) {
                     rotEl.style.transform = `rotate(${bearing}deg)`;
@@ -1564,29 +1628,63 @@ class ShipmentTrackingHub {
             let simpCoords = self.douglasPeucker(coords, 0.003);
             if (!simpCoords || simpCoords.length < 2) simpCoords = coords;
 
-            // Determine line styling
-            let lineColor = isRoad ? '#FF9500' : (isAir ? '#0284c7' : '#0055B3');
-            if (s.is_delayed == 1) lineColor = '#DC2626';
+            // Determine line styling (Render Multi-Leg Polylines if available)
+            let hasMultiLegs = s.legs && Array.isArray(s.legs) && s.legs.length > 0;
+            if (hasMultiLegs) {
+                s.legs.forEach(leg => {
+                    let legRaw = leg.coordinates_latlon || leg.coordinates || [];
+                    if (legRaw.length >= 2) {
+                        legRaw = self.align_route_coords(legRaw, 150.0);
+                        let legSimp = self.douglasPeucker(legRaw, 0.003);
+                        if (!legSimp || legSimp.length < 2) legSimp = legRaw;
 
-            let polyline = L.polyline(simpCoords, {
-                color: lineColor,
-                weight: 3.5,
-                opacity: 0.82,
-                dashArray: (isAir || isRoad) ? '6, 8' : ''
-            }).addTo(self.map);
+                        let legMode = leg.mode || (leg.vehicle_type === 'Truck' ? 'Road' : sMethod);
+                        let isLegRoad = (legMode === 'Road');
+                        let isLegAir = (legMode === 'Air');
+                        let legColor = isLegRoad ? '#FF9500' : (isLegAir ? '#0284c7' : '#0055B3');
+                        if (s.is_delayed == 1 && !isLegRoad) legColor = '#DC2626';
 
-            polyline.bindTooltip(`<b>${s.name}</b> (${s.carrier || ''})<br>${s.origin_port || 'Origin'} ➔ ${s.destination_port || 'Dest'}<br><span style="color:#0071E3; font-weight:600;">👉 Nhấp để xem đơn này</span>`, { sticky: true });
-            polyline.on('click', () => {
-                self.select_shipment(s.name);
-            });
+                        let pLeg = L.polyline(legSimp, {
+                            color: legColor,
+                            weight: isLegRoad ? 3.0 : 3.8,
+                            opacity: 0.85,
+                            dashArray: (isLegAir || isLegRoad) ? '6, 8' : ''
+                        }).addTo(self.map);
 
-            self.mapLayers.routePolylines.push(polyline);
-            allLayersToFit.push(polyline);
+                        pLeg.bindTooltip(`<b>${s.name}</b> (${s.carrier || ''})<br>${leg.name || 'Hành trình'}<br><span style="color:#0071E3; font-weight:600;">👉 Nhấp để xem đơn này</span>`, { sticky: true });
+                        pLeg.on('click', () => {
+                            self.select_shipment(s.name);
+                        });
+
+                        self.mapLayers.routePolylines.push(pLeg);
+                        allLayersToFit.push(pLeg);
+                    }
+                });
+            } else {
+                let lineColor = isRoad ? '#FF9500' : (isAir ? '#0284c7' : '#0055B3');
+                if (s.is_delayed == 1) lineColor = '#DC2626';
+
+                let polyline = L.polyline(simpCoords, {
+                    color: lineColor,
+                    weight: 3.5,
+                    opacity: 0.82,
+                    dashArray: (isAir || isRoad) ? '6, 8' : ''
+                }).addTo(self.map);
+
+                polyline.bindTooltip(`<b>${s.name}</b> (${s.carrier || ''})<br>${s.origin_port || 'Origin'} ➔ ${s.destination_port || 'Dest'}<br><span style="color:#0071E3; font-weight:600;">👉 Nhấp để xem đơn này</span>`, { sticky: true });
+                polyline.on('click', () => {
+                    self.select_shipment(s.name);
+                });
+
+                self.mapLayers.routePolylines.push(polyline);
+                allLayersToFit.push(polyline);
+            }
 
             // 2. Origin & Destination Micro-Markers
             let startPt = simpCoords[0];
             let endPt = simpCoords[simpCoords.length - 1];
 
+            let originName = (s.origin && s.origin.name) || s.origin_port || s.name;
             let originDot = L.circleMarker(startPt, {
                 radius: 5,
                 color: '#16A34A',
@@ -1594,10 +1692,11 @@ class ShipmentTrackingHub {
                 fillOpacity: 1,
                 weight: 2
             }).addTo(self.map);
-            originDot.bindTooltip(`Xuất phát: ${s.origin_port || s.name}`);
+            originDot.bindTooltip(`Xuất phát (Kho nguồn): ${originName}`);
             originDot.on('click', () => { self.select_shipment(s.name); });
             self.mapLayers.markers.push(originDot);
 
+            let destName = (s.destination && s.destination.name) || 'Kho bãi Logistics Cáp Kim Khánh Đà Nẵng';
             let destDot = L.circleMarker(endPt, {
                 radius: 5,
                 color: '#DC2626',
@@ -1605,22 +1704,23 @@ class ShipmentTrackingHub {
                 fillOpacity: 1,
                 weight: 2
             }).addTo(self.map);
-            destDot.bindTooltip(`Đích đến: ${s.destination_port || s.name}`);
+            destDot.bindTooltip(`Đích đến: ${destName}`);
             destDot.on('click', () => { self.select_shipment(s.name); });
             self.mapLayers.markers.push(destDot);
 
             // 3. Vehicle Marker along route
             let progress = (typeof s.progress === 'number') ? s.progress : 0.55;
+            let activeMode = self.get_active_vehicle_mode(s, progress);
             let metrics = self.computePolylineMetrics(simpCoords);
             let posData = self.interpolateAtProgress(simpCoords, metrics, progress);
 
-            let vehBorder = (s.is_delayed == 1) ? '#DC2626' : (isAir ? '#0284c7' : '#0055B3');
+            let vehBorder = (s.is_delayed == 1) ? '#DC2626' : (activeMode === 'Air' ? '#007AFF' : (activeMode === 'Ocean' ? '#0055B3' : '#EA580C'));
             let vehIcon = L.divIcon({
                 className: 'custom-fleet-vehicle-icon',
                 html: `
                     <div style="background: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 8px rgba(0,0,0,0.3); border: 2.5px solid ${vehBorder}; cursor: pointer; transition: transform 0.2s;" title="${s.name} - ${s.carrier || ''}">
                         <div style="display: flex; align-items: center; justify-content: center; transform: rotate(${posData.bearing}deg); transform-origin: center center;">
-                            ${self.get_vehicle_svg(sMethod)}
+                            ${self.get_vehicle_svg(activeMode)}
                         </div>
                     </div>
                 `,
@@ -1629,10 +1729,12 @@ class ShipmentTrackingHub {
             });
 
             let vehMarker = L.marker(posData.point, { icon: vehIcon, zIndexOffset: 500 + idx * 10 }).addTo(self.map);
+            let modeTitleVi = activeMode === 'Air' ? 'Hàng không (Máy bay ✈️)' : (activeMode === 'Ocean' ? 'Đường biển (Tàu hàng 🚢)' : 'Đường bộ (Xe tải 🚚)');
             vehMarker.bindTooltip(`
                 <div style="font-size: 11.5px; line-height: 1.4;">
                     <strong style="color: #0071E3;">${s.name}</strong> (${s.carrier || ''})<br>
-                    ${s.origin_port || 'Origin'} ➔ ${s.destination_port || 'Dest'}<br>
+                    ${s.origin ? s.origin.name : (s.origin_port || 'Origin')} ➔ ${s.destination ? s.destination.name : 'Kho bãi Logistics Cáp Kim Khánh Đà Nẵng'}<br>
+                    Phương tiện hiện tại: <b>${modeTitleVi}</b><br>
                     Trạng thái: <b>${s.status}</b><br>
                     <span style="color: #0071E3; font-weight: 600;">👉 Nhấp để xem hành trình chi tiết</span>
                 </div>
@@ -1754,32 +1856,32 @@ class ShipmentTrackingHub {
             this.mapLayers.routePolylines.push(singleLine);
         }
 
-        // 5. Origin Marker (Kho/Cảng Xuất - O)
+        // 5. Origin Marker (Kho/Nhà máy Xuất - O)
         let originCoord = simplifiedCoords[0];
-        let originName = (shipment.origin && shipment.origin.name) || shipment.origin_port || 'Kho/Cảng xuất phát';
+        let originName = (shipment.origin && shipment.origin.name) || shipment.origin_port || 'Kho/Nhà máy xuất phát';
         let originIcon = L.divIcon({
             className: 'hub-origin-marker-icon',
-            html: `<div style="background: #16a34a; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; border: 2.5px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer;" title="Điểm xuất phát (Origin - Điểm O)">O</div>`,
+            html: `<div style="background: #16a34a; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; border: 2.5px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer;" title="Điểm xuất phát (Kho nguồn - Điểm O)">O</div>`,
             iconSize: [26, 26],
             iconAnchor: [13, 13]
         });
         let originMarker = L.marker(originCoord, { icon: originIcon }).addTo(this.map);
         let dispOriginLon = ((originCoord[1] + 180) % 360 + 360) % 360 - 180;
-        originMarker.bindPopup(`<b>Điểm xuất phát (Origin):</b><br>${originName}<br><small>Toạ độ: ${originCoord[0].toFixed(4)}, ${dispOriginLon.toFixed(4)}</small>`);
+        originMarker.bindPopup(`<b>Điểm xuất phát (Kho nguồn):</b><br>${originName}<br><small>Toạ độ: ${originCoord[0].toFixed(4)}, ${dispOriginLon.toFixed(4)}</small>`);
         this.mapLayers.markers.push(originMarker);
 
-        // 6. Destination Marker (Kho/Cảng Đích - D)
+        // 6. Destination Marker (Kho Đích Cáp Kim Khánh Đà Nẵng - D)
         let destCoord = simplifiedCoords[simplifiedCoords.length - 1];
-        let destName = (shipment.destination && shipment.destination.name) || shipment.destination_port || 'Kho/Cảng đích đến';
+        let destName = (shipment.destination && shipment.destination.name) || 'Kho bãi Logistics Cáp Kim Khánh Đà Nẵng (Gần ĐH Bách Khoa)';
         let destIcon = L.divIcon({
             className: 'hub-dest-marker-icon',
-            html: `<div style="background: #dc2626; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; border: 2.5px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer;" title="Điểm đích đến (Destination - Điểm D)">D</div>`,
+            html: `<div style="background: #dc2626; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; border: 2.5px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer;" title="Điểm đích đến (Kho Cáp Kim Khánh Đà Nẵng - Điểm D)">D</div>`,
             iconSize: [26, 26],
             iconAnchor: [13, 13]
         });
         let destMarker = L.marker(destCoord, { icon: destIcon }).addTo(this.map);
         let dispDestLon = ((destCoord[1] + 180) % 360 + 360) % 360 - 180;
-        destMarker.bindPopup(`<b>Điểm đích đến (Destination):</b><br>${destName}<br><small>Toạ độ: ${destCoord[0].toFixed(4)}, ${dispDestLon.toFixed(4)}</small>`);
+        destMarker.bindPopup(`<b>Điểm đích đến (Kho nhận hàng):</b><br>${destName}<br><small>Toạ độ: ${destCoord[0].toFixed(4)}, ${dispDestLon.toFixed(4)}</small>`);
         this.mapLayers.markers.push(destMarker);
 
         // 7. Departure Hub & Arrival Hub Markers (⚓ / 🛫)
@@ -1820,16 +1922,17 @@ class ShipmentTrackingHub {
 
         // 8. Vehicle Marker with SVG AIS Silhouettes & Bearing Tangent
         let targetProgress = (typeof shipment.progress === 'number') ? shipment.progress : 0.55;
+        let activeMode = this.get_active_vehicle_mode(shipment, targetProgress);
         let routeMetrics = this.computePolylineMetrics(simplifiedCoords);
         let startPosData = this.interpolateAtProgress(simplifiedCoords, routeMetrics, 0);
 
-        let vehicleBorderColor = sMethod === 'Air' ? '#007AFF' : (sMethod === 'Ocean' ? '#0055B3' : '#FF9500');
+        let vehicleBorderColor = activeMode === 'Air' ? '#007AFF' : (activeMode === 'Ocean' ? '#0055B3' : '#EA580C');
         let vehicleIcon = L.divIcon({
             className: 'custom-vehicle-icon-hub',
             html: `
                 <div class="lw-vehicle-box" style="background: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(0,0,0,0.3); border: 2.8px solid ${vehicleBorderColor};">
                     <div class="lw-vehicle-icon-svg" style="display: flex; align-items: center; justify-content: center; transform: rotate(${startPosData.bearing}deg); transform-origin: center center;">
-                        ${this.get_vehicle_svg(sMethod)}
+                        ${this.get_vehicle_svg(activeMode)}
                     </div>
                 </div>
             `,
@@ -1839,26 +1942,30 @@ class ShipmentTrackingHub {
 
         this.mapLayers.vehicleMarker = L.marker(startPosData.point, { icon: vehicleIcon, zIndexOffset: 1000 }).addTo(this.map);
         this.mapLayers.vehicleMarker._currentProgress = 0;
+        this.mapLayers.vehicleMarker._shipment = shipment;
+        this.mapLayers.vehicleMarker._lastActiveMode = activeMode;
 
         let delayBadge = (shipment.delay_days > 0)
             ? `<div style="color: #dc2626; font-weight: 700; margin-top: 4px;">⚠️ Lệch ETA: +${shipment.delay_days} ngày</div>`
             : `<div style="color: #16a34a; font-weight: 600; margin-top: 4px;">✅ Hành trình đúng tiến độ</div>`;
 
+        let modeTitleVi = activeMode === 'Air' ? 'Hàng không (Máy bay ✈️)' : (activeMode === 'Ocean' ? 'Đường biển (Tàu hàng 🚢)' : 'Đường bộ (Xe tải 🚚)');
         this.mapLayers.vehicleMarker.bindPopup(`
             <div style="font-size: 12px; min-width: 190px; line-height: 1.5;">
                 <div style="font-weight: 700; color: #0284c7; font-size: 13px; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; margin-bottom: 4px;">
                     ${shipment.name}
                 </div>
-                <div><b>Phương tiện:</b> ${shipment.carrier || ''} (${shipment.vessel_name || shipment.flight_number || 'Vận tải quốc tế'})</div>
+                <div><b>Phương tiện hiện tại:</b> ${modeTitleVi}</div>
+                <div><b>Đơn vị vận chuyển:</b> ${shipment.carrier || ''} (${shipment.vessel_name || shipment.flight_number || 'Vận tải đa phương thức'})</div>
                 <div><b>Mã Container:</b> ${shipment.container_id || 'N/A'}</div>
                 <div><b>Trạng thái:</b> ${shipment.status}</div>
-                <div><b>Lộ trình:</b> ${shipment.origin_port || 'Origin'} ➔ ${shipment.destination_port || 'Dest'}</div>
+                <div><b>Lộ trình:</b> ${shipment.origin ? shipment.origin.name : (shipment.origin_port || 'Origin')} ➔ ${shipment.destination ? shipment.destination.name : 'Kho bãi Logistics Cáp Kim Khánh Đà Nẵng'}</div>
                 ${delayBadge}
             </div>
         `);
 
         // Trigger Smooth Animation to current progress
-        this.animateVehicle(this.mapLayers.vehicleMarker, simplifiedCoords, targetProgress, 1600, sMethod);
+        this.animateVehicle(this.mapLayers.vehicleMarker, simplifiedCoords, targetProgress, 1600);
 
         // 9. Fit Map Bounds
         try {

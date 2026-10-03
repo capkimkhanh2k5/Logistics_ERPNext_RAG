@@ -306,8 +306,8 @@ def get_shipment_tracking(docname: Optional[str] = None,
     # Dynamic default fallbacks
     if not origin_facility:
         origin_facility = "Kho nhà máy xuất phát"
-    if not dest_facility:
-        dest_facility = "Kho đích nhận hàng"
+    if not dest_facility or dest_facility in ["Kho đích nhận hàng", "Kho nhận hàng"]:
+        dest_facility = "cap_khanh_warehouse"
 
     target_hub_type = "seaport" if method_norm == "Ocean" else "airport"
 
@@ -407,7 +407,7 @@ def get_shipment_tracking(docname: Optional[str] = None,
         status_text = f"Đang làm thủ tục thông quan hải quan tại {ahub_name}"
         current_location = ahub_name
         current_leg_id = "customs"
-        current_vehicle = "Ship" if method_norm == "Ocean" else ("Plane" if method_norm == "Air" else "Truck")
+        current_vehicle = "Truck"
     elif check_status == "In Transit" or (doctype == "Purchase Order" and docstatus == 1 and check_status not in ["Draft", "Cancelled"]):
         progress = 0.55
         current_leg_id = "main_haul"
@@ -861,6 +861,156 @@ def align_route_to_pacific_frame(route_coords: Any, ref_lon: float = 150.0) -> A
     return unwrapped
 
 
+def resolve_shipment_origin_facility(s: Dict[str, Any]) -> str:
+    """
+    Xác định kho/nhà máy nguồn (Origin Facility) xuất phát cho lô hàng:
+    - Kho đích luôn luôn là Kho bãi Logistics Cáp Kim Khánh Đà Nẵng ('cap_khanh_warehouse').
+    - Kho nguồn là một điểm xuất phát đường bộ độc lập (không trùng với departure_hub)
+      để chặng 1 (First-mile Road) được tính toán chính xác và hiển thị đủ 3 chặng.
+    """
+    if not s:
+        return "apple_park_cupertino"
+
+    # 1. Nếu shipment đã có trường origin_facility rõ ràng
+    explicit_orig = s.get("origin_facility")
+    if explicit_orig:
+        return str(explicit_orig)
+
+    dep_hub_str = str(s.get("origin_port") or s.get("departure_hub") or "").lower()
+    po_name = str(s.get("purchase_order") or "").strip()
+    s_name = str(s.get("name") or "").upper()
+
+    # 2. Kiểm tra mốc đầu tiên trong transit_route
+    transit_route = s.get("transit_route") or []
+    if transit_route and isinstance(transit_route, list):
+        first_ms = transit_route[0]
+        if isinstance(first_ms, dict):
+            loc = first_ms.get("location")
+            if loc and str(loc).lower() != dep_hub_str:
+                from logistics_wizard.routing import get_location_coords
+                if get_location_coords(loc):
+                    return str(loc)
+
+    # 3. Tra cứu Purchase Order từ database nếu Frappe DB kết nối
+    supplier_info = ""
+    if po_name and frappe and hasattr(frappe, "db") and bool(frappe.db):
+        try:
+            if hasattr(frappe.db, "exists") and frappe.db.exists("Purchase Order", po_name):
+                po_vals = frappe.db.get_value("Purchase Order", po_name, ["supplier", "supplier_name"], as_dict=True)
+                if po_vals:
+                    supplier_info = f"{po_vals.get('supplier') or ''} {po_vals.get('supplier_name') or ''}".lower()
+        except Exception:
+            pass
+
+    # 4. So khớp theo Nhà cung cấp (Supplier) hoặc Tên mã đơn hàng
+    check_text = f"{s_name} {po_name} {supplier_info}".lower()
+
+    if "apple" in check_text:
+        if any(k in dep_hub_str for k in ["szx", "shenzhen", "bao'an", "baoan", "china"]):
+            return "south_china_consolidation_hub"
+        return "apple_park_cupertino"
+
+    if "pandora" in check_text:
+        return "pandora_gemopolis_hub"
+
+    if "dell" in check_text:
+        if any(k in dep_hub_str for k in ["klang", "mypkg", "penang", "malaysia"]):
+            return "dell_apcc2_penang_hub"
+        return "dell_factory_texas"
+
+    if "lenovo" in check_text:
+        return "lenovo_lcfc_hefei_hub"
+
+    if "toyota" in check_text:
+        return "toyota_gateway_plant"
+
+    if "honda" in check_text:
+        return "honda_ayutthaya_plant"
+
+    if "yamaha" in check_text:
+        return "yamaha_motor_iwata_plant"
+
+    # 5. Phân giải thông minh theo Cảng / Sân bay xuất phát (Departure Hub)
+    if any(k in dep_hub_str for k in ["long beach", "los angeles", "san francisco", "lgb", "lax", "sfo"]):
+        return "apple_park_cupertino"
+    if any(k in dep_hub_str for k in ["houston", "texas"]):
+        return "dell_factory_texas"
+    if any(k in dep_hub_str for k in ["suvarnabhumi", "bkk", "bangkok"]):
+        return "pandora_gemopolis_hub"
+    if any(k in dep_hub_str for k in ["laem chabang", "thlch"]):
+        return "toyota_gateway_plant"
+    if any(k in dep_hub_str for k in ["port klang", "mypkg", "penang", "pen", "malaysia"]):
+        return "dell_apcc2_penang_hub"
+    if any(k in dep_hub_str for k in ["yokohama", "jpyok", "tokyo", "narita", "haneda", "japan"]):
+        return "yamaha_motor_iwata_plant"
+    if any(k in dep_hub_str for k in ["shenzhen", "szx", "yantian"]):
+        return "south_china_consolidation_hub"
+    if any(k in dep_hub_str for k in ["shanghai", "cnsha", "cnshg", "pudong"]):
+        return "south_china_consolidation_hub"
+    if any(k in dep_hub_str for k in ["hefei", "xinqiao"]):
+        return "lenovo_lcfc_hefei_hub"
+    if any(k in dep_hub_str for k in ["noi bai", "han", "hai phong", "vnhph"]):
+        return "vn_north_dc"
+    if any(k in dep_hub_str for k in ["cat lai", "vnsgn", "tan son nhat", "sgn", "hiep phuoc"]):
+        return "vn_south_dc"
+
+    return "apple_park_cupertino"
+
+
+def determine_current_vehicle(status: Optional[str],
+                              method: Optional[str],
+                              progress: float = 0.55,
+                              thresholds: Optional[List[float]] = None,
+                              transit_route: Optional[List[Any]] = None) -> str:
+    """
+    Xác định loại phương tiện hiển thị theo giai đoạn vận tải thực tế:
+    - Nếu đã hoàn thành (Delivered, Completed, Received, Giao hàng, Nhập kho): Truck
+    - Nếu đang thông quan hải quan (Customs Clearance, Chờ nhập kho): Truck
+    - Nếu mốc hiện tại thuộc [ARRIVED, DISCHARGED, GATE_OUT, DELIVERED] hoặc [BOOKED, GATE_IN]: Truck
+    - Nếu tiến độ ở Chặng 1 (progress <= p1): Truck (xe tải đường bộ chở hàng ra cảng/sân bay)
+    - Nếu tiến độ ở Chặng 3 (progress >= p2): Truck (xe tải đường bộ chở hàng từ cảng/sân bay về kho Cáp Kim Khánh Đà Nẵng)
+    - Chỉ khi ở Chặng 2 (p1 < progress < p2) và đang vận chuyển quốc tế: Plane (Air) hoặc Ship (Ocean)
+    """
+    status_str = str(status or "").strip().lower()
+    method_str = str(method or "Ocean").strip().capitalize()
+    if method_str in ["Flight", "Plane", "Vận chuyển đường hàng không"]:
+        method_str = "Air"
+    elif method_str in ["Sea", "Maritime", "Vận chuyển đường biển"]:
+        method_str = "Ocean"
+
+    # 1. Trạng thái hoàn tất / giao kho / nhập kho -> Xe tải
+    if any(kw in status_str for kw in ["delivered", "completed", "received", "closed", "giao hàng", "nhập kho", "chuẩn bị nhập kho"]):
+        return "Truck"
+
+    # 2. Trạng thái thông quan hải quan tại cảng/sân bay đến -> Đã hạ cánh/cập cảng, chuyển sang xe tải
+    if any(kw in status_str for kw in ["customs", "clearance", "thông quan", "hải quan", "chờ nhập kho"]):
+        return "Truck"
+
+    # 3. Kiểm tra DCSA milestone hiện tại
+    if transit_route and isinstance(transit_route, list):
+        for item in transit_route:
+            d_item = item if isinstance(item, dict) else (item.as_dict() if callable(getattr(item, "as_dict", None)) else {})
+            is_curr = d_item.get("is_current") == 1 or "(Current Position)" in str(d_item.get("activity") or "")
+            if is_curr:
+                ms = str(d_item.get("milestone") or "").upper()
+                if ms in ["ARRIVED", "DISCHARGED", "GATE_OUT", "DELIVERED", "BOOKED", "GATE_IN"]:
+                    return "Truck"
+
+    # 4. Kiểm tra theo phân vị hành trình 3 chặng (Progress Thresholds)
+    p1 = 0.05
+    p2 = 0.95
+    if thresholds and isinstance(thresholds, (list, tuple)) and len(thresholds) >= 4:
+        p1 = float(thresholds[1])
+        p2 = float(thresholds[2])
+
+    cur_p = float(progress if progress is not None else 0.55)
+    if cur_p <= p1 or cur_p >= p2:
+        return "Truck"
+
+    # 5. Chặng 2 (Quốc tế vượt biển / đường bay)
+    return "Plane" if method_str == "Air" else "Ship"
+
+
 @frappe.whitelist(allow_guest=True)
 def get_shipment_tracking_hub_data(shipment: Optional[str] = None,
                                    filter_status: Optional[str] = None,
@@ -1103,13 +1253,15 @@ def get_shipment_tracking_hub_data(shipment: Optional[str] = None,
                 s["progress"] = 0.55
             else:
                 s["progress"] = 0.1
-        if dep_hub and arr_hub and not s.get("full_route"):
+        if dep_hub and arr_hub:
             try:
+                orig_facility = resolve_shipment_origin_facility(s)
+                dest_facility = "cap_khanh_warehouse"
                 r_calc = calculate_multimodal_route(
-                    origin_facility=dep_hub,
+                    origin_facility=orig_facility,
                     departure_hub=dep_hub,
                     arrival_hub=arr_hub,
-                    dest_facility=arr_hub,
+                    dest_facility=dest_facility,
                     shipping_method=s_method,
                     use_cache=True
                 )
@@ -1127,7 +1279,26 @@ def get_shipment_tracking_hub_data(shipment: Optional[str] = None,
                     aligned_legs.append(l_dict)
                 s["legs"] = aligned_legs
                 s["distance_km"] = r_calc.get("distance_km", 0.0)
-                if s.get("full_route"):
+                s["progress_thresholds"] = r_calc.get("progress_thresholds", [0.0, 0.05, 0.95, 1.0])
+                s["origin"] = r_calc.get("origin")
+                s["departure_hub"] = r_calc.get("departure_hub")
+                s["arrival_hub"] = r_calc.get("arrival_hub")
+                s["destination"] = r_calc.get("destination")
+                s["current_vehicle"] = determine_current_vehicle(
+                    s.get("status"),
+                    s_method,
+                    s.get("progress", 0.55),
+                    s["progress_thresholds"],
+                    s.get("transit_route")
+                )
+                if s.get("status") in ["Delivered", "Completed"]:
+                    s["current_lat"] = 16.0765
+                    s["current_lon"] = 108.151
+                elif s.get("status") == "Customs Clearance" and s.get("arrival_hub", {}).get("coordinates"):
+                    ah_coords = s["arrival_hub"]["coordinates"]
+                    s["current_lat"] = ah_coords[0]
+                    s["current_lon"] = ah_coords[1]
+                elif s.get("full_route"):
                     pts = s["full_route"]
                     p_idx = max(0, min(len(pts) - 1, int(len(pts) * s["progress"])))
                     s["current_lat"] = pts[p_idx][0]
@@ -1137,6 +1308,13 @@ def get_shipment_tracking_hub_data(shipment: Optional[str] = None,
         elif s.get("full_route"):
             s["full_route"] = align_route_to_pacific_frame(s["full_route"])
             s["route"] = s["full_route"]
+            s["current_vehicle"] = determine_current_vehicle(
+                s.get("status"),
+                s_method,
+                s.get("progress", 0.55),
+                s.get("progress_thresholds"),
+                s.get("transit_route")
+            )
 
     # Filter Active Exceptions (Open / Acknowledged / Investigating, excludes Resolved)
     active_exceptions = [
@@ -1197,11 +1375,13 @@ def get_shipment_tracking_hub_data(shipment: Optional[str] = None,
 
         if dep_hub and arr_hub:
             try:
+                orig_facility = resolve_shipment_origin_facility(selected)
+                dest_facility = "cap_khanh_warehouse"
                 route_calc = calculate_multimodal_route(
-                    origin_facility=dep_hub,
+                    origin_facility=orig_facility,
                     departure_hub=dep_hub,
                     arrival_hub=arr_hub,
-                    dest_facility=arr_hub,
+                    dest_facility=dest_facility,
                     shipping_method=s_method,
                     use_cache=True
                 )
@@ -1220,9 +1400,34 @@ def get_shipment_tracking_hub_data(shipment: Optional[str] = None,
                 selected["legs"] = aligned_legs
                 selected["distance_km"] = route_calc.get("distance_km", 0.0)
                 selected["progress_thresholds"] = route_calc.get("progress_thresholds", [0.0, 0.05, 0.95, 1.0])
+                selected["origin"] = route_calc.get("origin")
+                selected["departure_hub"] = route_calc.get("departure_hub")
+                selected["arrival_hub"] = route_calc.get("arrival_hub")
+                selected["destination"] = route_calc.get("destination")
                 if not selected.get("progress"):
-                    selected["progress"] = 0.55 if selected.get("status") == "In Transit" else (1.0 if selected.get("status") in ["Delivered", "Completed"] else 0.1)
-                if selected.get("full_route"):
+                    if selected.get("status") in ["Delivered", "Completed"]:
+                        selected["progress"] = 1.0
+                    elif selected.get("status") == "Customs Clearance":
+                        selected["progress"] = 0.88
+                    elif selected.get("status") == "In Transit":
+                        selected["progress"] = 0.55
+                    else:
+                        selected["progress"] = 0.1
+                selected["current_vehicle"] = determine_current_vehicle(
+                    selected.get("status"),
+                    s_method,
+                    selected.get("progress", 0.55),
+                    selected["progress_thresholds"],
+                    selected.get("transit_route")
+                )
+                if selected.get("status") in ["Delivered", "Completed"]:
+                    selected["current_lat"] = 16.0765
+                    selected["current_lon"] = 108.151
+                elif selected.get("status") == "Customs Clearance" and selected.get("arrival_hub", {}).get("coordinates"):
+                    ah_coords = selected["arrival_hub"]["coordinates"]
+                    selected["current_lat"] = ah_coords[0]
+                    selected["current_lon"] = ah_coords[1]
+                elif selected.get("full_route"):
                     pts = selected["full_route"]
                     p_idx = max(0, min(len(pts) - 1, int(len(pts) * selected["progress"])))
                     selected["current_lat"] = pts[p_idx][0]
@@ -1232,6 +1437,13 @@ def get_shipment_tracking_hub_data(shipment: Optional[str] = None,
         elif selected.get("full_route"):
             selected["full_route"] = align_route_to_pacific_frame(selected["full_route"])
             selected["route"] = selected["full_route"]
+            selected["current_vehicle"] = determine_current_vehicle(
+                selected.get("status"),
+                s_method,
+                selected.get("progress", 0.55),
+                selected.get("progress_thresholds"),
+                selected.get("transit_route")
+            )
 
     return {
         "status": "success",
