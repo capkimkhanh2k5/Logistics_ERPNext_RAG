@@ -66,5 +66,9 @@ def install_all_doctypes():
     frappe.clear_cache()
     print("=== [HOÀN TẤT CÀI ĐẶT VÀ ĐỒNG BỘ TẤT CẢ DOCTYPES GIAI ĐOẠN 1-3] ===")
 
+    # Giai đoạn 4: Cài đặt Custom Fields tích hợp ERPNext
+    from logistics_wizard.custom_fields import setup_custom_fields
+    setup_custom_fields()
+
 if __name__ == "__main__":
     install_all_doctypes()

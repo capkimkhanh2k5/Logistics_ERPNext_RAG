@@ -642,6 +642,143 @@ def validate_purchase_receipt_shipment_status(doc, method=None):
         pass
 
 
+def calculate_item_logistics_dimensions(doc, method=None):
+    """
+    Tự động tính toán tổng CBM và tổng Gross Weight (KGS) cho từng dòng sản phẩm
+    trong Purchase Order và Purchase Receipt dựa trên thông số kỹ thuật của Item.
+    Đồng thời tự động kế thừa mã Trade Case và Trade Shipment từ PO sang PR nếu chưa có.
+    """
+    # 1. Tự động kế thừa liên kết Trade Case và Trade Shipment từ PO sang PR
+    if doc.doctype == "Purchase Receipt":
+        if not getattr(doc, "trade_shipment", None) or not getattr(doc, "trade_case", None):
+            for itm in (doc.get("items") or []):
+                po = getattr(itm, "purchase_order", None)
+                if po:
+                    po_vals = frappe.db.get_value("Purchase Order", po, ["trade_shipment", "trade_case"], as_dict=True)
+                    if po_vals:
+                        if not getattr(doc, "trade_shipment", None) and po_vals.trade_shipment:
+                            doc.trade_shipment = po_vals.trade_shipment
+                        if not getattr(doc, "trade_case", None) and po_vals.trade_case:
+                            doc.trade_case = po_vals.trade_case
+                    break
+
+    # 2. Tính toán CBM và Trọng lượng gộp từng dòng hàng
+    for item in (doc.get("items") or []):
+        item_code = getattr(item, "item_code", None) or (isinstance(item, dict) and item.get("item_code"))
+        if not item_code:
+            continue
+
+        unit_cbm = getattr(item, "unit_cbm", None)
+        unit_gw = getattr(item, "unit_gross_weight", None)
+        hs_code = getattr(item, "custom_hs_code", None)
+
+        if not unit_cbm or not unit_gw or not hs_code:
+            item_master = frappe.db.get_value(
+                "Item",
+                item_code,
+                ["custom_hs_code", "unit_cbm", "unit_gross_weight"],
+                as_dict=True
+            )
+            if item_master:
+                if (not hs_code) and item_master.custom_hs_code:
+                    setattr(item, "custom_hs_code", item_master.custom_hs_code)
+                if (not unit_cbm) and item_master.unit_cbm:
+                    setattr(item, "unit_cbm", item_master.unit_cbm)
+                if (not unit_gw) and item_master.unit_gross_weight:
+                    setattr(item, "unit_gross_weight", item_master.unit_gross_weight)
+
+        qty = frappe.utils.flt(getattr(item, "qty", 0.0))
+        cbm_val = frappe.utils.flt(getattr(item, "unit_cbm", 0.0))
+        gw_val = frappe.utils.flt(getattr(item, "unit_gross_weight", 0.0))
+
+        setattr(item, "total_cbm", round(qty * cbm_val, 4))
+        setattr(item, "total_gross_weight", round(qty * gw_val, 4))
+
+
+def validate_purchase_receipt_stage_gate(doc, method=None):
+    """
+    CỔNG KIỂM SOÁT STAGE GATE 2 (Hải quan & Thủ kho):
+    Chặn việc Submit Phiếu Nhập Kho (Purchase Receipt) nếu Lô hàng liên kết (Trade Shipment)
+    chưa hoàn tất thủ tục thông quan Hải quan (Mốc M07_CUSTOMS_CLEAR chưa Completed).
+    """
+    # 1. Tìm Trade Shipment liên kết trực tiếp trên PR hoặc qua PO
+    shipment_id = getattr(doc, "trade_shipment", None)
+    if not shipment_id:
+        for itm in (doc.get("items") or []):
+            po = getattr(itm, "purchase_order", None)
+            if po:
+                shipment_id = frappe.db.get_value("Purchase Order", po, "trade_shipment")
+                if shipment_id:
+                    doc.trade_shipment = shipment_id
+                    break
+
+    if not shipment_id or not frappe.db.exists("Trade Shipment", shipment_id):
+        return
+
+    shipment = frappe.get_doc("Trade Shipment", shipment_id)
+
+    # 2. Kiểm tra Mốc M07 (Customs Cleared)
+    m07_cleared = False
+    for m in (shipment.get("milestones") or []):
+        if m.milestone_code == "M07_CUSTOMS_CLEAR" and m.status == "Completed":
+            m07_cleared = True
+            break
+
+    # Nếu trạng thái shipment là Completed hoặc Customs Cleared cũng được coi là đã thông quan
+    if shipment.status in ["Customs Cleared", "Completed"]:
+        m07_cleared = True
+
+    if not m07_cleared:
+        frappe.throw(
+            f"<b>⛔ CỔNG KIỂM SOÁT STAGE GATE 2 - CHẶN NHẬP KHO:</b><br><br>"
+            f"Lô hàng <b>{shipment.name}</b> ({shipment.shipment_name or ''}) chưa hoàn tất thủ tục thông quan Hải quan "
+            f"(Mốc <b>M07_CUSTOMS_CLEAR</b> chưa Hoàn thành).<br>"
+            f"Trạng thái hành trình hiện tại: <b><span style='color:red'>{shipment.status}</span></b>.<br><br>"
+            f"Theo quy chế quản trị xuất nhập khẩu và kiểm soát rủi ro pháp lý:<br>"
+            f"👉 <i>Hàng hóa chưa hoàn tất nghĩa vụ hải quan tuyệt đối không được nhập kho chính thức.</i><br>"
+            f"Vui lòng đợi Chuyên viên Hải quan hoàn tất thủ tục thông quan (Mốc M07) trước khi Submit Phiếu Nhập Kho!",
+            title="Cổng Kiểm Soát Stage Gate 2 (Thủ kho & Hải quan)"
+        )
+
+
+def on_purchase_receipt_submit_sync_shipment(doc, method=None):
+    """
+    ĐỒNG BỘ TIẾN ĐỘ STAGE GATE TỰ ĐỘNG:
+    Khi Thủ kho duyệt Phiếu Nhập Kho (Purchase Receipt Submit):
+    - Tự động đánh dấu Mốc M09_WH_RECEIPT trên Trade Shipment sang 'Completed' với ngày thực tế.
+    - Cập nhật trạng thái Lô hàng (Trade Shipment) thành 'Completed'.
+    - Gắn số phiếu Purchase Receipt vào Trade Shipment.
+    """
+    shipment_id = getattr(doc, "trade_shipment", None)
+    if not shipment_id:
+        for itm in (doc.get("items") or []):
+            po = getattr(itm, "purchase_order", None)
+            if po:
+                shipment_id = frappe.db.get_value("Purchase Order", po, "trade_shipment")
+                if shipment_id:
+                    break
+
+    if not shipment_id or not frappe.db.exists("Trade Shipment", shipment_id):
+        return
+
+    shipment = frappe.get_doc("Trade Shipment", shipment_id)
+    receipt_date = doc.posting_date or frappe.utils.nowdate()
+
+    for m in (shipment.get("milestones") or []):
+        if m.milestone_code == "M09_WH_RECEIPT":
+            m.status = "Completed"
+            m.actual_date = receipt_date
+            break
+
+    shipment.status = "Completed"
+    if hasattr(shipment, "purchase_receipt"):
+        shipment.purchase_receipt = doc.name
+
+    shipment.flags.ignore_validate = True
+    shipment.save(ignore_permissions=True)
+    frappe.db.commit()
+
+
 __all__ = [
     "WORKFLOW_STEPS",
     "get_workflow_chain_status",
@@ -665,5 +802,8 @@ __all__ = [
     "sync_transit_route_with_status",
     "on_shipment_tracking_validate",
     "validate_purchase_receipt_shipment_status",
+    "calculate_item_logistics_dimensions",
+    "validate_purchase_receipt_stage_gate",
+    "on_purchase_receipt_submit_sync_shipment",
 ]
 

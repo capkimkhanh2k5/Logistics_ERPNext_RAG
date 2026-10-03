@@ -32,7 +32,15 @@ doc_events = {
         "validate": "logistics_wizard.api.on_shipment_tracking_validate"
     },
     "Purchase Receipt": {
-        "before_submit": "logistics_wizard.api.validate_purchase_receipt_shipment_status"
+        "validate": "logistics_wizard.api.calculate_item_logistics_dimensions",
+        "before_submit": [
+            "logistics_wizard.api.validate_purchase_receipt_shipment_status",
+            "logistics_wizard.api.validate_purchase_receipt_stage_gate"
+        ],
+        "on_submit": "logistics_wizard.api.on_purchase_receipt_submit_sync_shipment"
+    },
+    "Purchase Order": {
+        "validate": "logistics_wizard.api.calculate_item_logistics_dimensions"
     },
     "Charge Type": {
         "validate": "logistics_wizard.doctype.charge_type.charge_type.validate_charge_type"
