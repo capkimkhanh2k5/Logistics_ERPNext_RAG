@@ -40,10 +40,13 @@ flowchart LR
     R1 ==>|"Trình PO"| R2
     R2 ==>|"Lệnh chi"| R3
     R3 ==>|"Xác nhận cọc"| R4
-    R4 ==>|"Gửi B/L"| R5
-    R5 ==>|"Thông quan"| R6
-    R6 ==>|"Phiếu PR"| R3
-    R3 ==>|"Quyết toán"| R2
+    R4 ==>|"Gửi B/L & Chứng từ"| R5
+    R5 ==>|"Tờ khai tính thuế"| R3
+    R3 ==>|"Nộp thuế kho bạc"| R5
+    R5 ==>|"Thông quan (M07)"| R4
+    R4 ==>|"Điều xe rút cont (M08)"| R6
+    R6 ==>|"Phiếu PR (M09)"| R3
+    R3 ==>|"Quyết toán giá vốn"| R2
 
     %% Các đường trả ngược về khi có biến cố
     R2 -. "[Bác bỏ đơn PO]" .-> R1
@@ -216,14 +219,27 @@ flowchart TD
     linkStyle default stroke:#10B981,stroke-width:2px;
 ```
 
-### 4.2. Bảng Hạch Toán Kế Toán & Rào Chắn Poka-Yoke (Kế Toán)
-* **Bảng tài khoản chuẩn mực (VAS 02 / IAS 2):**
-  * Tạm ứng cọc: Nợ TK 331 / Có TK 1121 (USD).
-  * Nộp thuế: Nợ TK 3333 (Thuế NK), Nợ TK 33312 (VAT) / Có TK 1121 (VND).
-  * Hàng hỏng: Nợ TK 1388 (Phải thu bồi thường) / Có TK 331 hoặc Có TK 156.
-  * Phân bổ chi phí: Nợ TK 156 (Tăng giá trị hàng tồn kho) / Có TK 331 (Forwarder/Cảng).
-* **Rào chắn 1 (Auto Advance Deduction):** Khi mở Purchase Invoice, hệ thống tự động kiểm tra bảng tạm ứng và cấn trừ đúng số tiền 30% cọc. Kế toán không thể thanh toán 100% tiền hàng lần thứ hai.
-* **Rào chắn 2 (VAS 02 Non-Capitalization):** Tiền phạt lưu bãi (Demurrage) và phạt vi phạm hải quan tuyệt đối không được chọn vào LCV, bắt buộc hạch toán vào chi phí quản lý kinh doanh trong kỳ (TK 811 hoặc 642).
+### 4.2. Bảng Hạch Toán Kế Toán Chuẩn Mực & Rào Chắn Poka-Yoke (Kế Toán)
+* **Bảng tài khoản chuẩn mực kế toán Việt Nam (VAS 02 / Thông tư 200/2014/TT-BTC & IAS 2):**
+  * **1. Tạm ứng cọc tiền hàng:** Nợ TK 331 (Phải trả NCC) / Có TK 1122 (Tiền gửi ngân hàng ngoại tệ USD).
+  * **2. Nộp thuế Hải quan vào Kho bạc Nhà nước:**
+    * *Thuế nhập khẩu (tính vào giá gốc hàng tồn kho):* Nợ TK 3333 / Có TK 1121 (VND).
+    * *Thuế GTGT hàng nhập khẩu (được khấu trừ, TUYỆT ĐỐI KHÔNG TÍNH VÀO GIÁ GỐC):* Nợ TK 33312 / Có TK 1121 (VND); đồng thời ghi nhận khấu trừ: Nợ TK 13312 (Thuế GTGT đầu vào hàng nhập khẩu) / Có TK 33312.
+  * **3. Nhận hàng vào kho (Purchase Receipt - PR):** Nợ TK 1561 (Hàng hóa kho chính) / Có TK 3388 hoặc TK 331 (Tạm tính theo PO).
+  * **4. Xử lý hàng hư hỏng / thiếu hụt (Compound Journal Entry & Rejected Warehouse):**
+    * Khi mở cont phát hiện hàng hỏng, kế toán hạch toán định khoản phức cân bằng:
+      * **Nợ TK 1561:** Giá trị hàng đạt chuẩn thực nhập (Accepted Qty).
+      * **Nợ TK 1388:** Giá trị hàng hư hỏng/thiếu hụt chờ đòi bảo hiểm hoặc nhà máy bồi thường (Rejected Qty).
+      * **Có TK 331:** 100% Tổng giá trị hóa đơn gốc của nhà cung cấp.
+    * *Cơ chế ERPNext:* Thiết lập Kho hàng cách ly (`Rejected Warehouse`). Số lượng hàng hỏng được ghi nhận riêng biệt, không tính giá vốn thương mại xuất bán.
+  * **5. Phân bổ chi phí mua hàng (Landed Cost Voucher - LCV):**
+    * *Chi phí được vốn hóa (tính vào giá gốc TK 156 theo VAS 02):* Cước vận tải biển/hàng không, phí làm thủ tục hải quan, phí nâng hạ cảng, phí D/O, bảo hiểm hàng hải, phí lưu kho bãi thông thường tại cảng trong thời gian chờ thông quan hợp lý $\rightarrow$ Nợ TK 1562 (Chi phí thu mua) / Có TK 331 (Forwarder/Hãng tàu).
+    * *Chi phí KHÔNG ĐƯỢC VỐN HÓA:* Tiền phạt lưu container tại bãi cảng (Demurrage), phạt lưu vỏ (Detention), tiền phạt vi phạm hải quan do lỗi chậm trễ thủ tục $\rightarrow$ Bắt buộc hạch toán vào Chi phí quản lý kinh doanh trong kỳ: Nợ TK 642 hoặc Nợ TK 811 / Có TK 331 hoặc TK 1121.
+    * *Phí lưu kho sau khi hàng đã về kho công ty:* Hạch toán vào Chi phí lưu kho định kỳ: Nợ TK 642 / Có TK 331, không tính vào giá gốc hàng tồn kho.
+  * **6. Quyết toán Hóa đơn mua hàng (Purchase Invoice - PI):** Lập hóa đơn PI đối chiếu công nợ NCC ngoại, tự động cấn trừ số tiền cọc đã tạm ứng; phần còn lại thanh toán: Nợ TK 331 / Có TK 1122 (USD). Lệch tỷ giá ghi nhận vào TK 515 (lãi) hoặc TK 635 (lỗ).
+  * **7. Chi phí về trễ sau khi đã đóng sổ:** Lập `Additional Landed Cost Voucher`. Nếu hàng trong kho đã xuất bán hết, hệ thống tự động kết chuyển thẳng vào Giá vốn hàng bán trong kỳ: Nợ TK 632 / Có TK 331, bảo vệ sổ cái không bị lỗi "Tồn kho âm".
+* **Rào chắn 1 (Auto Advance Deduction):** Khi mở Purchase Invoice, hệ thống tự động kiểm tra bảng tạm ứng và cấn trừ đúng tỷ lệ cọc (tham số `advance_deposit_pct`, mặc định 30%). Kế toán không thể thanh toán trùng 100% tiền hàng lần thứ hai.
+* **Rào chắn 2 (VAS 02 Non-Capitalization Enforcement):** Tiền phạt lưu bãi (Demurrage) và phạt vi phạm hải quan tuyệt đối không được chọn vào LCV, hệ thống tự động khóa mã tài khoản chi phí phạt sang TK 811/642.
 
 ---
 
@@ -290,6 +306,23 @@ flowchart TD
 
 ---
 
+
+### 5.3. Bảng Chuẩn 9 Cột Mốc Hành Trình Chuyển Giao (M01 - M09)
+
+| Mã Mốc | Tên Cột Mốc Chuẩn | Ý Nghĩa Nghiệp Vụ Ngoại Thương | Đơn Vị Cập Nhật | Rào Chắn Poka-Yoke & Cổng Kiểm Soát Gắn Liền |
+| :---: | :--- | :--- | :---: | :--- |
+| **M01** | `Booking Confirmed` | Hãng tàu xác nhận đặt chỗ thành công | 🚢 Logistics | Kiểm tra hợp đồng ngoại thương & đơn giá cước vận tải |
+| **M02** | `Empty Container Released` | Hãng tàu cấp lệnh lấy vỏ container rỗng tại bãi depot | 🚢 Logistics / 📦 Kho | Kiểm tra 7 điểm vỏ cont rỗng (khô ráo, sạch, trần không lọt sáng) |
+| **M03** | `Cargo Gate-in` | Container đóng hàng đã hạ bãi cảng xuất | 🚢 Logistics | Bắt buộc có Phiếu cân VGM & nộp SI trước giờ Cut-off |
+| **M04** | `Vessel Departed (ETD Actual)` | Tàu rời cảng bốc, phát hành Vận đơn B/L gốc | 🚢 Logistics / Hãng tàu | **Khóa cứng đơn mua PO / đơn bán SO (Immutable Lock)** |
+| **M05** | `Vessel Arrived (ETA Actual)` | Tàu cập cảng đến (POD), dỡ cont lên bãi cảng | 🚢 Logistics / Hãng tàu | **Kích hoạt đồng hồ đếm ngược Free-time lưu bãi** (tham số cấu hình) |
+| **M06** | `Customs Declaration Registered` | Đăng ký tờ khai điện tử VNACCS (chuẩn 12 ký tự) | 🏛️ Hải Quan | **Cổng 1 (Document Ready Gate):** Đủ 100% Invoice, PL, C/O hợp lệ |
+| **M07** | `Customs Cleared` | Hải quan phê duyệt thông quan lô hàng | 🏛️ Hải Quan / 💰 Kế toán | **Cổng 2 (Clearance Gate):** Cho phép nhập Kho Chính (TK 156) |
+| **M08** | `Port Gate-out / Delivery Order` | Lấy lệnh giao hàng D/O, điều xe rút cont khỏi cảng | 🚢 Logistics | Chặn rút cont nếu chưa thông quan (trừ trường hợp Kho Bảo Quản) |
+| **M09** | `Warehouse Receipt (WH_RECEIPT)` | Hàng dỡ an toàn vào kho, ký PR, trả vỏ cont | 📦 Thủ Kho | **Stage Gate 2 Submit PR:** Tự động hoàn tất chuyến tàu `Trade Shipment` |
+
+---
+
 ## 6. VỊ TRÍ CHUYÊN VIÊN HẢI QUAN (CUSTOMS)
 
 ### 6.1. Sơ đồ Luồng Tác nghiệp của Chuyên Viên Hải Quan
@@ -323,25 +356,27 @@ flowchart TD
     
     H2 -- "[ĐỦ 100% HỢP LỆ]" --> H3["<b>Bước 3: Mở Cổng Stage Gate 1 (Document Ready)</b><br>Khai báo Giấy phép chuyên ngành <b>Import Permit</b> (nếu có)"] --> H4
     
-    H4["<b>Bước 4: Truyền Tờ Khai Hải Quan Điện Tử VNACCS</b><br>Tạo <b>Customs Declaration</b> chuẩn 11 số. Hệ thống tự khớp Tỷ giá tuần BTC"] --> H5
+    H4["<b>Bước 4: Truyền Tờ Khai Hải Quan Điện Tử VNACCS</b><br>Tạo <b>Customs Declaration</b> chuẩn 12 ký tự (CV 5922/TCHQ-VNACCS). Hệ thống tự khớp Tỷ giá tuần BTC"] --> H5
     
     H5{"<b>Bước 5: Kết Quả Phân Luồng Tờ Khai?</b><br>Hệ thống hải quan trả về luồng nào?"}:::decision
     
-    H5 -- "[LUỒNG XANH]" --> H_GREEN["<b>Bước 5.1: Luồng Xanh (Green)</b><br>Miễn kiểm tra hồ sơ và hàng hóa.<br>Chuyển Kế toán nộp thuế"]
+    H5 -- "[LUỒNG XANH]" --> H_PASS["<b>Bước 5.1: Luồng Xanh (Green)</b><br>Miễn kiểm tra hồ sơ và hàng hóa thực tế"] --> H_CLEAR
     
     H5 -- "[LUỒNG VÀNG]" --> H_YELLOW["<b>Bước 5.2: Luồng Vàng (Yellow)</b><br>In bộ hồ sơ giấy mang đến Chi cục HQ đối chiếu chứng từ"]
     
     H5 -- "[LUỒNG ĐỎ]" --> H_RED["<b>Bước 5.3: Luồng Đỏ (Red - Kiểm Hóa)</b><br>Phối hợp Logistics đưa cont vào bãi kiểm hóa mở thùng kiểm tra thực tế"]:::error
     
     H_YELLOW --> H6{"<b>Hải quan nghi vấn tham vấn giá?</b>"}:::decision
-    H6 -- "[BỊ THAM VẤN]" --> H_CONSULT["Chứng minh trị giá giao dịch"] --> H_GREEN
-    H6 -- "[CHẤP THUẬN]" --> H_GREEN
+    H6 -- "[BỊ THAM VẤN]" --> H_CONSULT["Chứng minh trị giá giao dịch"] --> H_CLEAR
+    H6 -- "[CHẤP THUẬN]" --> H_CLEAR
     
     H_RED --> H7{"<b>Kiểm hóa thực tế có khớp tờ khai?</b>"}:::decision
-    H7 -- "[SAI MÃ HS / THỪA THIẾU]" --> H_FINE["<b>Bị lập biên bản vi phạm hành chính:</b><br>Ấn định thuế bổ sung + Phạt tiền (Hạch toán riêng TK 811)"]:::error --> H_GREEN
-    H7 -- "[TRÙNG KHỚP 100%]" --> H_GREEN
+    H7 -- "[SAI MÃ HS / THỪA THIẾU]" --> H_FINE["<b>Bị lập biên bản vi phạm hành chính:</b><br>Ấn định thuế bổ sung + Phạt tiền (Hạch toán riêng TK 811)"]:::error --> H_CLEAR
+    H7 -- "[TRÙNG KHỚP 100%]" --> H_CLEAR
+
+    H_CLEAR["<b>Bước 5.4: Quyết Định Thông Quan (Customs Approval)</b><br>Hồ sơ hợp lệ, đủ điều kiện thông quan"] --> H8
     
-    H_GREEN --> H8["<b>Bước 6: Kế Toán Nộp Thuế & Chốt Thông Quan (Cleared)</b><br>Cập nhật số tờ khai và mốc <b>M07_CUSTOMS_CLEAR</b> lên lô hàng"] --> H_OUT
+    H8["<b>Bước 6: Kế Toán Nộp Thuế & Chốt Thông Quan (Cleared)</b><br>Cập nhật số tờ khai VNACCS 12 ký tự và mốc <b>M07_CUSTOMS_CLEAR</b> lên lô hàng"] --> H_OUT
     
     H_OUT(["<b>ĐẦU RA:</b> Tờ khai hải quan thông quan hoàn tất, đèn xanh cho kho"]):::success
 
@@ -349,8 +384,13 @@ flowchart TD
 ```
 
 ### 6.2. Bảng Đặc tả Nghiệp vụ & Rào chắn Poka-Yoke (Hải Quan)
-* **Chứng từ ERPNext:** `Trade Document Item`, `Import Permit`, `Customs Declaration` (`1058249xxxxx`).
-* **Rào chắn 1 (11-Digit Strict Validation):** Bắt buộc số tờ khai VNACCS phải đúng 11 chữ số nguyên vẹn. Hệ thống từ chối lưu bản ghi nếu độ dài khác 11.
+* **Chứng từ ERPNext:** `Trade Document Item`, `Import Permit`, `Customs Declaration` (Số tờ khai 12 ký tự: `1058249xxxxx0`).
+* **Ứng dụng AI/RAG:** Tại Bước 1, chuyên viên sử dụng **AI RAG Legal Assistant** để tra cứu văn bản quy phạm pháp luật hải quan, trích dẫn 6 Quy tắc phân loại hàng hóa (GIR), chú giải Chi tiết Chương/Nhóm để xác định mã HS chính xác và cảnh báo các rủi ro tham vấn giá. Chuyên viên con người là người kiểm duyệt và bấm Duyệt cuối cùng.
+* **Rào chắn 1 (12-Character VNACCS Standard Validation - CV 5922/TCHQ-VNACCS):** 
+  * Căn cứ Công văn 5922/TCHQ-VNACCS của Tổng cục Hải quan, số tờ khai điện tử VNACCS gồm **12 ký tự**:
+    * **11 ký tự đầu:** Là mã số tờ khai chính thức cố định, dùng làm khóa duy nhất liên kết với lô hàng `Trade Case` và `Trade Shipment`.
+    * **Ký tự thứ 12:** Là số lần sửa đổi bổ sung (mặc định là `0` khi khai lần đầu, tăng dần `1, 2, 3...` khi có tờ khai sửa đổi bổ sung theo mẫu AMA/AMC).
+  * Hệ thống tự động kiểm tra định dạng 12 ký tự; nếu người dùng nhập 11 ký tự thì hệ thống tự động gán ký tự thứ 12 là `0`.
 * **Rào chắn 2 (Customs Rate Auto-Lookup):** Khóa cứng không cho nhân viên tự nhập tỷ giá tính thuế, bắt buộc hàm `fetch_customs_exchange_rate` lấy tự động từ bảng công bố hàng tuần của Bộ Tài chính.
 
 ---
@@ -380,12 +420,11 @@ flowchart TD
     classDef success fill:#064E3B,stroke:#10B981,stroke-width:2px,color:#ECFDF5,font-family:Segoe UI,Arial,sans-serif;
 
     W_IN(["<b>ĐẦU VÀO:</b> Xe container đến cổng kho công ty + Giấy giao nhận vận tải"]):::input --> W1
-    W1{"<b>Bước 1: Cổng Stage Gate Thông Quan</b><br>Lô hàng đã có cờ Cleared (M07) trên hệ thống?"}:::decision
+    W1{"<b>Bước 1: Cổng Stage Gate Thông Quan & Loại Kho Tiếp Nhận</b><br>Hàng đã Cleared (M07) hay về Kho Bảo Quản Chờ Thông Quan?"}:::decision
     
-    W1 -- "[CHƯA THÔNG QUAN]" --> W_BLOCK["<b>CẤM CẮT CHÌ DỠ HÀNG:</b><br>Giữ nguyên cont tại cổng, không cho nhập hàng chưa thông quan"]:::error
-    W_BLOCK --> W1
-    
-    W1 -- "[ĐÃ THÔNG QUAN]" --> W2{"<b>Bước 2: Kiểm Tra Số Container & Chì Seal</b><br>Số chì có nguyên vẹn, khớp 100% với B/L gốc?"}:::decision
+    W1 -- "[NỢ C/O: KHO BẢO QUẢN]" --> W_SUSP["<b>Tiếp nhận Kho Bảo Quản (Suspense Warehouse):</b><br>Kéo cont về kho tránh phạt bãi cảng. Khóa cờ xuất bán, không ghi nhận TK 156"] --> W2
+    W1 -- "[CHƯA THÔNG QUAN & KHÔNG CÓ LỆNH]" --> W_BLOCK["<b>CẤM CẮT CHÌ DỠ HÀNG VÀO KHO CHÍNH:</b><br>Giữ nguyên cont tại cổng để tuân thủ pháp lý hải quan"]:::error --> W1
+    W1 -- "[ĐÃ THÔNG QUAN (M07)]" --> W2{"<b>Bước 2: Kiểm Tra Số Container & Chì Seal</b><br>Số chì có nguyên vẹn, khớp 100% với B/L gốc?"}:::decision
     
     W2 -- "[ĐỨT CHÌ / SAI SỐ SEAL]" --> W_SURVEY["<b>Bước 2.1: GIỮ NGUYÊN HIỆN TRƯỜNG & LẬP BIÊN BẢN:</b><br>Chụp ảnh chì đứt, mời lái xe ký biên bản bất thường.<br>Mời cơ quan giám định SGS & Bảo hiểm đến đồng kiểm"]:::error --> W3
     
@@ -707,7 +746,7 @@ flowchart TD
     H_IN(["<b>ĐẦU VÀO:</b> Hợp đồng ngoại thương, Hóa đơn thương mại (CI), Packing List (PL), Giấy phép xuất khẩu"]):::input --> H1
     H1["<b>Bước 1: Rà Soát Mã HS & Biểu Thuế Xuất Khẩu</b><br>Xác định mã HS hàng xuất, kiểm tra thuế XK (thường 0%), tra cứu chính sách mặt hàng"] --> H2
     
-    H2["<b>Bước 2: Truyền Tờ Khai Hải Quan Điện Tử VNACCS (Loại hình B11)</b><br>Khai báo tờ khai chuẩn 11 số trên phần mềm VNACCS/ECUS"] --> H3
+    H2["<b>Bước 2: Truyền Tờ Khai Hải Quan Điện Tử VNACCS (Loại hình B11)</b><br>Khai báo tờ khai chuẩn 12 ký tự (CV 5922/TCHQ-VNACCS) trên phần mềm VNACCS/ECUS"] --> H3
     
     H3{"<b>Bước 3: Kết Quả Phân Luồng Hải Quan?</b><br>Hệ thống tự động trả về luồng nào?"}:::decision
     

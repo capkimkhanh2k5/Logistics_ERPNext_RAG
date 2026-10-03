@@ -168,9 +168,9 @@ class Phase3TestRunner:
             self.record_fail("TC5 - Tổng hợp Chi phí Con lên Hồ sơ Mẹ", str(e))
 
     def test_case_6_customs_declaration_vnaccs_validation(self):
-        """TC6: Kiểm tra xác thực tính hợp lệ của Số Tờ khai Hải quan điện tử VNACCS (chuẩn 11 chữ số)"""
+        """TC6: Kiểm tra xác thực tính hợp lệ của Số Tờ khai Hải quan điện tử VNACCS (chuẩn 12 ký tự: 11 số chính + 1 số lần sửa theo CV 5922/TCHQ-VNACCS)"""
         try:
-            # 1. Thử số tờ khai không đúng 11 chữ số -> Phải bị chặn
+            # 1. Thử số tờ khai không đúng quy chuẩn (quá ngắn 6 ký tự) -> Phải bị chặn
             invalid_doc = frappe.get_doc({
                 "doctype": "Customs Declaration",
                 "declaration_no": "123456",
@@ -186,12 +186,12 @@ class Phase3TestRunner:
 
             assert blocked, "Hệ thống không chặn số tờ khai VNACCS sai quy chuẩn độ dài!"
 
-            # 2. Nhập chuẩn 11 chữ số -> Thành công
-            dec_no = f"1058249{self.run_suffix}0"
-            if len(dec_no) < 11:
-                dec_no = dec_no.ljust(11, "0")
-            elif len(dec_no) > 11:
-                dec_no = dec_no[:11]
+            # 2. Nhập chuẩn 12 ký tự (11 số đầu + ký tự thứ 12 là số lần sửa: 0) -> Thành công
+            dec_no = f"1058249{self.run_suffix}00"
+            if len(dec_no) < 12:
+                dec_no = dec_no.ljust(12, "0")
+            elif len(dec_no) > 12:
+                dec_no = dec_no[:12]
 
             frappe.db.delete("Customs Declaration", {"declaration_no": dec_no})
 
@@ -208,7 +208,7 @@ class Phase3TestRunner:
             valid_doc.insert(ignore_permissions=True)
             assert valid_doc.declaration_no == dec_no
 
-            self.record_pass("TC6 - Kiểm tra Số Tờ khai VNACCS", f"Đã chặn số sai và chấp thuận số 11 chữ số chuẩn quốc gia: {dec_no}")
+            self.record_pass("TC6 - Kiểm tra Số Tờ khai VNACCS", f"Đã chặn số sai và chấp thuận số 12 ký tự chuẩn CV 5922/TCHQ-VNACCS: {dec_no}")
         except Exception as e:
             self.record_fail("TC6 - Kiểm tra Số Tờ khai VNACCS", str(e))
 

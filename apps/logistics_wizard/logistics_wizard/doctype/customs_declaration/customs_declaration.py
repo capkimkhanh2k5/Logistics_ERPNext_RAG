@@ -25,15 +25,21 @@ def on_update_customs_declaration(doc, method=None):
 
 
 def validate_vnaccs_number(doc):
-    """Xác thực số tờ khai hải quan điện tử VNACCS/VCIS (chuẩn 11 chữ số)"""
+    """Xác thực số tờ khai hải quan điện tử VNACCS/VCIS (chuẩn 12 ký tự theo Công văn 5922/TCHQ-VNACCS)
+    - 11 ký tự đầu: Số tờ khai chính thức
+    - Ký tự thứ 12: Số lần sửa đổi, bổ sung (mặc định là '0' khi khai lần đầu)
+    """
     if doc.declaration_no:
         clean_no = doc.declaration_no.strip()
-        if not (clean_no.isdigit() and len(clean_no) == 11):
+        if clean_no.isdigit() and len(clean_no) == 11:
+            clean_no = clean_no + "0"  # Tự động gán ký tự thứ 12 là 0 (lần đầu)
+        if not (clean_no.isdigit() and len(clean_no) == 12):
             frappe.throw(
-                _("Số tờ khai VNACCS/VCIS không hợp lệ: '{0}'. Số tờ khai chuẩn quốc gia phải bao gồm đúng 11 chữ số.").format(clean_no),
+                _("Số tờ khai VNACCS/VCIS không hợp lệ: '{0}'. Số tờ khai theo Công văn 5922/TCHQ-VNACCS phải gồm 12 ký tự số (11 số đầu là mã tờ khai chính, số thứ 12 là số lần sửa).").format(clean_no),
                 title=_("Sai Quy chuẩn Tờ khai VNACCS")
             )
         doc.declaration_no = clean_no
+
 
 def fetch_customs_exchange_rate(doc):
     """Tự động tra cứu Tỷ giá tính thuế Hải quan theo tuần của Bộ Tài chính"""

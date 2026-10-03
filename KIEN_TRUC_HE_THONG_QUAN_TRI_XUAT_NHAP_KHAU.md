@@ -21,6 +21,23 @@ Hệ thống được thiết kế theo tiêu chuẩn khung kiến trúc mở **
 
 ---
 
+
+### 🧩 BẢNG ĐỐI CHIẾU: TÍNH NĂNG GỐC ERPNEXT VS PHÂN HỆ TỰ PHÁT TRIỂN `logistics_wizard`
+
+Nhằm đảm bảo tính minh bạch về phạm vi kỹ thuật khi báo cáo hội đồng chuyên môn:
+
+| Phân Vùng Nghiệp Vụ | Tính Năng Gốc ERPNext v15 (Standard Core) | Phân Hệ Mở Rộng Tự Phát Triển (`logistics_wizard`) | Trạng Thái Kỹ Thuật |
+| :--- | :--- | :--- | :---: |
+| **Hồ sơ ngoại thương & Đơn hàng** | `Purchase Order` (PO), `Sales Order` (SO), Quản lý NCC/Khách hàng | `Trade Case`: Quản trị hồ sơ mẹ gom nhiều chuyến hàng, lập dự toán ngân sách chi tiết | 🟢 *Custom App* |
+| **Vận tải & Chuyến hàng** | Không có sẵn DocType quản lý chuyến tàu và container | `Trade Shipment`: Giám sát 9 mốc (M01-M09), B/L, Seal, Số cont, Đếm ngược Free-time | 🟢 *Custom App* |
+| **Phân bổ giá vốn Landed Cost** | `Landed Cost Voucher` (chỉ phân bổ theo Qty, Valuation Rate hoặc nhập tay) | Mở rộng LCV: **Phân bổ theo Thể tích (CBM)** cho cước tàu, bóc tách VAT khấu trừ (13312) | 🟢 *Custom App (Hook)* |
+| **Thủ tục Hải quan VNACCS** | Không có (ERPNext không có định dạng tờ khai VN) | `Customs Declaration`: Chuẩn **12 ký tự** theo CV 5922/TCHQ-VNACCS, auto khớp tỷ giá BTC | 🟢 *Custom App* |
+| **Kiểm soát & Ngăn chặn rủi ro** | Hạn mức công nợ (`Credit Limit`) chủ yếu cho Khách hàng | **Supplier Budget Tolerance**: Chặn chi vượt ngân sách NCC (> 10%); 3-Tier Stage Gates | 🟢 *Custom App* |
+| **Xử lý hàng hỏng mở cont** | Cắt giảm số lượng hoặc trả hàng toàn phần | Tách dòng tự động: Nhập kho chính (TK 156) & Chuyển `Rejected Warehouse` (TK 1388) | 🟢 *Standard + Hook* |
+| **Trí tuệ nhân tạo (AI Engine)** | Không có sẵn trong core | **RAG Assistant**: Tra cứu Luật XNK, đối chiếu chứng từ, AI gợi ý mã HS Code theo GIR | 🟢 *Custom Service* |
+
+---
+
 ## 📐 CHƯƠNG 2: BẢN VẼ KIẾN TRÚC HỆ THỐNG TỔNG THỂ (ENTERPRISE SOLUTION ARCHITECTURE)
 
 Bản vẽ kiến trúc hệ thống được chuẩn hóa theo mô hình **Kiến Trúc Giải Pháp Doanh Nghiệp (Enterprise Solution Architecture)** chuẩn TOGAF. Bản vẽ phân định rạch ròi 3 phân vùng độc lập: **Khung Chuẩn & Quy Định** (cột trái), **Hệ Thống 4 Tầng Kỹ Thuật Nội Bộ** (khối trung tâm) và **Ranh Giới Tích Hợp Hệ Thống Bên Ngoài** (cột phải):
@@ -110,7 +127,7 @@ flowchart LR
                         end
                         subgraph S_BIZ_R3[" "]
                             direction LR
-                            B_VNACCS["Tờ khai HQ<br>VNACCS 11 số"]
+                            B_VNACCS["Tờ khai HQ<br>VNACCS 12 ký tự"]
                             B_LCV["Landed Cost<br>VAS 02"]
                             B_GATES["Stage Gates<br>Poka-Yoke"]
                         end
@@ -270,7 +287,7 @@ flowchart LR
 ### 🌐 Ranh Giới Tích Hợp Hệ Thống Bên Ngoài (External Integrations)
 
 Khắc phục hoàn toàn tư duy "hệ thống cô lập", kiến trúc thiết lập các điểm kết nối chuẩn xác ra thế giới thực:
-1. **Hệ thống Hải quan Điện tử (VNACCS / ECUS):** Xuất/nhập dữ liệu tờ khai hải quan điện tử 11 số.
+1. **Hệ thống Hải quan Điện tử (VNACCS / ECUS):** Xuất/nhập dữ liệu tờ khai hải quan điện tử 12 ký tự theo Công văn 5922/TCHQ-VNACCS (11 số đầu là mã tờ khai chính, ký tự thứ 12 là số lần sửa đổi bổ sung).
 2. **Hệ thống Tracking Hãng Tàu (Carriers / Forwarders):** Kết nối API định vị AIS / Tracking sự kiện container, cập nhật tọa độ tàu biển và ngày cập cảng thực tế (ATA).
 3. **Ngân Hàng Thương Mại (Fintech / Banking):** Kết nối cổng thanh toán quốc tế (L/C, T/T), tự động đối soát sổ phụ ngân hàng khi chi tiền cọc ngoại tệ.
 4. **Cổng Thông Tin Bộ Tài Chính:** Tự động đồng bộ Bảng tỷ giá tính thuế XNK hàng tuần của Tổng cục Hải quan.
@@ -323,8 +340,8 @@ flowchart TD
     subgraph STAGE3["GIAI ĐOẠN 3: THỦ TỤC HẢI QUAN & PHÁP LÝ (CUSTOMS CLEARANCE)"]
         direction LR
         S3_DOC["📋 <b>Checklist Chứng Từ (Gate 1)</b><br>Rà soát Hợp đồng, Invoice, P/L, C/O<br>Đảm bảo đủ 100% điều kiện khai báo"]
-        S3_VNACCS["🏛️ <b>Tờ Khai VNACCS 11 Số</b><br>Truyền tờ khai điện tử hải quan<br>Khớp tỷ giá tuần của Bộ Tài chính"]
-        S3_TAX["💰 <b>Nộp Thuế & Thông Quan</b><br>Kế toán nộp thuế XNK & VAT vào kho bạc<br>Hoàn tất mốc M07_CUSTOMS_CLEAR"]
+        S3_VNACCS["🏛️ <b>Tờ Khai VNACCS 12 Ký Tự</b><br>Truyền tờ khai chuẩn CV 5922<br>Khớp tỷ giá tuần của Bộ Tài chính"]
+        S3_TAX["💰 <b>Nộp Thuế & Thông Quan</b><br>Nộp Thuế NK (vào TK 156) & VAT (TK 13312)<br>Hoàn tất mốc M07_CUSTOMS_CLEAR"]
         S3_DOC --> S3_VNACCS --> S3_TAX
     end
 
@@ -345,7 +362,7 @@ flowchart TD
     subgraph STAGE5["GIAI ĐOẠN 5: QUYẾT TOÁN CHI PHÍ & GIÁ VỐN ĐÍCH THỰC (LANDED COST VAS 02)"]
         direction LR
         S5_COLLECT["🧾 <b>Tập Hợp Hóa Đơn Chi Phí</b><br>Cước biển, phí D/O, nâng hạ, kiểm định<br>Cấn trừ 30% tiền cọc tạm ứng"]
-        S5_LCV["🧮 <b>Động Cơ Phân Bổ Landed Cost</b><br>Cước biển phân bổ theo Thể tích (CBM)<br>Thuế & Phí khác phân bổ theo Trị giá"]
+        S5_LCV["🧮 <b>Động Cơ Phân Bổ Landed Cost (VAS 02)</b><br>Cước biển phân bổ theo Thể tích (CBM)<br>Thuế NK & Phí cảng theo Trị giá<br>Tách riêng VAT (13312) & Phạt bãi (642)"]
         S5_CLOSE["🔒 <b>Thẩm Định Ngân Sách & Đóng Lô (Gate 3)</b><br>Bóc tách lệch giá cước vs lệch tỷ giá<br>Chốt giá vốn bất biến (cost_status = Closed)"]
         S5_COLLECT --> S5_LCV --> S5_CLOSE
     end
@@ -394,9 +411,9 @@ flowchart TD
 | :--- | :--- | :---: | :--- |
 | **Giai đoạn 1: Chuẩn bị Đơn hàng** | `Purchase Order` (PO), `Sales Order` (SO), `Trade Case`, Tra cứu HS Code (AI RAG) | 🛒 Thu Mua / 🌍 Sales | Khởi tạo hồ sơ mẹ `IMP-xxxx`, chốt dự toán ngân sách; Đơn PO/SO được Giám đốc ký duyệt. |
 | **Giai đoạn 2: Logistics & Tàu biển** | `Trade Shipment`, Master/House B/L, Container, Booking Confirmation | 🚢 Logistics | Cập nhật số Cont/Seal; giám sát mốc M01-M05; khóa cứng đơn PO khi tàu rời cảng (M04); đếm ngược Free-time. |
-| **Giai đoạn 3: Thủ tục Hải quan** | `Customs Declaration`, C/O Form E/D/AK, Packing List, Tờ khai VNACCS 11 số | 🏛️ Hải Quan / 💰 Kế Toán | Stage Gate 1: đủ 100% chứng từ mới mở tờ khai; nộp thuế kho bạc; chốt mốc thông quan M07_CUSTOMS_CLEAR. |
+| **Giai đoạn 3: Thủ tục Hải quan** | `Customs Declaration`, C/O Form E/D/AK, Packing List, Tờ khai VNACCS 12 ký tự (CV 5922/TCHQ-VNACCS) | 🏛️ Hải Quan / 💰 Kế Toán | Stage Gate 1: đủ 100% chứng từ mới mở tờ khai; nộp thuế kho bạc; chốt mốc thông quan M07_CUSTOMS_CLEAR. |
 | **Giai đoạn 4: Kho bãi Vật lý** | `Purchase Receipt` (PR), `Delivery Note` (DN), Biên bản đồng kiểm, KCS | 📦 Thủ Kho | Stage Gate 2: Chặn dỡ hàng và cấm submit PR nếu chưa thông quan; tách hàng hỏng ra TK 1388; chốt mốc M09. |
-| **Giai đoạn 5: Quyết toán Giá vốn** | `Purchase Invoice` (PI), Hóa đơn cước forwarder, `Landed Cost Voucher` (LCV) | 💰 Kế Toán / 👑 CFO | Stage Gate 3: Tự cấn trừ 30% cọc; phân bổ chi phí theo CBM & Trị giá (VAS 02); khóa đóng lô nếu vượt dự toán > 10%. |
+| **Giai đoạn 5: Quyết toán Giá vốn** | `Purchase Invoice` (PI), Hóa đơn cước forwarder, `Landed Cost Voucher` (LCV) | 💰 Kế Toán / 👑 CFO | Stage Gate 3: Tự cấn trừ cọc; phân bổ chi phí theo CBM & Trị giá (VAS 02); bóc tách VAT khấu trừ (TK 13312) & Phạt lưu bãi (TK 642); khóa đóng lô nếu vượt dự toán cấu hình (mặc định > 10%). |
 
 ---
 
@@ -490,9 +507,9 @@ Bảo đảm hệ thống không bao giờ bị nghẽn (Deadlock) trước các
 | # | Tình huống rủi ro thực tế | Rủi ro nếu thiết kế kém | Cơ chế Kiến trúc khắc chế triệt để | Đánh giá |
 | :-: | :--- | :--- | :--- | :---: |
 | **1** | **Giao hàng từng phần (Partial Shipment)** | Hệ thống bắt đợi đủ hợp đồng mới tính giá vốn/doanh thu | Tách `Trade Case` (Hồ sơ tổng) vs `Shipment` (xử lý chứng từ, giá vốn riêng từng đợt tàu) | 🟢 An toàn |
-| **2** | **Hàng thiếu hụt, rơi vỡ khi mở cont** | Phân bổ khống chi phí vào hàng hỏng | Phiếu PR chỉ ghi nhận hàng thực nhập; phần hỏng hạch toán Phải thu bồi thường bảo hiểm (TK 1388) | 🟢 An toàn |
+| **2** | **Hàng thiếu hụt, rơi vỡ khi mở cont** | Phân bổ khống chi phí vào hàng hỏng | Phiếu PR ghi nhận hàng đạt vào TK 156; hàng hỏng cách ly kho Rejected Warehouse, hạch toán Phải thu bồi thường (Nợ 156 + Nợ 1388 = Có 331 đủ 100% hóa đơn) | 🟢 An toàn |
 | **3** | **Hóa đơn cước về trễ sau khi đã xuất bán hết** | Gây lỗi "Tồn kho âm" sập sổ cái kế toán | Cơ chế Additional LCV: Tự động kết chuyển thẳng vào Giá vốn hàng bán trong kỳ (COGS - TK 632) | 🟢 An toàn |
-| **4** | **Giải phóng hàng chờ thông quan (nợ C/O)** | Cont bị giữ chết tại cảng, phạt bãi hàng chục triệu | Trạng thái `Released Pending Clearance`: Kéo hàng về kho bảo quản, khóa cờ xuất bán | 🟢 An toàn |
+| **4** | **Giải phóng hàng chờ thông quan (nợ C/O)** | Cont bị giữ chết tại cảng, phạt bãi hàng chục triệu | Trạng thái `Released Pending Clearance`: Kéo về kho riêng bảo quản (Suspense Warehouse), khóa cờ xuất bán & chưa ghi tăng TK 156, chờ cờ Cleared mới dỡ hàng vào kho chính | 🟢 An toàn |
 | **5** | **Rớt tàu, trễ hạn Cut-off SI/VGM (Xuất khẩu)** | Hàng bị lưu bãi cảng xuất, lỡ hẹn với khách quốc tế | Cảnh báo đếm ngược trước 24h hạn Cut-off; tự động sinh Exception Ticket chuyển sang chuyến tàu kế | 🟢 An toàn |
 | **6** | **Nhiều cont trả vỏ lệch ngày nhau** | Gộp chung, không biết cont nào bị phạt demurrage | Bảng con `containers` quản lý độc lập từng dòng: Số cont, seal, ngày trả vỏ và tiền phạt riêng | 🟢 An toàn |
 | **7** | **Lẫn lộn Incoterms (Hàng FOB lẫn CIF)** | Hàng CIF bị tính trùng cước tàu 2 lần | Cấu hình dòng chi phí: Chỉ định phân bổ cước tàu cho hàng FOB, miễn trừ cho hàng CIF | 🟢 An toàn |
@@ -514,12 +531,12 @@ Ngăn ngừa triệt để sai sót và gian lận của yếu tố con người
    * *Rào chắn 2:* Phân quyền ẩn hoàn toàn đơn giá mua, chi phí và biên lợi nhuận để bảo mật tài chính.
 4. **💰 Kế toán (`accountant`):**
    * *Rào chắn 1:* Tự động cấn trừ tiền cọc: Khi mở hóa đơn, hệ thống tự trừ tiền tạm ứng ngoại tệ, kế toán chỉ có thể chi trả phần còn lại.
-   * *Rào chắn 2:* Khóa cứng chức năng đóng sổ lô hàng nếu chi phí thực tế vượt dự toán $> 10\%$.
+   * *Rào chắn 2:* Khóa cứng chức năng đóng sổ lô hàng nếu chi phí thực tế vượt dự toán định mức (tham số `budget_tolerance_pct`, mặc định $> 10\%$).
 5. **🏛️ Hải quan (`customs`):**
    * *Rào chắn 1:* Khóa ô nhập tỷ giá tính thuế, bắt buộc lấy tự động từ `Customs Exchange Rate` theo tuần của Bộ Tài chính.
-   * *Rào chắn 2:* Bắt buộc tờ khai phải chuẩn 11 chữ số theo hệ thống thông quan tự động VNACCS.
+   * *Rào chắn 2:* Bắt buộc tờ khai phải chuẩn 12 ký tự theo Công văn 5922/TCHQ-VNACCS (11 số đầu là mã tờ khai chính thức, ký tự thứ 12 là số lần sửa đổi bổ sung).
 6. **🚢 Logistics (`logistics`):**
-   * *Rào chắn 1:* Hệ thống tự động đếm ngược hạn Free-time bãi, tự động gửi chuông cảnh báo trước 3 ngày để nhắc kéo vỏ cont.
+   * *Rào chắn 1:* Hệ thống tự động đếm ngược hạn Free-time bãi (tham số `demurrage_free_days`, mặc định 7 ngày kể từ ngày dỡ cont), tự động gửi chuông cảnh báo trước `early_warning_days` (mặc định 3 ngày) để nhắc kéo vỏ cont.
    * *Rào chắn 2:* Cảnh báo đếm ngược hạn nộp SI/VGM trước giờ Cut-off của hãng tàu, loại bỏ nguy cơ rớt cont.
 7. **👑 Giám đốc / CFO (`cfo`):**
    * *Rào chắn 1:* Cơ chế ủy quyền phê duyệt điện tử (Delegation) khi đi công tác xa; hỗ trợ duyệt trên Mobile App.
@@ -535,7 +552,7 @@ Giải phóng lãnh đạo khỏi các cạm bẫy báo cáo truyền thống:
 * **2. Báo cáo Quản trị theo Ngoại lệ (MBE):** Lô hàng an toàn được ẩn đi; màn hình của Giám đốc chỉ hiển thị các điểm nóng cần can thiệp (lô trễ hạn, lô vượt ngân sách).
 * **3. Lưu vết bất biến (Immutable Audit Trail):** Ngăn chặn nhân viên xào xáo số liệu, lùi ngày kế hoạch để che giấu khuyết điểm KPI.
 * **4. Một nguồn chân lý duy nhất (Single Source of Truth):** Xóa bỏ tranh cãi số liệu giữa phòng Mua hàng, Kế toán và Logistics.
-* **5. Báo cáo Biên lợi nhuận đích thực (True Landed Gross Margin):** Tính lãi/lỗ dựa trên **Unit Landed Cost** (FOB + Cước + Phí cảng + Thuế + Bảo hiểm), bảo đảm không bao giờ bị rơi vào bẫy "Lãi giả - Lỗ thật".
+* **5. Báo cáo Biên lợi nhuận đích thực (True Landed Gross Margin):** Tính lãi/lỗ dựa trên **Unit Landed Cost** chuẩn VAS 02 (FOB + Cước + Phí cảng hợp lệ + Thuế NK không hoàn lại + Bảo hiểm; bóc tách hoàn toàn VAT khấu trừ TK 13312 và Phạt lưu bãi TK 642), bảo đảm không bao giờ bị rơi vào bẫy "Lãi giả - Lỗ thật".
 
 ---
 
