@@ -21,140 +21,99 @@ Hệ thống được thiết kế theo tiêu chuẩn khung kiến trúc mở **
 
 ---
 
-## 📐 CHƯƠNG 2: BẢN VẼ KIẾN TRÚC TỔNG THỂ SONG TRỤC (TOGAF 6 LAYERS)
+## 📐 CHƯƠNG 2: BẢN VẼ KIẾN TRÚC TỔNG THỂ SONG TRỤC (TOGAF ENTERPRISE ARCHITECTURE)
 
-Bản vẽ được thiết kế theo **Bố cục Ma trận 3 Cột Ngang (Horizontal 3-Column Matrix)** giúp bao quát toàn diện 6 tầng kiến trúc từ Con người, Trục quản trị Ngoại thương, Chứng từ ERPNext đến Hạ tầng Container kỹ thuật mà không bị dài dọc:
+Bản vẽ phân bổ hài hòa giữa **Chiều ngang (các bước đối xứng)** và **Chiều dọc (phân tầng chức năng)**, bảo đảm hiển thị vừa vặn trong một màn hình, chữ to rõ ràng, không bị thu nhỏ:
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '12px'}}}%%
-flowchart LR
+%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '13px'}}}%%
+flowchart TD
     %% ==========================================
-    %% CỘT 1: VAI TRÒ & TRẠM ĐIỀU HÀNH
+    %% TẦNG 1: CON NGƯỜI & ĐIỀU HÀNH
     %% ==========================================
-    subgraph COT_1["🏛️ CỘT 1: VAI TRÒ & ĐIỀU HÀNH"]
-        direction TB
+    subgraph T1["🏛️ TẦNG 1: VAI TRÒ NGHIỆP VỤ & TRẠM ĐIỀU HÀNH (ROLES & PRESENTATION)"]
+        direction LR
+        ROLES["👥 <b>ĐỘI NGŨ TÁC NGHIỆP ĐA PHÒNG BAN</b><br>🛒 Mua Hàng • 🌍 Bán Hàng QT • 🚢 Logistics • 🏛️ Hải Quan<br>📦 Thủ Kho • 💰 Kế Toán • 👑 Ban Giám Đốc / CFO"]
+        DASH["📊 <b>THÁP CHỈ HUY TRUNG TÂM (CONTROL TOWER)</b><br>Theo dõi GPS tàu biển 3D • Cảnh báo phạt bãi cont<br>Báo cáo trễ hạn tàu • Cảnh báo rủi ro biến động tỷ giá"]
+        ROLES <==> DASH
+    end
+
+    %% ==========================================
+    %% TẦNG 2: TRỤC QUẢN TRỊ NGOẠI THƯƠNG
+    %% ==========================================
+    subgraph T2["🌐 TẦNG 2: TRUNG TÂM QUẢN TRỊ NGOẠI THƯƠNG & THUẬT TOÁN (SHARED CORE)"]
+        direction LR
+        TC["📂 <b>TRADE CASE (HỒ SƠ MẸ)</b><br>trade_type: Import / Export<br>Hợp đồng • PO / SO • Ngân sách"]
+        TS["🚢 <b>TRADE SHIPMENT (CHUYẾN TÀU)</b><br>9 Mốc hành trình • Container & Free-time<br>Giám sát định vị • Chi phí thực tế"]
+        VNACCS["🏛️ <b>VNACCS & TARIFF ENGINE</b><br>Tờ khai chuẩn 11 số • Biểu thuế HS<br>Tỷ giá hải quan tuần của BTC"]
+        LOGIC["🧮 <b>ĐỘNG CƠ THUẬT TOÁN & BẢO VỆ</b><br>Phân bổ giá vốn VAS 02 (CBM/Trị giá)<br>Bóc tách lệch giá • 3 Cổng Stage Gates"]
         
-        subgraph T1["TẦNG 1: VAI TRÒ TÁC NGHIỆP (ROLES)"]
-            direction TB
-            U_IN["🛒 Mua Hàng (Buyer)<br>📦 Thủ Kho (Warehouse)"]
-            U_OUT["🌍 Bán Hàng QT (Export Sales)<br>💰 Kế Toán (Finance)"]
-            U_MID["🚢 Logistics (Forwarder)<br>🏛️ Hải Quan (Customs)"]
-            U_LEAD["👑 Giám Đốc / CFO (Phê Duyệt)"]
-        end
-
-        subgraph T2["TẦNG 2: TRẠM ĐIỀU HÀNH (PRESENTATION)"]
-            direction TB
-            DASH["📊 THÁP CHỈ HUY CONTROL TOWER<br>Giám sát GPS tàu 3D • Cảnh báo phạt cont • Báo cáo tỷ giá"]
-            WORK["📋 WORKSPACE CHUYÊN BIỆT THEO VAI TRÒ<br>Giao diện tác nghiệp độc lập cho từng vị trí"]
-        end
-
-        T1 ==> T2
+        TC ==>|"1 Case nhiều đợt giao"| TS
+        TS <==> VNACCS
+        TS <==> LOGIC
     end
 
     %% ==========================================
-    %% CỘT 2: TRỤC LÕI NGOẠI THƯƠNG & THUẬT TOÁN
+    %% TẦNG 3: HAI LUỒNG CHỨNG TỪ SONG SONG
     %% ==========================================
-    subgraph COT_2["🌐 CỘT 2: TRỤC LÕI XNK & THUẬT TOÁN"]
+    subgraph T3["⚙️ TẦNG 3: HAI LUỒNG CHỨNG TỪ ERPNEXT ĐỐI XỨNG (INBOUND & OUTBOUND)"]
         direction TB
-
-        subgraph T3["TẦNG 3: TRUNG TÂM QUẢN TRỊ NGOẠI THƯƠNG"]
-            direction TB
-            TC["📂 <b>TRADE CASE (HỒ SƠ MẸ: IMPORT / EXPORT)</b><br>Hợp đồng • Đơn mua PO / Đơn bán SO • Ngân sách"]
-            TS["🚢 <b>TRADE SHIPMENT (CHUYẾN TÀU VẬT LÝ)</b><br>9 Mốc hành trình • Container & Free-time • Chi phí"]
-            VNACCS["🏛️ <b>CUSTOMS & TARIFF ENGINE</b><br>Tờ khai VNACCS 11 số • Biểu thuế HS • Tỷ giá tuần"]
-            DOCS["📋 <b>TRADE DOCUMENT CHECKLIST</b><br>Kiểm soát 100% hồ sơ pháp lý số (C/O, Packing List, VGM)"]
-            
-            TC ==> TS
-            TS <==> VNACCS
-            TS <==> DOCS
+        subgraph LUONG_NHAP["🔵 LUỒNG 1: NHẬP KHẨU (INBOUND PROCUREMENT)"]
+            direction LR
+            PO["1. Đơn Mua (PO)"] --> PR["2. Nhập Kho (PR)<br><i>Stage Gate 2 chặn</i>"] --> PI["3. Hóa Đơn Mua (PI)"] --> LCV["4. Phân Bổ Giá Vốn (LCV)"]
         end
-
-        subgraph T4["TẦNG 4: ĐỘNG CƠ THUẬT TOÁN (LOGIC ENGINE)"]
-            direction TB
-            E_ALLOC["🧮 Phân Bổ Giá Vốn VAS 02 (CBM / Trị Giá)"]
-            E_VAR["📐 Bóc Tách Lệch Giá Cước & Tỷ Giá Ngoại Tệ"]
-            E_GATE["🛡️ Hệ Thống 3 Cổng Kiểm Soát (Stage Gates)"]
-            E_RAG["🤖 Trợ Lý AI / RAG Gợi Ý Mã HS & Văn Bản Pháp Lý"]
+        subgraph LUONG_XUAT["🟢 LUỒNG 2: XUẤT KHẨU (OUTBOUND SALES)"]
+            direction LR
+            SO["1. Đơn Bán (SO)"] --> DN["2. Xuất Kho Đóng Cont (DN)<br><i>Kiểm tra SI/VGM</i>"] --> SI["3. Hóa Đơn Xuất Khẩu (SI)"] --> PAY["4. Thu Ngoại Tệ (L/C, TT)"]
         end
-
-        T3 <===> T4
     end
 
     %% ==========================================
-    %% CỘT 3: THỰC THI ERPNEXT & HẠ TẦNG KỸ THUẬT
+    %% TẦNG 4: HẠ TẦNG KỸ THUẬT CONTAINER
     %% ==========================================
-    subgraph COT_3["⚙️ CỘT 3: THỰC THI ERPNEXT & HẠ TẦNG"]
-        direction TB
-
-        subgraph T5["TẦNG 5: CHỨNG TỪ LÕI ERPNEXT SONG TRỤC"]
-            direction TB
-            subgraph L_IN["Luồng Nhập Khẩu (Inbound)"]
-                direction LR
-                PO["PO (Mua)"] --> PR["PR (Kho)"] --> PI["PI (Hóa đơn)"] --> LCV["LCV (Giá vốn)"]
-            end
-            subgraph L_OUT["Luồng Xuất Khẩu (Outbound)"]
-                direction LR
-                SO["SO (Bán)"] --> DN["DN (Kho xuất)"] --> SI["SI (Hóa đơn)"] --> PAY["Thu Ngoại Tệ"]
-            end
-        end
-
-        subgraph T6["TẦNG 6: HẠ TẦNG CONTAINER (DOCKER)"]
-            direction TB
-            subgraph INFRA_DATA["Dữ Liệu & Bộ Nhớ Đệm"]
-                direction LR
-                DB["🗄️ MariaDB 11.8 (ACID)"] --- REDIS["⚡ Redis Cache & Queue"]
-            end
-            subgraph INFRA_APP["Môi Trường Ứng Dụng & Thời Gian Thực"]
-                direction LR
-                APP["🐳 Frappe Backend/Frontend (:2828)"] --- SOCK["🔄 WebSocket & Cron Scheduler"]
-            end
-        end
-
-        T5 ==> T6
+    subgraph T4["🐳 TẦNG 4: HẠ TẦNG KỸ THUẬT CONTAINER & DỮ LIỆU (INFRASTRUCTURE)"]
+        direction LR
+        DB["🗄️ <b>MariaDB 11.8</b><br>Giao dịch ACID • InnoDB"]
+        REDIS["⚡ <b>Redis Cache & Queue</b><br>Đệm tọa độ • Job ngầm"]
+        APP["💻 <b>Frappe App (:2828)</b><br>Backend & Frontend"]
+        SOCK["🔄 <b>WebSocket & Scheduler</b><br>Tọa độ 3D • Quét hạn phạt"]
     end
 
     %% ==========================================
-    %% KẾT NỐI TƯƠNG TÁC NGANG GIỮA CÁC CỘT
+    %% LIÊN KẾT ĐA TẦNG DỌC
     %% ==========================================
-    COT_1 ==>|"Tác nghiệp & Giám sát"| COT_2
-    COT_2 <===>|"Đồng bộ dữ liệu & Chặn cổng"| COT_3
+    T1 ==>|"Thao tác & Ra quyết định"| T2
+    T2 <===>|"Đồng bộ tiến độ & Kiểm soát Stage Gate"| T3
+    T3 ==>|"Lưu trữ dữ liệu & Thực thi ngầm"| T4
 
     %% ==========================================
-    %% PHỐI MÀU GIAO DIỆN DARK TECH HIỆN ĐẠI
+    %% PHỐI MÀU GIAO DIỆN DARK TECH
     %% ==========================================
-    style COT_1 fill:#0B132B,stroke:#38BDF8,stroke-width:2px,color:#FFFFFF
-    style COT_2 fill:#1C1942,stroke:#818CF8,stroke-width:2px,color:#FFFFFF
-    style COT_3 fill:#0A251D,stroke:#10B981,stroke-width:2px,color:#FFFFFF
+    style T1 fill:#0F172A,stroke:#38BDF8,stroke-width:2px,color:#FFFFFF
+    style T2 fill:#1E1B4B,stroke:#818CF8,stroke-width:2px,color:#FFFFFF
+    style T3 fill:#042F2E,stroke:#2DD4BF,stroke-width:2px,color:#FFFFFF
+    style T4 fill:#1E293B,stroke:#94A3B8,stroke-width:2px,color:#FFFFFF
 
-    style T1 fill:#0F172A,stroke:#38BDF8,color:#FFFFFF
-    style T2 fill:#0F172A,stroke:#0284C7,color:#FFFFFF
-    style T3 fill:#1E1B4B,stroke:#818CF8,color:#FFFFFF
-    style T4 fill:#18181B,stroke:#F59E0B,color:#FFFFFF
-    style T5 fill:#064E3B,stroke:#10B981,color:#FFFFFF
-    style T6 fill:#1E293B,stroke:#94A3B8,color:#FFFFFF
+    style LUONG_NHAP fill:#0B233D,stroke:#38BDF8,color:#FFFFFF
+    style LUONG_XUAT fill:#064E3B,stroke:#34D399,color:#FFFFFF
 
-    style L_IN fill:#022C22,stroke:#34D399,color:#FFFFFF
-    style L_OUT fill:#064E3B,stroke:#6EE7B7,color:#FFFFFF
-    style INFRA_DATA fill:#0F172A,stroke:#94A3B8,color:#FFFFFF
-    style INFRA_APP fill:#0F172A,stroke:#94A3B8,color:#FFFFFF
-
-    style U_IN fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
-    style U_OUT fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
-    style U_MID fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
-    style U_LEAD fill:#D97706,stroke:#FBBF24,color:#FFFFFF
-
+    style ROLES fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
     style DASH fill:#0369A1,stroke:#38BDF8,color:#FFFFFF
-    style WORK fill:#0369A1,stroke:#38BDF8,color:#FFFFFF
 
     style TC fill:#4338CA,stroke:#C7D2FE,color:#FFFFFF,stroke-width:2px
     style TS fill:#6D28D9,stroke:#DDD6FE,color:#FFFFFF,stroke-width:2px
     style VNACCS fill:#4C1D95,stroke:#DDD6FE,color:#FFFFFF
-    style DOCS fill:#4C1D95,stroke:#DDD6FE,color:#FFFFFF
+    style LOGIC fill:#7C2D12,stroke:#FDBA74,color:#FFFFFF
 
-    style E_ALLOC fill:#B45309,stroke:#FCD34D,color:#FFFFFF
-    style E_VAR fill:#B45309,stroke:#FCD34D,color:#FFFFFF
-    style E_GATE fill:#B91C1C,stroke:#FCA5A5,color:#FFFFFF
-    style E_RAG fill:#4F46E5,stroke:#C7D2FE,color:#FFFFFF
+    style PO fill:#0369A1,stroke:#7DD3FC,color:#FFFFFF
+    style PR fill:#0369A1,stroke:#7DD3FC,color:#FFFFFF
+    style PI fill:#0369A1,stroke:#7DD3FC,color:#FFFFFF
+    style LCV fill:#B45309,stroke:#FCD34D,color:#FFFFFF
+
+    style SO fill:#047857,stroke:#6EE7B7,color:#FFFFFF
+    style DN fill:#047857,stroke:#6EE7B7,color:#FFFFFF
+    style SI fill:#047857,stroke:#6EE7B7,color:#FFFFFF
+    style PAY fill:#047857,stroke:#6EE7B7,color:#FFFFFF
 
     style DB fill:#334155,stroke:#94A3B8,color:#FFFFFF
     style REDIS fill:#334155,stroke:#94A3B8,color:#FFFFFF
