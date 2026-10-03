@@ -5,71 +5,85 @@
 
 ## 💎 CHƯƠNG 1: TRIẾT LÝ VÀ NGUYÊN TẮC KIẾN TRÚC DOANH NGHIỆP
 
-Hệ thống được thiết kế theo tiêu chuẩn khung kiến trúc mở **TOGAF Framework**, kết hợp nguyên tắc quản trị nội bộ chuẩn mực nhằm giải quyết triệt để sự phân mảnh giữa Nghiệp vụ Mua/Bán ngoại thương, Vận tải quốc tế, Pháp lý Hải quan, Kho bãi vật lý và Kế toán giá vốn:
+Hệ thống được thiết kế theo tiêu chuẩn khung kiến trúc mở **TOGAF Framework**, tích hợp mô hình **Song Trục Đối Xứng (Dual-Stream Shared-Core)** nhằm quản trị trọn vẹn cả hai luồng nghiệp vụ **Nhập khẩu (Inbound)** và **Xuất khẩu (Outbound)** trên cùng một nền tảng lõi ERPNext v15:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │ 1. CLEAN ARCHITECTURE  : 100% mã nguồn nằm trong app `logistics_wizard`, giữ lõi sạch. │
-│ 2. TWO-TIER HUB        : Tách Trade Case (Hợp đồng/PO) vs Trade Shipment (Chuyến tàu). │
-│ 3. PARTIAL SHIPMENT    : Hỗ trợ 1 Case nhiều chuyến hàng giao từng phần lệch lịch tàu. │
-│ 4. STAGE GATE & READY  : 3 Trụ cột Readiness (Chứng từ, Hải quan, Kho) kiểm soát mốc.   │
-│ 5. VAS 02 / IAS 2      : Thuật toán phân bổ đa tiêu chí chuẩn xác, bóc tách rạch ròi. │
-│ 6. MANAGEMENT BY EXC.  : Quản trị theo ngoại lệ, hệ thống tự động cảnh báo sớm rủi ro. │
+│ 2. DUAL-STREAM CORE    : Trục lõi dùng chung (Shared Core) cho cả Nhập khẩu & Xuất khẩu.│
+│ 3. TWO-TIER HUB        : Tách Trade Case (Hợp đồng/PO/SO) vs Trade Shipment (Vận tải). │
+│ 4. PARTIAL SHIPMENT    : Hỗ trợ 1 Case nhiều chuyến hàng giao từng phần lệch lịch tàu. │
+│ 5. 3-TIER STAGE GATES  : Hệ cổng Poka-Yoke 2 chiều chặn rủi ro pháp lý, kho & tài chính.│
+│ 6. VAS 02 / IAS 2      : Thuật toán phân bổ đa tiêu chí chuẩn xác, bóc tách rạch ròi. │
+│ 7. MANAGEMENT BY EXC.  : Quản trị theo ngoại lệ, hệ thống tự động cảnh báo sớm rủi ro. │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📐 CHƯƠNG 2: BẢN VẼ KIẾN TRÚC PHÂN TẦNG TỔNG THỂ (TOGAF 5 LAYERS)
+## 📐 CHƯƠNG 2: BẢN VẼ KIẾN TRÚC TỔNG THỂ SONG TRỤC (DUAL-STREAM ARCHITECTURE)
 
-Bản vẽ phân tách rõ ràng 5 tầng kiến trúc, từ con người, giao diện, trung tâm nghiệp vụ, bộ não thuật toán đến cơ sở dữ liệu hạ tầng:
+Bản vẽ phân tách rõ ràng 5 tầng kiến trúc, kết nối đối xứng luồng Mua hàng quốc tế (Nhập khẩu) và Bán hàng quốc tế (Xuất khẩu) vào Trung tâm Quản trị Ngoại thương:
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Arial, sans-serif', 'fontSize': '13px'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '13px'}}}%%
 flowchart TD
     %% TẦNG 1: VAI TRÒ TÁC NGHIỆP
-    subgraph TANG_1["TẦNG 1: NGƯỜI DÙNG & VAI TRÒ NGHIỆP VỤ (ROLES)"]
+    subgraph TANG_1["TẦNG 1: NGƯỜI DÙNG & VAI TRÒ NGHIỆP VỤ (ENTERPRISE ROLES)"]
         direction LR
-        U_BUY["🛒 Thu Mua (Buyer)"]
+        U_BUY["🛒 Mua Hàng (Buyer)"]
+        U_SAL["🌍 Bán Hàng QT (Export Sales)"]
         U_LOG["🚢 Logistics (Điều Phối)"]
         U_CUS["🏛️ Hải Quan (Tuân Thủ)"]
         U_WH["📦 Thủ Kho (Giao Nhận)"]
-        U_ACC["💰 Kế Toán (Giá Vốn)"]
+        U_ACC["💰 Kế Toán (Giá Vốn/DT)"]
         U_CFO["👑 Giám Đốc (Phê Duyệt)"]
     end
 
     %% TẦNG 2: GIAO DIỆN & TRẠM ĐIỀU HÀNH
     subgraph TANG_2["TẦNG 2: TRẠM ĐIỀU HÀNH & GIAO DIỆN (PRESENTATION)"]
         direction LR
-        DASH["📊 THÁP CHỈ HUY CONTROL TOWER<br>Cảnh báo phạt bãi cont • Báo cáo trễ tàu • Biểu đồ chi phí"]
-        WORK["📋 WORKSPACE NGHIỆP VỤ CHUYÊN BIỆT<br>Giao diện làm việc riêng cho từng phòng ban (Role-based Views)"]
+        DASH["📊 THÁP CHỈ HUY CONTROL TOWER<br>Giám sát định vị tàu biển 3D • Cảnh báo phạt bãi cont • Báo cáo biến động tỷ giá"]
+        WORK["📋 WORKSPACE CHUYÊN BIỆT THEO VAI TRÒ<br>Giao diện tác nghiệp độc lập cho từng vị trí (Role-based Views & Quick Actions)"]
     end
 
     %% TẦNG 3: TRUNG TÂM QUẢN TRỊ XNK
-    subgraph TANG_3["TẦNG 3: TRUNG TÂM QUẢN TRỊ XNK (LOGISTICS WIZARD)"]
+    subgraph TANG_3["TẦNG 3: TRUNG TÂM QUẢN TRỊ NGOẠI THƯƠNG (SHARED LOGISTICS CORE)"]
         direction TB
         
-        TC["📂 <b>TRADE CASE: HỒ SƠ THƯƠNG MẠI NGOẠI THƯƠNG (IMP / EXP)</b><br>Quản lý Hợp đồng • Đơn mua PO / Đơn bán SO • Nhà cung cấp • Incoterms • Tổng ngân sách Case"]
+        TC["📂 <b>TRADE CASE: HỒ SƠ DỰ ÁN NGOẠI THƯƠNG (IMPORT / EXPORT)</b><br>Quản lý Hợp đồng • Đơn mua PO / Đơn bán SO • Khách hàng/Nhà cung cấp • Incoterms • Tổng ngân sách Case"]
         
-        SHP["🚢 <b>TRADE SHIPMENT: CHUYẾN VẬN TẢI VẬT LÝ (1 HOẶC NHIỀU ĐỢT GIAO)</b><br>Hãng tàu • Vận đơn B/L • Cảng đi/đến • 9 Mốc hành trình • Container & Free-time • Chi phí"]
+        TS["🚢 <b>TRADE SHIPMENT: CHUYẾN VẬN TẢI VẬT LÝ (1 HOẶC NHIỀU ĐỢT GIAO)</b><br>Hãng tàu • Vận đơn B/L • Cảng đi/đến • 9 Mốc hành trình • Container & Hạn Free-time • Chi phí thực tế"]
 
-        TC ==>|"1 Case có thể có 1 hoặc nhiều Shipment"| SHP
+        VNACCS["🏛️ <b>CUSTOMS DECLARATION & TARIFF ENGINE</b><br>Tờ khai chuẩn quốc gia 11 số (VNACCS) • Biểu thuế HS 8 số • Tỷ giá Hải quan tuần BTC"]
+
+        DOCS["📋 <b>TRADE DOCUMENT ITEM: CHECKLIST CHỨNG TỪ SỐ</b><br>Kiểm soát Readiness 100% hồ sơ pháp lý (C/O, Packing List, Invoice, VGM, Giấy phép)"]
+
+        TC ==>|"1 Case có 1 hoặc nhiều đợt giao"| TS
+        TS <==> VNACCS
+        TS <==> DOCS
     end
 
     %% TẦNG 4: THUẬT TOÁN & BẢO VỆ CHÍNH SÁCH
-    subgraph TANG_4["TẦNG 4: ĐỘNG CƠ THUẬT TOÁN & BẢO VỆ CHÍNH SÁCH"]
+    subgraph TANG_4["TẦNG 4: ĐỘNG CƠ THUẬT TOÁN & BẢO VỆ CHÍNH SÁCH (LOGIC ENGINE)"]
         direction LR
         E_ALLOC["🧮 PHÂN BỔ GIÁ VỐN<br>Cước tàu chia CBM<br>Phí khác chia Trị giá"]
-        E_VAR["📐 BÓC TÁCH CHÊNH LỆCH<br>Lệch do Giá cước hãng tàu<br>Lệch do Tỷ giá USD/VND"]
-        E_GATE["🛡️ KHÓA CHẶN QUẢN TRỊ<br>Chặn đóng lô khi vượt > 10%<br>Chặn kho khi chưa thông quan"]
+        E_VAR["📐 BÓC TÁCH LỆCH GIÁ<br>Lệch do Cước hãng tàu<br>Lệch do Tỷ giá ngoại tệ"]
+        E_GATE["🛡️ CỔNG KIỂM SOÁT<br>Gate 1: Đủ hồ sơ mới mở TK<br>Gate 2: Thông quan mới nhập kho"]
         E_RAG["🤖 DỊCH VỤ AI / RAG<br>Tra cứu căn cứ pháp lý<br>Gợi ý phân loại mã HS"]
     end
 
-    %% TẦNG 5: ERPNEXT CORE & INFRASTRUCTURE
-    subgraph TANG_5["TẦNG 5: LÕI ERPNEXT GỐC & CƠ SỞ DỮ LIỆU"]
-        direction LR
-        ERP_DOCS["💼 CHỨNG TỪ LÕI ERPNEXT<br>Purchase Order • Purchase Receipt • Landed Cost Voucher • General Ledger"]
-        INFRA_DB["🐳 HẠ TẦNG KỸ THUẬT<br>Docker Compose (9 Containers) • Frappe v15 • MariaDB • Redis Cache"]
+    %% TẦNG 5: ERPNEXT CORE & HAI LUỒNG SONG SONG
+    subgraph TANG_5["TẦNG 5: LÕI ERPNEXT GỐC VỚI 2 LUỒNG CHỨNG TỪ ĐỐI XỨNG"]
+        direction TB
+        subgraph LUONG_IN["LUỒNG 1: NHẬP KHẨU (INBOUND)"]
+            direction LR
+            PO_DOC["Purchase Order (PO)"] --> PR_DOC["Purchase Receipt (PR)"] --> PI_DOC["Purchase Invoice (PI)"] --> LCV_DOC["Landed Cost (LCV)"]
+        end
+        subgraph LUONG_OUT["LUỒNG 2: XUẤT KHẨU (OUTBOUND)"]
+            direction LR
+            SO_DOC["Sales Order (SO)"] --> DN_DOC["Delivery Note (DN)"] --> SI_DOC["Sales Invoice (SI)"] --> EXP_PAY["Thu ngoại tệ L/C, TT"]
+        end
     end
 
     %% LIÊN KẾT ĐA TẦNG
@@ -84,8 +98,11 @@ flowchart TD
     style TANG_3 fill:#1E1B4B,stroke:#818CF8,stroke-width:2px,color:#FFFFFF
     style TANG_4 fill:#18181B,stroke:#F59E0B,stroke-width:2px,color:#FFFFFF
     style TANG_5 fill:#064E3B,stroke:#10B981,stroke-width:2px,color:#FFFFFF
+    style LUONG_IN fill:#022C22,stroke:#34D399,color:#FFFFFF
+    style LUONG_OUT fill:#064E3B,stroke:#6EE7B7,color:#FFFFFF
 
     style U_BUY fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
+    style U_SAL fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
     style U_LOG fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
     style U_CUS fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
     style U_WH fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
@@ -96,7 +113,9 @@ flowchart TD
     style WORK fill:#0369A1,stroke:#38BDF8,color:#FFFFFF
 
     style TC fill:#4338CA,stroke:#C7D2FE,color:#FFFFFF,stroke-width:3px
-    style SHP fill:#6D28D9,stroke:#DDD6FE,color:#FFFFFF,stroke-width:2px
+    style TS fill:#6D28D9,stroke:#DDD6FE,color:#FFFFFF,stroke-width:2px
+    style VNACCS fill:#4C1D95,stroke:#DDD6FE,color:#FFFFFF
+    style DOCS fill:#4C1D95,stroke:#DDD6FE,color:#FFFFFF
 
     style E_ALLOC fill:#B45309,stroke:#FCD34D,color:#FFFFFF
     style E_VAR fill:#B45309,stroke:#FCD34D,color:#FFFFFF
@@ -150,53 +169,62 @@ flowchart TD
 
 ---
 
-## 🚦 CHƯƠNG 4: ĐỘNG CƠ CỔNG KIỂM SOÁT ĐIỀU KIỆN (STAGE GATE & 3 TRỤ CỘT READINESS)
+## 🚦 CHƯƠNG 4: HỆ THỐNG CỔNG KIỂM SOÁT ĐIỀU KIỆN (DUAL-STREAM STAGE GATES)
 
-Hệ thống hoạt động theo cơ chế **Quản trị Chủ động (Proactive Control)**: Trước khi chuyển sang bước tiếp theo, hệ thống tự động kiểm tra 3 trụ cột điều kiện sẵn sàng:
+Hệ thống hoạt động theo cơ chế **Quản trị Chủ động (Proactive Control)**: Trước khi chuyển sang bước tiếp theo, hệ thống tự động kiểm tra các điều kiện sẵn sàng đối xứng cho cả 2 luồng Nhập khẩu và Xuất khẩu:
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Arial, sans-serif', 'fontSize': '13px'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '13px'}}}%%
 flowchart TD
-    START(["🚢 TÀU CHUẨN BỊ RỜI CẢNG XUẤT"]) --> G1{"🚪 CỔNG 1: XUẤT CẢNG SẴN SÀNG?<br><i>Đã có đủ chứng từ VGM, SI, Tờ khai xuất chưa?</i>"}
+    subgraph GATES_IN["HỆ CỔNG KIỂM SOÁT NHẬP KHẨU (INBOUND GATES)"]
+        direction TB
+        IN_START(["1. Tàu Chở Hàng Đến Cảng Đến (POD)"]) --> IN_G1{"🚪 CỔNG 1: HỒ SƠ NGOẠI THƯƠNG<br><i>Đủ 100% C/O, Packing List, Invoice?</i>"}
+        IN_G1 -- "❌ Chưa đủ" --> IN_STOP1["🚫 CHẶN: Không cho mở tờ khai VNACCS"]
+        IN_G1 -- "✅ Đủ 100%" --> IN_PASS1["🟢 Chuyển mốc M06 (Khai hải quan)"]
+        
+        IN_PASS1 --> IN_G2{"🚪 CỔNG 2: THÔNG QUAN NHẬP KHO<br><i>Mốc M07 đã Completed chưa?</i>"}
+        IN_G2 -- "❌ Chưa thông quan" --> IN_STOP2["🚫 <b>CHẶN SUBMIT PHIẾU NHẬP KHO (PR)</b><br>Thủ kho bị khóa quyền duyệt hàng vào kho"]
+        IN_G2 -- "✅ Đã thông quan" --> IN_PASS2["🟢 Cho phép duyệt PR & Nhập kho (M09)"]
 
-    G1 -- "❌ THIẾU CHỨNG TỪ" --> STOP1["🚫 <b>CHẶN LẠI: TRẠNG THÁI NOT READY</b><br>• Cảnh báo đỏ: Nguy cơ rớt tàu (Rolled container)<br>• Tự động tạo Exception Ticket giao Logistics xử lý"]
-    G1 -- "✅ ĐỦ 100%" --> PASS1["🟢 <b>ĐẠT: Chuyển mốc M04 Tàu chạy (In Transit)</b>"]
+        IN_PASS2 --> IN_G3{"🚪 CỔNG 3: QUYẾT TOÁN GIÁ VỐN<br><i>Chi phí vượt dự toán > 10%?</i>"}
+        IN_G3 -- "❌ Vượt > 10%" --> IN_STOP3["🔒 Khóa đóng lô, yêu cầu Giám đốc duyệt"]
+        IN_G3 -- "✅ Trong định mức" --> IN_PASS3["🎉 Chạy Landed Cost (LCV) & Đóng lô"]
+    end
 
-    PASS1 --> G2{"🚪 CỔNG 2: THÔNG QUAN SẴN SÀNG?<br><i>Đã có C/O gốc? Đã nộp thuế vào Kho bạc Nhà nước?</i>"}
-    G2 -- "❌ CHƯA ĐỦ ĐIỀU KIỆN" --> STOP2["🚫 <b>CHẶN LẠI: TRẠNG THÁI NOT READY</b><br>• Chưa được phép kéo hàng ra khỏi cảng<br>• Kích hoạt đếm ngược hạn Free-time tránh phạt lưu bãi"]
-    G2 -- "✅ ĐÃ THÔNG QUAN" --> PASS2["🟢 <b>ĐẠT: Cho phép kéo container về kho công ty dỡ hàng (M09)</b>"]
+    subgraph GATES_OUT["HỆ CỔNG KIỂM SOÁT XUẤT KHẨU (OUTBOUND GATES)"]
+        direction TB
+        OUT_START(["1. Đóng Hàng Cont Tại Kho Công Ty"]) --> OUT_G1{"🚪 CỔNG 1: HẠN CUT-OFF HÃNG TÀU<br><i>Đã gửi SI & Phiếu cân VGM trước cut-off?</i>"}
+        OUT_G1 -- "❌ Trễ hạn" --> OUT_STOP1["🚫 BÁO ĐỘNG ĐỎ: Nguy cơ rớt tàu (Rolled cont)"]
+        OUT_G1 -- "✅ Đủ SI & VGM" --> OUT_PASS1["🟢 Cấp phép hạ bãi cont cảng xuất (Gate-in)"]
 
-    PASS2 --> G3{"🚪 CỔNG 3: QUYẾT TOÁN HỢP LỆ?<br><i>Chi phí thực tế có bị vượt ngân sách dự toán > 10%?</i>"}
-    G3 -- "❌ VƯỢT > 10%" --> STOP3["🔒 <b>KHÓA CHỨC NĂNG ĐÓNG LÔ HÀNG</b><br>• Nhân viên thường bị tước quyền đóng quyết toán<br>• Bắt buộc Giám đốc / CFO phê duyệt ngoại lệ mới được đóng"]
-    G3 -- "✅ TRONG ĐỊNH MỨC <= 10%" --> PASS3["🎉 <b>HOÀN TẤT ĐÓNG LÔ HÀNG (CLOSED)</b><br>Chốt giá vốn vĩnh viễn và đồng bộ vào Báo cáo tài chính"]
+        OUT_PASS1 --> OUT_G2{"🚪 CỔNG 2: THÔNG QUAN XUẤT KHẨU<br><i>Tờ khai xuất đã thông quan chưa?</i>"}
+        OUT_G2 -- "❌ Chưa thông quan" --> OUT_STOP2["🚫 CHẶN: Hãng tàu từ chối cẩu cont lên tàu"]
+        OUT_G2 -- "✅ Đã thông quan" --> OUT_PASS2["🟢 Cẩu cont lên tàu & Phát hành B/L gốc (M04)"]
 
-    style START fill:#334155,stroke:#94A3B8,color:#FFFFFF,stroke-width:2px
-    style G1 fill:#78350F,stroke:#FBBF24,color:#FFFFFF,stroke-width:2px
-    style G2 fill:#78350F,stroke:#FBBF24,color:#FFFFFF,stroke-width:2px
-    style G3 fill:#78350F,stroke:#FBBF24,color:#FFFFFF,stroke-width:2px
+        OUT_PASS2 --> OUT_G3{"🚪 CỔNG 3: THANH TOÁN QUỐC TẾ<br><i>Xuất trình B/L, C/O hợp lệ theo L/C?</i>"}
+        OUT_G3 -- "❌ Bất hợp lệ (Discrepancy)" --> OUT_STOP3["🔒 Ngân hàng từ chối thanh toán ngoại tệ"]
+        OUT_G3 -- "✅ Khớp 100% L/C" --> OUT_PASS3["🎉 Thu đủ 100% tiền hàng ngoại tệ về nước"]
+    end
 
-    style STOP1 fill:#991B1B,stroke:#F87171,color:#FFFFFF,stroke-width:2px
-    style STOP2 fill:#991B1B,stroke:#F87171,color:#FFFFFF,stroke-width:2px
-    style STOP3 fill:#991B1B,stroke:#F87171,color:#FFFFFF,stroke-width:2px
-
-    style PASS1 fill:#065F46,stroke:#34D399,color:#FFFFFF,stroke-width:2px
-    style PASS2 fill:#065F46,stroke:#34D399,color:#FFFFFF,stroke-width:2px
-    style PASS3 fill:#065F46,stroke:#34D399,color:#FFFFFF,stroke-width:2px
+    style GATES_IN fill:#0F172A,stroke:#38BDF8,stroke-width:2px,color:#FFFFFF
+    style GATES_OUT fill:#064E3B,stroke:#10B981,stroke-width:2px,color:#FFFFFF
 ```
 
 ---
 
 ## 👥 CHƯƠNG 5: MA TRẬN PHÂN QUYỀN TRÁCH NHIỆM RACI (GOVERNANCE MATRIX)
 
-| Chứng Từ / Khâu Nghiệp Vụ | 🛒 Thu Mua (`buyer`) | 🏛️ Tuân Thủ (`customs`) | 🚢 Logistics (`logistics`) | 📦 Thủ Kho (`warehouse`) | 💰 Kế Toán (`accountant`) | 👑 Giám Đốc (`cfo`) |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Đơn mua hàng (PO)** | 🟢 **R** *(Lập)* | ⚪ C *(Tham vấn)* | 🔵 I *(Xem)* | 🔵 I *(Xem)* | ⚪ C *(Kiểm tra tiền)* | 🟡 **A** *(Duyệt)* |
-| **Duyệt Mã HS & Biểu Thuế** | 🔵 I *(Đề xuất)* | 🟢 **R** *(Duyệt)* | 🔵 I *(Xem)* | ─ | 🔵 I *(Xem thuế)* | 🟡 **A** |
-| **Hành trình Tàu & Cont (M01-M05)** | 🔵 I *(Theo dõi)* | 🔵 I *(Theo dõi)* | 🟢 **R** *(Điều phối)* | ─ | ─ | 🟡 **A** |
-| **Tờ khai Hải quan (M06-M07)** | ─ | 🟢 **R** *(Khai báo)* | ⚪ C *(Phối hợp)* | ─ | ⚪ C *(Nộp thuế)* | 🟡 **A** |
-| **Phiếu Nhập kho (PR) (M09)** | ─ | ─ | 🔵 I *(Giao cont)* | 🟢 **R** *(Đếm hàng)* | 🔵 I *(Số lượng)* | 🟡 **A** |
-| **Phân bổ Giá vốn (Landed Cost)** | ─ | ─ | ─ | ─ | 🟢 **R** *(Chạy LCV)* | 🟡 **A** |
-| **Duyệt đóng lô VƯỢT NGÂN SÁCH** | ─ | ─ | ─ | ─ | 🔵 I *(Trình duyệt)* | 🔴 **R / A *(Ký duyệt)*** |
+| Chứng Từ / Khâu Nghiệp Vụ | 🛒 Mua Hàng (`buyer`) | 🌍 Bán Hàng QT (`sales`) | 🏛️ Tuân Thủ (`customs`) | 🚢 Logistics (`logistics`) | 📦 Thủ Kho (`warehouse`) | 💰 Kế Toán (`accountant`) | 👑 Giám Đốc (`cfo`) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Đơn mua hàng (PO - Nhập khẩu)** | 🟢 **R** *(Lập)* | ─ | ⚪ C *(Tham vấn)* | 🔵 I *(Xem)* | 🔵 I *(Xem)* | ⚪ C *(Duyệt ngân sách)* | 🟡 **A** *(Duyệt)* |
+| **Đơn bán hàng (SO - Xuất khẩu)** | ─ | 🟢 **R** *(Lập)* | ⚪ C *(Kiểm tra FTA)* | ⚪ C *(Check cước)* | 🔵 I *(Xem tồn kho)* | ⚪ C *(Check hạn mức nợ)*| 🟡 **A** *(Duyệt)* |
+| **Duyệt Mã HS & Biểu Thuế XNK** | 🔵 I *(Đề xuất)* | 🔵 I *(Đề xuất)* | 🟢 **R** *(Duyệt mã)* | 🔵 I *(Xem)* | ─ | 🔵 I *(Xem thuế)* | 🟡 **A** |
+| **Booking, SI/VGM, Vận tải (M01-M05)**| 🔵 I *(Xem)* | 🔵 I *(Xem)* | 🔵 I *(Xem)* | 🟢 **R** *(Điều phối)* | ─ | ─ | 🟡 **A** |
+| **Tờ khai VNACCS Xuất & Nhập (M06-M07)**| ─ | ─ | 🟢 **R** *(Khai báo)* | ⚪ C *(Phối hợp)* | ─ | ⚪ C *(Nộp thuế)* | 🟡 **A** |
+| **Phiếu Nhập kho (PR) (M09 - Nhập)** | ─ | ─ | ─ | 🔵 I *(Giao cont)* | 🟢 **R** *(Đếm hàng)* | 🔵 I *(Số lượng)* | 🟡 **A** |
+| **Phiếu Xuất kho (DN) (Xuất khẩu)** | ─ | 🔵 I *(Lệnh xuất)*| ─ | ⚪ C *(Lấy cont rỗng)*| 🟢 **R** *(Đóng cont)* | 🔵 I *(Giảm kho)* | 🟡 **A** |
+| **Phân bổ Giá vốn (Landed Cost - LCV)**| ─ | ─ | ─ | ─ | ─ | 🟢 **R** *(Chạy LCV)* | 🟡 **A** |
+| **Duyệt đóng lô VƯỢT NGÂN SÁCH > 10%**| ─ | ─ | ─ | ─ | ─ | 🔵 I *(Trình duyệt)* | 🔴 **R / A *(Ký duyệt)*** |
 
 *Ký hiệu: **R** (Responsible - Trực tiếp làm) • **A** (Accountable - Phê duyệt tối cao, mỗi khâu duy nhất 1 người) • **C** (Consulted - Tham vấn ý kiến) • **I** (Informed - Nhận thông báo tự động).*
 
@@ -208,12 +236,12 @@ Bảo đảm hệ thống không bao giờ bị nghẽn (Deadlock) trước các
 
 | # | Tình huống rủi ro thực tế | Rủi ro nếu thiết kế kém | Cơ chế Kiến trúc khắc chế triệt để | Đánh giá |
 | :-: | :--- | :--- | :--- | :---: |
-| **1** | **Giao hàng từng phần** *(1 PO giao 2 đợt tàu)* | Hệ thống bắt đợi đủ 1,000 cái mới tính giá vốn | Tách `Trade Case` (PO tổng) vs `Shipment` (tính Landed Cost riêng từng đợt để bán ngay) | 🟢 An toàn |
-| **2** | **Hàng thiếu hụt, rơi vỡ khi mở cont** | Phân bổ khống chi phí vào hàng hỏng | Phiếu PR chỉ ghi nhận hàng thực nhập; 20 cái hỏng hạch toán Phải thu đòi bảo hiểm (TK 1388) | 🟢 An toàn |
-| **3** | **Hóa đơn về trễ sau khi đã bán hết hàng** | Gây lỗi "Tồn kho âm" sập sổ cái | Cơ chế Additional LCV: Tự động kết chuyển thẳng vào Giá vốn hàng bán trong kỳ (COGS - TK 632) | 🟢 An toàn |
-| **4** | **Giải phóng hàng chờ thông quan (nợ C/O)** | Cont bị giữ chết tại cảng, phạt nặng | Trạng thái `Released Pending Clearance`: Kéo hàng về kho bảo quản, khóa cờ xuất bán | 🟢 An toàn |
-| **5** | **Hãng tàu delay, rớt tàu, đổi cảng dỡ** | Lệch hạn bãi, điều xe nhầm cảng | Tự động cập nhật `demurrage_deadline` theo ngày dỡ thực tế tại cảng mới, lưu vết Audit Log | 🟢 An toàn |
-| **6** | **Nhiều cont trả vỏ lệch ngày nhau** | Gộp chung, không biết cont nào bị phạt | Bảng con `containers` quản lý độc lập từng dòng: Số cont, seal, ngày trả vỏ và tiền phạt riêng | 🟢 An toàn |
+| **1** | **Giao hàng từng phần (Partial Shipment)** | Hệ thống bắt đợi đủ hợp đồng mới tính giá vốn/doanh thu | Tách `Trade Case` (Hồ sơ tổng) vs `Shipment` (xử lý chứng từ, giá vốn riêng từng đợt tàu) | 🟢 An toàn |
+| **2** | **Hàng thiếu hụt, rơi vỡ khi mở cont** | Phân bổ khống chi phí vào hàng hỏng | Phiếu PR chỉ ghi nhận hàng thực nhập; phần hỏng hạch toán Phải thu bồi thường bảo hiểm (TK 1388) | 🟢 An toàn |
+| **3** | **Hóa đơn cước về trễ sau khi đã xuất bán hết** | Gây lỗi "Tồn kho âm" sập sổ cái kế toán | Cơ chế Additional LCV: Tự động kết chuyển thẳng vào Giá vốn hàng bán trong kỳ (COGS - TK 632) | 🟢 An toàn |
+| **4** | **Giải phóng hàng chờ thông quan (nợ C/O)** | Cont bị giữ chết tại cảng, phạt bãi hàng chục triệu | Trạng thái `Released Pending Clearance`: Kéo hàng về kho bảo quản, khóa cờ xuất bán | 🟢 An toàn |
+| **5** | **Rớt tàu, trễ hạn Cut-off SI/VGM (Xuất khẩu)** | Hàng bị lưu bãi cảng xuất, lỡ hẹn với khách quốc tế | Cảnh báo đếm ngược trước 24h hạn Cut-off; tự động sinh Exception Ticket chuyển sang chuyến tàu kế | 🟢 An toàn |
+| **6** | **Nhiều cont trả vỏ lệch ngày nhau** | Gộp chung, không biết cont nào bị phạt demurrage | Bảng con `containers` quản lý độc lập từng dòng: Số cont, seal, ngày trả vỏ và tiền phạt riêng | 🟢 An toàn |
 | **7** | **Lẫn lộn Incoterms (Hàng FOB lẫn CIF)** | Hàng CIF bị tính trùng cước tàu 2 lần | Cấu hình dòng chi phí: Chỉ định phân bổ cước tàu cho hàng FOB, miễn trừ cho hàng CIF | 🟢 An toàn |
 
 ---
@@ -222,20 +250,25 @@ Bảo đảm hệ thống không bao giờ bị nghẽn (Deadlock) trước các
 
 Ngăn ngừa triệt để sai sót và gian lận của yếu tố con người tại từng vị trí:
 
-1. **📦 Thủ kho (`warehouse`):**
-   * *Rào chắn 1:* Hệ thống cài đặt hạn mức dung sai (Tolerance Limit), khóa cứng không cho nhập kho vượt quá số lượng trên đơn PO.
-   * *Rào chắn 2:* Phân quyền ẩn hoàn toàn đơn giá mua, chi phí và lợi nhuận để bảo mật thông tin tài chính.
-2. **💰 Kế toán (`accountant`):**
-   * *Rào chắn 1:* Cơ chế tự động cấn trừ tiền cọc: Khi mở hóa đơn, hệ thống tự động trừ tiền tạm ứng 30%, kế toán chỉ có thể chi trả 70% còn lại.
-   * *Rào chắn 2:* Khóa cứng chức năng đóng sổ lô hàng nếu chi phí thực tế vượt dự toán $> 10\%$.
-3. **🛒 Thu mua (`buyer`):**
+1. **🛒 Thu mua (`buyer`):**
    * *Rào chắn 1:* Ngay khi tàu chạy (mốc M04), đơn mua PO bị khóa bất biến (Locked), không ai được tự ý đổi giá hoặc số lượng.
    * *Rào chắn 2:* Thu mua chỉ có quyền "Đề xuất mã HS", không được tự duyệt mã HS.
-4. **🏛️ Hải quan (`customs`):**
+2. **🌍 Bán hàng quốc tế (`sales`):**
+   * *Rào chắn 1:* Hệ thống tự động khóa đơn bán SO ngay khi xuất hành B/L gốc, ngăn chặn nhân viên tự ý sửa giá bán hoặc điều khoản Incoterm sau khi hàng đã rời cảng.
+   * *Rào chắn 2:* Bắt buộc kiểm tra hạn mức công nợ (Credit Limit) và nhận đủ tiền cọc trước khi kích hoạt lệnh xuất kho đóng cont (DN).
+3. **📦 Thủ kho (`warehouse`):**
+   * *Rào chắn 1 (Stage Gate 2):* Hệ thống khóa cứng nút Submit Phiếu Nhập Kho (`Purchase Receipt`) nếu lô hàng chưa hoàn tất Thông quan Hải quan (Mốc M07).
+   * *Rào chắn 2:* Phân quyền ẩn hoàn toàn đơn giá mua, chi phí và biên lợi nhuận để bảo mật tài chính.
+4. **💰 Kế toán (`accountant`):**
+   * *Rào chắn 1:* Tự động cấn trừ tiền cọc: Khi mở hóa đơn, hệ thống tự trừ tiền tạm ứng ngoại tệ, kế toán chỉ có thể chi trả phần còn lại.
+   * *Rào chắn 2:* Khóa cứng chức năng đóng sổ lô hàng nếu chi phí thực tế vượt dự toán $> 10\%$.
+5. **🏛️ Hải quan (`customs`):**
    * *Rào chắn 1:* Khóa ô nhập tỷ giá tính thuế, bắt buộc lấy tự động từ `Customs Exchange Rate` theo tuần của Bộ Tài chính.
-5. **🚢 Logistics (`logistics`):**
-   * *Rào chắn 1:* Hệ thống tự động đếm ngược hạn Free-time bãi, tự động bắn chuông cảnh báo trước 3 ngày để nhắc kéo vỏ cont.
-6. **👑 Giám đốc / CFO (`cfo`):**
+   * *Rào chắn 2:* Bắt buộc tờ khai phải chuẩn 11 chữ số theo hệ thống thông quan tự động VNACCS.
+6. **🚢 Logistics (`logistics`):**
+   * *Rào chắn 1:* Hệ thống tự động đếm ngược hạn Free-time bãi, tự động gửi chuông cảnh báo trước 3 ngày để nhắc kéo vỏ cont.
+   * *Rào chắn 2:* Cảnh báo đếm ngược hạn nộp SI/VGM trước giờ Cut-off của hãng tàu, loại bỏ nguy cơ rớt cont.
+7. **👑 Giám đốc / CFO (`cfo`):**
    * *Rào chắn 1:* Cơ chế ủy quyền phê duyệt điện tử (Delegation) khi đi công tác xa; hỗ trợ duyệt trên Mobile App.
    * *Rào chắn 2:* Tính năng `Track Changes` ghi nhật ký vĩnh viễn không thể xóa sửa, phục vụ hậu kiểm thuế sau 3 - 5 năm.
 
