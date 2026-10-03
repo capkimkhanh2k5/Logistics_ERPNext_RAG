@@ -23,30 +23,30 @@ Hệ thống được thiết kế theo tiêu chuẩn khung kiến trúc mở **
 
 ## 📐 CHƯƠNG 2: BẢN VẼ KIẾN TRÚC TỔNG THỂ SONG TRỤC (TOGAF ENTERPRISE ARCHITECTURE)
 
-Bản vẽ phân bổ hài hòa giữa **Chiều ngang (các bước đối xứng)** và **Chiều dọc (phân tầng chức năng)**, bảo đảm hiển thị vừa vặn trong một màn hình, chữ to rõ ràng, không bị thu nhỏ:
+Bản vẽ được thiết kế theo phong cách chuẩn **Microsoft Enterprise Architecture** (tham chiếu kiến trúc Microsoft Teams): phân lớp rõ ràng, nền sáng thanh lịch, độ tương phản cao, trực quan và không bị rối mắt:
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '13px'}}}%%
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '12px', 'lineColor': '#64748B'}}}%%
 flowchart TD
     %% ==========================================
-    %% TẦNG 1: CON NGƯỜI & ĐIỀU HÀNH
+    %% LỚP 1: CON NGƯỜI & ĐIỀU HÀNH (CLIENTS & WORKSPACES)
     %% ==========================================
-    subgraph T1["🏛️ TẦNG 1: VAI TRÒ NGHIỆP VỤ & TRẠM ĐIỀU HÀNH (ROLES & PRESENTATION)"]
+    subgraph T1["LỚP 1: NGƯỜI DÙNG & GIAO DIỆN TÁC NGHIỆP (CLIENTS & PRESENTATION)"]
         direction LR
         ROLES["👥 <b>ĐỘI NGŨ TÁC NGHIỆP ĐA PHÒNG BAN</b><br>🛒 Mua Hàng • 🌍 Bán Hàng QT • 🚢 Logistics • 🏛️ Hải Quan<br>📦 Thủ Kho • 💰 Kế Toán • 👑 Ban Giám Đốc / CFO"]
-        DASH["📊 <b>THÁP CHỈ HUY TRUNG TÂM (CONTROL TOWER)</b><br>Theo dõi GPS tàu biển 3D • Cảnh báo phạt bãi cont<br>Báo cáo trễ hạn tàu • Cảnh báo rủi ro biến động tỷ giá"]
+        DASH["📊 <b>THÁP CHỈ HUY TRUNG TÂM (CONTROL TOWER)</b><br>Bản đồ định vị tàu biển 3D • Cảnh báo phạt bãi cont<br>Báo cáo trễ hạn tàu • Cảnh báo rủi ro biến động tỷ giá"]
         ROLES <==> DASH
     end
 
     %% ==========================================
-    %% TẦNG 2: TRỤC QUẢN TRỊ NGOẠI THƯƠNG
+    %% LỚP 2: TRUNG TÂM QUẢN TRỊ NGOẠI THƯƠNG
     %% ==========================================
-    subgraph T2["🌐 TẦNG 2: TRUNG TÂM QUẢN TRỊ NGOẠI THƯƠNG & THUẬT TOÁN (SHARED CORE)"]
+    subgraph T2["LỚP 2: DỊCH VỤ NGOẠI THƯƠNG & THUẬT TOÁN (CORE TRADE SERVICES)"]
         direction LR
-        TC["📂 <b>TRADE CASE (HỒ SƠ MẸ)</b><br>trade_type: Import / Export<br>Hợp đồng • PO / SO • Ngân sách"]
-        TS["🚢 <b>TRADE SHIPMENT (CHUYẾN TÀU)</b><br>9 Mốc hành trình • Container & Free-time<br>Giám sát định vị • Chi phí thực tế"]
-        VNACCS["🏛️ <b>VNACCS & TARIFF ENGINE</b><br>Tờ khai chuẩn 11 số • Biểu thuế HS<br>Tỷ giá hải quan tuần của BTC"]
-        LOGIC["🧮 <b>ĐỘNG CƠ THUẬT TOÁN & BẢO VỆ</b><br>Phân bổ giá vốn VAS 02 (CBM/Trị giá)<br>Bóc tách lệch giá • 3 Cổng Stage Gates"]
+        TC["📂 <b>Trade Case</b><br>Hồ sơ mẹ (Import/Export)<br>Hợp đồng • PO/SO • Ngân sách"]
+        TS["🚢 <b>Trade Shipment</b><br>Chuyến tàu • 9 Mốc tiến độ<br>Cont & Hạn Free-time"]
+        VNACCS["🏛️ <b>Customs Engine</b><br>Tờ khai VNACCS 11 số<br>Biểu thuế HS • Tỷ giá tuần"]
+        LOGIC["🧮 <b>Động Cơ Thuật Toán</b><br>Phân bổ giá vốn VAS 02<br>Bóc tách lệch giá • Stage Gates"]
         
         TC ==>|"1 Case nhiều đợt giao"| TS
         TS <==> VNACCS
@@ -54,71 +54,71 @@ flowchart TD
     end
 
     %% ==========================================
-    %% TẦNG 3: HAI LUỒNG CHỨNG TỪ SONG SONG
+    %% LỚP 3: HAI LUỒNG CHỨNG TỪ SONG SONG
     %% ==========================================
-    subgraph T3["⚙️ TẦNG 3: HAI LUỒNG CHỨNG TỪ ERPNEXT ĐỐI XỨNG (INBOUND & OUTBOUND)"]
+    subgraph T3["LỚP 3: CHỨNG TỪ LÕI ERPNEXT SONG TRỤC (INBOUND & OUTBOUND WORKFLOWS)"]
         direction TB
-        subgraph LUONG_NHAP["🔵 LUỒNG 1: NHẬP KHẨU (INBOUND PROCUREMENT)"]
+        subgraph LUONG_NHAP["🔵 LUỒNG NHẬP KHẨU (INBOUND PROCUREMENT)"]
             direction LR
-            PO["1. Đơn Mua (PO)"] --> PR["2. Nhập Kho (PR)<br><i>Stage Gate 2 chặn</i>"] --> PI["3. Hóa Đơn Mua (PI)"] --> LCV["4. Phân Bổ Giá Vốn (LCV)"]
+            PO["1. Đơn Mua (PO)"] --> PR["2. Nhập Kho (PR)<br><i>Gate 2: Thông quan</i>"] --> PI["3. Hóa Đơn Mua (PI)"] --> LCV["4. Phân Bổ Giá Vốn (LCV)"]
         end
-        subgraph LUONG_XUAT["🟢 LUỒNG 2: XUẤT KHẨU (OUTBOUND SALES)"]
+        subgraph LUONG_XUAT["🟢 LUỒNG XUẤT KHẨU (OUTBOUND SALES)"]
             direction LR
-            SO["1. Đơn Bán (SO)"] --> DN["2. Xuất Kho Đóng Cont (DN)<br><i>Kiểm tra SI/VGM</i>"] --> SI["3. Hóa Đơn Xuất Khẩu (SI)"] --> PAY["4. Thu Ngoại Tệ (L/C, TT)"]
+            SO["1. Đơn Bán (SO)"] --> DN["2. Xuất Kho Đóng Cont (DN)<br><i>Gate 1: SI/VGM Cut-off</i>"] --> SI["3. Hóa Đơn Xuất Khẩu (SI)"] --> PAY["4. Thu Ngoại Tệ (L/C, TT)"]
         end
     end
 
     %% ==========================================
-    %% TẦNG 4: HẠ TẦNG KỸ THUẬT CONTAINER
+    %% LỚP 4: HẠ TẦNG KỸ THUẬT CONTAINER
     %% ==========================================
-    subgraph T4["🐳 TẦNG 4: HẠ TẦNG KỸ THUẬT CONTAINER & DỮ LIỆU (INFRASTRUCTURE)"]
+    subgraph T4["LỚP 4: NỀN TẢNG HẠ TẦNG KỸ THUẬT & DỮ LIỆU (INFRASTRUCTURE & PLATFORM)"]
         direction LR
-        DB["🗄️ <b>MariaDB 11.8</b><br>Giao dịch ACID • InnoDB"]
-        REDIS["⚡ <b>Redis Cache & Queue</b><br>Đệm tọa độ • Job ngầm"]
-        APP["💻 <b>Frappe App (:2828)</b><br>Backend & Frontend"]
-        SOCK["🔄 <b>WebSocket & Scheduler</b><br>Tọa độ 3D • Quét hạn phạt"]
+        INFRA_DB["🗄️ <b>MariaDB 11.8</b><br>Giao dịch ACID • InnoDB"]
+        INFRA_REDIS["⚡ <b>Redis Cache & Queue</b><br>Đệm tọa độ • Job ngầm"]
+        INFRA_APP["💻 <b>Frappe App Cluster</b><br>Backend & Frontend (:2828)"]
+        INFRA_SOCK["🔄 <b>WebSocket & Scheduler</b><br>Tọa độ 3D • Quét hạn phạt"]
     end
 
     %% ==========================================
-    %% LIÊN KẾT ĐA TẦNG DỌC
+    %% LIÊN KẾT ĐA TẦNG DỌC CHUẨN MSTEAMS
     %% ==========================================
-    T1 ==>|"Thao tác & Ra quyết định"| T2
+    T1 ==>|"Thao tác nghiệp vụ & Ra quyết định"| T2
     T2 <===>|"Đồng bộ tiến độ & Kiểm soát Stage Gate"| T3
-    T3 ==>|"Lưu trữ dữ liệu & Thực thi ngầm"| T4
+    T3 ==>|"Lưu trữ dữ liệu & Thực thi container ngầm"| T4
 
     %% ==========================================
-    %% PHỐI MÀU GIAO DIỆN DARK TECH
+    %% PHỐI MÀU CHUẨN MSTEAMS (LIGHT ENTERPRISE CLEAN)
     %% ==========================================
-    style T1 fill:#0F172A,stroke:#38BDF8,stroke-width:2px,color:#FFFFFF
-    style T2 fill:#1E1B4B,stroke:#818CF8,stroke-width:2px,color:#FFFFFF
-    style T3 fill:#042F2E,stroke:#2DD4BF,stroke-width:2px,color:#FFFFFF
-    style T4 fill:#1E293B,stroke:#94A3B8,stroke-width:2px,color:#FFFFFF
+    style T1 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.5px,color:#0F172A
+    style T2 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.5px,color:#0F172A
+    style T3 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.5px,color:#0F172A
+    style T4 fill:#F1F5F9,stroke:#CBD5E1,stroke-width:1.5px,color:#0F172A
 
-    style LUONG_NHAP fill:#0B233D,stroke:#38BDF8,color:#FFFFFF
-    style LUONG_XUAT fill:#064E3B,stroke:#34D399,color:#FFFFFF
+    style LUONG_NHAP fill:#FFFFFF,stroke:#3B82F6,stroke-width:1.5px,color:#1E3A8A
+    style LUONG_XUAT fill:#FFFFFF,stroke:#10B981,stroke-width:1.5px,color:#064E3B
 
-    style ROLES fill:#0284C7,stroke:#38BDF8,color:#FFFFFF
-    style DASH fill:#0369A1,stroke:#38BDF8,color:#FFFFFF
+    style ROLES fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#0F172A
+    style DASH fill:#EFF6FF,stroke:#2563EB,stroke-width:1.5px,color:#1E40AF
 
-    style TC fill:#4338CA,stroke:#C7D2FE,color:#FFFFFF,stroke-width:2px
-    style TS fill:#6D28D9,stroke:#DDD6FE,color:#FFFFFF,stroke-width:2px
-    style VNACCS fill:#4C1D95,stroke:#DDD6FE,color:#FFFFFF
-    style LOGIC fill:#7C2D12,stroke:#FDBA74,color:#FFFFFF
+    style TC fill:#EFF6FF,stroke:#2563EB,stroke-width:2px,color:#1E40AF
+    style TS fill:#FFFFFF,stroke:#64748B,stroke-width:1.5px,color:#0F172A
+    style VNACCS fill:#FFFFFF,stroke:#64748B,stroke-width:1px,color:#0F172A
+    style LOGIC fill:#FFFFFF,stroke:#64748B,stroke-width:1px,color:#0F172A
 
-    style PO fill:#0369A1,stroke:#7DD3FC,color:#FFFFFF
-    style PR fill:#0369A1,stroke:#7DD3FC,color:#FFFFFF
-    style PI fill:#0369A1,stroke:#7DD3FC,color:#FFFFFF
-    style LCV fill:#B45309,stroke:#FCD34D,color:#FFFFFF
+    style PO fill:#EFF6FF,stroke:#3B82F6,stroke-width:1px,color:#1E3A8A
+    style PR fill:#EFF6FF,stroke:#3B82F6,stroke-width:1px,color:#1E3A8A
+    style PI fill:#EFF6FF,stroke:#3B82F6,stroke-width:1px,color:#1E3A8A
+    style LCV fill:#FEF3C7,stroke:#D97706,stroke-width:1px,color:#78350F
 
-    style SO fill:#047857,stroke:#6EE7B7,color:#FFFFFF
-    style DN fill:#047857,stroke:#6EE7B7,color:#FFFFFF
-    style SI fill:#047857,stroke:#6EE7B7,color:#FFFFFF
-    style PAY fill:#047857,stroke:#6EE7B7,color:#FFFFFF
+    style SO fill:#F0FDF4,stroke:#10B981,stroke-width:1px,color:#064E3B
+    style DN fill:#F0FDF4,stroke:#10B981,stroke-width:1px,color:#064E3B
+    style SI fill:#F0FDF4,stroke:#10B981,stroke-width:1px,color:#064E3B
+    style PAY fill:#FEF3C7,stroke:#D97706,stroke-width:1px,color:#78350F
 
-    style DB fill:#334155,stroke:#94A3B8,color:#FFFFFF
-    style REDIS fill:#334155,stroke:#94A3B8,color:#FFFFFF
-    style APP fill:#334155,stroke:#94A3B8,color:#FFFFFF
-    style SOCK fill:#334155,stroke:#94A3B8,color:#FFFFFF
+    style INFRA_DB fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#0F172A
+    style INFRA_REDIS fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#0F172A
+    style INFRA_APP fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#0F172A
+    style INFRA_SOCK fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#0F172A
 ```
 
 ---
@@ -128,38 +128,38 @@ flowchart TD
 Giải quyết trọn vẹn bài toán: **1 Đơn hàng mua lớn (PO) được nhà máy chia làm 2 đợt giao trên 2 chuyến tàu khác nhau**:
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '13px'}}}%%
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '13px', 'lineColor': '#64748B'}}}%%
 flowchart TD
     %% TẦNG HỒ SƠ THƯƠNG MẠI
-    subgraph S_CASE["📂 TẦNG HỒ SƠ THƯƠNG MẠI: TRADE CASE (MÃ: IMP-2026-00001)"]
+    subgraph S_CASE["HỒ SƠ DỰ ÁN NGOẠI THƯƠNG: TRADE CASE (MÃ: IMP-2026-00001)"]
         direction TB
         PO["Đơn Mua Hàng PO: 1,000 iPhone 16 Pro Max ($1,000,000 USD) • Nhà cung cấp: Apple Inc"]
-        POL_GOV["Chính Sách & Ngân Sách: Incoterm CIF Cát Lái • Biểu thuế HS 8517.13.00 (Thuế 0%) • Ngân sách tối đa: 25.5 Tỷ VND"]
+        POL_GOV["Chính Sách & Ngân Sách: Incoterm CIF Cát Lái • Biểu thuế HS 8517.13.00 (Thuế 0%) • Ngân sách: 25.5 Tỷ VND"]
         PO --- POL_GOV
     end
 
     %% TẦNG CHUYẾN TÀU CON
     subgraph S_SHP1["🚢 CHUYẾN TÀU 1 (SHIPMENT 1: TS-2026-00001)"]
         direction TB
-        SHP1_INFO["<b>Giao Đợt 1: 600 iPhone</b><br>Tàu: Maersk Mc-Kinney Moller<br>Vận đơn B/L: MAEU11223344<br>Container: MSKU1234567 (40ft HC)<br>Hạn Free-time bãi: 7 ngày<br>Trạng thái: <b>Hoàn thành nhập kho & Landed Cost đợt 1</b>"]
+        SHP1_INFO["<b>Giao Đợt 1: 600 iPhone</b><br>Tàu: Maersk Mc-Kinney Moller • Vận đơn: MAEU11223344<br>Container: MSKU1234567 (40ft HC) • Hạn Free-time: 7 ngày<br>Trạng thái: <b>Đã hoàn tất nhập kho & Landed Cost đợt 1</b>"]
     end
 
     subgraph S_SHP2["🚢 CHUYẾN TÀU 2 (SHIPMENT 2: TS-2026-00002)"]
         direction TB
-        SHP2_INFO["<b>Giao Đợt 2: 400 iPhone</b><br>Tàu: MSC Oscar<br>Vận đơn B/L: MSCU99887766<br>Container: MSCU7654321 (40ft HC)<br>Hạn Free-time bãi: 7 ngày<br>Trạng thái: <b>Đang trên biển (In Transit)</b>"]
+        SHP2_INFO["<b>Giao Đợt 2: 400 iPhone</b><br>Tàu: MSC Oscar • Vận đơn: MSCU99887766<br>Container: MSCU7654321 (40ft HC) • Hạn Free-time: 7 ngày<br>Trạng thái: <b>Đang trên biển (In Transit)</b>"]
     end
 
     S_CASE ==>|"Đợt giao hàng 1 (Lập phiếu PR-001)"| S_SHP1
     S_CASE ==>|"Đợt giao hàng 2 (Lập phiếu PR-002)"| S_SHP2
 
-    style S_CASE fill:#1E1B4B,stroke:#818CF8,stroke-width:3px,color:#FFFFFF
-    style S_SHP1 fill:#064E3B,stroke:#34D399,stroke-width:2px,color:#FFFFFF
-    style S_SHP2 fill:#0C4A6E,stroke:#38BDF8,stroke-width:2px,color:#FFFFFF
+    style S_CASE fill:#EFF6FF,stroke:#2563EB,stroke-width:2px,color:#1E40AF
+    style S_SHP1 fill:#F0FDF4,stroke:#10B981,stroke-width:1.5px,color:#064E3B
+    style S_SHP2 fill:#F8FAFC,stroke:#64748B,stroke-width:1.5px,color:#0F172A
 
-    style PO fill:#3730A3,stroke:#A5B4FC,color:#FFFFFF
-    style POL_GOV fill:#3730A3,stroke:#A5B4FC,color:#FFFFFF
-    style SHP1_INFO fill:#047857,stroke:#6EE7B7,color:#FFFFFF
-    style SHP2_INFO fill:#0369A1,stroke:#7DD3FC,color:#FFFFFF
+    style PO fill:#FFFFFF,stroke:#3B82F6,stroke-width:1px,color:#1E3A8A
+    style POL_GOV fill:#FFFFFF,stroke:#3B82F6,stroke-width:1px,color:#1E3A8A
+    style SHP1_INFO fill:#FFFFFF,stroke:#10B981,stroke-width:1px,color:#064E3B
+    style SHP2_INFO fill:#FFFFFF,stroke:#64748B,stroke-width:1px,color:#0F172A
 ```
 
 ---
@@ -169,40 +169,62 @@ flowchart TD
 Hệ thống hoạt động theo cơ chế **Quản trị Chủ động (Proactive Control)**: Trước khi chuyển sang bước tiếp theo, hệ thống tự động kiểm tra các điều kiện sẵn sàng đối xứng cho cả 2 luồng Nhập khẩu và Xuất khẩu:
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '13px'}}}%%
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '12px', 'lineColor': '#64748B'}}}%%
 flowchart TD
     subgraph GATES_IN["HỆ CỔNG KIỂM SOÁT NHẬP KHẨU (INBOUND GATES)"]
         direction TB
-        IN_START(["1. Tàu Chở Hàng Đến Cảng Đến (POD)"]) --> IN_G1{"🚪 CỔNG 1: HỒ SƠ NGOẠI THƯƠNG<br><i>Đủ 100% C/O, Packing List, Invoice?</i>"}
-        IN_G1 -- "❌ Chưa đủ" --> IN_STOP1["🚫 CHẶN: Không cho mở tờ khai VNACCS"]
-        IN_G1 -- "✅ Đủ 100%" --> IN_PASS1["🟢 Chuyển mốc M06 (Khai hải quan)"]
+        IN_START(["1. Tàu Chở Hàng Đến Cảng Đến (POD)"]) --> IN_G1{"CỔNG 1: HỒ SƠ NGOẠI THƯƠNG<br><i>Đủ 100% C/O, Packing List, Invoice?</i>"}
+        IN_G1 -- "❌ Chưa đủ" --> IN_STOP1["CHẶN: Không cho mở tờ khai VNACCS"]
+        IN_G1 -- "✅ Đủ 100%" --> IN_PASS1["ĐẠT: Chuyển mốc M06 (Khai hải quan)"]
         
-        IN_PASS1 --> IN_G2{"🚪 CỔNG 2: THÔNG QUAN NHẬP KHO<br><i>Mốc M07 đã Completed chưa?</i>"}
-        IN_G2 -- "❌ Chưa thông quan" --> IN_STOP2["🚫 <b>CHẶN SUBMIT PHIẾU NHẬP KHO (PR)</b><br>Thủ kho bị khóa quyền duyệt hàng vào kho"]
-        IN_G2 -- "✅ Đã thông quan" --> IN_PASS2["🟢 Cho phép duyệt PR & Nhập kho (M09)"]
+        IN_PASS1 --> IN_G2{"CỔNG 2: THÔNG QUAN NHẬP KHO<br><i>Mốc M07 đã Completed chưa?</i>"}
+        IN_G2 -- "❌ Chưa thông quan" --> IN_STOP2["<b>CHẶN SUBMIT PHIẾU NHẬP KHO (PR)</b><br>Thủ kho bị khóa quyền duyệt hàng vào kho"]
+        IN_G2 -- "✅ Đã thông quan" --> IN_PASS2["ĐẠT: Cho phép duyệt PR & Nhập kho (M09)"]
 
-        IN_PASS2 --> IN_G3{"🚪 CỔNG 3: QUYẾT TOÁN GIÁ VỐN<br><i>Chi phí vượt dự toán > 10%?</i>"}
-        IN_G3 -- "❌ Vượt > 10%" --> IN_STOP3["🔒 Khóa đóng lô, yêu cầu Giám đốc duyệt"]
-        IN_G3 -- "✅ Trong định mức" --> IN_PASS3["🎉 Chạy Landed Cost (LCV) & Đóng lô"]
+        IN_PASS2 --> IN_G3{"CỔNG 3: QUYẾT TOÁN GIÁ VỐN<br><i>Chi phí vượt dự toán > 10%?</i>"}
+        IN_G3 -- "❌ Vượt > 10%" --> IN_STOP3["Khóa đóng lô, yêu cầu Giám đốc duyệt"]
+        IN_G3 -- "✅ Trong định mức" --> IN_PASS3["ĐẠT: Chạy Landed Cost (LCV) & Đóng lô"]
     end
 
     subgraph GATES_OUT["HỆ CỔNG KIỂM SOÁT XUẤT KHẨU (OUTBOUND GATES)"]
         direction TB
-        OUT_START(["1. Đóng Hàng Cont Tại Kho Công Ty"]) --> OUT_G1{"🚪 CỔNG 1: HẠN CUT-OFF HÃNG TÀU<br><i>Đã gửi SI & Phiếu cân VGM trước cut-off?</i>"}
-        OUT_G1 -- "❌ Trễ hạn" --> OUT_STOP1["🚫 BÁO ĐỘNG ĐỎ: Nguy cơ rớt tàu (Rolled cont)"]
-        OUT_G1 -- "✅ Đủ SI & VGM" --> OUT_PASS1["🟢 Cấp phép hạ bãi cont cảng xuất (Gate-in)"]
+        OUT_START(["1. Đóng Hàng Cont Tại Kho Công Ty"]) --> OUT_G1{"CỔNG 1: HẠN CUT-OFF HÃNG TÀU<br><i>Đã gửi SI & Phiếu cân VGM trước cut-off?</i>"}
+        OUT_G1 -- "❌ Trễ hạn" --> OUT_STOP1["BÁO ĐỘNG ĐỎ: Nguy cơ rớt tàu (Rolled cont)"]
+        OUT_G1 -- "✅ Đủ SI & VGM" --> OUT_PASS1["ĐẠT: Cấp phép hạ bãi cont cảng xuất (Gate-in)"]
 
-        OUT_PASS1 --> OUT_G2{"🚪 CỔNG 2: THÔNG QUAN XUẤT KHẨU<br><i>Tờ khai xuất đã thông quan chưa?</i>"}
-        OUT_G2 -- "❌ Chưa thông quan" --> OUT_STOP2["🚫 CHẶN: Hãng tàu từ chối cẩu cont lên tàu"]
-        OUT_G2 -- "✅ Đã thông quan" --> OUT_PASS2["🟢 Cẩu cont lên tàu & Phát hành B/L gốc (M04)"]
+        OUT_PASS1 --> OUT_G2{"CỔNG 2: THÔNG QUAN XUẤT KHẨU<br><i>Tờ khai xuất đã thông quan chưa?</i>"}
+        OUT_G2 -- "❌ Chưa thông quan" --> OUT_STOP2["CHẶN: Hãng tàu từ chối cẩu cont lên tàu"]
+        OUT_G2 -- "✅ Đã thông quan" --> OUT_PASS2["ĐẠT: Cẩu cont lên tàu & Phát hành B/L gốc (M04)"]
 
-        OUT_PASS2 --> OUT_G3{"🚪 CỔNG 3: THANH TOÁN QUỐC TẾ<br><i>Xuất trình B/L, C/O hợp lệ theo L/C?</i>"}
-        OUT_G3 -- "❌ Bất hợp lệ (Discrepancy)" --> OUT_STOP3["🔒 Ngân hàng từ chối thanh toán ngoại tệ"]
-        OUT_G3 -- "✅ Khớp 100% L/C" --> OUT_PASS3["🎉 Thu đủ 100% tiền hàng ngoại tệ về nước"]
+        OUT_PASS2 --> OUT_G3{"CỔNG 3: THANH TOÁN QUỐC TẾ<br><i>Xuất trình B/L, C/O hợp lệ theo L/C?</i>"}
+        OUT_G3 -- "❌ Bất hợp lệ (Discrepancy)" --> OUT_STOP3["Khóa: Ngân hàng từ chối thanh toán ngoại tệ"]
+        OUT_G3 -- "✅ Khớp 100% L/C" --> OUT_PASS3["ĐẠT: Thu đủ 100% tiền hàng ngoại tệ về nước"]
     end
 
-    style GATES_IN fill:#0F172A,stroke:#38BDF8,stroke-width:2px,color:#FFFFFF
-    style GATES_OUT fill:#064E3B,stroke:#10B981,stroke-width:2px,color:#FFFFFF
+    style GATES_IN fill:#F8FAFC,stroke:#3B82F6,stroke-width:1.5px,color:#0F172A
+    style GATES_OUT fill:#F8FAFC,stroke:#10B981,stroke-width:1.5px,color:#0F172A
+
+    style IN_START fill:#FFFFFF,stroke:#64748B,color:#0F172A
+    style IN_G1 fill:#FFFFFF,stroke:#3B82F6,color:#1E3A8A
+    style IN_G2 fill:#FFFFFF,stroke:#3B82F6,color:#1E3A8A
+    style IN_G3 fill:#FFFFFF,stroke:#3B82F6,color:#1E3A8A
+    style IN_STOP1 fill:#FEF2F2,stroke:#DC2626,color:#991B1B
+    style IN_STOP2 fill:#FEF2F2,stroke:#DC2626,color:#991B1B
+    style IN_STOP3 fill:#FEF3C7,stroke:#D97706,color:#92400E
+    style IN_PASS1 fill:#F0FDF4,stroke:#16A34A,color:#166534
+    style IN_PASS2 fill:#F0FDF4,stroke:#16A34A,color:#166534
+    style IN_PASS3 fill:#F0FDF4,stroke:#16A34A,color:#166534
+
+    style OUT_START fill:#FFFFFF,stroke:#64748B,color:#0F172A
+    style OUT_G1 fill:#FFFFFF,stroke:#10B981,color:#064E3B
+    style OUT_G2 fill:#FFFFFF,stroke:#10B981,color:#064E3B
+    style OUT_G3 fill:#FFFFFF,stroke:#10B981,color:#064E3B
+    style OUT_STOP1 fill:#FEF2F2,stroke:#DC2626,color:#991B1B
+    style OUT_STOP2 fill:#FEF2F2,stroke:#DC2626,color:#991B1B
+    style OUT_STOP3 fill:#FEF3C7,stroke:#D97706,color:#92400E
+    style OUT_PASS1 fill:#F0FDF4,stroke:#16A34A,color:#166534
+    style OUT_PASS2 fill:#F0FDF4,stroke:#16A34A,color:#166534
+    style OUT_PASS3 fill:#F0FDF4,stroke:#16A34A,color:#166534
 ```
 
 ---
