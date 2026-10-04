@@ -10,7 +10,7 @@
 
 ---
 
-## 📌 TÓM TẮT BÁO CÁO (EXECUTIVE SUMMARY)
+## TÓM TẮT BÁO CÁO (EXECUTIVE SUMMARY)
 
 Báo cáo này trình bày toàn diện công trình nghiên cứu, phân tích nghiệp vụ, thiết kế kiến trúc hệ thống và kịch bản mô phỏng giải pháp **Quản trị hoạt động Xuất Nhập khẩu (Global Trade Management - GTM)** tích hợp trên nền tảng mã nguồn mở cấp doanh nghiệp **ERPNext v15**.
 
@@ -25,7 +25,7 @@ Trong bối cảnh chuỗi cung ứng toàn cầu biến động phức tạp, c
 
 ---
 
-## 📑 DANH MỤC HÌNH VẼ, BẢNG BIỂU VÀ THUẬT NGỮ VIẾT TẮT
+## DANH MỤC HÌNH VẼ, BẢNG BIỂU VÀ THUẬT NGỮ VIẾT TẮT
 
 ### Danh mục Hình vẽ
 * **[Hình 1.1]**: Sơ đồ ba dòng chảy cốt lõi (Vật lý, Thông tin - Pháp lý, Tài chính) trong lô hàng XNK.
@@ -94,7 +94,7 @@ Trong bối cảnh chuỗi cung ứng toàn cầu biến động phức tạp, c
 
 ---
 
-## 📖 CHƯƠNG 1: TỔNG QUAN ĐỀ TÀI VÀ BÀI TOÁN HỆ THỐNG
+## CHƯƠNG 1: TỔNG QUAN ĐỀ TÀI VÀ BÀI TOÁN HỆ THỐNG
 
 ### 1.1. Bản chất của Quản trị Xuất Nhập khẩu: Ba dòng chảy đồng hành
 Trong hoạt động thương mại quốc tế của một doanh nghiệp hiện đại, một nghiệp vụ mua hàng hay bán hàng xuyên biên giới không đơn thuần là giao dịch trao đổi hàng - tiền, mà là sự vận động đồng thời, tương hỗ và ràng buộc chặt chẽ của **ba dòng chảy cốt lõi**:
@@ -150,14 +150,14 @@ Từ các nỗi đau thực tế nêu trên, bài toán đặt ra cho doanh nghi
 ### 1.6. Phạm vi bài toán và Đối tượng nghiên cứu của Đề tài
 * **Đối tượng nghiên cứu:** Hoạt động quản trị chuỗi cung ứng ngoại thương và phân bổ chi phí mua hàng đối với hàng hóa nguyên container (Full Container Load - FCL) vận chuyển bằng đường biển quốc tế của các doanh nghiệp sản xuất và thương mại tại Việt Nam.
 * **Giả định môi trường nghiên cứu:**
-  * Doanh nghiệp áp dụng chế độ kế toán theo Thông tư 200/2014/TT-BTC và chuẩn mực kế toán Việt Nam số 02 (VAS 02 - Hàng tồn kho).
-  * Quy trình hải quan điện tử tuân thủ Luật Hải quan 2014, Thông tư 38/2015/TT-BTC, Thông tư 39/2018/TT-BTC và chuẩn số tờ khai VNACCS theo Công văn 5922/TCHQ-VNACCS.
-  * Doanh nghiệp nộp thuế GTGT theo phương pháp khấu trừ.
+ * Doanh nghiệp áp dụng chế độ kế toán theo Thông tư 200/2014/TT-BTC và chuẩn mực kế toán Việt Nam số 02 (VAS 02 - Hàng tồn kho).
+ * Quy trình hải quan điện tử tuân thủ Luật Hải quan 2014, Thông tư 38/2015/TT-BTC, Thông tư 39/2018/TT-BTC và chuẩn số tờ khai VNACCS theo Công văn 5922/TCHQ-VNACCS.
+ * Doanh nghiệp nộp thuế GTGT theo phương pháp khấu trừ.
 * **Ngoài phạm vi nghiên cứu (Out of Scope):** Hàng hóa phi mậu dịch, hàng tiểu ngạch biên giới, hàng bưu chính chuyển phát nhanh cá nhân, phương thức thanh toán tiền mặt trực tiếp và các phương thức vận tải đa phương thức đặc thù (đường sắt liên vận, đường ống).
 
 ---
 
-## 🎯 CHƯƠNG 2: MỤC TIÊU VÀ GIẢI PHÁP HỆ THỐNG MỚI
+## CHƯƠNG 2: MỤC TIÊU VÀ GIẢI PHÁP HỆ THỐNG MỚI
 
 ### 2.1. Mô hình Hai tầng: Hồ sơ mẹ (Trade Case) và Chuyến hàng con (Trade Shipment)
 Một trong những khiếm khuyết lớn nhất của các hệ thống ERP truyền thống khi quản lý xuất nhập khẩu là cố gắng gắn trực tiếp chi phí vận tải và thủ tục hải quan vào Đơn đặt hàng mua (`Purchase Order` - PO). Trong thực tế ngoại thương, một Hợp đồng thương mại hay PO lớn thường được **giao hàng làm nhiều lần (Partial Shipment)** lệch lịch tàu nhau, hoặc ngược lại nhiều PO mua từ cùng một thị trường được gom vào chung một container.
@@ -172,16 +172,6 @@ Hệ thống giải quyết triệt để vấn đề này bằng mô hình **Ha
 
 ### 2.2. Hệ thống Cổng kiểm soát rào chắn (3-Tier Stage Gates & Poka-Yoke)
 Để đảm bảo chất lượng vận hành và triệt tiêu sai sót con người, hệ thống thiết lập **3 Cổng kiểm soát rào chắn (Stage Gates)** trải dài trên trục 9 Cột mốc hành trình chuẩn (M01–M09):
-
-```
-Trục 9 Mốc: [M01] ➔ [M02] ➔ [M03] ➔ [M04_Tàu chạy] ➔ [M05_ETA] ➔ [M06_Khai HQ] ➔ [M07_Thông quan] ➔ [M08_Kéo cont] ➔ [M09_Nhập kho]
-                              ▲                                      ▲                                              ▲
-                       [Khóa cứng PO]                         [STAGE GATE 1]                                 [STAGE GATE 2]
-                                                            (Đủ 100% chứng từ)                            (Thông quan mới dỡ hàng)
-                                                                                                                    ▼
-                                                                                                             [STAGE GATE 3]
-                                                                                                          (Quyết toán & Đóng lô)
-```
 
 1. **Cổng 1 (Stage Gate 1 - Document Readiness Gate):** Kích hoạt tại mốc M06 trước khi mở tờ khai hải quan. Hệ thống kiểm tra đối chiếu checklist chứng từ: Chỉ khi tích đủ 100% các chứng từ bắt buộc (Commercial Invoice, Packing List, Bill of Lading, C/O hợp lệ) thì trạng thái mới chuyển sang `READY`, mở khóa cho phép chuyên viên Hải quan submit tờ khai VNACCS.
 2. **Cổng 2 (Stage Gate 2 - Physical Receiving Gate):** Kích hoạt tại mốc M09 khi container về đến kho công ty. Hệ thống kiểm tra cờ thông quan pháp lý: Nếu tờ khai chưa đạt trạng thái `Customs Cleared` (mốc M07 chưa hoàn thành), hệ thống **khóa cứng nút Submit Phiếu Nhập Kho (`Purchase Receipt`)**. Thủ kho bị cấm dỡ hàng vào kho thương mại để ngăn ngừa việc xuất bán hàng chưa hoàn tất thủ tục pháp lý. (Trường hợp nợ C/O được đưa vào Kho bảo quản riêng `Suspense Warehouse`).
@@ -201,10 +191,10 @@ Hệ thống không sử dụng AI tạo sinh một cách chung chung mà áp d�
 Hệ thống giải phóng ban lãnh đạo và các trưởng phòng khỏi hàng trăm thông tin tác nghiệp sự vụ hằng ngày bằng triết lý **Quản trị theo Ngoại lệ (Management by Exception - MBE)**:
 * Tất cả các chuyến hàng vận hành an toàn đúng tiến độ sẽ hiển thị trạng thái màu xanh và tự động chạy theo quy trình chuẩn.
 * Màn hình **Tháp chỉ huy (Logistics Control Tower)** của nhà quản lý chỉ hiển thị các "Điểm nóng" vi phạm ngưỡng cảnh báo:
-  * Container sắp chạm hạn phạt lưu bãi cảng (cảnh báo đỏ trước 3 ngày đếm ngược Free-time).
-  * Lô hàng bị giữ luồng Đỏ hải quan hoặc thiếu chứng từ gốc quá 48 giờ kể từ khi tàu cập cảng.
-  * Chi phí dịch vụ thực tế vượt định mức dự toán ngân sách $> 10\%$.
-  * Container xuất khẩu có nguy cơ trễ hạn Cut-off SI/VGM trước 24 giờ.
+ * Container sắp chạm hạn phạt lưu bãi cảng (cảnh báo đỏ trước 3 ngày đếm ngược Free-time).
+ * Lô hàng bị giữ luồng Đỏ hải quan hoặc thiếu chứng từ gốc quá 48 giờ kể từ khi tàu cập cảng.
+ * Chi phí dịch vụ thực tế vượt định mức dự toán ngân sách $> 10\%$.
+ * Container xuất khẩu có nguy cơ trễ hạn Cut-off SI/VGM trước 24 giờ.
 
 ```
 [Hình 2.3: Minh họa Giao diện Tháp chỉ huy Control Tower và Bảng quản trị ngoại lệ (cần vẽ hoặc chụp giao diện)]
@@ -212,7 +202,7 @@ Hệ thống giải phóng ban lãnh đạo và các trưởng phòng khỏi hà
 
 ---
 
-## 🏗️ CHƯƠNG 3: THIẾT KẾ KIẾN TRÚC HỆ THỐNG
+## CHƯƠNG 3: THIẾT KẾ KIẾN TRÚC HỆ THỐNG
 
 ### 3.1. Nguyên tắc thiết kế Kiến trúc theo TOGAF
 Bản thiết kế giải pháp hệ thống được chuẩn hóa theo khung kiến trúc mở quốc tế **TOGAF (The Open Group Architecture Framework)**, phân định rạch ròi 4 lớp kiến trúc tương hỗ:
@@ -228,63 +218,6 @@ Bản thiết kế giải pháp hệ thống được chuẩn hóa theo khung ki
 ### 3.2. Kiến trúc Logic 4 Tầng Tổng thể
 Hệ thống được tổ chức thành **4 Tầng Kỹ thuật Nội bộ** chặt chẽ, đảm bảo tính mở và khả năng bảo trì cao:
 
-```mermaid
-flowchart TD
-    subgraph T1["<b>TẦNG 1: TRẢI NGHIỆM NGƯỜI DÙNG (PRESENTATION LAYER)</b>"]
-        direction LR
-        U1["Giao diện Tác nghiệp Web Desk<br>(Thu mua, Logistics, HQ, Kho, Kế toán)"]
-        U2["Mobile App / Tablet<br>(Thủ kho kiểm đếm, CFO duyệt lệnh chi)"]
-        U3["Control Tower Dashboard<br>(Màn hình lớn Ban Giám đốc)"]
-        U4["Partner Web Portal<br>(Forwarder tra cứu chứng từ)"]
-    end
-
-    subgraph T2["<b>TẦNG 2: CỔNG TRUY CẬP VÀ BẢO MẬT (API GATEWAY & SECURITY)</b>"]
-        direction LR
-        G1["Reverse Proxy Nginx<br>(HTTPS SSL/TLS)"]
-        G2["Authentication & RBAC<br>(Session, JWT, 2FA)"]
-        G3["REST API / WebSocket<br>(Realtime Socket.io)"]
-        G4["Rate Limiting & Audit Guard<br>(Chống tấn công & Ghi log)"]
-    end
-
-    subgraph T3["<b>TẦNG 3: DỊCH VỤ NGHIỆP VỤ & AI (APPLICATION & AI SERVICES)</b>"]
-        direction TB
-        subgraph CORE_ERP["Lõi Chuẩn ERPNext v15 (Standard Core Modules)"]
-            direction LR
-            E_BUY["Mua hàng (PO)"]
-            E_SELL["Bán hàng (SO)"]
-            E_STK["Kho (PR/DN)"]
-            E_ACC["Kế toán (GL/PI/SI)"]
-        end
-        subgraph CUSTOM_APP["Phân hệ Chuyên biệt: App logistics_wizard (7 Business Modules)"]
-            direction LR
-            M1["1. Trade Case"]
-            M2["2. Shipment Tracking"]
-            M3["3. Documents"]
-            M4["4. Customs"]
-            M5["5. Landed Cost"]
-            M6["6. Exception"]
-            M7["7. Dashboard"]
-        end
-        subgraph AI_SRV["Dịch vụ Trí tuệ Nhân tạo (AI & Compliance Service)"]
-            direction LR
-            AI1["ChromaDB Vector Store<br>(Văn bản Luật & Biểu thuế)"]
-            AI2["LangChain / LlamaIndex<br>(RAG Retriever)"]
-            AI3["LLM Engine<br>(Gợi ý HS Code & Phân tích GIR)"]
-        end
-        CORE_ERP <== "Frappe Hooks & API" ==> CUSTOM_APP
-        CUSTOM_APP <== "JSON-RPC / REST" ==> AI_SRV
-    end
-
-    subgraph T4["<b>TẦNG 4: LƯU TRỮ VÀ HÀNG ĐỢI HỆ THỐNG (DATA & PERSISTENCE LAYER)</b>"]
-        direction LR
-        D1[("MariaDB 10.6<br>(Dữ liệu quan hệ ERP)")]
-        D2[("Redis Caching<br>(Phiên làm việc & Cache)")]
-        D3[("Celery Background Queue<br>(Hàng đợi tác vụ ngầm)")]
-        D4[("File Storage S3/Local<br>(B/L, C/O, Tờ khai PDF)")]
-    end
-
-    T1 ==> T2 ==> T3 ==> T4
-```
 ```
 [Hình 3.1: Bản vẽ Kiến trúc Logic 4 Tầng theo chuẩn TOGAF Enterprise Solution Architecture (đã có ở trên)]
 ```
@@ -299,37 +232,37 @@ Cổng giao tiếp duy nhất giữa client và máy chủ thông qua Nginx Reve
 Đây là trái tim chức năng của giải pháp. Nhóm nghiên cứu đã đóng gói toàn bộ logic nghiệp vụ mở rộng vào ứng dụng độc lập **`logistics_wizard`**, cấu trúc thành **7 Phân hệ Chuyên biệt** giao tiếp với lõi ERPNext v15 qua hệ thống Frappe Hooks và Events:
 
 1. **Phân hệ 1: Quản trị Hồ sơ Ngoại thương (Trade Case Management):**
-   * *Mục đích:* Quản lý thực thể hồ sơ mẹ `IMP/EXP-xxxx`, gom nhiều đơn hàng PO/SO; thiết lập ngân sách chi phí dự toán (Estimated Budget) và theo dõi tiến độ tổng thể của toàn bộ hợp đồng ngoại thương.
-   * *DocType:* `Trade Case`, `Trade Case PO Item`, `Trade Case Budget`.
+ * *Mục đích:* Quản lý thực thể hồ sơ mẹ `IMP/EXP-xxxx`, gom nhiều đơn hàng PO/SO; thiết lập ngân sách chi phí dự toán (Estimated Budget) và theo dõi tiến độ tổng thể của toàn bộ hợp đồng ngoại thương.
+ * *DocType:* `Trade Case`, `Trade Case PO Item`, `Trade Case Budget`.
 2. **Phân hệ 2: Giám sát Chuyến hàng & Tháp chỉ huy (Shipment Tracking & Control Tower):**
-   * *Mục đích:* Quản lý chi tiết chuyến tàu `TS-xxxx`, số vận đơn B/L, hành trình container, số chì seal; quản trị 9 cột mốc hành trình (M01-M09); tự động tính toán và kích hoạt đồng hồ đếm ngược Free-time bãi cảng.
-   * *DocType:* `Trade Shipment`, `Trade Shipment Container`, `Trade Shipment Milestone`.
+ * *Mục đích:* Quản lý chi tiết chuyến tàu `TS-xxxx`, số vận đơn B/L, hành trình container, số chì seal; quản trị 9 cột mốc hành trình (M01-M09); tự động tính toán và kích hoạt đồng hồ đếm ngược Free-time bãi cảng.
+ * *DocType:* `Trade Shipment`, `Trade Shipment Container`, `Trade Shipment Milestone`.
 3. **Phân hệ 3: Quản trị Bộ Chứng từ Ngoại thương (Trade Document Management):**
-   * *Mục đích:* Quản lý ma trận danh mục chứng từ bắt buộc cho từng giai đoạn; kiểm tra tính đầy đủ và tính hợp lệ của bản gốc (Original Verified); vận hành Cổng kiểm soát Stage Gate 1 (Document Readiness Gate).
-   * *DocType:* `Trade Document`, `Trade Document Checklist Item`.
+ * *Mục đích:* Quản lý ma trận danh mục chứng từ bắt buộc cho từng giai đoạn; kiểm tra tính đầy đủ và tính hợp lệ của bản gốc (Original Verified); vận hành Cổng kiểm soát Stage Gate 1 (Document Readiness Gate).
+ * *DocType:* `Trade Document`, `Trade Document Checklist Item`.
 4. **Phân hệ 4: Hải quan & Tuân thủ Pháp lý (Customs & Compliance):**
-   * *Mục đích:* Khai báo tờ khai VNACCS chuẩn 12 ký tự (CV 5922); tự động tra cứu tỷ giá tính thuế tuần của Bộ Tài chính; tích hợp trợ lý AI RAG hỗ trợ tra cứu văn bản pháp luật và gợi ý mã HS Code.
-   * *DocType:* `Customs Declaration`, `Customs Exchange Rate`.
+ * *Mục đích:* Khai báo tờ khai VNACCS chuẩn 12 ký tự (CV 5922); tự động tra cứu tỷ giá tính thuế tuần của Bộ Tài chính; tích hợp trợ lý AI RAG hỗ trợ tra cứu văn bản pháp luật và gợi ý mã HS Code.
+ * *DocType:* `Customs Declaration`, `Customs Exchange Rate`.
 5. **Phân hệ 5: Quản trị Chi phí & Giá vốn Hàng nhập khẩu (Trade Cost & Landed Cost Management):**
-   * *Mục đích:* Thu thập hóa đơn dịch vụ; phân bổ chi phí cước biển theo Thể tích (CBM), thuế và phí cảng theo Trị giá; bóc tách thuế GTGT khấu trừ (TK 13312) và tiền phạt bãi cảng (TK 642) theo đúng chuẩn mực VAS 02.
-   * *DocType / Hook:* Mở rộng `Landed Cost Voucher` (Hook `custom_distribute_by_cbm`), `Additional LCV`.
+ * *Mục đích:* Thu thập hóa đơn dịch vụ; phân bổ chi phí cước biển theo Thể tích (CBM), thuế và phí cảng theo Trị giá; bóc tách thuế GTGT khấu trừ (TK 13312) và tiền phạt bãi cảng (TK 642) theo đúng chuẩn mực VAS 02.
+ * *DocType / Hook:* Mở rộng `Landed Cost Voucher` (Hook `custom_distribute_by_cbm`), `Additional LCV`.
 6. **Phân hệ 6: Quản trị Ngoại lệ & Quy trình Phê duyệt (Exception & Workflow Management):**
-   * *Mục đích:* Tự động kích hoạt vé xử lý sự cố (Exception Ticket) khi phát sinh rủi ro (chi phí vượt dự toán $> 10\%$, rớt tàu, cont giữ luồng đỏ); điều phối quy trình phê duyệt điện tử của CFO.
-   * *DocType:* `Trade Exception Ticket`, Stage Gate Configuration.
+ * *Mục đích:* Tự động kích hoạt vé xử lý sự cố (Exception Ticket) khi phát sinh rủi ro (chi phí vượt dự toán $> 10\%$, rớt tàu, cont giữ luồng đỏ); điều phối quy trình phê duyệt điện tử của CFO.
+ * *DocType:* `Trade Exception Ticket`, Stage Gate Configuration.
 7. **Phân hệ 7: Bảng Điều khiển, Báo cáo & Kiểm toán (Dashboard, Reporting & Audit):**
-   * *Mục đích:* Cung cấp tháp chỉ huy Control Tower thời gian thực; báo cáo biên lợi nhuận gộp đích thực (True Landed Gross Margin); truy vết lịch sử chỉnh sửa bất biến (Track Changes) phục vụ thanh tra thuế.
-   * *Thành phần:* Logistics Workspace, Control Tower Dashboard, Audit Trail Report.
+ * *Mục đích:* Cung cấp tháp chỉ huy Control Tower thời gian thực; báo cáo biên lợi nhuận gộp đích thực (True Landed Gross Margin); truy vết lịch sử chỉnh sửa bất biến (Track Changes) phục vụ thanh tra thuế.
+ * *Thành phần:* Logistics Workspace, Control Tower Dashboard, Audit Trail Report.
 
 #### [Bảng 3.2: Danh mục 7 Phân hệ của app `logistics_wizard`: Mục đích, DocType và Tình trạng mã nguồn]
 | STT | Tên Phân Hệ Nghiệp Vụ | DocType Tự Tạo / Mở Rộng | Vai Trò Tác Nghiệp Chính | Tình Trạng Kỹ Thuật |
 | :---: | :--- | :--- | :--- | :---: |
-| **1** | **Trade Case Management** | `Trade Case`, `Trade Case PO Item`, `Trade Case Budget` | 🛒 Thu mua, 🌍 Sales, 👑 CFO | 🟢 *Custom App* |
-| **2** | **Shipment Tracking** | `Trade Shipment`, `Trade Shipment Container`, `Trade Shipment Milestone` | 🚢 Logistics | 🟢 *Custom App* |
-| **3** | **Trade Document Management** | `Trade Document`, `Trade Document Checklist Item` | 🚢 Logistics, 🏛️ Hải quan | 🟢 *Custom App* |
-| **4** | **Customs & Compliance** | `Customs Declaration` (12 ký tự), `Customs Exchange Rate` | 🏛️ Hải quan, 💰 Kế toán | 🟢 *Custom App* |
-| **5** | **Trade Cost & Landed Cost** | Mở rộng `Landed Cost Voucher` (Hook phân bổ CBM), `Additional LCV` | 💰 Kế toán | 🟢 *Custom Hook* |
-| **6** | **Exception & Workflow** | `Trade Exception Ticket`, Cấu hình Stage Gate Poka-Yoke | 🚢 Logistics, 👑 CFO | 🟢 *Custom App* |
-| **7** | **Dashboard & Audit** | Dashboard Workspace, Tháp chỉ huy Control Tower, Audit Log | 👑 CFO, Trưởng phòng | 🟢 *Custom App* |
+| **1** | **Trade Case Management** | `Trade Case`, `Trade Case PO Item`, `Trade Case Budget` | Thu mua, Sales, CFO | *Custom App* |
+| **2** | **Shipment Tracking** | `Trade Shipment`, `Trade Shipment Container`, `Trade Shipment Milestone` | Logistics | *Custom App* |
+| **3** | **Trade Document Management** | `Trade Document`, `Trade Document Checklist Item` | Logistics, Hải quan | *Custom App* |
+| **4** | **Customs & Compliance** | `Customs Declaration` (12 ký tự), `Customs Exchange Rate` | Hải quan, Kế toán | *Custom App* |
+| **5** | **Trade Cost & Landed Cost** | Mở rộng `Landed Cost Voucher` (Hook phân bổ CBM), `Additional LCV` | Kế toán | *Custom Hook* |
+| **6** | **Exception & Workflow** | `Trade Exception Ticket`, Cấu hình Stage Gate Poka-Yoke | Logistics, CFO | *Custom App* |
+| **7** | **Dashboard & Audit** | Dashboard Workspace, Tháp chỉ huy Control Tower, Audit Log | CFO, Trưởng phòng | *Custom App* |
 
 ```
 [Hình 3.2: Sơ đồ 7 phân hệ của app logistics_wizard nằm độc lập trên nền lõi ERPNext (cần vẽ)]
@@ -365,15 +298,15 @@ Nhằm đảm bảo tính thực tiễn khi triển khai tại Việt Nam, hệ 
 ### 3.5. Thiết kế Hệ thống AI/RAG Tra cứu Văn bản Pháp luật & Gợi ý Mã HS Code
 Kiến trúc phân hệ Trí tuệ nhân tạo RAG được thiết kế chuyên sâu nhằm giải quyết triệt để hiện tượng "ảo giác" (Hallucination) của mô hình ngôn ngữ lớn:
 * **Thu thập và Tiền xử lý Tri thức (Data Ingestion Pipeline):**
-  * Nguồn dữ liệu: Luật Hải quan 2014, Nghị định 08/2015/NĐ-CP, Thông tư 38/2015/TT-BTC, Thông tư 39/2018/TT-BTC, Danh mục Hàng hóa XNK Việt Nam (Biểu thuế Hải quan 8 số / 10 số) và 6 Quy tắc GIR.
-  * Phân đoạn văn bản (Chunking): Áp dụng kỹ thuật phân đoạn theo Điều/Khoản luật pháp lý (Semantic Legal Chunking) với kích thước 512 tokens, gối đầu (overlap) 64 tokens để giữ trọn vẹn ngữ cảnh pháp lý.
-  * Embedding & Lưu trữ: Sử dụng mô hình Text Embedding chuyên dụng cho tiếng Việt lưu trữ trong ChromaDB Vector Store.
+ * Nguồn dữ liệu: Luật Hải quan 2014, Nghị định 08/2015/NĐ-CP, Thông tư 38/2015/TT-BTC, Thông tư 39/2018/TT-BTC, Danh mục Hàng hóa XNK Việt Nam (Biểu thuế Hải quan 8 số / 10 số) và 6 Quy tắc GIR.
+ * Phân đoạn văn bản (Chunking): Áp dụng kỹ thuật phân đoạn theo Điều/Khoản luật pháp lý (Semantic Legal Chunking) với kích thước 512 tokens, gối đầu (overlap) 64 tokens để giữ trọn vẹn ngữ cảnh pháp lý.
+ * Embedding & Lưu trữ: Sử dụng mô hình Text Embedding chuyên dụng cho tiếng Việt lưu trữ trong ChromaDB Vector Store.
 * **Quy trình Truy xuất và Gợi ý Phân loại (Retrieval & Suggestion Workflow):**
-  1. Khi người dùng nhập tên hàng hoặc thông số kỹ thuật (ví dụ: *"Bơm ly tâm trục ngang công suất 15kW, lưu lượng 50m3/h"*).
-  2. RAG Retriever trích xuất top 5 đoạn văn bản pháp luật có độ tương đồng cao nhất từ Vector Store.
-  3. Mô hình LLM phân tích đối chiếu với 6 Quy tắc tổng quát giải thích phân loại hàng hóa (GIR 1: Chú giải chương; GIR 3: Sản phẩm đa thành phần; GIR 6: Phân loại cấp phân nhóm).
-  4. Hệ thống trả về cấu trúc JSON chuẩn: `{ "suggested_hs_code": "8413.70.42", "confidence_score": 0.92, "legal_basis": "Thông tư 65/2017/TT-BTC Chú giải nhóm 84.13", "explanation": "..." }`.
-  5. Chuyên viên Tuân thủ Hải quan rà soát, nếu đồng ý thì nhấn nút "Chấp thuận mã HS", hệ thống tự động điền mã vào dòng chứng từ PO/Tờ khai.
+ 1. Khi người dùng nhập tên hàng hoặc thông số kỹ thuật (ví dụ: *"Bơm ly tâm trục ngang công suất 15kW, lưu lượng 50m3/h"*).
+ 2. RAG Retriever trích xuất top 5 đoạn văn bản pháp luật có độ tương đồng cao nhất từ Vector Store.
+ 3. Mô hình LLM phân tích đối chiếu với 6 Quy tắc tổng quát giải thích phân loại hàng hóa (GIR 1: Chú giải chương; GIR 3: Sản phẩm đa thành phần; GIR 6: Phân loại cấp phân nhóm).
+ 4. Hệ thống trả về cấu trúc JSON chuẩn: `{ "suggested_hs_code": "8413.70.42", "confidence_score": 0.92, "legal_basis": "Thông tư 65/2017/TT-BTC Chú giải nhóm 84.13", "explanation": "..." }`.
+ 5. Chuyên viên Tuân thủ Hải quan rà soát, nếu đồng ý thì nhấn nút "Chấp thuận mã HS", hệ thống tự động điền mã vào dòng chứng từ PO/Tờ khai.
 
 ```
 [Hình 3.5: Sơ đồ Kiến trúc Hệ thống Trợ lý Pháp lý & Gợi ý Mã HS Code (AI / RAG Architecture) (cần vẽ)]
@@ -382,11 +315,11 @@ Kiến trúc phân hệ Trí tuệ nhân tạo RAG được thiết kế chuyên
 
 ### 3.6. Kiến trúc Triển khai Hạ tầng và An toàn Bảo mật
 * **Kiến trúc Máy chủ (Deployment Stack):**
-  * Ứng dụng chạy trên môi trường Linux Ubuntu 22.04 LTS, phân tách 2 cụm container Docker độc lập: Cụm ứng dụng ERP (Frappe, ERPNext, MariaDB, Redis, Celery) và Cụm dịch vụ AI (Python FastAPI, ChromaDB, HuggingFace/OpenAI Engine).
-  * Web Server Nginx đóng vai trò Reverse Proxy, định tuyến lưu lượng HTTPS cổng 443 và phân phối tải tĩnh (Static Assets).
+ * Ứng dụng chạy trên môi trường Linux Ubuntu 22.04 LTS, phân tách 2 cụm container Docker độc lập: Cụm ứng dụng ERP (Frappe, ERPNext, MariaDB, Redis, Celery) và Cụm dịch vụ AI (Python FastAPI, ChromaDB, HuggingFace/OpenAI Engine).
+ * Web Server Nginx đóng vai trò Reverse Proxy, định tuyến lưu lượng HTTPS cổng 443 và phân phối tải tĩnh (Static Assets).
 * **An toàn Bảo mật:**
-  * Toàn bộ kết nối mã hóa bằng giao thức TLS 1.3 với chứng chỉ SSL.
-  * Cơ chế sao lưu tự động (Automated Backup): Tự động sao lưu toàn bộ Database MariaDB và thư mục tệp đính kèm (`/sites/public/files`) lúc 01:00 AM hằng ngày, lưu vết 30 ngày gần nhất.
+ * Toàn bộ kết nối mã hóa bằng giao thức TLS 1.3 với chứng chỉ SSL.
+ * Cơ chế sao lưu tự động (Automated Backup): Tự động sao lưu toàn bộ Database MariaDB và thư mục tệp đính kèm (`/sites/public/files`) lúc 01:00 AM hằng ngày, lưu vết 30 ngày gần nhất.
 
 ```
 [Hình 3.7: Sơ đồ Kiến trúc Triển khai Hạ tầng Công nghệ (Deployment & Network Architecture) (cần vẽ)]
@@ -394,44 +327,11 @@ Kiến trúc phân hệ Trí tuệ nhân tạo RAG được thiết kế chuyên
 
 ---
 
-## 🔄 CHƯƠNG 4: THIẾT KẾ LUỒNG NGHIỆP VỤ THEO VAI TRÒ
+## CHƯƠNG 4: THIẾT KẾ LUỒNG NGHIỆP VỤ THEO VAI TRÒ
 
 ### 4.1. Tổng quan: Sơ đồ Bàn giao liên phòng ban & 9 Cột mốc hành trình
 Hoạt động xuất nhập khẩu trong doanh nghiệp là một chuỗi phối hợp nhịp nhàng giữa các phòng ban. Luồng bàn giao tổng thể (Handshake Flow) cho một lô hàng **Nhập khẩu đường biển FCL** được chuẩn hóa thành chuỗi mắt xích liên tục:
 
-```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '12px', 'lineColor': '#64748B'}}}%%
-flowchart LR
-    R1["<b>1. THU MUA</b><br>Tạo đơn PO"]
-    R2["<b>2. CFO / LÃNH ĐẠO</b><br>Ký duyệt ngân sách"]
-    R3["<b>3. KẾ TOÁN</b><br>Chi tiền cọc (30%)"]
-    R4["<b>4. LOGISTICS</b><br>Chuyến tàu & B/L"]
-    R5["<b>5. HẢI QUAN</b><br>Tờ khai VNACCS 12 ký tự"]
-    R6["<b>6. THỦ KHO</b><br>Dỡ hàng & Duyệt PR"]
-
-    R1 ==>|"Trình PO & Dự toán"| R2
-    R2 ==>|"Phê duyệt lệnh chi"| R3
-    R3 ==>|"Xác nhận chuyển cọc"| R4
-    R4 ==>|"Bàn giao B/L, P/L, Invoice"| R5
-    R5 ==>|"Truyền tờ khai & Tính thuế"| R3
-    R3 ==>|"Nộp thuế kho bạc (M07)"| R5
-    R5 ==>|"Cấp cờ Thông quan"| R4
-    R4 ==>|"Điều xe kéo cont về kho (M08)"| R6
-    R6 ==>|"Dỡ hàng & Lập Phiếu PR (M09)"| R3
-    R3 ==>|"Chạy LCV & Quyết toán giá vốn"| R2
-
-    R2 -. "[Bác bỏ đơn PO]" .-> R1
-    R5 -. "[Lệch C/O, sai chứng từ]" .-> R1
-    R6 -. "[Tách hàng hỏng sang TK 1388]" .-> R3
-    R2 -. "[Vượt ngân sách > 10%]" .-> R4
-
-    style R1 fill:#EFF6FF,stroke:#2563EB,stroke-width:1.5px,color:#1E40AF
-    style R2 fill:#FEF3C7,stroke:#D97706,stroke-width:1.5px,color:#78350F
-    style R3 fill:#F0FDF4,stroke:#16A34A,stroke-width:1.5px,color:#166534
-    style R4 fill:#F5F3FF,stroke:#7C3AED,stroke-width:1.5px,color:#5B21B6
-    style R5 fill:#FFF7ED,stroke:#EA580C,stroke-width:1.5px,color:#9A3412
-    style R6 fill:#ECFDF5,stroke:#059669,stroke-width:1.5px,color:#065F46
-```
 ```
 [Hình 4.1: Sơ đồ Bàn giao liên phòng ban tổng thể Luồng Nhập khẩu (đã có ở trên)]
 ```
@@ -439,15 +339,15 @@ flowchart LR
 #### [Bảng 4.1: Bảng Chuẩn hóa 9 Cột mốc Tiến độ Hành trình (M01–M09), Vai trò Phụ trách và Rào chắn Kích hoạt]
 | Mã Mốc | Tên Cột Mốc Nghiệp Vụ | Vai Trò Phụ Trách (Owner) | Áp Dụng | Rào Chắn Poka-Yoke & Hành Động Kích Hoạt Tự Động |
 | :---: | :--- | :---: | :---: | :--- |
-| **M01** | `BOOKING_CONFIRMED` *(Xác nhận đặt chỗ tàu)* | 🚢 Logistics | Cả hai | Mở `Trade Shipment`; gán mã tàu, số chuyến, cảng bốc (POL), cảng dỡ (POD). |
-| **M02** | `CARGO_SI_VGM` *(Nộp hướng dẫn lập B/L & Cân VGM)* | 🚢 Logistics | Cả hai | Đếm ngược giờ Cut-off; cảnh báo đỏ trước 24h ngăn ngừa rớt tàu (Rolled cont). |
-| **M03** | `ON_BOARD_BL` *(Hàng lên tàu & Phát hành B/L)* | 🚢 Logistics | Cả hai | Cập nhật số vận đơn Master/House B/L chính thức; kiểm tra khớp tên hàng. |
-| **M04** | `VESSEL_DEPARTED` *(Tàu rời cảng bốc)* | 🚢 Logistics | Cả hai | **POKA-YOKE:** Tự động **KHÓA CỨNG Đơn PO**, cấm sửa giá và số lượng mua. |
-| **M05** | `VESSEL_ARRIVED_ETA` *(Tàu cập cảng đến)* | 🚢 Logistics | Nhập khẩu | Lấy ngày dỡ bãi (Discharged Date); **Kích hoạt đồng hồ đếm ngược Free-time bãi**. |
-| **M06** | `CUSTOMS_DECLARED` *(Truyền tờ khai VNACCS)* | 🏛️ Hải quan | Cả hai | **STAGE GATE 1:** Bắt buộc đủ 100% chứng từ mới cấp phép truyền tờ khai 12 ký tự. |
-| **M07** | `CUSTOMS_CLEARED` *(Hoàn tất thông quan)* | 🏛️ Hải quan / 💰 Kế toán | Cả hai | Kế toán nộp thuế kho bạc; Hải quan duyệt cờ `Cleared`; **Mở khóa cho kho dỡ hàng**. |
-| **M08** | `PORT_OUT_HAULAGE` *(Kéo cont ra khỏi cảng)* | 🚢 Logistics | Nhập khẩu | Đổi lệnh eDO; ghi nhận thời điểm Gate-out; ngắt đồng hồ tính hạn bãi cảng. |
-| **M09** | `WAREHOUSE_RECEIVED` *(Dỡ hàng & Duyệt PR)* | 📦 Thủ kho | Nhập khẩu | **STAGE GATE 2:** Chặn submit PR nếu chưa có cờ M07; tách hàng hỏng vào TK 1388. |
+| **M01** | `BOOKING_CONFIRMED` *(Xác nhận đặt chỗ tàu)* | Logistics | Cả hai | Mở `Trade Shipment`; gán mã tàu, số chuyến, cảng bốc (POL), cảng dỡ (POD). |
+| **M02** | `CARGO_SI_VGM` *(Nộp hướng dẫn lập B/L & Cân VGM)* | Logistics | Cả hai | Đếm ngược giờ Cut-off; cảnh báo đỏ trước 24h ngăn ngừa rớt tàu (Rolled cont). |
+| **M03** | `ON_BOARD_BL` *(Hàng lên tàu & Phát hành B/L)* | Logistics | Cả hai | Cập nhật số vận đơn Master/House B/L chính thức; kiểm tra khớp tên hàng. |
+| **M04** | `VESSEL_DEPARTED` *(Tàu rời cảng bốc)* | Logistics | Cả hai | **POKA-YOKE:** Tự động **KHÓA CỨNG Đơn PO**, cấm sửa giá và số lượng mua. |
+| **M05** | `VESSEL_ARRIVED_ETA` *(Tàu cập cảng đến)* | Logistics | Nhập khẩu | Lấy ngày dỡ bãi (Discharged Date); **Kích hoạt đồng hồ đếm ngược Free-time bãi**. |
+| **M06** | `CUSTOMS_DECLARED` *(Truyền tờ khai VNACCS)* | Hải quan | Cả hai | **STAGE GATE 1:** Bắt buộc đủ 100% chứng từ mới cấp phép truyền tờ khai 12 ký tự. |
+| **M07** | `CUSTOMS_CLEARED` *(Hoàn tất thông quan)* | Hải quan / Kế toán | Cả hai | Kế toán nộp thuế kho bạc; Hải quan duyệt cờ `Cleared`; **Mở khóa cho kho dỡ hàng**. |
+| **M08** | `PORT_OUT_HAULAGE` *(Kéo cont ra khỏi cảng)* | Logistics | Nhập khẩu | Đổi lệnh eDO; ghi nhận thời điểm Gate-out; ngắt đồng hồ tính hạn bãi cảng. |
+| **M09** | `WAREHOUSE_RECEIVED` *(Dỡ hàng & Duyệt PR)* | Thủ kho | Nhập khẩu | **STAGE GATE 2:** Chặn submit PR nếu chưa có cờ M07; tách hàng hỏng vào TK 1388. |
 
 ```
 [Hình 4.2: Sơ đồ Chuyển dịch Trạng thái Vòng đời Chuyến hàng (Trade Shipment State Machine) (cần vẽ)]
@@ -458,30 +358,30 @@ flowchart LR
 #### [Bảng 4.2: Ma trận Phân định Trách nhiệm RACI (Governance RACI Matrix)]
 *Ghi chú: **R** (Responsible - Trực tiếp làm) • **A** (Accountable - Phê duyệt tối cao) • **C** (Consulted - Tham vấn ý kiến) • **I** (Informed - Nhận thông báo tự động).*
 
-| Hoạt động / Khâu Tác nghiệp Chính | 🛒 Thu Mua (`buyer`) | 🌍 Bán Hàng (`sales`) | 🚢 Logistics (`logistics`) | 🏛️ Hải Quan (`customs`) | 📦 Thủ Kho (`warehouse`) | 💰 Kế Toán (`accountant`) | 👑 Giám Đốc (`cfo`) |
+| Hoạt động / Khâu Tác nghiệp Chính | Thu Mua (`buyer`) | Bán Hàng (`sales`) | Logistics (`logistics`) | Hải Quan (`customs`) | Thủ Kho (`warehouse`) | Kế Toán (`accountant`) | Giám Đốc (`cfo`) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Lập Đơn mua hàng (PO) & Dự toán ngân sách** | 🟢 **R** | ─ | 🔵 I | ⚪ C *(HS code)* | 🔵 I | ⚪ C *(Budget)* | 🟡 **A** |
-| **Lập Đơn bán hàng xuất khẩu (SO)** | ─ | 🟢 **R** | ⚪ C *(Check cước)* | ⚪ C *(Kiểm tra FTA)* | 🔵 I | ⚪ C *(Hạn mức nợ)* | 🟡 **A** |
-| **Thẩm định & Phê duyệt Mã số HS Code** | 🔵 I *(Đề xuất)* | 🔵 I *(Đề xuất)* | 🔵 I | 🟢 **R / A** | ─ | 🔵 I | ─ |
-| **Mở Chuyến hàng, Container & Theo dõi M01-M05** | 🔵 I | 🔵 I | 🟢 **R / A** | 🔵 I | ─ | ─ | 🔵 I |
-| **Khai báo Tờ khai VNACCS 12 ký tự (M06)** | ─ | ─ | ⚪ C | 🟢 **R** | ─ | ⚪ C *(Thuế)* | 🟡 **A** |
-| **Nộp Thuế Nhập khẩu & Thuế GTGT vào Kho bạc** | ─ | ─ | ─ | 🔵 I | ─ | 🟢 **R** | 🟡 **A** |
-| **Kiểm đếm dỡ hàng & Lập Phiếu Nhập kho (PR)** | ─ | ─ | 🔵 I | ─ | 🟢 **R / A** | 🔵 I | ─ |
-| **Phân bổ Chi phí Giá vốn Landed Cost (LCV)** | ─ | ─ | ─ | ─ | ─ | 🟢 **R** | 🟡 **A** |
-| **Phê duyệt Đóng lô VƯỢT NGÂN SÁCH > 10%** | ─ | ─ | ─ | ─ | ─ | 🔵 I *(Trình)* | 🔴 **R / A** |
+| **Lập Đơn mua hàng (PO) & Dự toán ngân sách** | **R** | ─ | I | C *(HS code)* | I | C *(Budget)* | **A** |
+| **Lập Đơn bán hàng xuất khẩu (SO)** | ─ | **R** | C *(Check cước)* | C *(Kiểm tra FTA)* | I | C *(Hạn mức nợ)* | **A** |
+| **Thẩm định & Phê duyệt Mã số HS Code** | I *(Đề xuất)* | I *(Đề xuất)* | I | **R / A** | ─ | I | ─ |
+| **Mở Chuyến hàng, Container & Theo dõi M01-M05** | I | I | **R / A** | I | ─ | ─ | I |
+| **Khai báo Tờ khai VNACCS 12 ký tự (M06)** | ─ | ─ | C | **R** | ─ | C *(Thuế)* | **A** |
+| **Nộp Thuế Nhập khẩu & Thuế GTGT vào Kho bạc** | ─ | ─ | ─ | I | ─ | **R** | **A** |
+| **Kiểm đếm dỡ hàng & Lập Phiếu Nhập kho (PR)** | ─ | ─ | I | ─ | **R / A** | I | ─ |
+| **Phân bổ Chi phí Giá vốn Landed Cost (LCV)** | ─ | ─ | ─ | ─ | ─ | **R** | **A** |
+| **Phê duyệt Đóng lô VƯỢT NGÂN SÁCH > 10%** | ─ | ─ | ─ | ─ | ─ | I *(Trình)* | **R / A** |
 
 #### [Bảng 4.3: Ma trận Đối chiếu Vai trò Con người (Who) × Phân hệ Chức năng Phần mềm (What)]
 Bảng ma trận này làm rõ mối quan hệ tương hỗ: Một vai trò sử dụng nhiều phân hệ và một phân hệ phục vụ nhiều vị trí công việc:
 
 | Vai trò Con người (Who) | Phân hệ 1: Trade Case | Phân hệ 2: Shipment Tracking | Phân hệ 3: Documents | Phân hệ 4: Customs | Phân hệ 5: Landed Cost | Phân hệ 6: Exception | Phân hệ 7: Dashboard |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **🛒 Thu mua (`buyer`)** | 🟢 **Chính** (Tạo PO) | 🔵 Xem lịch tàu | 🔵 Tải Invoice/PL | ⚪ Tham vấn HS | 🔵 Xem giá vốn | 🔵 Nhận cảnh báo | 🔵 Xem tiến độ |
-| **🌍 Bán hàng (`sales`)** | 🟢 **Chính** (Tạo SO) | 🔵 Xem hành trình | 🔵 Tải Hợp đồng | ⚪ Kiểm tra FTA | ─ | 🔵 Cảnh báo nợ | 🔵 Xem doanh thu |
-| **🚢 Logistics (`logistics`)** | 🔵 Liên kết PO | 🟢 **Chính** (M01-M05) | 🟢 **Chính** (B/L, VGM) | ⚪ Phối hợp | 🔵 Nhập cước biển | 🟢 **Xử lý trễ hạn** | 🔵 Xem Free-time |
-| **🏛️ Hải quan (`customs`)** | ─ | 🔵 Xem ngày đến | 🟢 **Chính** (C/O, Phép) | 🟢 **Chính** (VNACCS) | ─ | 🔵 Lệch chứng từ | 🔵 Tỷ lệ phân luồng |
-| **📦 Thủ kho (`warehouse`)** | ─ | 🔵 Xem ngày cập kho | 🔵 Đối chiếu P/L | ─ | ─ | 🔵 Hàng dập vỡ | 🔵 Tồn kho nhận |
-| **💰 Kế toán (`accountant`)** | ⚪ Soát ngân sách | ─ | 🔵 Xem hóa đơn | 🟢 **Nộp thuế** | 🟢 **Chính** (Chạy LCV) | 🔵 Lệch hóa đơn | 🔵 Báo cáo COGS |
-| **👑 Giám đốc (`cfo`)** | 🟡 Duyệt hồ sơ mẹ | ─ | ─ | ─ | 🟡 Duyệt giá vốn | 🟡 **Duyệt vượt > 10%**| 🟢 **Control Tower** |
+| ** Thu mua (`buyer`)** | **Chính** (Tạo PO) | Xem lịch tàu | Tải Invoice/PL | Tham vấn HS | Xem giá vốn | Nhận cảnh báo | Xem tiến độ |
+| ** Bán hàng (`sales`)** | **Chính** (Tạo SO) | Xem hành trình | Tải Hợp đồng | Kiểm tra FTA | ─ | Cảnh báo nợ | Xem doanh thu |
+| ** Logistics (`logistics`)** | Liên kết PO | **Chính** (M01-M05) | **Chính** (B/L, VGM) | Phối hợp | Nhập cước biển | **Xử lý trễ hạn** | Xem Free-time |
+| ** Hải quan (`customs`)** | ─ | Xem ngày đến | **Chính** (C/O, Phép) | **Chính** (VNACCS) | ─ | Lệch chứng từ | Tỷ lệ phân luồng |
+| ** Thủ kho (`warehouse`)** | ─ | Xem ngày cập kho | Đối chiếu P/L | ─ | ─ | Hàng dập vỡ | Tồn kho nhận |
+| ** Kế toán (`accountant`)** | Soát ngân sách | ─ | Xem hóa đơn | **Nộp thuế** | **Chính** (Chạy LCV) | Lệch hóa đơn | Báo cáo COGS |
+| ** Giám đốc (`cfo`)** | Duyệt hồ sơ mẹ | ─ | ─ | ─ | Duyệt giá vốn | **Duyệt vượt > 10%**| **Control Tower** |
 
 ```
 [Hình 4.3: Sơ đồ Ca sử dụng Tổng quan theo Vai trò Người dùng (Use Case Diagram) (cần vẽ)]
@@ -492,8 +392,8 @@ Bảng ma trận này làm rõ mối quan hệ tương hỗ: Một vai trò sử
 #### 4.3.1. Vai trò Chuyên viên Thu mua (`buyer`): Khởi tạo PO & Khóa cứng đơn hàng
 * **Trách nhiệm:** Đàm phán với nhà cung cấp nước ngoài, thống nhất giá mua ngoại tệ, điều khoản Incoterms (FOB/CIF) và quy cách đóng gói; lập Đơn đặt hàng mua (`Purchase Order`); phối hợp lập Hồ sơ mẹ `Trade Case` và dự toán chi phí lô hàng.
 * **Quy tắc Poka-Yoke bảo vệ:**
-  1. *Rào chắn 1:* Thu mua chỉ có quyền "Đề xuất mã HS", hệ thống không cấp quyền phê duyệt mã HS.
-  2. *Rào chắn 2 (Khóa cứng bất biến):* Ngay khi tàu rời cảng bốc (mốc M04 Completed), hệ thống tự động khóa cứng PO (`status = Locked`). Nhân viên thu mua tuyệt đối không thể tự ý sửa giá hoặc số lượng. Mọi phát sinh phải tạo văn bản Addendum trình Giám đốc duyệt.
+ 1. *Rào chắn 1:* Thu mua chỉ có quyền "Đề xuất mã HS", hệ thống không cấp quyền phê duyệt mã HS.
+ 2. *Rào chắn 2 (Khóa cứng bất biến):* Ngay khi tàu rời cảng bốc (mốc M04 Completed), hệ thống tự động khóa cứng PO (`status = Locked`). Nhân viên thu mua tuyệt đối không thể tự ý sửa giá hoặc số lượng. Mọi phát sinh phải tạo văn bản Addendum trình Giám đốc duyệt.
 
 ```
 [Hình 4.4: Sơ đồ Luồng Tác nghiệp Chi tiết Vị trí Chuyên viên Thu mua (đã có ở file luồng)]
@@ -502,8 +402,8 @@ Bảng ma trận này làm rõ mối quan hệ tương hỗ: Một vai trò sử
 #### 4.3.2. Vai trò Điều phối viên Logistics (`logistics`): Mở Shipment, Giám sát Free-time & Demurrage
 * **Trách nhiệm:** Nhận thông tin giao hàng, liên hệ Forwarder/Hãng tàu lấy Booking Confirmation; mở bản ghi `Trade Shipment`; cập nhật số Container, số chì seal; theo dõi hành trình tàu từ mốc M01 đến M05.
 * **Quy tắc Poka-Yoke bảo vệ:**
-  1. *Rào chắn 1 (Đếm ngược Free-time):* Khi tàu cập cảng (mốc M05), hệ thống ghi nhận ngày dỡ cont xuống bãi (Discharged Date), tự động kích hoạt bộ đếm ngược Free-time bãi cảng (tham số cấu hình `demurrage_free_days`, mặc định 7 ngày). Khi thời gian miễn phí còn $\le 3$ ngày (tham số `early_warning_days`), hệ thống tự động kích hoạt chuông báo động đỏ trên màn hình và gửi email nhắc nhở kéo vỏ cont.
-  2. *Rào chắn 2 (Quản lý đa container):* Trường hợp lô hàng nhiều container trả vỏ lệch ngày nhau, hệ thống ghi nhận ngày trả vỏ thực tế độc lập trên từng dòng bảng con `Trade Shipment Container` để tính toán chính xác tiền phạt (nếu có) cho riêng từng cont, không cào bằng toàn lô.
+ 1. *Rào chắn 1 (Đếm ngược Free-time):* Khi tàu cập cảng (mốc M05), hệ thống ghi nhận ngày dỡ cont xuống bãi (Discharged Date), tự động kích hoạt bộ đếm ngược Free-time bãi cảng (tham số cấu hình `demurrage_free_days`, mặc định 7 ngày). Khi thời gian miễn phí còn $\le 3$ ngày (tham số `early_warning_days`), hệ thống tự động kích hoạt chuông báo động đỏ trên màn hình và gửi email nhắc nhở kéo vỏ cont.
+ 2. *Rào chắn 2 (Quản lý đa container):* Trường hợp lô hàng nhiều container trả vỏ lệch ngày nhau, hệ thống ghi nhận ngày trả vỏ thực tế độc lập trên từng dòng bảng con `Trade Shipment Container` để tính toán chính xác tiền phạt (nếu có) cho riêng từng cont, không cào bằng toàn lô.
 
 ```
 [Hình 4.5: Sơ đồ Luồng Tác nghiệp Chi tiết Vị trí Điều phối Logistics (đã có ở file luồng)]
@@ -512,9 +412,9 @@ Bảng ma trận này làm rõ mối quan hệ tương hỗ: Một vai trò sử
 #### 4.3.3. Vai trò Chuyên viên Tuân thủ Hải quan (`customs`): Tờ khai VNACCS 12 ký tự & AI RAG
 * **Trách nhiệm:** Tiếp nhận bộ chứng từ từ Logistics; rà soát tính hợp lệ của Commercial Invoice, Packing List, B/L và C/O; sử dụng trợ lý AI RAG tra cứu mã HS Code và biểu thuế; lập và truyền Tờ khai Hải quan điện tử VNACCS.
 * **Quy tắc Poka-Yoke bảo vệ:**
-  1. *Rào chắn 1 (Chuẩn hóa 12 ký tự VNACCS theo CV 5922/TCHQ-VNACCS):* Hệ thống kiểm thực độ dài số tờ khai. 11 số đầu định danh hồ sơ lô hàng, ký tự thứ 12 thể hiện số lần khai báo sửa đổi/bổ sung (`0` khi khai lần đầu; `1, 2, ...` khi khai sửa đổi). Hệ thống tự động từ chối các chuỗi ký tự sai định dạng.
-  2. *Rào chắn 2 (Tỷ giá tính thuế bắt buộc):* Khóa ô nhập tỷ giá thủ công, hệ thống tự động kéo tỷ giá tính thuế tuần hiện hành của Bộ Tài chính từ bảng danh mục `Customs Exchange Rate`.
-  3. *Rào chắn 3 (Stage Gate 1):* Checklist chứng từ phải đạt 100% điều kiện `Ready` mới cho phép truyền tờ khai.
+ 1. *Rào chắn 1 (Chuẩn hóa 12 ký tự VNACCS theo CV 5922/TCHQ-VNACCS):* Hệ thống kiểm thực độ dài số tờ khai. 11 số đầu định danh hồ sơ lô hàng, ký tự thứ 12 thể hiện số lần khai báo sửa đổi/bổ sung (`0` khi khai lần đầu; `1, 2, ...` khi khai sửa đổi). Hệ thống tự động từ chối các chuỗi ký tự sai định dạng.
+ 2. *Rào chắn 2 (Tỷ giá tính thuế bắt buộc):* Khóa ô nhập tỷ giá thủ công, hệ thống tự động kéo tỷ giá tính thuế tuần hiện hành của Bộ Tài chính từ bảng danh mục `Customs Exchange Rate`.
+ 3. *Rào chắn 3 (Stage Gate 1):* Checklist chứng từ phải đạt 100% điều kiện `Ready` mới cho phép truyền tờ khai.
 
 ```
 [Hình 4.6: Sơ đồ Luồng Tác nghiệp Chi tiết Vị trí Chuyên viên Tuân thủ Hải quan (đã có ở file luồng)]
@@ -523,9 +423,9 @@ Bảng ma trận này làm rõ mối quan hệ tương hỗ: Một vai trò sử
 #### 4.3.4. Vai trò Thủ kho Vật lý (`warehouse`): Cổng Stage Gate 2, Kho bảo quản & Hàng hỏng
 * **Trách nhiệm:** Tiếp nhận container tại kho công ty; kiểm tra tình trạng nguyên vẹn của kẹp chì (Seal Inspection); cắt chì, dỡ hàng, kiểm đếm số lượng thực tế; phân loại hàng đạt chuẩn và hàng dập vỡ; lập Phiếu Nhập Kho (`Purchase Receipt`).
 * **Quy tắc Poka-Yoke bảo vệ:**
-  1. *Rào chắn 1 (Stage Gate 2 - Khóa dỡ hàng):* Hệ thống tự động kiểm tra cờ thông quan (mốc M07). Nếu chưa thông quan, hệ thống **khóa cứng nút Submit Phiếu Nhập Kho (PR)**.
-  2. *Rào chắn 2 (Cơ chế Kho bảo quản - Suspense Warehouse):* Trường hợp hàng được cơ quan hải quan cho phép giải phóng về kho riêng bảo quản trong khi chờ kết quả giám định chuyên ngành hoặc chờ bổ sung C/O gốc (Tình huống giải phóng hàng), hàng hóa được nhập vào **Kho bảo quản (`Suspense Warehouse`)**. Tại kho này, hệ thống **khóa cứng cờ xuất bán (Locked for Sale)** và chưa ghi tăng tài khoản tồn kho thương mại (TK 156). Chỉ khi chuyên viên Hải quan cập nhật cờ `Customs Cleared`, hệ thống mới cho phép chuyển hàng sang Kho Chính (`Main Store`).
-  3. *Rào chắn 3 (Bảo mật tài chính):* Giao diện nhập kho của thủ kho bị ẩn hoàn toàn các cột đơn giá mua, chi phí vận chuyển và thành tiền.
+ 1. *Rào chắn 1 (Stage Gate 2 - Khóa dỡ hàng):* Hệ thống tự động kiểm tra cờ thông quan (mốc M07). Nếu chưa thông quan, hệ thống **khóa cứng nút Submit Phiếu Nhập Kho (PR)**.
+ 2. *Rào chắn 2 (Cơ chế Kho bảo quản - Suspense Warehouse):* Trường hợp hàng được cơ quan hải quan cho phép giải phóng về kho riêng bảo quản trong khi chờ kết quả giám định chuyên ngành hoặc chờ bổ sung C/O gốc (Tình huống giải phóng hàng), hàng hóa được nhập vào **Kho bảo quản (`Suspense Warehouse`)**. Tại kho này, hệ thống **khóa cứng cờ xuất bán (Locked for Sale)** và chưa ghi tăng tài khoản tồn kho thương mại (TK 156). Chỉ khi chuyên viên Hải quan cập nhật cờ `Customs Cleared`, hệ thống mới cho phép chuyển hàng sang Kho Chính (`Main Store`).
+ 3. *Rào chắn 3 (Bảo mật tài chính):* Giao diện nhập kho của thủ kho bị ẩn hoàn toàn các cột đơn giá mua, chi phí vận chuyển và thành tiền.
 
 ```
 [Hình 4.7: Sơ đồ Luồng Tác nghiệp Chi tiết Vị trí Thủ kho Vật lý (đã có ở file luồng)]
@@ -534,14 +434,14 @@ Bảng ma trận này làm rõ mối quan hệ tương hỗ: Một vai trò sử
 #### 4.3.5. Vai trò Kế toán Chi phí & Giá vốn (`accountant`): Phân bổ Landed Cost VAS 02
 * **Trách nhiệm:** Tập hợp toàn bộ hóa đơn chi phí (hóa đơn tiền hàng ngoại tệ của NCC, hóa đơn cước tàu của Forwarder, hóa đơn phí nâng hạ cảng, chứng từ nộp thuế kho bạc); lập Phiếu phân bổ chi phí mua hàng (`Landed Cost Voucher` - LCV) để tính toán giá vốn nhập kho đích thực.
 * **Quy tắc Poka-Yoke & Chuẩn mực Kế toán VAS 02:**
-  1. *Trình tự chuẩn hóa:* `Purchase Receipt` (PR) ➔ `Landed Cost Voucher` (LCV đợt 1) ➔ `Purchase Invoice` (PI) ➔ `Additional LCV` (nếu có chi phí phát sinh trễ).
-  2. *Bóc tách thuế GTGT hàng nhập khẩu (TK 13312):* Theo VAS 02, thuế GTGT hàng nhập khẩu được khấu trừ hạch toán riêng vào `Nợ TK 13312 / Có TK 33312`, **tuyệt đối không vốn hóa vào TK 156**. Chỉ các loại thuế không được hoàn lại (Thuế Nhập khẩu TK 3333) mới được tính vào giá gốc hàng tồn kho.
-  3. *Bóc tách tiền phạt bãi cảng (Demurrage):* Tiền phạt lưu bãi do lỗi chậm trễ thủ tục được hạch toán vào Chi phí quản lý doanh nghiệp (TK 642) hoặc Chi phí khác (TK 811), không được tính vào giá vốn hàng hóa.
-  4. *Định khoản hàng hỏng khi mở cont:* Trường hợp phát hiện hàng dập vỡ/lỗi khi dỡ hàng, hệ thống tách số lượng hỏng sang kho cách ly (`Rejected Warehouse`), tự động định khoản cân đối kép 100% hóa đơn:
-     * `Nợ TK 156`: Giá trị hàng đạt chuẩn nhập kho.
-     * `Nợ TK 1388`: Phải thu khác (Phần hàng hỏng lập biên bản đòi bồi thường NCC / Bảo hiểm).
-     * `Có TK 331`: Tổng giá trị phải trả trên Commercial Invoice của nhà cung cấp.
-  5. *Động cơ phân bổ đa tiêu chí (CBM & Trị giá):* Phân bổ chi phí cước vận tải biển quốc tế theo **Thể tích (CBM)** và phân bổ thuế nhập khẩu, phí cảng theo **Trị giá hàng**.
+ 1. *Trình tự chuẩn hóa:* `Purchase Receipt` (PR) `Landed Cost Voucher` (LCV đợt 1) `Purchase Invoice` (PI) `Additional LCV` (nếu có chi phí phát sinh trễ).
+ 2. *Bóc tách thuế GTGT hàng nhập khẩu (TK 13312):* Theo VAS 02, thuế GTGT hàng nhập khẩu được khấu trừ hạch toán riêng vào `Nợ TK 13312 / Có TK 33312`, **tuyệt đối không vốn hóa vào TK 156**. Chỉ các loại thuế không được hoàn lại (Thuế Nhập khẩu TK 3333) mới được tính vào giá gốc hàng tồn kho.
+ 3. *Bóc tách tiền phạt bãi cảng (Demurrage):* Tiền phạt lưu bãi do lỗi chậm trễ thủ tục được hạch toán vào Chi phí quản lý doanh nghiệp (TK 642) hoặc Chi phí khác (TK 811), không được tính vào giá vốn hàng hóa.
+ 4. *Định khoản hàng hỏng khi mở cont:* Trường hợp phát hiện hàng dập vỡ/lỗi khi dỡ hàng, hệ thống tách số lượng hỏng sang kho cách ly (`Rejected Warehouse`), tự động định khoản cân đối kép 100% hóa đơn:
+ * `Nợ TK 156`: Giá trị hàng đạt chuẩn nhập kho.
+ * `Nợ TK 1388`: Phải thu khác (Phần hàng hỏng lập biên bản đòi bồi thường NCC / Bảo hiểm).
+ * `Có TK 331`: Tổng giá trị phải trả trên Commercial Invoice của nhà cung cấp.
+ 5. *Động cơ phân bổ đa tiêu chí (CBM & Trị giá):* Phân bổ chi phí cước vận tải biển quốc tế theo **Thể tích (CBM)** và phân bổ thuế nhập khẩu, phí cảng theo **Trị giá hàng**.
 
 #### [Bảng 4.4: Bảng Tính toán Mẫu Phân bổ Chi phí Landed Cost Đa tiêu chí (Ví dụ 2 Máy bơm A & B trong 1 Container 40ft)]
 *Giả định lô hàng gồm:*
@@ -567,8 +467,8 @@ Bảng ma trận này làm rõ mối quan hệ tương hỗ: Một vai trò sử
 #### 4.3.6. Vai trò Giám đốc Tài chính / Lãnh đạo (`cfo`): Phê duyệt Ngoại lệ & Quản trị Tỷ giá
 * **Trách nhiệm:** Phê duyệt chủ trương mua hàng và hạn mức ngân sách PO; ký duyệt lệnh chuyển tiền tạm ứng ngoại tệ (30% cọc); thẩm định và phê duyệt các trường hợp phát sinh ngoại lệ (chi phí vượt ngân sách $> 10\%$, rớt tàu, cont bị giữ kiểm định); giám sát rủi ro tỷ giá hối đoái.
 * **Quy tắc Poka-Yoke bảo vệ:**
-  1. *Cơ chế ủy quyền (Delegation):* Khi đi công tác xa, CFO có thể thiết lập ủy quyền tạm thời cho Phó Giám đốc ký duyệt trên Mobile App, hệ thống ghi log vết kiểm toán rõ ràng.
-  2. *Khóa cứng Stage Gate 3:* Khi chi phí thực tế vượt định mức ngân sách dự toán quá 10%, hệ thống tự động khóa trạng thái đóng lô hàng. Lô hàng chỉ được đóng sổ kế toán khi có chữ ký số điện tử của CFO.
+ 1. *Cơ chế ủy quyền (Delegation):* Khi đi công tác xa, CFO có thể thiết lập ủy quyền tạm thời cho Phó Giám đốc ký duyệt trên Mobile App, hệ thống ghi log vết kiểm toán rõ ràng.
+ 2. *Khóa cứng Stage Gate 3:* Khi chi phí thực tế vượt định mức ngân sách dự toán quá 10%, hệ thống tự động khóa trạng thái đóng lô hàng. Lô hàng chỉ được đóng sổ kế toán khi có chữ ký số điện tử của CFO.
 
 ```
 [Hình 4.9: Sơ đồ Luồng Tác nghiệp Chi tiết Vị trí Giám đốc Tài chính / Lãnh đạo (đã có ở file luồng)]
@@ -593,16 +493,16 @@ Nhằm đáp ứng yêu cầu kiến trúc toàn diện của doanh nghiệp to�
 
 ---
 
-## 💻 CHƯƠNG 5: TRIỂN KHAI VÀ MÔ PHỎNG TRÊN ERPNEXT
+## CHƯƠNG 5: TRIỂN KHAI VÀ MÔ PHỎNG TRÊN ERPNEXT
 
 ### 5.1. Môi trường công nghệ và Cấu hình đã thực hiện
 * **Hạ tầng thử nghiệm:**
-  * Máy chủ: Ubuntu 22.04 LTS (x86_64), 4 vCPU, 8GB RAM, 80GB SSD.
-  * Môi trường: Frappe Framework v15, ERPNext v15, MariaDB 10.6, Redis 7.0, Python 3.11.
-  * Ứng dụng chuyên biệt: Cài đặt ứng dụng `logistics_wizard` vào thư mục `apps/logistics_wizard` và liên kết với Site `logistics.local`.
+ * Máy chủ: Ubuntu 22.04 LTS (x86_64), 4 vCPU, 8GB RAM, 80GB SSD.
+ * Môi trường: Frappe Framework v15, ERPNext v15, MariaDB 10.6, Redis 7.0, Python 3.11.
+ * Ứng dụng chuyên biệt: Cài đặt ứng dụng `logistics_wizard` vào thư mục `apps/logistics_wizard` và liên kết với Site `logistics.local`.
 * **Cấu hình DocTypes & Dữ liệu Danh mục:**
-  * Thiết lập đầy đủ 7 DocType mở rộng: `Trade Case`, `Trade Shipment`, `Trade Shipment Container`, `Trade Shipment Milestone`, `Trade Document`, `Customs Declaration`, `Customs Exchange Rate`.
-  * Cấu hình phân quyền Role Permission Manager cho 7 vai trò: `Buyer`, `Sales User`, `Logistics Manager`, `Customs Officer`, `Stock User`, `Accounts User`, `CFO`.
+ * Thiết lập đầy đủ 7 DocType mở rộng: `Trade Case`, `Trade Shipment`, `Trade Shipment Container`, `Trade Shipment Milestone`, `Trade Document`, `Customs Declaration`, `Customs Exchange Rate`.
+ * Cấu hình phân quyền Role Permission Manager cho 7 vai trò: `Buyer`, `Sales User`, `Logistics Manager`, `Customs Officer`, `Stock User`, `Accounts User`, `CFO`.
 
 ```
 [Ảnh 5.1: Giao diện Cài đặt App logistics_wizard trên Frappe Bench (cần chụp màn hình)]
@@ -616,15 +516,15 @@ Kịch bản mô phỏng thực nghiệm xuyên suốt được tiến hành tr�
 #### [Bảng 5.1: Bảng Dữ liệu Kiểm thử Toàn trình Thực nghiệm trên ERPNext]
 | Bước | Phân hệ Tác nghiệp | Thao tác Thực hiện trên Hệ thống | Dữ liệu Đầu vào & Đầu ra | Kết quả Kiểm thử Hệ thống |
 | :---: | :--- | :--- | :--- | :---: |
-| **1** | **Trade Case Management** | Thu mua tạo PO-2026-0001; tạo Hồ sơ mẹ `IMP-2026-00001` | Mua 10 Bơm A ($6.000) & 10 Bơm B ($4.000). Dự toán cước $400, thuế $1.000. | 🟢 Thành công: Case liên kết PO, ngân sách dự toán được lưu vết. |
-| **2** | **Shipment Tracking** | Logistics mở chuyến tàu `TS-2026-00001`; nhập cont `TCLU1234567`, chì seal `SL-8888` | Cập nhật ETD, ETA, ngày tàu chạy (M04). | 🟢 **Poka-Yoke kích hoạt:** PO bị khóa cứng (`status = Locked`), cấm sửa giá. |
-| **3** | **Shipment Tracking** | Tàu cập cảng Cát Lái (mốc M05 Completed); nhập ngày dỡ bãi | Mốc M05 hoàn tất; hệ thống tính hạn Free-time 7 ngày. | 🟢 Thành công: Đồng hồ đếm ngược kích hoạt; hiển thị trạng thái an toàn. |
-| **4** | **Customs & Compliance** | Hải quan lập Tờ khai điện tử VNACCS | Nhập số tờ khai `105824900010` (12 ký tự theo CV 5922); tỷ giá tuần 25.000 VND. | 🟢 **Kiểm thực thành công:** Chấp nhận tờ khai chuẩn 12 ký tự; tự tính thuế. |
-| **5** | **Thủ kho (Stage Gate 2)** | Thử submit Phiếu Nhập Kho (PR) khi tờ khai đang ở trạng thái `Submitted` (chưa thông quan) | Thủ kho nhấn Submit PR. | 🔴 **Poka-Yoke chặn:** Hệ thống báo lỗi *"Stage Gate 2: Hàng chưa thông quan, cấm nhập kho!"* |
-| **6** | **Hải quan & Kế toán** | Kế toán nộp thuế; Hải quan cập nhật cờ `Customs Cleared` (M07) | Cờ thông quan M07 bật xanh (`Completed`). | 🟢 Thành công: Mở khóa quyền duyệt nhập kho cho Thủ kho. |
-| **7** | **Physical Receiving** | Kéo cont về kho (M08); Thủ kho kiểm đếm và submit Phiếu Nhập kho (PR) (M09) | Nhập đủ 10 Bơm A và 10 Bơm B vào Kho chính (TK 156). | 🟢 Thành công: Hệ thống tự sinh bút toán Nợ 156 / Có 3388 theo giá FOB tạm tính. |
-| **8** | **Trade Cost & Landed Cost** | Kế toán nhận hóa đơn cước $400 USD; tạo `Landed Cost Voucher` | Chọn phân bổ cước theo **CBM** (A: 10 CBM, B: 30 CBM); thuế theo **Trị giá**. | 🟢 **Phân bổ chính xác tuyệt đối:** Bơm A gánh $100 cước + $600 thuế; Bơm B gánh $300 cước + $400 thuế. |
-| **9** | **Exception & Closing** | Đối soát chi phí thực tế ($1.600) so với ngân sách dự toán ($1.400). Độ lệch = 14,2% (> 10%) | Kế toán nhấn Đóng lô (`Close Trade Case`). | 🔴 **Stage Gate 3 kích hoạt:** Khóa đóng lô, sinh Exception Ticket trình CFO ký duyệt điện tử. |
+| **1** | **Trade Case Management** | Thu mua tạo PO-2026-0001; tạo Hồ sơ mẹ `IMP-2026-00001` | Mua 10 Bơm A ($6.000) & 10 Bơm B ($4.000). Dự toán cước $400, thuế $1.000. | Thành công: Case liên kết PO, ngân sách dự toán được lưu vết. |
+| **2** | **Shipment Tracking** | Logistics mở chuyến tàu `TS-2026-00001`; nhập cont `TCLU1234567`, chì seal `SL-8888` | Cập nhật ETD, ETA, ngày tàu chạy (M04). | **Poka-Yoke kích hoạt:** PO bị khóa cứng (`status = Locked`), cấm sửa giá. |
+| **3** | **Shipment Tracking** | Tàu cập cảng Cát Lái (mốc M05 Completed); nhập ngày dỡ bãi | Mốc M05 hoàn tất; hệ thống tính hạn Free-time 7 ngày. | Thành công: Đồng hồ đếm ngược kích hoạt; hiển thị trạng thái an toàn. |
+| **4** | **Customs & Compliance** | Hải quan lập Tờ khai điện tử VNACCS | Nhập số tờ khai `105824900010` (12 ký tự theo CV 5922); tỷ giá tuần 25.000 VND. | **Kiểm thực thành công:** Chấp nhận tờ khai chuẩn 12 ký tự; tự tính thuế. |
+| **5** | **Thủ kho (Stage Gate 2)** | Thử submit Phiếu Nhập Kho (PR) khi tờ khai đang ở trạng thái `Submitted` (chưa thông quan) | Thủ kho nhấn Submit PR. | **Poka-Yoke chặn:** Hệ thống báo lỗi *"Stage Gate 2: Hàng chưa thông quan, cấm nhập kho!"* |
+| **6** | **Hải quan & Kế toán** | Kế toán nộp thuế; Hải quan cập nhật cờ `Customs Cleared` (M07) | Cờ thông quan M07 bật xanh (`Completed`). | Thành công: Mở khóa quyền duyệt nhập kho cho Thủ kho. |
+| **7** | **Physical Receiving** | Kéo cont về kho (M08); Thủ kho kiểm đếm và submit Phiếu Nhập kho (PR) (M09) | Nhập đủ 10 Bơm A và 10 Bơm B vào Kho chính (TK 156). | Thành công: Hệ thống tự sinh bút toán Nợ 156 / Có 3388 theo giá FOB tạm tính. |
+| **8** | **Trade Cost & Landed Cost** | Kế toán nhận hóa đơn cước $400 USD; tạo `Landed Cost Voucher` | Chọn phân bổ cước theo **CBM** (A: 10 CBM, B: 30 CBM); thuế theo **Trị giá**. | **Phân bổ chính xác tuyệt đối:** Bơm A gánh $100 cước + $600 thuế; Bơm B gánh $300 cước + $400 thuế. |
+| **9** | **Exception & Closing** | Đối soát chi phí thực tế ($1.600) so với ngân sách dự toán ($1.400). Độ lệch = 14,2% (> 10%) | Kế toán nhấn Đóng lô (`Close Trade Case`). | **Stage Gate 3 kích hoạt:** Khóa đóng lô, sinh Exception Ticket trình CFO ký duyệt điện tử. |
 
 ```
 [Ảnh 5.4: Màn hình Tạo Hồ sơ mẹ Trade Case và Phân bổ Ngân sách (cần chụp màn hình)]
@@ -640,10 +540,10 @@ Thực nghiệm kiểm thử phân hệ AI RAG được tiến hành trên tập
 #### [Bảng 5.2: Kết quả Thực nghiệm Bộ Câu hỏi Kiểm thử Trợ lý AI RAG (Benchmark QA & HS Code)]
 | STT | Câu hỏi Kiểm thử / Mặt hàng Cần Phân loại | Mã HS Thực tế | Mã HS do AI Gợi ý | Độ tin cậy (Confidence) | Căn cứ Pháp lý & Chú giải GIR do AI Trích dẫn | Đánh giá |
 | :---: | :--- | :---: | :---: | :---: | :--- | :---: |
-| **1** | Máy bơm ly tâm trục ngang, lưu lượng 50m3/h, công suất 15kW, dùng bơm nước sạch | `8413.70.42` | `8413.70.42` | 94% | Thông tư 65/2017/TT-BTC; Chú giải phân nhóm 8413.70; Quy tắc GIR 1 & GIR 6 | 🟢 Chính xác tuyệt đối |
-| **2** | Van bướm điều khiển bằng khí nén, thân gang, đĩa inox, đường kính DN100 | `8481.80.61` | `8481.80.61` | 91% | Chú giải nhóm 84.81 (Van và các thiết bị tương tự cho đường ống); Quy tắc GIR 1 | 🟢 Chính xác tuyệt đối |
-| **3** | Động cơ điện xoay chiều 3 pha không đồng bộ, công suất 7.5kW | `8501.52.21` | `8501.52.21` | 96% | Chú giải nhóm 85.01; Phân nhóm động cơ xoay chiều đa pha công suất > 750W đến 75kW | 🟢 Chính xác tuyệt đối |
-| **4** | Tàu chở hàng cập cảng bị chậm 4 ngày do bão thì thủ tục hải quan xử lý thế nào? | *(Tư vấn luật)* | Khai báo bất khả kháng | 89% | Điều 18 Luật Hải quan 2014 & Điều 23 Thông tư 38/2015/TT-BTC về trường hợp bất khả kháng | 🟢 Dẫn chiếu đúng luật |
+| **1** | Máy bơm ly tâm trục ngang, lưu lượng 50m3/h, công suất 15kW, dùng bơm nước sạch | `8413.70.42` | `8413.70.42` | 94% | Thông tư 65/2017/TT-BTC; Chú giải phân nhóm 8413.70; Quy tắc GIR 1 & GIR 6 | Chính xác tuyệt đối |
+| **2** | Van bướm điều khiển bằng khí nén, thân gang, đĩa inox, đường kính DN100 | `8481.80.61` | `8481.80.61` | 91% | Chú giải nhóm 84.81 (Van và các thiết bị tương tự cho đường ống); Quy tắc GIR 1 | Chính xác tuyệt đối |
+| **3** | Động cơ điện xoay chiều 3 pha không đồng bộ, công suất 7.5kW | `8501.52.21` | `8501.52.21` | 96% | Chú giải nhóm 85.01; Phân nhóm động cơ xoay chiều đa pha công suất > 750W đến 75kW | Chính xác tuyệt đối |
+| **4** | Tàu chở hàng cập cảng bị chậm 4 ngày do bão thì thủ tục hải quan xử lý thế nào? | *(Tư vấn luật)* | Khai báo bất khả kháng | 89% | Điều 18 Luật Hải quan 2014 & Điều 23 Thông tư 38/2015/TT-BTC về trường hợp bất khả kháng | Dẫn chiếu đúng luật |
 
 ```
 [Ảnh 5.9: Giao diện Chatbot AI RAG tra cứu văn bản pháp luật Hải quan (cần chụp màn hình)]
@@ -656,11 +556,11 @@ Thực nghiệm kiểm thử phân hệ AI RAG được tiến hành trên tập
 #### [Bảng 5.3: Ma trận Phân kỳ Phạm vi Triển khai & Mức độ Hoàn thiện Tính năng (Scope Completion Matrix)]
 | Phân vùng Nghiệp vụ | Giai đoạn Giữa kỳ (Core Design & Prototype) | Giai đoạn Cuối kỳ (Complete Simulation) | Hướng Mở rộng (Enterprise Vision) | Mức Độ Đáp Ứng Đề Tài |
 | :--- | :--- | :--- | :--- | :---: |
-| **Luồng Nghiệp vụ chính** | Hoàn thiện luồng **Nhập khẩu đường biển FCL** | Hoàn thiện cả **Nhập khẩu & Xuất khẩu FCL** | Hàng lẻ LCL, Hàng không AWB, Vận tải đa phương thức | 🟢 **100% Đạt** |
-| **Phân bổ Giá vốn Landed Cost**| Phân bổ cước theo CBM, thuế theo Trị giá | Tích hợp xử lý hàng hỏng TK 1388, chi phí về trễ | Dự báo biến động giá cước và hedging tỷ giá | 🟢 **100% Đạt chuẩn VAS 02** |
-| **Thủ tục Hải quan VNACCS** | Chuẩn hóa cấu trúc tờ khai 12 ký tự | Mô phỏng 3 luồng Xanh/Vàng/Đỏ; tích hợp AI RAG | Kết nối API trực tiếp qua cổng Hải quan số | 🟢 **100% Đạt CV 5922** |
-| **Trí tuệ nhân tạo (AI Engine)**| Xây dựng cơ sở tri thức Luật XNK | Chatbot RAG gợi ý HS Code kèm căn cứ pháp lý | Tự động đọc và bóc tách B/L, Invoice bằng OCR | 🟢 **100% Đạt** |
-| **Kiểm soát rủi ro & Poka-Yoke**| Rào chắn khóa PO và chặn nhập kho | Hệ thống 3-Tier Stage Gates liên hoàn | Tích hợp chấm điểm tín nhiệm nhà cung cấp | 🟢 **100% Đạt** |
+| **Luồng Nghiệp vụ chính** | Hoàn thiện luồng **Nhập khẩu đường biển FCL** | Hoàn thiện cả **Nhập khẩu & Xuất khẩu FCL** | Hàng lẻ LCL, Hàng không AWB, Vận tải đa phương thức | **100% Đạt** |
+| **Phân bổ Giá vốn Landed Cost**| Phân bổ cước theo CBM, thuế theo Trị giá | Tích hợp xử lý hàng hỏng TK 1388, chi phí về trễ | Dự báo biến động giá cước và hedging tỷ giá | **100% Đạt chuẩn VAS 02** |
+| **Thủ tục Hải quan VNACCS** | Chuẩn hóa cấu trúc tờ khai 12 ký tự | Mô phỏng 3 luồng Xanh/Vàng/Đỏ; tích hợp AI RAG | Kết nối API trực tiếp qua cổng Hải quan số | **100% Đạt CV 5922** |
+| **Trí tuệ nhân tạo (AI Engine)**| Xây dựng cơ sở tri thức Luật XNK | Chatbot RAG gợi ý HS Code kèm căn cứ pháp lý | Tự động đọc và bóc tách B/L, Invoice bằng OCR | **100% Đạt** |
+| **Kiểm soát rủi ro & Poka-Yoke**| Rào chắn khóa PO và chặn nhập kho | Hệ thống 3-Tier Stage Gates liên hoàn | Tích hợp chấm điểm tín nhiệm nhà cung cấp | **100% Đạt** |
 
 ### 5.5. Đánh giá chung kết quả mô phỏng
 * **Độ chính xác nghiệp vụ:** 100% các kịch bản kiểm thử đều thỏa mãn các ràng buộc Poka-Yoke và Stage Gates. Không xảy ra bất kỳ hiện tượng vượt rào hoặc sai sót kế toán.
@@ -668,7 +568,7 @@ Thực nghiệm kiểm thử phân hệ AI RAG được tiến hành trên tập
 
 ---
 
-## 🏆 CHƯƠNG 6: KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN
+## CHƯƠNG 6: KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN
 
 ### 6.1. Đánh giá mức độ bao phủ nghiệp vụ và Ma trận rủi ro kiến trúc
 Hệ thống giải pháp `logistics_wizard` đã giải quyết toàn diện bài toán đặt ra của môn học Cơ sở Hạ tầng Thông tin:
@@ -695,7 +595,7 @@ Hệ thống giải pháp `logistics_wizard` đã giải quyết toàn diện b�
 
 ---
 
-## 📚 PHỤ LỤC VÀ TÀI LIỆU THAM KHẢO
+## PHỤ LỤC VÀ TÀI LIỆU THAM KHẢO
 
 ### PHỤ LỤC A: DANH MỤC THỰC THỂ DỮ LIỆU CỐT LÕI (DOCTYPES & FIELDS)
 
@@ -728,21 +628,21 @@ Hệ thống giải pháp `logistics_wizard` đã giải quyết toàn diện b�
 
 #### Các Bút toán Định khoản Kế toán Chuẩn mực:
 1. **Khi nhận hàng dỡ cont tại kho (Nhập kho PR, hàng có hỏng hóc):**
-   * Giả sử lô hàng 10.000 USD gồm 95 thùng đạt chuẩn và 5 thùng dập vỡ hoàn toàn:
-     * *Nợ TK 156:* 9.500 USD (Quy đổi VND theo tỷ giá tạm tính) — Giá trị hàng đạt chuẩn nhập kho thương mại.
-     * *Nợ TK 1388:* 500 USD (Quy đổi VND) — Giá trị hàng hỏng chờ bên bảo hiểm / nhà máy bồi thường.
-     * *Có TK 3388 / 331:* 10.000 USD (Quy đổi VND) — Tổng công nợ cam kết trên hóa đơn nhà cung cấp.
+ * Giả sử lô hàng 10.000 USD gồm 95 thùng đạt chuẩn và 5 thùng dập vỡ hoàn toàn:
+ * *Nợ TK 156:* 9.500 USD (Quy đổi VND theo tỷ giá tạm tính) — Giá trị hàng đạt chuẩn nhập kho thương mại.
+ * *Nợ TK 1388:* 500 USD (Quy đổi VND) — Giá trị hàng hỏng chờ bên bảo hiểm / nhà máy bồi thường.
+ * *Có TK 3388 / 331:* 10.000 USD (Quy đổi VND) — Tổng công nợ cam kết trên hóa đơn nhà cung cấp.
 2. **Khi nộp thuế nhập khẩu và thuế GTGT hàng nhập khẩu vào Kho bạc:**
-   * *Nộp thuế Nhập khẩu (không hoàn lại):* Nợ TK 3333 / Có TK 112: 1.000 USD.
-   * *Nộp thuế GTGT hàng nhập khẩu (được khấu trừ):* Nợ TK 33312 / Có TK 112: 1.100 USD.
-   * *Đồng thời ghi nhận thuế GTGT được khấu trừ:* Nợ TK 13312 / Có TK 33312: 1.100 USD (Tách biệt khỏi TK 156).
+ * *Nộp thuế Nhập khẩu (không hoàn lại):* Nợ TK 3333 / Có TK 112: 1.000 USD.
+ * *Nộp thuế GTGT hàng nhập khẩu (được khấu trừ):* Nợ TK 33312 / Có TK 112: 1.100 USD.
+ * *Đồng thời ghi nhận thuế GTGT được khấu trừ:* Nợ TK 13312 / Có TK 33312: 1.100 USD (Tách biệt khỏi TK 156).
 3. **Khi chạy Phân bổ Landed Cost Voucher (LCV):**
-   * *Nợ TK 156:* Cước biển ($400) + Phí nâng hạ ($200) + Thuế nhập khẩu ($1.000) = $1.600 USD.
-   * *Có TK 3388 / Có TK 331:* $600 USD (Forwarder & Cảng).
-   * *Có TK 3333:* $1.000 USD (Kết chuyển thuế nhập khẩu vào giá vốn).
+ * *Nợ TK 156:* Cước biển ($400) + Phí nâng hạ ($200) + Thuế nhập khẩu ($1.000) = $1.600 USD.
+ * *Có TK 3388 / Có TK 331:* $600 USD (Forwarder & Cảng).
+ * *Có TK 3333:* $1.000 USD (Kết chuyển thuế nhập khẩu vào giá vốn).
 4. **Trường hợp phát sinh Tiền phạt lưu bãi quá hạn (Demurrage Penalty):**
-   * *Nợ TK 642 / Nợ TK 811:* Toàn bộ tiền phạt lưu bãi cảng.
-   * *Có TK 112 / Có TK 331:* Tiền chi trả cho hãng tàu / cảng biển. (Tuyệt đối không hạch toán vào Nợ TK 156).
+ * *Nợ TK 642 / Nợ TK 811:* Toàn bộ tiền phạt lưu bãi cảng.
+ * *Có TK 112 / Có TK 331:* Tiền chi trả cho hãng tàu / cảng biển. (Tuyệt đối không hạch toán vào Nợ TK 156).
 
 ---
 
@@ -765,7 +665,7 @@ Hệ thống câu hỏi kiểm thử bao gồm 4 nhóm chính:
 
 ---
 
-## 📖 TÀI LIỆU THAM KHẢO
+## TÀI LIỆU THAM KHẢO
 
 1. **Quốc hội Nước CHXHCN Việt Nam**, *Luật Hải quan số 54/2014/QH13*, ban hành ngày 23/06/2014.
 2. **Bộ Tài chính**, *Thông tư số 38/2015/TT-BTC* quy định về thủ tục hải quan; kiểm tra, giám sát hải quan; thuế xuất khẩu, thuế nhập khẩu và quản lý thuế đối với hàng hóa xuất khẩu, nhập khẩu, ngày 25/03/2015.
