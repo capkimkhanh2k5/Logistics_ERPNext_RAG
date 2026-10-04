@@ -83,12 +83,14 @@ Dev/Test không vào corpus/index. Embedding và reranker không fine-tune; Dev 
 
 ## 3. Sơ đồ xử lý câu hỏi v5
 
+![Retrieval Workflow: một luồng chung HS/Legal, pool 160, M3 chấm 100 và Qwen chấm lại 40](retrievalWF.png)
+
 ```mermaid
 flowchart TD
-    Q["Câu hỏi sản phẩm / Legal / kết hợp"] --> A["routed_search: policy v5 đã khóa"]
-    A --> D["Direct: Dense + Sparse + BM25 + FTS + Exact"]
-    A --> L["Context graph: BM25"]
-    A --> E["Context graph: Dense"]
+    Q["Câu hỏi sản phẩm / Legal / kết hợp"] --> D["Bản ghi nguồn: Dense 0.35 + Sparse 0.15 + BM25 0.35 + FTS 0.05 + Exact 0.10; RRF k=60"]
+    Q --> V["Context từ NODE/EDGE: đoạn nguồn + nhánh + tổ tiên"]
+    V --> L["BM25 Context"]
+    V --> E["Dense Context"]
     D --> S["Seeds: 12 direct + 4 context dense"]
     E --> S
     S --> G["Tổ tiên và Notes liên quan qua graph"]
@@ -96,7 +98,7 @@ flowchart TD
     L --> C
     E --> C
     G --> C
-    C --> T["B1/plain: đoạn nguồn + nhánh + tổ tiên có citation"]
+    C --> T["Chuẩn bị Content: đoạn nguồn + nhánh + tổ tiên có citation"]
     T --> M["BGE-reranker-v2-m3 chấm 100 nguồn đầu"]
     M --> F["RRF: 0.15 thứ tự pool + 0.85 thứ tự M3"]
     F --> W["Qwen3-Reranker-0.6B chấm lại 40 nguồn đầu"]
@@ -107,7 +109,7 @@ flowchart TD
     H --> O["Top-10 nguồn hỗn hợp: matches"]
     H --> I["Chiếu HS8: hs_candidates, tối đa 10 mã khác nhau"]
     O --> P["Package: Top-10 + các đoạn nguồn đã trích trong context"]
-    H --> J["Semantic intent sau ranking: chỉ metadata"]
+    H --> J["Semantic intent: Xác định Query; chỉ metadata, không đổi luồng"]
 ```
 
 Đây là các kênh logic; code không bảo đảm chúng chạy đồng thời. HS và Legal dùng cùng trọng số/ngân sách.
@@ -144,6 +146,8 @@ Text lập vector context được fit theo tokenizer/ngân sách embedding. Con
 ### Bước 4 — Neighbors từ graph
 
 Lấy tối đa 12 ID đầu `direct` và 4 ID đầu `context_dense` làm seeds. Lấy tổ tiên và `note_ids` liên kết; chỉ ID có bản ghi/source view thật vào kênh. Xếp theo điểm context dense và ID, tối đa 160 nguồn.
+
+**BM25 Context (`context_lex`) không tham gia chọn seed**; kết quả của kênh này đi trực tiếp vào pool hợp nhất. BM25 trên bản ghi nguồn là thành phần của hybrid `direct`, nên có thể góp vào thứ hạng của 12 seed direct; đây là kênh khác với BM25 Context.
 
 Không có danh sách ứng viên riêng theo Chương, không gán loại sản phẩm bằng chữ số mã và không thực thi luật loại trừ tại bước này.
 
@@ -278,7 +282,7 @@ Không cần thêm `if chapter == ...` hoặc keyword → mã. Nhưng policy kh�
 
 ## 11. Kết quả và giới hạn đã đo
 
-[Báo cáo v5](../artifacts/experiments/run_unified_accuracy_v5/IMPLEMENTATION_REPORT_V5.md): chọn trên 752 HS + 520 Legal Dev; chấm sau khóa trên 188 HS + 130 Legal Test.
+[Báo cáo v5](../../artifacts/experiments/run_unified_accuracy_v5/IMPLEMENTATION_REPORT_V5.md): chọn trên 752 HS + 520 Legal Dev; chấm sau khóa trên 188 HS + 130 Legal Test.
 
 | Test HS shortlist | N | Hit@1 | Recall@5 | Recall@10 | MRR@10 |
 |---|---:|---:|---:|---:|---:|
@@ -309,9 +313,9 @@ Công cụ build/audit/benchmark chạy khi chuẩn bị nguồn hoặc thực n
 
 ## 13. Tham chiếu implementation
 
-- [retrieval.py](../rag/retrieval.py): `Retriever.__init__`, `routed_search`, `unified_search`.
-- [unified.py](../rag/unified.py): `channels`, `id_pool`, `prepare`, `rank_scores`, `rank`, `hs_projection`, `source_package`, `semantic_intent`, `search`.
-- [context.py](../rag/context.py): `GraphContext`, `source_view`, `enrich`, `format_candidates`, `fit_rerank_context`.
-- [embedding.py](../rag/embedding.py): context vectors, `CrossEncoder`, instruction/backend/cache.
-- [benchmark_unified_retrieval.py](../scripts/benchmark_unified_retrieval.py): protocol, Dev, cascade, lock, Test, bootstrap và kiểm chứng.
-- [README-RAG.md](../README-RAG.md): môi trường, dữ liệu và kết quả hiện tại.
+- [retrieval.py](../../rag/retrieval.py): `Retriever.__init__`, `routed_search`, `unified_search`.
+- [unified.py](../../rag/unified.py): `channels`, `id_pool`, `prepare`, `rank_scores`, `rank`, `hs_projection`, `source_package`, `semantic_intent`, `search`.
+- [context.py](../../rag/context.py): `GraphContext`, `source_view`, `enrich`, `format_candidates`, `fit_rerank_context`.
+- [embedding.py](../../rag/embedding.py): context vectors, `CrossEncoder`, instruction/backend/cache.
+- [benchmark_unified_retrieval.py](../../scripts/benchmark_unified_retrieval.py): protocol, Dev, cascade, lock, Test, bootstrap và kiểm chứng.
+- [README-RAG.md](../../README-RAG.md): môi trường, dữ liệu và kết quả hiện tại.

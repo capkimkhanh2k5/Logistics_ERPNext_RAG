@@ -7,7 +7,7 @@
 
 Các lượt thực nghiệm lưu report và predictions trong `artifacts/experiments/<run-id>`; notebook đọc cùng runtime/runner. Các module `rag/` giữ logic dùng chung để notebook và runtime dùng cùng implementation.
 
-[Luồng Retrieval HS/Legal v5](docs/retrievalWF_Docs.md) mô tả nguồn, NODE/EDGE, Notes, cấu hình 160/100/40, cascade và đầu ra. Sơ đồ Mermaid trong tài liệu thể hiện luồng đang sử dụng.
+[Luồng Retrieval HS/Legal v5](docs/RetrievalDocs/retrievalWF_Docs.md) mô tả nguồn, NODE/EDGE, Notes, cấu hình 160/100/40, cascade và đầu ra. [Sơ đồ Retrieval](docs/RetrievalDocs/retrievalWF.png) và Mermaid trong tài liệu thể hiện luồng đang sử dụng.
 
 ### Vai trò các file
 
