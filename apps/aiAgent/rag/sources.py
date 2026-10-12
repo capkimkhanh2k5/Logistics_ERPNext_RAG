@@ -4,6 +4,28 @@ import json
 from pathlib import Path
 from typing import Any
 
+SOURCE_TYPES = [
+    "tariff_entry",
+    "gir_rule",
+    "gir_explanation",
+    "section_note",
+    "chapter_note",
+    "subheading_note",
+    "tariff_footnote",
+    "legal_clause",
+]
+
+QA_CHUNK_TYPES = [
+    "gir_rule",
+    "gir_explanation",
+    "section_note",
+    "chapter_note",
+    "subheading_note",
+    "tariff_entry",
+    "tariff_footnote",
+    "legal_clause",
+]
+
 
 def read_source(path: Path) -> Any:
     text = path.read_text(encoding="utf-8")

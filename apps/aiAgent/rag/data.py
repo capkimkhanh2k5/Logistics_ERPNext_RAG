@@ -9,8 +9,9 @@ from typing import Any
 from uuid import uuid4
 
 import jsonschema
-import yaml
 
+from config.retrieval import retrieval_config
+from config.settings import ROOT
 from rag.sources import (
     canonical_edge,
     canonical_tariff,
@@ -19,7 +20,6 @@ from rag.sources import (
     source_path,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 NORMALIZED = ROOT / "data" / "normalized"
 SOURCES = source_manifest(ROOT)["files"]
 GOLD = ROOT / "data/verified"
@@ -45,10 +45,6 @@ def write_json(path: Path, value: Any) -> None:
         temporary.replace(path)
     finally:
         temporary.unlink(missing_ok=True)
-
-
-def config() -> dict:
-    return yaml.safe_load((ROOT / "config/rag.yaml").read_text())
 
 
 def normalize_code(value: str) -> str:
@@ -215,7 +211,7 @@ def tariff_bundle(source: dict, data: dict) -> tuple[list[dict], list[dict], lis
 
 
 def build_corpus() -> dict:
-    cfg = config()
+    cfg = retrieval_config()
     report = audit()
     data = source_files()
     rows = []

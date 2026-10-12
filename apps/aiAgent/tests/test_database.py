@@ -7,7 +7,8 @@ from datetime import date
 import psycopg
 import pytest
 
-from rag.data import ROOT, config, digest, load_corpus, read
+from config.retrieval import retrieval_config
+from rag.data import ROOT, digest, load_corpus, read
 from rag.db import connect, counts, ingest, migrate
 from rag.embedding import load_embeddings
 from rag.retrieval import Retriever
@@ -42,7 +43,7 @@ def test_active_snapshot_and_runtime_config_accept_the_frozen_qa_policy(conn):
     retriever = Retriever(conn)
     assert selected["snapshot"] == retriever.snapshot
     assert selected["profile"] == retriever.profile
-    assert selected["retrieval"] == config()
+    assert selected["retrieval"] == retrieval_config()
     assert retriever.qa_policy == selected["qa"]
 
 

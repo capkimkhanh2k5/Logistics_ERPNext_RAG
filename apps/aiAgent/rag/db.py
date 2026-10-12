@@ -1,27 +1,26 @@
 """Transactional snapshot loading; database credentials never appear in reports."""
 
-import os
 from typing import Any
 
 import numpy as np
 import psycopg
-from dotenv import load_dotenv
 from pgvector.psycopg import register_vector
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
+from config.settings import DatabaseConfig
 from rag.data import ROOT, digest
 from rag.embedding import validate_vectors
 
 
 def connect() -> psycopg.Connection[dict[str, Any]]:
-    load_dotenv(ROOT / ".env")
+    settings = DatabaseConfig.from_env()
     conn = psycopg.connect(
-        host=os.getenv("RAG_DB_HOST", "127.0.0.1"),
-        port=os.getenv("RAG_DB_PORT", "55432"),
-        dbname=os.getenv("RAG_DB_NAME", "hs_rag"),
-        user=os.getenv("RAG_DB_USER", "rag"),
-        password=os.environ["RAG_DB_PASSWORD"],
+        host=settings.host,
+        port=settings.port,
+        dbname=settings.dbname,
+        user=settings.user,
+        password=settings.password,
         row_factory=dict_row,
         autocommit=True,
     )

@@ -14,8 +14,8 @@ sys.path.insert(0, str(AGENT_ROOT))
 from rag.data import ROOT, digest, load_corpus, read, write_json  # noqa: E402
 from rag.db import connect  # noqa: E402
 from rag.embedding import Embedder  # noqa: E402
-from rag.evaluation import discover_qa, qa_coverage, qa_direct_coverage  # noqa: E402
 from rag.retrieval import Retriever  # noqa: E402
+from tests.support.evaluation import discover_qa, qa_coverage, qa_direct_coverage  # noqa: E402
 
 
 def main() -> None:

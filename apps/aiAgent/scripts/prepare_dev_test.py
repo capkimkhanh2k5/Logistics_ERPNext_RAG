@@ -15,8 +15,8 @@ AGENT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(AGENT_ROOT))
 
 from rag.data import ROOT, digest, read  # noqa: E402
-from rag.evaluation import query_for  # noqa: E402
-from rag.experiments import build_eval_groups  # noqa: E402
+from tests.support.evaluation import query_for  # noqa: E402
+from tests.support.experiments import build_eval_groups  # noqa: E402
 
 DEFAULT_OUTPUT = ROOT / "data/verified/hs"
 ARCHIVE = ROOT / "artifacts/experiments/run_shared_dev_v3/legacy_data/archive_manifest.json"
@@ -202,8 +202,8 @@ def export_split(
             path: hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
             for path in (
                 "scripts/prepare_dev_test.py",
-                "rag/experiments.py",
-                "rag/evaluation.py",
+                "tests/support/experiments.py",
+                "tests/support/evaluation.py",
             )
         },
         "files": {

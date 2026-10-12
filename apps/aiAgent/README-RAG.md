@@ -4,8 +4,23 @@
 |---|---|
 | `notebooks/01_build_knowledge_base.ipynb` | Audit manifest nguồn → GIR/TT85/HS → BGE-M3 → nạp snapshot trong transaction |
 | `notebooks/02_test_retrieval.ipynb` | Đọc kết quả/policy đã khóa; chỉ chạy chọn lại trên Dev khi bật cờ rõ ràng → Test |
+| `notebooks/03_test_rag_generation.ipynb` | Kiểm thử HS/QA với Qwen và fallback GPT-OSS 20B: đủ/thiếu thông tin, bổ sung ngữ cảnh, thiếu chứng cứ, thông tin mâu thuẫn và lỗi API |
 
 Các lượt thực nghiệm lưu report và predictions trong `artifacts/experiments/<run-id>`; notebook đọc cùng runtime/runner. Các module `rag/` giữ logic dùng chung để notebook và runtime dùng cùng implementation.
+
+[Kiểm thử RAG Generation bằng Groq](notebooks/03_test_rag_generation.ipynb) trình bày đầu vào, phản hồi mong đợi, câu trả lời và nguồn của từng tình huống. Đặt `RAG_TEST_RUN_TESTS=true` trong `.env` để gọi API thật; các ca giả lập thiếu context hoặc lỗi model chính được ghi rõ. Bổ sung thông tin ở lượt sau sẽ truy xuất lại theo toàn bộ dữ kiện người dùng. Report lưu ở `artifacts/generation/<run-id>/scenarios.json`.
+
+[Cấu hình](config/README.md) tập trung trong `config/`: Groq/DB lấy từ `.env`, policy retrieval lấy từ YAML/JSON đã khóa. [Mã hỗ trợ kiểm thử](tests/support/README.md) chứa kịch bản, gold, metrics và tạo fold; runtime trong `rag/` không import các module này.
+
+Để tự nhập câu hỏi và thông tin bổ sung trong terminal, chạy từ thư mục `aiAgent`:
+
+```bash
+.venv/bin/python rag/demoRAG.py
+```
+
+Nhập câu hỏi trực tiếp trên một dòng. Retrieval dùng chung nguồn HS và pháp lý; LLM tự xác định nhu cầu từ câu hỏi để trả lời QA hoặc đề xuất HS. Semantic intent chỉ là gợi ý khi đóng gói context, không lọc nguồn retrieval và không bắt buộc loại câu trả lời. Nếu nhu cầu chưa rõ, AI hỏi thêm thông tin cụ thể. Sau mỗi câu trả lời, nhập thông tin bổ sung để chạy retrieval lại theo câu hỏi gốc và toàn bộ dữ kiện đã nhập. Nếu đính chính, ghi rõ dữ kiện nào được sửa. Terminal hiển thị trạng thái, model thực tế, câu trả lời và trích dẫn kèm tài liệu/trang nguồn. `/new` bắt đầu câu hỏi mới và xóa ngữ cảnh cũ; `/retry` thử lại; `/exit` thoát.
+
+Demo đọc Groq/DB từ `.env`, dùng policy retrieval đã khóa và không phụ thuộc các cờ test notebook. DB chỉ được đọc; embedding/reranker được khởi tạo một lần cho phiên. Chạy lượt đầu có thể chậm do nạp model vào bộ nhớ. Phản hồi không qua kiểm tra cấu trúc/mã HS/trích dẫn sẽ báo lỗi để thử lại; kiểm tra này chưa tự chứng minh tính đúng đắn của kết luận pháp lý.
 
 [Luồng Retrieval HS/Legal v5](docs/RetrievalDocs/retrievalWF_Docs.md) mô tả nguồn, NODE/EDGE, Notes, cấu hình 160/100/40, cascade và đầu ra. [Sơ đồ Retrieval](docs/RetrievalDocs/retrievalWF.png) và Mermaid trong tài liệu thể hiện luồng đang sử dụng.
 
@@ -20,7 +35,14 @@ Các lượt thực nghiệm lưu report và predictions trong `artifacts/experi
 | `scripts/ocr_pdf.swift` | OCR PDF scan bằng PDFKit/Apple Vision trên macOS; kết quả OCR cần giữ giới hạn ngôn ngữ khi báo cáo. |
 | `scripts/benchmark_pdf_rerankers.py` | Công cụ benchmark biểu diễn PDF graph và reranker. |
 | `scripts/benchmark_unified_retrieval.py` | Runner v5: một luồng HS/Legal, sàng accuracy trên Dev, so sánh model/cascade, khóa policy và chấm Test Auto. |
-| `rag/experiments.py` | Nhóm các câu cùng họ/biến thể, lưu manifest và fold mappings cho đánh giá. |
+| `rag/demoRAG.py` | Demo terminal: tự nhập câu hỏi, dùng chung luồng HS/QA, bổ sung dữ kiện và hiển thị câu trả lời có dẫn nguồn. |
+| `config/settings.py` | Đọc và kiểm tra cấu hình Groq/DB từ môi trường; giữ key/password ngoài log và repr. |
+| `config/retrieval.py` | Loader `rag.yaml`, registry model/revision, instruction và bộ trọng số dùng với policy retrieval đã khóa. |
+| `config/testing.py` | Đọc các cờ chạy, cache, thời gian giãn request và ID ca test của notebook 03 từ `.env`. |
+| `tests/support/evaluation.py` | Gold HS/QA, metrics retrieval và quét trọng số offline. |
+| `tests/support/experiments.py` | Nhóm các câu cùng họ/biến thể, lưu manifest và fold mappings cho đánh giá. |
+| `tests/support/generation_eval.py` | Chọn mẫu HS/QA, cache retrieval và chấm generation offline. |
+| `tests/support/generation_scenarios.py` | Kịch bản bổ sung thông tin, kiểm tra kỳ vọng và fault injection cho notebook 03. |
 | `scripts/prepare_dev_test.py` | Tái tạo/kiểm chứng hai tập HS và QA từ archive; giữ nguyên các nhóm. |
 | `scripts/tune_shared_retrieval.py` | Chọn một policy HS trên Dev, đo latency, khóa policy rồi chấm Test. |
 | `scripts/run_retrieval_experiment.py` | Chấm các biến thể B0/B1/B2 với policy đã khóa, lưu từng dự đoán và Hit@1/Recall/MRR theo Phần/Chương. |

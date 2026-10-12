@@ -23,21 +23,24 @@ from sklearn.metrics import balanced_accuracy_score, confusion_matrix, log_loss
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from rag.data import config, digest, read, write_json  # noqa: E402
-from rag.db import connect  # noqa: E402
-from rag.embedding import Embedder  # noqa: E402
-from rag.evaluation import discover_qa, qa_direct_coverage  # noqa: E402
-from rag.retrieval import Retriever  # noqa: E402
-from rag.unified import (  # noqa: E402
+from config.retrieval import (  # noqa: E402
     INSTRUCTION,
     MODELS,
     WEIGHTS,
+    retrieval_config,  # noqa: E402
+)
+from rag.data import digest, read, write_json  # noqa: E402
+from rag.db import connect  # noqa: E402
+from rag.embedding import Embedder  # noqa: E402
+from rag.retrieval import Retriever  # noqa: E402
+from rag.unified import (  # noqa: E402
     UnifiedRetrieval,
     fit_inputs,
     hs_projection,
     make_encoder,
     rank_scores,
 )
+from tests.support.evaluation import discover_qa, qa_direct_coverage  # noqa: E402
 
 RUN = ROOT / "artifacts/experiments/run_unified_accuracy_v5"
 BASE = {
@@ -485,7 +488,7 @@ def cascade():
 def select_full():
     p, store, rows = protocol(), PoolStore("dev"), cases("dev")
     frozen_config = p["baseline"]["selected_retrieval"]["retrieval"]
-    if config() != frozen_config:
+    if retrieval_config() != frozen_config:
         raise ValueError("Retrieval settings changed since frozen Dev protocol")
     selection = read(RUN / "screen_selection.json")
     results = []
@@ -562,7 +565,7 @@ def select_full():
 
 def activate():
     p, locked = protocol(), read(RUN / "locked_policy.json")
-    if config() != locked["retrieval_config"]:
+    if retrieval_config() != locked["retrieval_config"]:
         raise ValueError("Retrieval settings changed since Dev selection")
     with connect() as conn:
         active = conn.execute("SELECT snapshot,profile FROM rag.active").fetchone()

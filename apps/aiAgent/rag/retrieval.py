@@ -11,9 +11,11 @@ import psycopg
 from pgvector.psycopg import register_vector
 from psycopg import sql as pgsql
 
+from config.retrieval import retrieval_config
 from rag.context import GraphContext, fit_rerank_context
-from rag.data import ROOT, config, load_corpus, normalize_code, read
+from rag.data import ROOT, load_corpus, normalize_code, read
 from rag.embedding import CrossEncoder, Embedder, colbert_scores
+from rag.sources import QA_CHUNK_TYPES
 
 
 def fuse(
@@ -408,7 +410,7 @@ class Retriever:
         register_vector(conn)
         self.conn = conn
         self.embedder = embedder
-        self.cfg = config()
+        self.cfg = retrieval_config()
         active = conn.execute("SELECT snapshot,profile FROM rag.active").fetchone()
         if not active:
             raise ValueError("No complete active ingestion snapshot")
@@ -1371,8 +1373,6 @@ class Retriever:
         include_package: bool = True,
     ) -> dict:
         """Explicit evidence-QA task: source chunks at all levels, no gold labels."""
-        from rag.evaluation import QA_CHUNK_TYPES
-
         if top_k < 1:
             raise ValueError("top_k must be positive")
         policy = policy_override or getattr(self, "qa_policy", None)

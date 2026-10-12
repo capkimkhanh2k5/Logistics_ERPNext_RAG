@@ -4,9 +4,9 @@ import pytest
 
 from rag.context import GraphContext, fit_rerank_context
 from rag.data import ROOT, build_corpus, read, tariff_bundle
-from rag.experiments import build_eval_groups
 from rag.retrieval import Retriever
 from scripts.run_retrieval_experiment import CandidateCache, compute_metrics
+from tests.support.experiments import build_eval_groups
 
 
 def fixture_tariff() -> tuple[dict, dict]:

@@ -8,10 +8,10 @@ import pytest
 
 from rag.data import digest, write_json
 from rag.embedding import CrossEncoder, Embedder
-from rag.evaluation import qa_direct_coverage
 from rag.retrieval import Retriever
 from rag.unified import UnifiedRetrieval, hs_projection, id_pool
 from scripts.benchmark_unified_retrieval import pool_coverage
+from tests.support.evaluation import qa_direct_coverage
 
 
 def test_unified_source_index_rejects_a_different_query_embedding_space():

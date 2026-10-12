@@ -3,8 +3,8 @@ import pytest
 
 from rag.data import audit, build_corpus, normalize_code, read
 from rag.embedding import validate_vectors
-from rag.evaluation import benchmark_split, discover_gold, metrics, query_for
 from rag.retrieval import fuse, unique_codes
+from tests.support.evaluation import benchmark_split, discover_gold, metrics, query_for
 
 
 def test_corpus_integrity_and_provenance():
@@ -213,7 +213,7 @@ def test_late_interaction_uses_best_passage_token_per_query_token():
 
 
 def test_verified_gold_uses_supplied_partitions_and_normalized_grid():
-    from rag.evaluation import discover_gold, weight_grid
+    from tests.support.evaluation import discover_gold, weight_grid
 
     rows, paths = discover_gold()
     assert len(rows) == 940
@@ -247,7 +247,7 @@ def test_exact_features_preserve_code_units_purity_and_standards():
 
 
 def test_supplied_query_sanitization_preserves_product_specs():
-    from rag.evaluation import clean_product_text
+    from tests.support.evaluation import clean_product_text
 
     text = "Máy tính 10 kg, 65 W, thuộc nhánh 8471.30. Case test dựa trên Chương 84."
     cleaned = clean_product_text(text)
@@ -371,7 +371,7 @@ def test_disabled_definition_branch_preserves_baseline_and_new_candidates_can_en
 
 
 def test_qa_coverage_requires_all_groups_and_respects_alternatives():
-    from rag.evaluation import qa_coverage
+    from tests.support.evaluation import qa_coverage
 
     case = {
         "id": "QA",
@@ -398,7 +398,7 @@ def test_qa_coverage_requires_all_groups_and_respects_alternatives():
 
 
 def test_qa_verified_targets_match_current_sources():
-    from rag.evaluation import discover_qa
+    from tests.support.evaluation import discover_qa
 
     cases = discover_qa(build_corpus())
     assert len(cases) == 650
@@ -472,7 +472,7 @@ def test_rule_family_expansion_follows_retrieved_atomic_rules(monkeypatch):
 
 
 def test_qa_direct_scoring_requires_atomic_chunk_not_context_alias():
-    from rag.evaluation import qa_direct_coverage
+    from tests.support.evaluation import qa_direct_coverage
 
     case = {
         "id": "QA",
@@ -542,7 +542,7 @@ def test_indexed_corpus_contains_no_english_search_passages():
 
 
 def test_qa_weight_sweep_uses_all_primary_sources():
-    from rag.evaluation import sweep_qa_weights
+    from tests.support.evaluation import sweep_qa_weights
 
     case = {"canonical_groups": [{"any_of": ["a"]}, {"any_of": ["b"]}]}
     cache = [{"case": case, "branches": {"dense": [{"id": "a"}]}}]

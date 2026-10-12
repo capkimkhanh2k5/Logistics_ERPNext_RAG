@@ -8,8 +8,10 @@ from typing import Any
 
 import numpy as np
 
-from rag.data import ROOT, config, digest, read
+from config.retrieval import retrieval_config
+from rag.data import ROOT, digest, read
 from rag.retrieval import Retriever, code_mention_plan
+from rag.sources import QA_CHUNK_TYPES
 
 
 def clean_product_text(text: str) -> str:
@@ -220,7 +222,7 @@ def weight_grid(branches: tuple[str, ...], units: int = 20) -> list[dict]:
         projected = {b: policy[b] / total for b in branches}
         if projected not in grid:
             grid.append(projected)
-    rng = np.random.default_rng(config()["seed"] + len(branches))
+    rng = np.random.default_rng(retrieval_config()["seed"] + len(branches))
     for alpha in (0.3, 1.0, 3.0):
         for values in rng.dirichlet(np.full(len(branches), alpha), size=200):
             grid.append(dict(zip(branches, values.tolist(), strict=True)))
@@ -555,18 +557,6 @@ def qa_coverage(case: dict, ranked: list[dict], package: list[dict]) -> dict:
     result["package_size"] = len(package)
     result["citation_complete"] = all(bool(r["locator"]) for r in package)
     return result
-
-
-QA_CHUNK_TYPES = [
-    "gir_rule",
-    "gir_explanation",
-    "section_note",
-    "chapter_note",
-    "subheading_note",
-    "tariff_entry",
-    "tariff_footnote",
-    "legal_clause",
-]
 
 
 def qa_direct_coverage(case: dict, ranked: list[dict]) -> dict:

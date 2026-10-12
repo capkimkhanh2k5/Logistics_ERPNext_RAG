@@ -16,8 +16,8 @@ sys.path.insert(0, str(AGENT_ROOT))
 from rag.data import ROOT, write_json  # noqa: E402
 from rag.db import connect  # noqa: E402
 from rag.embedding import Embedder  # noqa: E402
-from rag.evaluation import discover_gold, query_for  # noqa: E402
 from rag.retrieval import Retriever  # noqa: E402
+from tests.support.evaluation import discover_gold, query_for  # noqa: E402
 
 
 def stats(values: list[float]) -> dict:

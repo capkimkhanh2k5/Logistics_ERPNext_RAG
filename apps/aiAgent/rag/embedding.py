@@ -5,7 +5,8 @@ from pathlib import Path
 
 import numpy as np
 
-from rag.data import ROOT, config, digest, write_json
+from config.retrieval import retrieval_config
+from rag.data import ROOT, digest, write_json
 
 
 def validate_vectors(vectors: np.ndarray, count: int) -> np.ndarray:
@@ -24,7 +25,7 @@ class Embedder:
         from FlagEmbedding import BGEM3FlagModel
         from huggingface_hub import snapshot_download
 
-        self.cfg = cfg or config()
+        self.cfg = cfg or retrieval_config()
         torch.set_num_threads(self.cfg.get("torch_num_threads", 4))
         model_path = snapshot_download(
             self.cfg["model"], revision=self.cfg["revision"], ignore_patterns=["*.onnx", "onnx/*"]

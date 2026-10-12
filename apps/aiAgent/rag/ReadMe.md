@@ -10,9 +10,12 @@
 | [`context.py`] | **Graph Context & Enrichment**: Khai thác đồ thị phân cấp biểu thuế (`GraphContext`). Truy vết chuỗi tổ tiên, nhánh ngữ cảnh trung gian và các chú giải pháp lý ràng buộc để làm giàu thông tin cho các mã ứng viên HS; tối ưu độ dài văn bản theo ngân sách token của reranker (`fit_rerank_context`). |
 | [`retrieval.py`] | **Core Hybrid Retriever**: Dense/Sparse/BM25/FTS/Exact và RRF. Khi có policy v5 đã khóa, `routed_search` gọi luồng chung cho mọi intent hint. Các API riêng HS/QA cũ giữ để tái lập đối chứng. |
 | [`unified.py`] | **Unified Source Retrieval**: Một pool nguồn theo ID, context BM25/dense từ graph, một policy rerank hoặc cascade cho HS và Legal. HS8 chỉ là phép chiếu đầu ra; semantic intent không thay đổi retrieval. |
-| [`evaluation.py`] | **Benchmark & Metrics**: Đo lường và đánh giá hiệu năng retrieval (Hit@k, MRR@10, Macro-code Hit, độ trễ p50/p95, Recall nguồn trích dẫn). Quản lý tập đối sánh gold standard và thuật toán quét tối ưu hóa không gian trọng số (`weight sweep`) mà không làm rò rỉ nhãn (no label leakage). |
-| [`experiments.py`] | **Experimental Framework**: Lưu các fold mappings theo nhóm; module không tự thực hiện chọn tham số lồng nhau hay fine-tune mô hình. Sử dụng Disjoint Set Union (DSU) để gom cụm các mẫu tương đồng/cùng họ nhằm chống rò rỉ thông tin giữa các fold huấn luyện và đánh giá (OOF). |
+| [`answering.py`] | **Grounded Generation**: Đóng gói context, system prompt/schema tiếng Việt, gọi LLM và kiểm tra mã HS/citation. |
+| [`groq_client.py`] | **Groq Client**: Gọi API, xoay vòng key, xử lý giới hạn và fallback; nhận cấu hình từ `config/settings.py`. |
+| [`demoRAG.py`] | **Terminal Demo**: Nhập câu hỏi và dữ kiện bổ sung; dùng chung luồng HS/QA, truy xuất lại từng lượt và hiển thị câu trả lời/model/trích dẫn. Chạy `.venv/bin/python rag/demoRAG.py` từ thư mục `aiAgent`. |
 | [`ReadMe.md`] | Tài liệu tổng quan mô tả kiến trúc và mục đích của các file trong module RAG. |
+
+Cấu hình và loader nằm trong [config/](../config/README.md). Gold, metrics, quét trọng số, tạo fold và kịch bản notebook nằm trong [tests/support/](../tests/support/README.md). Runtime không import các module kiểm thử. Các module chuẩn bị corpus/ingestion vẫn thuộc luồng xây knowledge base của RAG.
 
 ---
 

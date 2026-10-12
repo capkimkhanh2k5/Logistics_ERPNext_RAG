@@ -1,1 +1,1 @@
-"""Reproducible HS retrieval pipeline shared by the notebooks."""
+"""Knowledge-base preparation, retrieval and grounded HS/QA generation."""

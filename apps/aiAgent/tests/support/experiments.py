@@ -6,7 +6,7 @@ import unicodedata
 from sklearn.model_selection import StratifiedGroupKFold
 
 from rag.data import ROOT, digest, write_json
-from rag.evaluation import clean_product_text, discover_gold
+from tests.support.evaluation import clean_product_text, discover_gold
 
 
 def get_token_set(text: str) -> set[str]:
