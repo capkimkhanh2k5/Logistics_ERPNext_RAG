@@ -16,7 +16,7 @@
   "rank_weight": 0.85,
   "cascade_pool": 40,
   "cascade_weight": 0.5,
-  "snapshot": "a6717fc579f18c7a1dbac656",
+  "snapshot": "75765b73f095c8aa80cd588d",
   "profile": "3a2ce6e6d726a0f053748717",
   "intent_artifact": "config/semantic_intent.json",
   "intent_hash": "c895b8458aec664cea8f5fbe2d656c425378408516ea9a5513a60c850cf10e8a",

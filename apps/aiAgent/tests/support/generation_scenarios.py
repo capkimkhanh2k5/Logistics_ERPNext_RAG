@@ -39,7 +39,7 @@ def load_scenarios(config) -> list[dict]:
                 "question": "Tôi cần xác định mã HS cho một chiếc nhẫn dùng làm đồ trang sức.",
                 "turns": [
                     {
-                        "expected_statuses": ["NEED_MORE_INFORMATION"],
+                        "expected_statuses": ["MISSING_PRODUCT_INFO"],
                         "require_missing_information": True,
                     },
                     {
@@ -56,7 +56,7 @@ def load_scenarios(config) -> list[dict]:
                 "question": "Bộ phận dùng cho rơ-moóc được phân loại vào mã HS nào?",
                 "turns": [
                     {
-                        "expected_statuses": ["NEED_MORE_INFORMATION"],
+                        "expected_statuses": ["MISSING_PRODUCT_INFO"],
                         "require_missing_information": True,
                     },
                     {
@@ -73,7 +73,7 @@ def load_scenarios(config) -> list[dict]:
                 "question": "Tài liệu này có thể dùng thay trong hồ sơ không?",
                 "turns": [
                     {
-                        "expected_statuses": ["NEED_MORE_INFORMATION"],
+                        "expected_statuses": ["MISSING_PRODUCT_INFO"],
                         "require_missing_information": True,
                     },
                     {
@@ -90,7 +90,7 @@ def load_scenarios(config) -> list[dict]:
                 "question": "Nhẫn dùng làm đồ trang sức bằng vàng nguyên khối, đồng thời có nền kim loại cơ bản chỉ mạ vàng. Mã HS nào phù hợp?",
                 "turns": [
                     {
-                        "expected_statuses": ["NEED_MORE_INFORMATION", "REQUIRES_REVIEW"],
+                        "expected_statuses": ["MISSING_PRODUCT_INFO"],
                         "require_missing_information": True,
                     },
                     {
@@ -101,11 +101,25 @@ def load_scenarios(config) -> list[dict]:
                 ],
             },
             {
+                "id": "vf9_missing_legal_evidence",
+                "name": "VF 9 thiếu chứng cứ hệ thống → không hỏi người dùng về luật",
+                "task": "hs",
+                "question": "Xác định mã HS cho VF 9: ô tô chở người 7 chỗ, chỉ có động cơ điện, mới, nhập khẩu nguyên chiếc CBU, không phải CKD.",
+                "turns": [
+                    {
+                        "mode": "empty_context",
+                        "expected_statuses": ["INSUFFICIENT_LEGAL_EVIDENCE"],
+                        "require_legal_evidence_gap": True,
+                        "expect_skipped": True,
+                    }
+                ],
+            },
+            {
                 "id": "qa_out_of_scope",
                 "name": "Câu hỏi ngoài bộ nguồn hải quan",
                 "task": "qa",
                 "question": "Tôi cần những giấy tờ nào để xin visa du học tại Úc?",
-                "turns": [{"expected_statuses": ["INSUFFICIENT_EVIDENCE"]}],
+                "turns": [{"expected_statuses": ["INSUFFICIENT_LEGAL_EVIDENCE"]}],
             },
             {
                 "id": "empty_retrieval_context",
@@ -115,7 +129,7 @@ def load_scenarios(config) -> list[dict]:
                 "turns": [
                     {
                         "mode": "empty_context",
-                        "expected_statuses": ["INSUFFICIENT_EVIDENCE"],
+                        "expected_statuses": ["INSUFFICIENT_LEGAL_EVIDENCE"],
                         "expect_skipped": True,
                     }
                 ],
@@ -128,7 +142,7 @@ def load_scenarios(config) -> list[dict]:
                 "turns": [
                     {
                         "mode": "budget_limited",
-                        "expected_statuses": ["INSUFFICIENT_EVIDENCE"],
+                        "expected_statuses": ["INSUFFICIENT_LEGAL_EVIDENCE"],
                         "expect_skipped": True,
                     },
                     {"expected_statuses": ["RECOMMENDATION"], "gold_case": hs[1]},
@@ -144,8 +158,8 @@ def load_scenarios(config) -> list[dict]:
                     {
                         "expected_statuses": [
                             "RECOMMENDATION",
-                            "NEED_MORE_INFORMATION",
-                            "INSUFFICIENT_EVIDENCE",
+                            "MISSING_PRODUCT_INFO",
+                            "INSUFFICIENT_LEGAL_EVIDENCE",
                             "REQUIRES_REVIEW",
                         ],
                         "forbidden_codes": ["00000000"],
@@ -191,7 +205,15 @@ def check_expectations(turn: dict, generated: dict) -> dict:
     if turn.get("expected_statuses"):
         checks["expected_status"] = answer.get("status") in turn["expected_statuses"]
     if turn.get("require_missing_information"):
-        checks["asks_for_information"] = bool(answer.get("missing_information"))
+        checks["asks_for_information"] = answer.get("status") == "MISSING_PRODUCT_INFO" and bool(
+            answer.get("missing_information")
+        )
+    if turn.get("require_legal_evidence_gap"):
+        checks["reports_system_evidence_gap"] = (
+            answer.get("status") == "INSUFFICIENT_LEGAL_EVIDENCE"
+            and bool(answer.get("missing_legal_evidence"))
+            and not answer.get("missing_information")
+        )
     if turn.get("expect_skipped"):
         checks["no_llm_call"] = generated["generation"].get("skipped", False)
     if turn.get("expect_fallback"):

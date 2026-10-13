@@ -22,7 +22,8 @@ def answered(status="ANSWERED"):
         "suggested_hs_code": "",
         "alternatives": [],
         "citations": [{"label": "S1", "quote": "Nội dung hồ sơ"}] if status == "ANSWERED" else [],
-        "missing_information": ["Loại tài liệu"] if status == "NEED_MORE_INFORMATION" else [],
+        "missing_information": ["Loại tài liệu"] if status == "MISSING_PRODUCT_INFO" else [],
+        "missing_legal_evidence": [],
     }
 
 
@@ -43,7 +44,7 @@ def test_valid_json_does_not_pass_a_missing_information_scenario_if_it_selects_a
         "generation": {},
     }
     result = check_expectations(
-        {"expected_statuses": ["NEED_MORE_INFORMATION"], "require_missing_information": True},
+        {"expected_statuses": ["MISSING_PRODUCT_INFO"], "require_missing_information": True},
         generated,
     )
     assert not result["passed"]
@@ -65,7 +66,7 @@ def test_clarification_retrieves_again_and_does_not_carry_facts_to_another_scena
 
     def complete(prompt, *args, **kwargs):
         messages.append(prompt)
-        status = "NEED_MORE_INFORMATION" if len(messages) == 1 else "ANSWERED"
+        status = "MISSING_PRODUCT_INFO" if len(messages) == 1 else "ANSWERED"
         return {"content": json.dumps(answered(status)), "finish_reason": "stop", "model": "main"}
 
     client = SimpleNamespace(config=GroqConfig(keys=("x",)), complete=complete)
@@ -77,7 +78,7 @@ def test_clarification_retrieves_again_and_does_not_carry_facts_to_another_scena
             "task": "qa",
             "question": "Tài liệu nào?",
             "turns": [
-                {"expected_statuses": ["NEED_MORE_INFORMATION"]},
+                {"expected_statuses": ["MISSING_PRODUCT_INFO"]},
                 {"supplement": "Thông tin chỉ thuộc phiên A", "expected_statuses": ["ANSWERED"]},
             ],
         },
@@ -156,3 +157,18 @@ def test_source_coverage_and_schema_are_checked_separately():
     assert result["checks"]["valid_output"]
     assert not result["checks"]["expected_sources_cited"]
     assert not result["passed"]
+
+
+def test_evidence_gap_expectation_cannot_pass_with_a_user_question():
+    generated = {
+        "answer": answered("MISSING_PRODUCT_INFO"),
+        "validation": {"valid": True},
+        "generation": {},
+    }
+    result = check_expectations({"require_legal_evidence_gap": True}, generated)
+    assert not result["passed"]
+    generated["answer"] = {
+        **answered("INSUFFICIENT_LEGAL_EVIDENCE"),
+        "missing_legal_evidence": ["Missing source wording"],
+    }
+    assert check_expectations({"require_legal_evidence_gap": True}, generated)["passed"]

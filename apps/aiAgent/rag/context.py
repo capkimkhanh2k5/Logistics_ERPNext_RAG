@@ -1,10 +1,17 @@
 """Source graph context for every registered tariff chapter."""
 
+import re
 from collections import defaultdict, deque
 from functools import lru_cache
 from typing import Any
 
 from rag.data import load_corpus
+from rag.legal_evidence import (
+    BINDING_VERSION,
+    CONSOLIDATED_ROW,
+    evidence_digest,
+    normalized_wording,
+)
 from rag.sources import first
 
 
@@ -75,6 +82,7 @@ class GraphContext:
         self.records = {r["id"]: r for r in records}
         self.nodes = {n["id"]: n.get("metadata", {}) for n in nodes}
         self.parents: dict[str, set[str]] = defaultdict(set)
+        self.children: dict[str, set[str]] = defaultdict(set)
         self.contexts: dict[str, set[str]] = defaultdict(set)
         self.notes: dict[str, set[str]] = defaultdict(set)
         note_to_scope = {
@@ -91,6 +99,7 @@ class GraphContext:
             source, target, relation = e["source"], e["target"], e["relation"]
             if relation == "CONTAINS":
                 self.parents[target].add(source)
+                self.children[source].add(target)
             elif relation == "CONTEXT_FOR":
                 self.contexts[target].add(source)
             elif relation in note_to_scope and self.is_note(source):
@@ -172,10 +181,10 @@ class GraphContext:
                     citations.append(citation)
                     seen.add(citation["id"])
             for context_id in sorted(self.contexts.get(nid, set())):
-                citation = self.citation(context_id)
-                if citation and citation["id"] not in seen:
-                    citations.append(citation)
-                    seen.add(citation["id"])
+                context_citation = self.citation(context_id)
+                if context_citation and context_citation["id"] not in seen:
+                    citations.append(context_citation)
+                    seen.add(context_citation["id"])
                     context_ids.append(context_id)
             note_ids.update(self.notes.get(nid, set()))
         return {
@@ -183,6 +192,145 @@ class GraphContext:
             "citations": citations,
             "context_ids": context_ids,
             "note_ids": sorted(note_ids),
+        }
+
+    def node_code(self, node_id: str) -> str | None:
+        return first(self.records.get(node_id, {}), "code") or first(
+            self.nodes.get(node_id, {}), "code_compact", "code", "hs.code_compact"
+        )
+
+    def legal_evidence(self, node_id: str) -> list[dict]:
+        direct = self.citation(node_id)
+        if direct:
+            return [{**direct, "wording_origin": "DIRECT_SOURCE"}]
+        proof = self.nodes.get(node_id, {}).get("legal_evidence_binding", {})
+        if (
+            proof.get("version") != BINDING_VERSION
+            or proof.get("kind") != CONSOLIDATED_ROW
+            or proof.get("status") != "VERIFIED"
+            or proof.get("wording_status") != "NORMALIZED_COMPLETE_MATCH"
+            or proof.get("scope_basis") != "FULL_PDF_CODE_COLUMN_AND_UNDIVIDED_BILINGUAL_ROW"
+        ):
+            return []
+        code = proof.get("source_code", "")
+        covered = [code[:4], code[:6], code]
+        ids = proof.get("covered_node_ids", {})
+        if (
+            not re.fullmatch(r"[0-9]{4}0000", code)
+            or proof.get("covered_codes") != covered
+            or proof.get("printed_codes") != [code]
+            or ids.get(self.node_code(node_id)) != node_id
+            or any(self.node_code(ids.get(c)) != c for c in covered)
+        ):
+            return []
+        source_id = proof.get("source_id")
+        source = self.records.get(source_id, {})
+        citation = self.citation(source_id)
+        if (
+            not citation
+            or source_id != ids.get(code)
+            or source.get("code") != code
+            or evidence_digest(source.get("source_text")) != proof.get("source_text_hash")
+            or evidence_digest(source.get("locator")) != proof.get("source_locator_hash")
+            or any(
+                source.get("locator", {}).get(k) != v for k, v in proof.get("locator", {}).items()
+            )
+            or normalized_wording(source.get("source_text", ""))
+            != normalized_wording(source.get("locator", {}).get("raw_pdf_text", ""))
+        ):
+            return []
+        if node_id not in self.ancestors(source_id):
+            return []
+        descendants, frontier = set(), [node_id]
+        leaves = set()
+        while frontier:
+            current = frontier.pop()
+            if current in descendants:
+                continue
+            descendants.add(current)
+            if re.fullmatch(r"[0-9]{8}", self.node_code(current) or ""):
+                leaves.add(current)
+            frontier.extend(self.children.get(current, set()))
+        if leaves != {source_id}:
+            return []
+        return [{**citation, "wording_origin": CONSOLIDATED_ROW}]
+
+    def hs_hierarchy(self, row: dict) -> dict:
+        """Verify codes against CONTAINS paths; prefixes alone never establish ancestry."""
+        code = row.get("code") or ""
+        errors: list[str] = []
+        legal_errors: list[str] = []
+        chain: list[dict] = []
+        if not re.fullmatch(r"[0-9]{8}", code):
+            return {
+                "status": "INVALID",
+                "structure_status": "INVALID",
+                "legal_evidence_status": "INSUFFICIENT",
+                "chain": [],
+                "errors": ["HS leaf must have eight ASCII digits"],
+            }
+        ancestors = self.ancestors(row["id"])
+
+        if self.node_code(row["id"]) != code:
+            errors.append("Candidate code differs from its source graph node")
+        for level in (4, 6, 8):
+            expected = code[:level]
+            ids = (
+                [row["id"]]
+                if level == 8
+                else [sid for sid in ancestors if self.node_code(sid) == expected]
+            )
+            if len(ids) != 1:
+                errors.append(f"Expected one graph ancestor for HS{level} {expected}")
+                continue
+            sid = ids[0]
+            record, metadata = self.records.get(sid, {}), self.nodes.get(sid, {})
+            declared_level = record.get("level") or metadata.get("level")
+            if declared_level is not None and declared_level != level:
+                errors.append(f"Source level differs from code length: {sid}")
+            navigation_only = (
+                metadata.get("virtual")
+                or record.get("locator", {}).get("basis")
+                == "UNPRINTED_TAXONOMY_NODE_NOT_LEGAL_WORDING"
+                or first(record.get("metadata", {}).get("original", metadata), "hs.source_explicit")
+                is False
+            )
+            citation = self.citation(sid)
+            evidence = self.legal_evidence(sid)
+            if not evidence and (
+                level != 6 or not navigation_only or metadata.get("legal_evidence_binding")
+            ):
+                legal_errors.append(f"Missing legal wording for HS{level} {expected}")
+            chain.append(
+                {
+                    "id": sid,
+                    "code": expected,
+                    "level": level,
+                    "has_legal_wording": bool(citation),
+                    "legal_evidence_ids": [c["id"] for c in evidence],
+                    "wording_origin": evidence[0]["wording_origin"]
+                    if evidence
+                    else "NAVIGATION_ONLY",
+                }
+            )
+        for sid in ancestors:
+            parent_code = self.node_code(sid)
+            if isinstance(parent_code, str) and re.fullmatch(r"[0-9]{4}|[0-9]{6}", parent_code):
+                if not code.startswith(parent_code):
+                    errors.append(f"HS ancestor belongs to another branch: {parent_code}")
+        for parent, child in zip(chain, chain[1:]):
+            if parent["id"] not in self.ancestors(child["id"]):
+                errors.append(
+                    f"Missing graph parent-child path: {parent['code']} -> {child['code']}"
+                )
+            if child["id"] in self.ancestors(parent["id"]):
+                errors.append("HS hierarchy contains a cycle")
+        return {
+            "status": "INVALID" if errors or legal_errors else "VERIFIED",
+            "structure_status": "INVALID" if errors else "VERIFIED",
+            "legal_evidence_status": "INSUFFICIENT" if legal_errors else "VERIFIED",
+            "chain": chain,
+            "errors": errors + legal_errors,
         }
 
     def enrich(

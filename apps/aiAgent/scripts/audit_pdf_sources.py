@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from rag.data import source_files, tariff_bundle, write_json  # noqa: E402
+from rag.pdf_wording import validate_reviewed_extraction, wording_proof  # noqa: E402
 from rag.sources import source_manifest  # noqa: E402
 
 RUN = ROOT / "artifacts/experiments/run_pdf_graph_v4"
@@ -70,8 +71,10 @@ def main():
         with fitz.open(pdf) as doc:
             pages = [p.get_text() for p in doc]
         rows = json.loads((RUN / (rs[0]["section"] + "_pdf_rows.json")).read_text())
-        if any(r["locator"]["sha256"] != hashes[source["source_pdf"]] for r in rows):
-            raise ValueError(f"PDF table extraction is stale: {pdf.name}")
+        extraction = data[source["pdf_graph"]]["extractions"][pdf.name]
+        validate_reviewed_extraction(
+            rows, extraction, hashes[source["source_pdf"]], data["tt31_pdf_wording_reviews"]
+        )
         by_code = {r["code"]: r for r in rows if r["code"]}
         for record in rs:
             code = record.get("code")
@@ -79,7 +82,7 @@ def main():
                 entry = {
                     **by_code[code]["locator"],
                     "basis": "PDF_CODE_ANCHOR",
-                    "raw_pdf_text": by_code[code]["text_vi"],
+                    **wording_proof(by_code[code], record, data["tt31_pdf_wording_reviews"]),
                 }
             elif code:
                 entry = {
@@ -167,7 +170,7 @@ def main():
         visit(nid)
     comparison = [dict(id=rid, **p) for rid, p in proof.items() if "word_trigram_coverage" in p]
     review_required = [p for p in comparison if p["word_trigram_coverage"] < 0.75]
-    report = {
+    report: dict = {
         "source_records": len(proof),
         "graph_nodes": len(ids),
         "graph_edges": len(edges),
@@ -176,17 +179,41 @@ def main():
         "relations": dict(Counter(e["relation"] for e in edges)),
         "source_comparison": comparison,
         "review_required": review_required,
+        "code_wording_review_required": [
+            rid
+            for rid, p in proof.items()
+            if p.get("wording_status") == "REQUIRES_OCR_WORDING_REVIEW"
+        ],
+        "code_wording_statuses": dict(
+            Counter(p["wording_status"] for p in proof.values() if "wording_status" in p)
+        ),
         "semantic_scope": "All edges checked for integrity; PDF context scopes rebuilt. Imported reference/Notes relations are retained, not claimed reinterpreted legal semantics.",
         "ocr_limitation": "TT85 Apple Vision language en-US; spelling discrepancies require visual review, not automatic rewriting.",
     }
     write_json(
         ROOT / "data/normalized/PDF_SOURCE_PROVENANCE.json",
-        {"version": 1, "pdf_hashes": hashes, "records": proof},
+        {
+            "version": 2,
+            "pdf_hashes": hashes,
+            "extractors": {
+                name: item["extractor"]
+                for name, item in data["tt31_pdf_graph"]["extractions"].items()
+            },
+            "wording_reviews": {
+                name: item["wording_reviews"]
+                for name, item in data["tt31_pdf_graph"]["extractions"].items()
+            },
+            "records": proof,
+        },
     )
     write_json(RUN / "full_pdf_audit.json", report)
     print(
         json.dumps(
-            {k: v for k, v in report.items() if k not in {"source_comparison", "review_required"}},
+            {
+                k: v
+                for k, v in report.items()
+                if k not in {"source_comparison", "review_required", "code_wording_review_required"}
+            },
             ensure_ascii=False,
         )
     )
@@ -195,6 +222,7 @@ def main():
         len(review_required),
         Counter(p["id"].split(":")[0] for p in review_required),
     )
+    print("code_wording_review_required", len(report["code_wording_review_required"]))
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ import pytest
 
 from config.settings import GroqConfig, parse_keys
 from rag.answering import generate_answer, prepare_context, validate_answer
+from rag.context import GraphContext
 from rag.groq_client import GroqClient, GroqError
 from tests.support.generation_eval import run_evaluation, score_case
 
@@ -18,9 +19,19 @@ def source(sid="a", text="A printed source passage with evidence.", code=None):
 
 
 def context(task="qa"):
-    row = source(code="85171300")
+    row = {**source(code="85171300"), "level": 8}
+    heading = {**source("heading", "Telephone apparatus", "8517"), "level": 4}
+    subheading = {**source("subheading", "Smartphones", "851713"), "level": 6}
+    graph = GraphContext(
+        [row, heading, subheading],
+        [],
+        [
+            {"source": "heading", "target": "subheading", "relation": "CONTAINS"},
+            {"source": "subheading", "target": "a", "relation": "CONTAINS"},
+        ],
+    )
     result = {"matches": [row], "package": [row], "hs_candidates": [row]}
-    return prepare_context("A question", result, task, GroqConfig(keys=("secret",)))
+    return prepare_context("A question", result, task, GroqConfig(keys=("secret",)), graph)
 
 
 def answer():
@@ -31,6 +42,21 @@ def answer():
         "alternatives": [],
         "citations": [{"label": "S1", "quote": "printed source passage"}],
         "missing_information": [],
+        "missing_legal_evidence": [],
+    }
+
+
+def hs_answer():
+    return {
+        **answer(),
+        "status": "RECOMMENDATION",
+        "suggested_hs_code": "85171300",
+        "answer": "A supported conclusion [S1] [S2] [S3].",
+        "citations": [
+            *answer()["citations"],
+            {"label": "S2", "quote": "Telephone apparatus"},
+            {"label": "S3", "quote": "Smartphones"},
+        ],
     }
 
 
@@ -177,7 +203,7 @@ def test_hs_candidate_outside_mixed_top10_gets_its_own_evidence():
         {"citations": [{"label": "S1", "quote": "fabricated legal wording"}]},
         {"answer": "An unsupported conclusion."},
         {"suggested_hs_code": "85171300"},
-        {"status": "NEED_MORE_INFORMATION"},
+        {"status": "MISSING_PRODUCT_INFO"},
     ],
 )
 def test_invalid_citations_codes_and_abstention_are_rejected(change):
@@ -192,7 +218,7 @@ def test_valid_quote_is_structural_evidence_not_a_faithfulness_score():
 
 
 def test_hs_code_must_be_in_context_and_recommendation_status():
-    proposal = {**answer(), "status": "RECOMMENDATION", "suggested_hs_code": "85171300"}
+    proposal = hs_answer()
     assert validate_answer(proposal, context("hs"))["valid"]
     assert not validate_answer({**proposal, "suggested_hs_code": "99999999"}, context("hs"))[
         "valid"
@@ -235,7 +261,7 @@ def test_auto_keeps_legal_sources_and_hs_hierarchy_despite_qa_advice():
 def test_auto_accepts_both_answer_types_but_keeps_code_and_citation_checks():
     ctx = context("auto")
     assert validate_answer(answer(), ctx)["valid"]
-    proposal = {**answer(), "status": "RECOMMENDATION", "suggested_hs_code": "85171300"}
+    proposal = hs_answer()
     assert validate_answer(proposal, ctx)["valid"]
     assert not validate_answer({**proposal, "suggested_hs_code": "99999999"}, ctx)["valid"]
     assert not validate_answer({**answer(), "alternatives": ["85171300"]}, ctx)["valid"]
@@ -248,7 +274,7 @@ def test_empty_context_abstains_without_contacting_provider():
     client = SimpleNamespace(complete=lambda *a, **k: pytest.fail("Unexpected API call"))
     ctx = prepare_context("Question", {}, "qa", GroqConfig(keys=("x",)))
     result = generate_answer(ctx, client)
-    assert result["answer"]["status"] == "INSUFFICIENT_EVIDENCE"
+    assert result["answer"]["status"] == "INSUFFICIENT_LEGAL_EVIDENCE"
     assert result["validation"]["valid"]
 
 

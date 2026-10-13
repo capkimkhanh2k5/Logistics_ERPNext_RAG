@@ -30,8 +30,8 @@ Sau khi AI trả lời, nhập thêm thông tin để làm rõ cùng câu hỏi.
 STATUSES = {
     "ANSWERED": "Đã trả lời",
     "RECOMMENDATION": "Đề xuất mã HS",
-    "NEED_MORE_INFORMATION": "Cần bổ sung thông tin",
-    "INSUFFICIENT_EVIDENCE": "Chưa đủ chứng cứ nguồn",
+    "MISSING_PRODUCT_INFO": "Thiếu thông tin hàng hóa/hồ sơ từ người dùng",
+    "INSUFFICIENT_LEGAL_EVIDENCE": "Chưa đủ chứng cứ pháp lý trong retrieval/corpus",
     "REQUIRES_REVIEW": "Cần thẩm định thêm",
 }
 
@@ -53,9 +53,13 @@ def show_answer(context: dict, generated: dict, elapsed: float, write=print) -> 
         write(f"Mã HS đề xuất: {answer['suggested_hs_code']} (cần chuyên môn xác nhận)")
     if answer["alternatives"]:
         write("Mã cần cân nhắc thêm: " + ", ".join(answer["alternatives"]))
-    if answer["missing_information"]:
+    if answer["status"] == "MISSING_PRODUCT_INFO" and answer["missing_information"]:
         write("\nThông tin bạn cần bổ sung:")
         for item in answer["missing_information"]:
+            write(f"- {item}")
+    if answer["missing_legal_evidence"]:
+        write("\nKhoảng trống chứng cứ của hệ thống (retrieval/corpus):")
+        for item in answer["missing_legal_evidence"]:
             write(f"- {item}")
     if answer["citations"]:
         write("\nNguồn trích dẫn:")
@@ -64,7 +68,9 @@ def show_answer(context: dict, generated: dict, elapsed: float, write=print) -> 
             source = sources[citation["label"]]
             locator = source["locator"]
             details = [str(locator.get("document") or source["id"])]
-            if locator.get("physical_page") is not None:
+            if locator.get("physical_pages"):
+                details.append("trang PDF " + ", ".join(map(str, locator["physical_pages"])))
+            elif locator.get("physical_page") is not None:
                 details.append(f"trang PDF {locator['physical_page']}")
             if locator.get("printed_page") is not None:
                 details.append(f"trang in {locator['printed_page']}")
@@ -76,9 +82,16 @@ def show_answer(context: dict, generated: dict, elapsed: float, write=print) -> 
 def run_console(retriever, client, graph, *, read=input, write=print) -> None:
     question = ""
     supplements: list[str] = []
+    needs_product_info = False
     write(HELP)
     while True:
-        prompt = "\nBổ sung thông tin hoặc lệnh: " if question else "\nCâu hỏi: "
+        prompt = (
+            "\nThông tin hàng hóa/hồ sơ hoặc lệnh: "
+            if needs_product_info
+            else "\nLệnh hoặc nội dung tiếp theo (/new để hỏi câu mới): "
+            if question
+            else "\nCâu hỏi: "
+        )
         try:
             text = read(prompt).strip()
         except (EOFError, KeyboardInterrupt):
@@ -94,6 +107,7 @@ def run_console(retriever, client, graph, *, read=input, write=print) -> None:
             continue
         if command == "/new":
             question, supplements = "", []
+            needs_product_info = False
             write("Đã bắt đầu câu hỏi mới.")
             continue
         if text.startswith("/") and command != "/retry":
@@ -126,6 +140,10 @@ def run_console(retriever, client, graph, *, read=input, write=print) -> None:
             context = prepare_context(query, result, "auto", client.config, graph)
             write(f"Đã đóng gói {len(context['sources'])} nguồn. Đang tạo câu trả lời…")
             generated = generate_answer(context, client)
+            needs_product_info = (
+                generated["validation"]["valid"]
+                and generated["answer"].get("status") == "MISSING_PRODUCT_INFO"
+            )
             show_answer(context, generated, time.perf_counter() - started, write)
         except GroqError as exc:
             details = f"HTTP {exc.status}, model={exc.model}"

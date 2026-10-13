@@ -21,7 +21,8 @@
     "tt31_section_xvi_edges": "TT31/Section-XVI/SECTION_XVI_GRAPH_EDGES.jsonl",
     "tt31_pdf_graph": "TT31/PDF_SOURCE_GRAPH.json",
     "pdf_provenance": "PDF_SOURCE_PROVENANCE.json",
-    "tt31_pdf_text_corrections": "TT31/PDF_SOURCE_TEXT_CORRECTIONS.json"
+    "tt31_pdf_text_corrections": "TT31/PDF_SOURCE_TEXT_CORRECTIONS.json",
+    "tt31_pdf_wording_reviews": "TT31/PDF_WORDING_REVIEWS.json"
   },
   "tariffs": [
     {

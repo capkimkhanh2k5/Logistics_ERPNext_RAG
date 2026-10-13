@@ -14,7 +14,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from rag.data import digest, write_json  # noqa: E402
-from rag.pdf_graph import table_rows  # noqa: E402
+from rag.legal_evidence import consolidated_bindings  # noqa: E402
+from rag.pdf_graph import table_rows, validate_extraction  # noqa: E402
+from rag.pdf_wording import apply_wording_reviews, wording_proof  # noqa: E402
 from rag.sources import canonical_tariff, first, read_source, source_manifest  # noqa: E402
 
 
@@ -144,7 +146,8 @@ def main():
     if Path(args.run_id).name != args.run_id or args.run_id in {".", ".."}:
         raise ValueError("Run ID must be a directory name")
     manifest = source_manifest(ROOT)
-    report, nodes, edges, hashes = [], [], [], {}
+    reviews = read_source(ROOT / "data/normalized" / manifest["files"]["tt31_pdf_wording_reviews"])
+    report, nodes, edges, hashes, bindings = [], [], [], {}, []
     artifact = ROOT / "artifacts/experiments" / args.run_id
     artifact.mkdir(parents=True, exist_ok=True)
     for source in manifest["tariffs"]:
@@ -155,6 +158,13 @@ def main():
         section = records[0]["section"]
         path = ROOT / source["source_pdf"]
         rows, extraction = table_rows(path)
+        validate_extraction(rows, extraction, extraction["sha256"])
+        rows, extraction = apply_wording_reviews(rows, extraction, reviews)
+        by_code = {r["code"]: r for r in records if r.get("code")}
+        for row in rows:
+            if row.get("wording_review_id"):
+                wording_proof(row, by_code[row["code"]], reviews)
+        bindings.extend(consolidated_bindings(rows, records, extraction))
         ns, es, audit = materialize(rows, records, section)
         nodes.extend(ns)
         edges.extend(es)
@@ -168,16 +178,23 @@ def main():
             flush=True,
         )
     graph = {
-        "version": 1,
+        "version": 2,
         "basis": "AUTHORITATIVE_PDF_GEOMETRY_AND_PRINTED_INDENTATION",
         "pdf_hashes": hashes,
         "nodes": nodes,
         "edges": edges,
+        "legal_evidence_bindings": bindings,
+        "extractions": {item["extraction"]["document"]: item["extraction"] for item in report},
     }
     write_json(ROOT / "data/normalized/TT31/PDF_SOURCE_GRAPH.json", graph)
     write_json(artifact / "pdf_scope_audit.json", report)
     print(
-        "PDF graph ready", len(nodes), len(edges), Counter(n["metadata"]["section"] for n in nodes)
+        "PDF graph ready",
+        len(nodes),
+        len(edges),
+        "bindings",
+        len(bindings),
+        Counter(n["metadata"]["section"] for n in nodes),
     )
 
 

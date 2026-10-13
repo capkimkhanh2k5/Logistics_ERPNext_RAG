@@ -9,6 +9,34 @@ import fitz
 import numpy as np
 from scipy.ndimage import find_objects, label
 
+from rag.legal_evidence import evidence_digest
+
+SOURCE_CODE_PATTERN = r"\b(?:\d{4}(?:\.\d{2}){1,2}|\d{2}\.\d{2})\b"
+
+
+def extractor_identity() -> dict:
+    return {
+        "version": "bilingual-table-spans-v2",
+        "parser_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "pymupdf_version": fitz.VersionBind,
+    }
+
+
+def validate_extraction(rows: list[dict], extraction: dict, pdf_sha256: str) -> None:
+    if extraction.get("extractor") != extractor_identity():
+        raise ValueError("PDF table extractor version is stale")
+    if extraction.get("sha256") != pdf_sha256 or any(
+        r["locator"].get("sha256") != pdf_sha256 for r in rows
+    ):
+        raise ValueError("PDF table extraction source hash is stale")
+    if extraction.get("rows_hash") != evidence_digest(rows):
+        raise ValueError("PDF table extraction rows changed after extraction")
+    if any(p["status"] == "UNRESOLVED_COLUMNS" for p in extraction["pages"]):
+        raise ValueError("PDF table extraction has unresolved source pages")
+    inventory = {item["code"] for item in extraction["code_inventory"]}
+    if inventory != {r["code"] for r in rows if r.get("code")}:
+        raise ValueError("PDF code-column inventory differs from extracted rows")
+
 
 def clusters(values: list[int] | np.ndarray) -> list[float]:
     groups: list[list[int]] = []
@@ -62,6 +90,7 @@ def table_rows(path: Path) -> tuple[list[dict], dict]:
     """Extract bilingual ruled table rows; raster grids work with scanned PDF text layers."""
     rows: list[dict] = []
     pages = []
+    inventory: list[dict] = []
     sha = hashlib.sha256(path.read_bytes()).hexdigest()
     with fitz.open(path) as document:
         layouts: Counter[tuple[int, ...]] = Counter()
@@ -95,6 +124,13 @@ def table_rows(path: Path) -> tuple[list[dict], dict]:
             if len(ys) < 3:
                 pages.append({"page": number, "status": "NON_TABLE_PAGE"})
                 continue
+            # Count printed codes independently of row segmentation, inside the ruled table.
+            # Chapter-note references outside the table are not tariff code anchors.
+            column = cell_text(words, (common_columns[0], ys[0], common_columns[1], ys[-1]))
+            inventory.extend(
+                {"code": code.replace(".", ""), "physical_page": number}
+                for code in re.findall(SOURCE_CODE_PATTERN, column)
+            )
             xs = clusters(
                 np.where((pixels[int(ys[0]) : int(ys[-1]) + 1] < 220).mean(axis=0) > 0.90)[0]
             )
@@ -121,7 +157,7 @@ def table_rows(path: Path) -> tuple[list[dict], dict]:
                 code_text = cell_text(words, (x0, y0, x1, y1))
                 vi = cell_text(words, (x1, y0, x2, y1))
                 en = cell_text(words, (code_right, y0, description_right, y1))
-                matches = re.findall(r"\b(?:\d{4}(?:\.\d{2}){1,2}|\d{2}\.\d{2})\b", code_text)
+                matches = re.findall(SOURCE_CODE_PATTERN, code_text)
                 if not matches and marker_depth(vi) is None and marker_depth(en) is None:
                     # A wrapped table description can continue in the first cell on the next page.
                     # Headers have a nonempty code-column label; continuation cells do not.
@@ -174,4 +210,11 @@ def table_rows(path: Path) -> tuple[list[dict], dict]:
                 )
                 count += 1
             pages.append({"page": number, "status": "EXTRACTED", "rows": count})
-    return rows, {"document": path.name, "sha256": sha, "pages": pages}
+    return rows, {
+        "document": path.name,
+        "sha256": sha,
+        "pages": pages,
+        "extractor": extractor_identity(),
+        "rows_hash": evidence_digest(rows),
+        "code_inventory": inventory,
+    }

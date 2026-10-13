@@ -12,6 +12,9 @@ import jsonschema
 
 from config.retrieval import retrieval_config
 from config.settings import ROOT
+from rag.legal_evidence import attach_bindings, evidence_digest
+from rag.pdf_graph import extractor_identity
+from rag.pdf_wording import review_processor, review_records
 from rag.sources import (
     canonical_edge,
     canonical_tariff,
@@ -67,6 +70,26 @@ def audit() -> dict:
     registered = source_manifest(ROOT)
     repairs = {r["id"]: r for r in data.get("tt31_pdf_text_corrections", {}).get("records", [])}
     verified_repairs = set()
+    registry = data["tt31_pdf_wording_reviews"]
+    reviews = review_records(registry)
+    verified_reviews = set()
+    if data["tt31_pdf_graph"].get("version") != 2:
+        raise ValueError("PDF source graph must be rebuilt with the current extractor")
+    for name, extraction in data["tt31_pdf_graph"].get("extractions", {}).items():
+        if extraction.get("extractor") != extractor_identity():
+            raise ValueError(f"PDF graph extractor is stale: {name}")
+        if data["pdf_provenance"].get("extractors", {}).get(name) != extraction["extractor"]:
+            raise ValueError(f"PDF source provenance extractor is stale: {name}")
+        expected_reviews = {rid for rid, r in reviews.items() if r["locator"]["document"] == name}
+        review_proof = extraction.get("wording_reviews", {})
+        if (
+            review_proof.get("registry_hash") != evidence_digest(registry)
+            or review_proof.get("processor") != review_processor()
+            or set(review_proof.get("ids", [])) != expected_reviews
+            or len(review_proof.get("ids", [])) != len(expected_reviews)
+            or data["pdf_provenance"].get("wording_reviews", {}).get(name) != review_proof
+        ):
+            raise ValueError(f"PDF wording review provenance is stale: {name}")
     validator = jsonschema.Draft202012Validator(data["tt31_unified_rag_schema"])
     taxonomy = {r["chapter_code"]: r["section_code"] for r in data["scope"]["records"]}
     quality, codes = {}, set()
@@ -81,6 +104,25 @@ def audit() -> dict:
             raise ValueError("Duplicate tariff source IDs")
         for r in records:
             validator.validate(r)
+            review_id = "tt31:" + r["id"]
+            review = reviews.get(review_id)
+            if review:
+                canonical = canonical_tariff(r, masters.get(r["id"]))
+                proof = data["pdf_provenance"]["records"].get(review_id, {})
+                expected = {
+                    **review["locator"],
+                    "raw_pdf_text": review["native_pdf_text"],
+                    "reviewed_pdf_text": review["reviewed_row_text"],
+                    "wording_review_id": review_id,
+                    "wording_review_hash": evidence_digest(review),
+                    "source_text_hash": evidence_digest(review["source_text"]),
+                    "wording_status": "VISUALLY_VERIFIED_COMPLETE_MATCH",
+                }
+                if canonical["source_text"] != review["source_text"] or any(
+                    proof.get(k) != v for k, v in expected.items()
+                ):
+                    raise ValueError(f"Reviewed PDF source wording drifted: {review_id}")
+                verified_reviews.add(review_id)
             repair = repairs.get("tt31:" + r["id"])
             if repair:
                 canonical = canonical_tariff(r, masters.get(r["id"]))
@@ -115,6 +157,8 @@ def audit() -> dict:
         raise ValueError("Broken source graph endpoints")
     if verified_repairs != set(repairs):
         raise ValueError("A reviewed PDF source repair has no registered record")
+    if verified_reviews != set(reviews):
+        raise ValueError("A PDF wording review has no registered canonical source")
     for key, id_field, text_field in [("gir", "id", "text_vi"), ("tt85", "chunk_id", "text")]:
         rows = data[key]
         if len({r[id_field] for r in rows}) != len(rows) or any(
@@ -142,6 +186,8 @@ def audit() -> dict:
         "tt85_source_hash_matches": True,
         "legal_verification": "PDF_HASH_BOUND_WITH_TEXT_COMPARISON_AND_OCR_REVIEW_LIMITATIONS",
         "verified_pdf_text_repairs": len(verified_repairs),
+        "verified_pdf_wording_reviews": len(verified_reviews),
+        "reviewed_canonical_text_changes": sum(r["source_text_changed"] for r in reviews.values()),
         "source_hashes": {
             path: hashlib.sha256(source_path(NORMALIZED, path).read_bytes()).hexdigest()
             for path in registered["files"].values()
@@ -498,12 +544,13 @@ def build_corpus() -> dict:
                 "metadata": {"basis": "CODE_PREFIX_STRUCTURAL_DERIVATION"},
             }
         )
+    attach_bindings(rows, nodes, data.get("tt31_pdf_graph", {}).get("legal_evidence_bindings", []))
     assert all(e["source"] in node_ids and e["target"] in node_ids for e in edges)
     manifest = {
         "strategy": cfg["chunk_strategy"],
         "source_hashes": report["source_hashes"],
         "source_manifest_hash": digest(registered),
-        "graph_version": "pdf-source-context-v4",
+        "graph_version": "pdf-source-context-v5-evidence-bindings",
         "count": len(rows),
         "roles": dict(Counter(r["role"] for r in rows)),
         "namespaces": dict(Counter(r["namespace"] for r in rows)),

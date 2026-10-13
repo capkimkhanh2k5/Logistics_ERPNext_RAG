@@ -65,6 +65,7 @@ def ingest(
     assert digest(manifest["profile"])[:24] == manifest["profile_id"]
     assert digest(rows) == bundle["manifest"]["records_hash"]
     assert digest(bundle["edges"]) == bundle["manifest"]["edges_hash"]
+    assert digest(bundle["nodes"]) == bundle["manifest"]["nodes_hash"], "Graph nodes hash mismatch"
     dense = validate_vectors(dense, len(rows))
     sparse = sparse or []
     if manifest["profile"]["sparse"] and len(sparse) != len(rows):
