@@ -7,6 +7,7 @@
 | [retrieval.py](retrieval.py) | Loader `rag.yaml`; model/revision, instruction và bộ trọng số của retrieval. |
 | [rag.yaml](rag.yaml) | Embedding và cấu hình nền cho build/retrieval. |
 | [unified_retrieval.json](unified_retrieval.json) | Policy v5 đã khóa theo snapshot/profile, dùng cho runtime. |
+| [cliproxyapi/README.md](cliproxyapi/README.md) | Gateway LLM và Web UI chạy trong Docker stack `aiagent-rag`; hướng dẫn tạo key local và kết nối OAuth. |
 
 `GroqClient()` gọi `GroqConfig.from_env()`. `connect()` gọi `DatabaseConfig.from_env()`. Giá trị trong dataclass là mặc định khi biến môi trường chưa được đặt; runtime ưu tiên biến môi trường rồi đến file `.env`. Notebook 03 gọi `load_environment(override=True)` để đọc lại `.env` khi chạy lại cell. Key/password phải được cung cấp; không có giá trị bí mật mặc định.
 

@@ -118,11 +118,17 @@ cp .env.example .env
 Đặt mật khẩu riêng trong `.env`, rồi:
 
 ```bash
+python3 scripts/init_cliproxyapi.py
 docker compose -f docker-compose.rag.yml up -d
 .venv/bin/python -m ipykernel install --user --name aiagent-rag --display-name 'Python (AI Agent RAG)'
 ```
 
 Giữ `.env` hiện tại nếu đã có database volume. Lockfile đã được kiểm chứng trên macOS ARM64/Python 3.11; khi đổi platform có thể resolve từ `requirements-rag.txt` rồi kiểm chứng lại.
+
+Stack cũng hỗ trợ [CLIProxyAPI và Web UI](config/cliproxyapi/README.md) để thử gateway LLM.
+Trước lần đầu chạy toàn stack, dùng `python3 scripts/init_cliproxyapi.py` để tạo cấu hình
+và key local. Nếu chỉ cần database, chạy `docker compose -f docker-compose.rag.yml up -d postgres`.
+CLIProxyAPI chưa thay đổi provider Groq của runtime RAG.
 
 Notebook 01 có cell hiển thị database trước ingestion; `APPLY=True` ghi vào database RAG riêng. `APPLY=True, FRESH_REBUILD=True` xóa các bảng thuộc schema `rag` và nạp lại trong cùng transaction; lỗi sẽ rollback. Nguồn và output notebook được giữ. Có thể đặt `APPLY=False` để dry-run. Model/tokenizer được pin commit; máy mới tải weights khoảng 2,2 GB. Ingestion tái chạy có checkpoint và không tạo duplicate.
 

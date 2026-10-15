@@ -8,3 +8,5 @@ __pycache__/
 .ruff_cache/
 .DS_Store
 reports/20*.json
+# Local CLIProxyAPI configuration and credentials.
+config/cliproxyapi/local/
