@@ -7,8 +7,9 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
-from dotenv import load_dotenv
+from dotenv import dotenv_values, load_dotenv
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -69,6 +70,84 @@ class GroqConfig:
         for name in ("timeout_seconds", "max_wait_seconds", "temperature"):
             kwargs[name] = float(os.getenv(f"GROQ_{name.upper()}", str(getattr(cls, name))))
         return cls(**kwargs)
+
+
+@dataclass(frozen=True)
+class CLIProxyConfig:
+    api_key: str = field(repr=False)
+    base_url: str = "http://127.0.0.1:8317/v1"
+    model: str = "gemini-3.8-flash-high"
+    fallback_model: str = "gpt-oss-120b-medium"
+    fallback_reasoning_effort: str = "medium"
+    max_output_tokens: int = 8192
+    reasoning_effort: str = "high"
+    timeout_seconds: float = 60
+    temperature: float = 0.2
+
+    def __post_init__(self):
+        url = urlsplit(self.base_url)
+        if (
+            url.scheme not in {"http", "https"}
+            or not url.hostname
+            or url.username is not None
+            or url.password is not None
+            or url.query
+            or url.fragment
+        ):
+            raise ValueError("CLIPROXYAPI_BASE_URL must be an HTTP(S) API base without credentials")
+        if not self.api_key.strip():
+            raise ValueError(
+                "Set CLIPROXYAPI_API_KEY or initialize the local CLIProxyAPI credentials"
+            )
+        if not self.model.strip() or self.max_output_tokens < 1:
+            raise ValueError("CLIProxyAPI requires a model and a positive output token budget")
+        if not self.fallback_model.strip() or self.fallback_model == self.model:
+            raise ValueError("CLIProxyAPI fallback model must be nonempty and distinct")
+        if any(
+            value not in {"low", "medium", "high"}
+            for value in (self.reasoning_effort, self.fallback_reasoning_effort)
+        ):
+            raise ValueError("CLIPROXYAPI_REASONING_EFFORT must be low, medium or high")
+        if not math.isfinite(self.timeout_seconds) or self.timeout_seconds <= 0:
+            raise ValueError("CLIPROXYAPI_TIMEOUT_SECONDS must be finite and positive")
+        if not math.isfinite(self.temperature) or not 0 <= self.temperature <= 2:
+            raise ValueError("CLIPROXYAPI_TEMPERATURE must be between 0 and 2")
+
+    @classmethod
+    def from_env(cls):
+        load_environment()
+        local = ROOT / "config/cliproxyapi/local/credentials.env"
+        credentials = dotenv_values(local) if local.is_file() else {}
+        return cls(
+            api_key=os.getenv(
+                "CLIPROXYAPI_API_KEY", credentials.get("CLIPROXYAPI_CLIENT_API_KEY") or ""
+            ).strip(),
+            base_url=os.getenv("CLIPROXYAPI_BASE_URL", cls.base_url).strip().rstrip("/"),
+            model=os.getenv("CLIPROXYAPI_MODEL", cls.model).strip(),
+            fallback_model=os.getenv("CLIPROXYAPI_FALLBACK_MODEL", cls.fallback_model).strip(),
+            fallback_reasoning_effort=os.getenv(
+                "CLIPROXYAPI_FALLBACK_REASONING_EFFORT", cls.fallback_reasoning_effort
+            ).strip(),
+            max_output_tokens=int(
+                os.getenv("CLIPROXYAPI_MAX_OUTPUT_TOKENS", str(cls.max_output_tokens))
+            ),
+            reasoning_effort=os.getenv(
+                "CLIPROXYAPI_REASONING_EFFORT", cls.reasoning_effort
+            ).strip(),
+            timeout_seconds=float(
+                os.getenv("CLIPROXYAPI_TIMEOUT_SECONDS", str(cls.timeout_seconds))
+            ),
+            temperature=float(os.getenv("CLIPROXYAPI_TEMPERATURE", str(cls.temperature))),
+        )
+
+
+@dataclass(frozen=True)
+class RAGGenerationConfig:
+    model: str
+    fallback_model: str
+    max_input_chars: int
+    max_context_chars: int
+    fallback_models: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

@@ -80,7 +80,7 @@ def test_legal_gaps_cannot_be_product_questions(missing):
         abstention(missing_information=[missing], answer=missing), hs_context()
     )
     assert not result["valid"]
-    assert any("legal" in e.lower() for e in result["errors"])
+    assert any("pháp lý" in e for e in result["errors"])
 
 
 def test_only_product_status_can_ask_for_user_information():
@@ -176,7 +176,8 @@ def test_provider_gets_a_repair_instruction_for_legal_requests(monkeypatch):
     monkeypatch.setattr(client, "complete", complete)
     result = generate_answer(hs_context(), client)
     assert len(calls) == 2
-    assert "legal" in calls[1][-1]["content"].lower()
+    assert "pháp lý" in calls[1][-1]["content"]
+    assert "tiếng Việt" in calls[1][-1]["content"]
     assert result["validation"]["valid"]
     assert result["answer"]["status"] == "INSUFFICIENT_LEGAL_EVIDENCE"
 
@@ -420,4 +421,6 @@ def test_user_supplied_legal_text_cannot_be_reused_as_product_facts(monkeypatch)
     result = generate_answer(ctx, client)
     assert result["answer"]["status"] == "REQUIRES_REVIEW"
     assert result["answer"]["suggested_hs_code"] == ""
-    assert any("Legal text" in error for error in result["generation"]["product_review"]["errors"])
+    assert any(
+        "Nội dung pháp lý" in error for error in result["generation"]["product_review"]["errors"]
+    )

@@ -1,4 +1,4 @@
-"""Interactive terminal demo for HS/QA retrieval and grounded Groq answers."""
+"""Interactive terminal demo for HS/QA retrieval and grounded LLM answers."""
 
 import argparse
 import sys
@@ -8,11 +8,11 @@ from pathlib import Path
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from config.settings import GroqConfig  # noqa: E402
 from rag.embedding.bge_m3 import Embedder  # noqa: E402
 from rag.llm.answering import generate_answer
+from rag.llm.client import RAGClient
 from rag.llm.context import compose_query, load_generation_graph, prepare_context
-from rag.llm.groq_client import GroqClient, GroqError  # noqa: E402
+from rag.llm.errors import LLMError
 from rag.retrieval.retriever import Retriever  # noqa: E402
 from rag.vectordb.postgres import connect  # noqa: E402
 
@@ -141,11 +141,11 @@ def run_console(retriever, client, graph, *, read=input, write=print) -> None:
                 and generated["answer"].get("status") == "MISSING_PRODUCT_INFO"
             )
             show_answer(context, generated, time.perf_counter() - started, write)
-        except GroqError as exc:
+        except LLMError as exc:
             details = f"HTTP {exc.status}, model={exc.model}"
             if exc.error_code:
                 details += f", {exc.error_code}"
-            write(f"Groq chưa trả lời được ({details}).")
+            write(f"LLM chưa trả lời được ({details}).")
             if exc.retry_after:
                 write(f"Thời gian chờ nhà cung cấp báo: {exc.retry_after:.0f}s.")
             write("Thông tin đã được giữ lại. Dùng /retry hoặc bổ sung thêm thông tin.")
@@ -169,8 +169,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.parse_args(argv)
     try:
-        config = GroqConfig.from_env()
-        print(f"\nModel chính: {config.model} | Dự phòng: {config.fallback_model}")
+        client = RAGClient()
+        config = client.config
+        print(f"\nModel chính: {config.model} | Dự phòng: {' → '.join(config.fallback_models)}")
         print("Đang kết nối DB và khởi tạo RAG từ cấu hình hiện tại…")
         with connect() as conn:
             conn.execute("SET default_transaction_read_only = on")
@@ -179,7 +180,7 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("No active unified retrieval policy")
             graph = load_generation_graph(retriever)
             print(f"Snapshot: {retriever.snapshot} | Profile: {retriever.profile}")
-            run_console(retriever, GroqClient(config), graph)
+            run_console(retriever, client, graph)
     except (EOFError, KeyboardInterrupt):
         pass
     except Exception as exc:

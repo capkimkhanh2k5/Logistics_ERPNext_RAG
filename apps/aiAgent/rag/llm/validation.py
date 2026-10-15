@@ -8,6 +8,28 @@ import jsonschema
 from rag.prompts.schemas import ANSWER_SCHEMA
 
 
+def schema_errors(value: object, schema: dict) -> list[str]:
+    errors = []
+    for error in jsonschema.Draft202012Validator(schema).iter_errors(value):
+        path = "/" + "/".join(map(str, error.absolute_path))
+        if error.validator == "required":
+            missing = [key for key in error.validator_value if key not in error.instance]
+            detail = "Thiếu trường bắt buộc: " + ", ".join(missing)
+        elif error.validator == "additionalProperties":
+            extra = sorted(set(error.instance) - set(error.schema.get("properties", {})))
+            detail = "Có trường ngoài cấu trúc cho phép: " + ", ".join(extra)
+        elif error.validator == "type":
+            detail = f"Sai kiểu dữ liệu; kiểu JSON yêu cầu: {error.validator_value}"
+        elif error.validator == "enum":
+            detail = "Giá trị phải thuộc danh sách: " + ", ".join(error.validator_value)
+        elif error.validator == "minLength":
+            detail = f"Chuỗi phải có ít nhất {error.validator_value} ký tự"
+        else:
+            detail = f"Không đáp ứng ràng buộc JSON {error.validator}: {error.validator_value}"
+        errors.append(f"{path}: {detail}")
+    return list(dict.fromkeys(errors))
+
+
 def _normalized(text: str) -> str:
     return " ".join(text.split())
 
@@ -42,22 +64,26 @@ def _ownership_errors(answer: dict) -> list[str]:
     legal = answer["missing_legal_evidence"]
     if answer["status"] == "MISSING_PRODUCT_INFO":
         if not missing or any(not item.strip() for item in missing):
-            errors.append("Missing product information status requires specific user facts")
+            errors.append("MISSING_PRODUCT_INFO yêu cầu nêu rõ dữ kiện người dùng cần bổ sung")
         if any(LEGAL_INFORMATION.search(_folded(item)) for item in missing):
             errors.append(
-                "Legal evidence belongs to retrieval/corpus, never to missing product information"
+                "Chứng cứ pháp lý thuộc trách nhiệm truy xuất/kho dữ liệu, không phải dữ kiện người dùng cần bổ sung"
             )
     elif missing:
-        errors.append("Only MISSING_PRODUCT_INFO may request user information")
+        errors.append("Chỉ MISSING_PRODUCT_INFO được yêu cầu người dùng bổ sung dữ kiện")
     if answer["status"] == "INSUFFICIENT_LEGAL_EVIDENCE":
         if not legal or any(not item.strip() for item in legal):
-            errors.append("Insufficient legal evidence status requires a retrieval/corpus gap")
+            errors.append(
+                "INSUFFICIENT_LEGAL_EVIDENCE yêu cầu nêu rõ khoảng trống truy xuất/kho dữ liệu"
+            )
     elif legal:
-        errors.append("Legal evidence gaps require INSUFFICIENT_LEGAL_EVIDENCE")
+        errors.append("Thiếu chứng cứ pháp lý phải dùng INSUFFICIENT_LEGAL_EVIDENCE")
     if any(
         USER_REQUEST.search(_folded(item).strip()) or "?" in item or "？" in item for item in legal
     ):
-        errors.append("Legal evidence gaps are system diagnostics, not user requests")
+        errors.append(
+            "Khoảng trống chứng cứ pháp lý là chẩn đoán hệ thống, không được hỏi người dùng"
+        )
     for sentence in re.split(r"(?<=[.!?])\s+|\n", answer["answer"]):
         folded = _folded(sentence)
         request = USER_REQUEST.search(folded)
@@ -67,17 +93,17 @@ def _ownership_errors(answer: dict) -> list[str]:
             diagnostic = None
         if request and not diagnostic and LEGAL_INFORMATION.search(folded):
             errors.append(
-                "Do not ask the user to supply legal evidence; report a retrieval/corpus gap"
+                "Không yêu cầu người dùng cung cấp chứng cứ pháp lý; hãy báo khoảng trống truy xuất/kho dữ liệu"
             )
         if answer["status"] != "MISSING_PRODUCT_INFO" and (
             (request and not diagnostic) or "?" in sentence or "？" in sentence
         ):
-            errors.append("Only MISSING_PRODUCT_INFO may ask the user a question")
+            errors.append("Chỉ MISSING_PRODUCT_INFO được hỏi người dùng bổ sung thông tin")
     return errors
 
 
 def validate_answer(answer: dict, context: dict) -> dict:
-    errors = [e.message for e in jsonschema.Draft202012Validator(ANSWER_SCHEMA).iter_errors(answer)]
+    errors = schema_errors(answer, ANSWER_SCHEMA)
     if errors:
         return {"valid": False, "errors": errors, "semantic_grounding": "NOT_EVALUATED"}
     sources = {s["label"]: s for s in context["sources"]}
@@ -85,34 +111,34 @@ def validate_answer(answer: dict, context: dict) -> dict:
     for citation in answer["citations"]:
         label, quote = citation["label"], _normalized(citation["quote"])
         if label in cited:
-            errors.append(f"Duplicate citation: {label}")
+            errors.append(f"Nhãn trích dẫn bị lặp trong citations: {label}")
         cited.add(label)
         if label not in sources:
-            errors.append(f"Unknown citation: {label}")
+            errors.append(f"Nhãn trích dẫn không có trong nguồn được cung cấp: {label}")
         elif not quote or quote not in _normalized(sources[label]["text"]):
-            errors.append(f"Quote does not occur in source: {label}")
+            errors.append(f"Trích đoạn không khớp nguyên văn nguồn: {label}")
     markers = set(re.findall(r"\[(S\d+)\]", answer["answer"]))
     if markers != cited:
-        errors.append("Inline citations and citation records differ")
+        errors.append("Nhãn dẫn nguồn trong answer không khớp các bản ghi trong citations")
     if answer["status"] in {"ANSWERED", "RECOMMENDATION"} and not cited:
-        errors.append("A substantive answer requires citations")
+        errors.append("Câu trả lời có kết luận phải có trích dẫn nguồn")
     codes = [c for c in [answer["suggested_hs_code"], *answer["alternatives"]] if c]
     if any(not re.fullmatch(r"[0-9]{8}", c) for c in codes):
-        errors.append("Proposed HS codes must have exactly eight ASCII digits")
+        errors.append("Mã HS được đề xuất phải có đúng 8 chữ số ASCII")
     if any(c not in context["allowed_hs_codes"] for c in codes):
-        errors.append("HS code is outside the supplied candidates")
+        errors.append("Mã HS không thuộc danh sách ứng viên được cung cấp")
     if context["task"] == "qa" and (codes or answer["status"] == "RECOMMENDATION"):
-        errors.append("QA must not produce an HS recommendation")
+        errors.append("Câu trả lời hỏi đáp không được đề xuất mã HS")
     if context["task"] == "auto" and answer["status"] == "ANSWERED" and codes:
-        errors.append("An answered QA response must not include proposed HS codes")
+        errors.append("Câu trả lời hỏi đáp dùng ANSWERED không được kèm mã HS đề xuất")
     if context["task"] == "hs" and answer["status"] == "ANSWERED":
-        errors.append("HS must use a recommendation or abstention status")
+        errors.append("Phân loại HS phải dùng trạng thái đề xuất hoặc chưa thể kết luận")
     if answer["status"] == "RECOMMENDATION" and not answer["suggested_hs_code"]:
-        errors.append("HS recommendation requires a code")
+        errors.append("Đề xuất HS phải điền mã vào suggested_hs_code")
     if answer["status"] != "RECOMMENDATION" and answer["suggested_hs_code"]:
-        errors.append("Abstention must not include a selected HS code")
+        errors.append("Khi chưa đề xuất HS, suggested_hs_code phải để rỗng")
     if answer["status"] != "RECOMMENDATION" and answer["alternatives"]:
-        errors.append("Abstention must not include alternative HS proposals")
+        errors.append("Khi chưa đề xuất HS, alternatives phải để []")
     boundary_errors = _ownership_errors(answer)
     if answer["status"] == "RECOMMENDATION":
         evidence = {e["code"]: e for e in context.get("candidate_evidence", [])}
@@ -120,13 +146,13 @@ def validate_answer(answer: dict, context: dict) -> dict:
             path = evidence.get(code, {}).get("hierarchy", {})
             if path.get("status") != "VERIFIED":
                 boundary_errors.append(
-                    f"HS hierarchy is not verified for {code}: {path.get('errors', [])}"
+                    f"Chuỗi nhóm 4 số → phân nhóm 6 số → mã 8 số chưa được xác minh cho {code}; xem candidate_evidence.hierarchy.errors"
                 )
             elif code == answer["suggested_hs_code"]:
                 required = set(evidence[code]["required_citation_labels"])
                 if not required <= cited:
                     boundary_errors.append(
-                        f"HS recommendation is missing citations for its leaf, printed parents or source branch conditions: {sorted(required - cited)}. Use these exact labels in answer and citation records."
+                        f"Đề xuất HS thiếu trích dẫn của mã chi tiết, cấp cha có mô tả pháp lý hoặc điều kiện nhánh: {sorted(required - cited)}. Dùng đúng các nhãn này trong answer và citations."
                     )
     errors.extend(boundary_errors)
     return {

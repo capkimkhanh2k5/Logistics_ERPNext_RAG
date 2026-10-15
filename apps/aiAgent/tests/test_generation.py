@@ -291,12 +291,28 @@ def test_truncated_generation_never_passes_validation():
     assert not generate_answer(context(), client)["validation"]["valid"]
 
 
-def test_invalid_citation_format_is_repaired_once_with_same_actual_model():
+@pytest.mark.parametrize(
+    ("change", "removed", "error_detail"),
+    [
+        ({"answer": "A supported conclusion without an inline marker."}, None, "không khớp"),
+        ({}, "citations", "Thiếu trường bắt buộc: citations"),
+        ({"answer": []}, None, "/answer: Sai kiểu dữ liệu"),
+        ({"status": "UNKNOWN"}, None, "/status: Giá trị phải thuộc danh sách"),
+        ({"extra": True}, None, "Có trường ngoài cấu trúc cho phép: extra"),
+        ({"missing_information": [""]}, None, "/missing_information/0: Chuỗi phải có ít nhất 1"),
+    ],
+)
+def test_invalid_answers_are_repaired_once_with_same_actual_model(change, removed, error_detail):
     calls = []
-    first = {**answer(), "answer": "A supported conclusion without an inline marker."}
+    first = {**answer(), **change}
+    if removed:
+        first.pop(removed)
+    repair = []
 
     def complete(messages, schema, **kwargs):
         calls.append(kwargs)
+        if len(calls) == 2:
+            repair.append(messages[-1]["content"])
         return {
             "content": json.dumps(first if len(calls) == 1 else answer()),
             "finish_reason": "stop",
@@ -309,6 +325,9 @@ def test_invalid_citation_format_is_repaired_once_with_same_actual_model():
     assert result["validation"]["valid"]
     assert len(calls) == 2
     assert calls[1] == {"model": "actual-fallback", "allow_fallback": False}
+    assert error_detail in repair[0]
+    assert "tiếng Việt" in repair[0]
+    assert "nguyên văn" in repair[0]
     assert result["generation"]["fallback_used"]
     assert result["generation"]["failures"] == [{"http_status": 429}]
 

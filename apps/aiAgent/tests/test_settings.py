@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from config.settings import ROOT, DatabaseConfig, GroqConfig, load_environment
+from config.settings import ROOT, CLIProxyConfig, DatabaseConfig, GroqConfig, load_environment
 from config.testing import GenerationTestConfig
 from rag.llm.groq_client import GroqClient
 from rag.vectordb.postgres import connect
@@ -29,6 +29,15 @@ def isolated_environment(monkeypatch):
         "GROQ_TIMEOUT_SECONDS",
         "GROQ_MAX_WAIT_SECONDS",
         "GROQ_TEMPERATURE",
+        "CLIPROXYAPI_API_KEY",
+        "CLIPROXYAPI_BASE_URL",
+        "CLIPROXYAPI_MODEL",
+        "CLIPROXYAPI_FALLBACK_MODEL",
+        "CLIPROXYAPI_FALLBACK_REASONING_EFFORT",
+        "CLIPROXYAPI_MAX_OUTPUT_TOKENS",
+        "CLIPROXYAPI_REASONING_EFFORT",
+        "CLIPROXYAPI_TIMEOUT_SECONDS",
+        "CLIPROXYAPI_TEMPERATURE",
         "RAG_DB_PASSWORD",
         "RAG_DB_HOST",
         "RAG_DB_PORT",
@@ -119,6 +128,49 @@ def test_invalid_env_is_rejected_before_network_calls(monkeypatch, name, value):
     monkeypatch.setenv(name, value)
     with pytest.raises(ValueError):
         GroqClient()
+
+
+def test_cliproxy_settings_read_local_client_key_and_allow_env_override(monkeypatch, tmp_path):
+    monkeypatch.setattr("config.settings.ROOT", tmp_path)
+    directory = tmp_path / "config/cliproxyapi/local"
+    directory.mkdir(parents=True)
+    (directory / "credentials.env").write_text(
+        "MANAGEMENT_PASSWORD=admin-only\nCLIPROXYAPI_CLIENT_API_KEY=local-client\n"
+    )
+    config = CLIProxyConfig.from_env()
+    assert config.api_key == "local-client"
+    assert config.model == "gemini-3.8-flash-high"
+    assert config.fallback_model == "gpt-oss-120b-medium"
+    assert config.fallback_reasoning_effort == "medium"
+    assert "local-client" not in repr(config) and "admin-only" not in repr(config)
+    monkeypatch.setenv("CLIPROXYAPI_API_KEY", "env-client")
+    monkeypatch.setenv("CLIPROXYAPI_BASE_URL", "http://cliproxyapi:8317/v1/")
+    assert CLIProxyConfig.from_env().api_key == "env-client"
+    assert CLIProxyConfig.from_env().base_url == "http://cliproxyapi:8317/v1"
+
+
+@pytest.mark.parametrize(
+    "name,value",
+    [
+        ("CLIPROXYAPI_API_KEY", ""),
+        ("CLIPROXYAPI_BASE_URL", "file:///tmp/secret"),
+        ("CLIPROXYAPI_BASE_URL", "http://key@localhost/v1"),
+        ("CLIPROXYAPI_MODEL", ""),
+        ("CLIPROXYAPI_FALLBACK_MODEL", ""),
+        ("CLIPROXYAPI_FALLBACK_MODEL", "gemini-3.8-flash-high"),
+        ("CLIPROXYAPI_FALLBACK_REASONING_EFFORT", "invalid"),
+        ("CLIPROXYAPI_MAX_OUTPUT_TOKENS", "0"),
+        ("CLIPROXYAPI_TIMEOUT_SECONDS", "nan"),
+        ("CLIPROXYAPI_TIMEOUT_SECONDS", "0"),
+        ("CLIPROXYAPI_TEMPERATURE", "inf"),
+        ("CLIPROXYAPI_REASONING_EFFORT", "invalid"),
+    ],
+)
+def test_invalid_cliproxy_settings_are_rejected(monkeypatch, name, value):
+    monkeypatch.setenv("CLIPROXYAPI_API_KEY", "fixture-client")
+    monkeypatch.setenv(name, value)
+    with pytest.raises(ValueError):
+        CLIProxyConfig.from_env()
 
 
 def test_database_connection_uses_env_and_hides_password(monkeypatch):

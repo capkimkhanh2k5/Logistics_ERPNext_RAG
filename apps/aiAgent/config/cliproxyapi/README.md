@@ -47,9 +47,18 @@ vẫn yêu cầu management password. Có thể đổi riêng cổng web/API b�
 
 `routing.session-affinity: true` ưu tiên giữ credential cho cùng session khi có
 session identity. Thiết lập này không lưu lịch sử hội thoại thay cho ứng dụng.
-Cấu hình này chưa đổi provider Groq của RAG, chưa triển khai chat memory và chưa
-import tài khoản từ 9router. Chỉ xác nhận gọi LLM thật sau khi thêm provider và
-thử request bằng model khả dụng của tài khoản.
+Terminal RAG và notebook 03 thử Gemini, rồi GPT-OSS 120B qua CLIProxyAPI; chỉ dùng
+Groq sau khi cả hai model CLI lỗi hoặc hết quota. `CLIProxyConfig` tự đọc client key ban đầu từ file local
+này; nếu đổi key qua UI thì cập nhật `CLIPROXYAPI_API_KEY` trong `.env`. Các thiết
+lập `CLIPROXYAPI_*` và chính sách fallback được mô tả trong [cấu hình RAG](../README.md).
+Phần này chưa triển khai bộ nhớ chat mới hoặc import tài khoản từ 9router.
+
+GPT-OSS qua Antigravity trên phiên bản `v8.0.29` trả HTTP 400 khi dùng
+`response_format: json_schema` hoặc `json_object`. Client RAG gửi schema trong
+system prompt riêng cho các model `gpt-oss-*`, rồi kiểm tra JSON/schema, trích dẫn
+và ranh giới chứng cứ bằng cùng validator và tối đa một lượt sửa như trước.
+Gemini vẫn dùng `response_format: json_schema`. Đây là tương thích định dạng;
+không bỏ bước kiểm tra kết quả của RAG.
 
 ## Vận hành
 

@@ -35,7 +35,10 @@ rag/
 │   ├── context.py              # Ghép câu hỏi, nguồn, citation và ứng viên HS vào messages
 │   ├── answering.py            # Sinh câu trả lời, sửa lỗi và kiểm tra đề xuất HS
 │   ├── validation.py           # Schema, trích nguyên văn, ancestry và quyền sở hữu dữ kiện
-│   └── groq_client.py          # Gọi API, giới hạn, xoay key và fallback
+│   ├── client.py               # CLIProxyAPI chính → Groq fallback
+│   ├── cliproxy_client.py      # Structured JSON qua gateway local
+│   ├── errors.py               # Lỗi provider, không lộ key/body
+│   └── groq_client.py          # Groq dự phòng, giới hạn và xoay key
 ├── api/
 │   └── cli.py                  # Giao diện terminal HS/QA; chưa có HTTP API
 └── utils/

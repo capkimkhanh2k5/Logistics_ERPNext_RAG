@@ -7,6 +7,7 @@ from unittest.mock import patch
 from config.settings import ROOT
 from rag.llm.answering import generate_answer
 from rag.llm.context import compose_query, load_generation_graph, prepare_context
+from rag.llm.errors import LLMError
 from rag.llm.groq_client import GroqError
 from rag.utils.files import digest, write_json
 from tests.support.generation_eval import load_cases, retrieval_for
@@ -237,14 +238,21 @@ def check_expectations(turn: dict, generated: dict) -> dict:
 def _generate(context: dict, client, mode: str) -> dict:
     if mode != "primary_unavailable":
         return generate_answer(context, client)
-    original = client._request
+    target = getattr(client, "primary", client)
+    original = target._request
 
     def request(path, payload=None):
         if (payload or {}).get("model") == client.config.model:
-            raise GroqError(503, client.config.model)
+            if target is client:
+                raise GroqError(503, client.config.model)
+            raise LLMError(
+                503,
+                client.config.model,
+                provider="cliproxyapi",
+            )
         return original(path, payload)
 
-    with patch.object(client, "_request", request):
+    with patch.object(target, "_request", request):
         return generate_answer(context, client)
 
 
@@ -323,7 +331,7 @@ def run_scenarios(
                 row["run_status"] = (
                     "OK" if generated["validation"]["valid"] else "VALIDATION_FAILED"
                 )
-            except GroqError as exc:
+            except LLMError as exc:
                 row.update(
                     {
                         "run_status": "PROVIDER_ERROR",

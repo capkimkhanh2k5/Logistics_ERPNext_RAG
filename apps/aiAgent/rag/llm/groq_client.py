@@ -7,17 +7,16 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from config.settings import GroqConfig
+from rag.llm.errors import LLMError
 
 API_BASE = "https://api.groq.com/openai/v1"
 
 
-class GroqError(RuntimeError):
+class GroqError(LLMError):
     def __init__(
         self, status: int, model: str, retry_after: float = 0, error_code: str | None = None
     ):
-        self.status, self.model, self.retry_after = status, model, retry_after
-        self.error_code = error_code
-        super().__init__(f"Groq request failed: HTTP {status}, model={model or 'model inventory'}")
+        super().__init__(status, model, retry_after, error_code, provider="groq")
 
 
 class GroqClient:
@@ -163,6 +162,8 @@ class GroqClient:
                 "finish_reason": choice.get("finish_reason"),
                 "requested_model": requested,
                 "model": candidate,
+                "response_model": response.get("model"),
+                "provider": "groq",
                 "key_slot": slot,
                 "fallback_used": candidate != requested,
                 "failures": failures,

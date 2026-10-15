@@ -4,13 +4,13 @@
 |---|---|
 | `notebooks/01_build_knowledge_base.ipynb` | Audit manifest nguồn → GIR/TT85/HS → BGE-M3 → nạp snapshot trong transaction |
 | `notebooks/02_test_retrieval.ipynb` | Đọc kết quả/policy đã khóa; chỉ chạy chọn lại trên Dev khi bật cờ rõ ràng → Test |
-| `notebooks/03_test_rag_generation.ipynb` | Kiểm thử HS/QA với Qwen và fallback GPT-OSS 20B: đủ/thiếu thông tin, bổ sung ngữ cảnh, thiếu chứng cứ, thông tin mâu thuẫn và lỗi API |
+| `notebooks/03_test_rag_generation.ipynb` | Kiểm thử HS/QA qua CLIProxyAPI/Gemini, fallback Groq: đủ/thiếu thông tin, bổ sung ngữ cảnh, thiếu chứng cứ, thông tin mâu thuẫn và lỗi API |
 
 Các lượt thực nghiệm lưu report và predictions trong `artifacts/experiments/<run-id>`; notebook đọc cùng runtime/runner. Các module `rag/` giữ logic dùng chung để notebook và runtime dùng cùng implementation.
 
-[Kiểm thử RAG Generation bằng Groq](notebooks/03_test_rag_generation.ipynb) trình bày đầu vào, phản hồi mong đợi, câu trả lời và nguồn của từng tình huống. Đặt `RAG_TEST_RUN_TESTS=true` trong `.env` để gọi API thật; các ca giả lập thiếu context hoặc lỗi model chính được ghi rõ. Bổ sung thông tin ở lượt sau sẽ truy xuất lại theo toàn bộ dữ kiện người dùng. Report lưu ở `artifacts/generation/<run-id>/scenarios.json`.
+[Kiểm thử RAG Generation](notebooks/03_test_rag_generation.ipynb) trình bày đầu vào, phản hồi mong đợi, câu trả lời và nguồn của từng tình huống. Đặt `RAG_TEST_RUN_TESTS=true` trong `.env` để gọi API thật; các ca giả lập thiếu context hoặc lỗi model chính được ghi rõ. Bổ sung thông tin ở lượt sau sẽ truy xuất lại theo toàn bộ dữ kiện người dùng. Report lưu ở `artifacts/generation/<run-id>/scenarios.json`.
 
-[Cấu hình](config/README.md) tập trung trong `config/`: Groq/DB lấy từ `.env`, policy retrieval lấy từ YAML/JSON đã khóa. [Mã hỗ trợ kiểm thử](tests/support/README.md) chứa kịch bản, gold, metrics và tạo fold; runtime trong `rag/` không import các module này.
+[Cấu hình](config/README.md) tập trung trong `config/`: CLIProxyAPI/Groq/DB lấy từ `.env`, policy retrieval lấy từ YAML/JSON đã khóa. [Mã hỗ trợ kiểm thử](tests/support/README.md) chứa kịch bản, gold, metrics và tạo fold; runtime trong `rag/` không import các module này.
 
 Để tự nhập câu hỏi và thông tin bổ sung trong terminal, chạy từ thư mục `aiAgent`:
 
@@ -20,7 +20,7 @@ Các lượt thực nghiệm lưu report và predictions trong `artifacts/experi
 
 Nhập câu hỏi trực tiếp trên một dòng. Retrieval dùng chung nguồn HS và pháp lý; LLM tự xác định nhu cầu từ câu hỏi để trả lời QA hoặc đề xuất HS. Semantic intent chỉ là gợi ý khi đóng gói context, không lọc nguồn retrieval và không bắt buộc loại câu trả lời. Nếu nhu cầu chưa rõ, AI hỏi thêm thông tin cụ thể. Sau mỗi câu trả lời, nhập thông tin bổ sung để chạy retrieval lại theo câu hỏi gốc và toàn bộ dữ kiện đã nhập. Nếu đính chính, ghi rõ dữ kiện nào được sửa. Terminal hiển thị trạng thái, model thực tế, câu trả lời và trích dẫn kèm tài liệu/trang nguồn. `/new` bắt đầu câu hỏi mới và xóa ngữ cảnh cũ; `/retry` thử lại; `/exit` thoát.
 
-Demo đọc Groq/DB từ `.env`, dùng policy retrieval đã khóa và không phụ thuộc các cờ test notebook. DB chỉ được đọc; embedding/reranker được khởi tạo một lần cho phiên. Chạy lượt đầu có thể chậm do nạp model vào bộ nhớ. Phản hồi không qua kiểm tra cấu trúc/mã HS/trích dẫn sẽ báo lỗi để thử lại; kiểm tra này chưa tự chứng minh tính đúng đắn của kết luận pháp lý.
+Demo đọc CLIProxyAPI/Groq/DB từ `.env`, dùng policy retrieval đã khóa và không phụ thuộc các cờ test notebook. DB chỉ được đọc; embedding/reranker được khởi tạo một lần cho phiên. Chạy lượt đầu có thể chậm do nạp model vào bộ nhớ. Phản hồi không qua kiểm tra cấu trúc/mã HS/trích dẫn sẽ báo lỗi để thử lại; kiểm tra này chưa tự chứng minh tính đúng đắn của kết luận pháp lý.
 
 Generation phân biệt hai trạng thái: `MISSING_PRODUCT_INFO` chỉ hỏi dữ kiện hàng hóa/hồ sơ mà người dùng có thể cung cấp qua `missing_information`; `INSUFFICIENT_LEGAL_EVIDENCE` báo khoảng trống retrieval/corpus qua `missing_legal_evidence`, không hỏi người dùng về mã HS, GIR, mô tả pháp lý hoặc Chú giải. Hai trạng thái thay thế `NEED_MORE_INFORMATION` và `INSUFFICIENT_EVIDENCE`; phản hồi JSON luôn có cả hai danh sách, để `[]` khi không áp dụng. QA chưa rõ loại hồ sơ/tài liệu cũng dùng `MISSING_PRODUCT_INFO` để làm rõ dữ kiện của người dùng.
 
@@ -55,7 +55,7 @@ Cấu trúc package và vị trí từng module: [rag/ReadMe.md](rag/ReadMe.md).
 | `scripts/benchmark_pdf_rerankers.py` | Công cụ benchmark biểu diễn PDF graph và reranker. |
 | `scripts/benchmark_unified_retrieval.py` | Runner v5: một luồng HS/Legal, sàng accuracy trên Dev, so sánh model/cascade, khóa policy và chấm Test Auto. |
 | `rag/api/cli.py` | Demo terminal: tự nhập câu hỏi, dùng chung luồng HS/QA, bổ sung dữ kiện và hiển thị câu trả lời có dẫn nguồn. |
-| `config/settings.py` | Đọc và kiểm tra cấu hình Groq/DB từ môi trường; giữ key/password ngoài log và repr. |
+| `config/settings.py` | Đọc và kiểm tra cấu hình CLIProxyAPI/Groq/DB từ môi trường; giữ key/password ngoài log và repr. |
 | `config/retrieval.py` | Loader `rag.yaml`, registry model/revision, instruction và bộ trọng số dùng với policy retrieval đã khóa. |
 | `config/testing.py` | Đọc các cờ chạy, cache, thời gian giãn request và ID ca test của notebook 03 từ `.env`. |
 | `tests/support/evaluation.py` | Gold HS/QA, metrics retrieval và quét trọng số offline. |
@@ -128,7 +128,7 @@ Giữ `.env` hiện tại nếu đã có database volume. Lockfile đã được
 Stack cũng hỗ trợ [CLIProxyAPI và Web UI](config/cliproxyapi/README.md) để thử gateway LLM.
 Trước lần đầu chạy toàn stack, dùng `python3 scripts/init_cliproxyapi.py` để tạo cấu hình
 và key local. Nếu chỉ cần database, chạy `docker compose -f docker-compose.rag.yml up -d postgres`.
-CLIProxyAPI chưa thay đổi provider Groq của runtime RAG.
+Terminal và notebook 03 ưu tiên Gemini → GPT-OSS 120B qua CLIProxyAPI; Groq chỉ dùng khi cả hai model CLI không khả dụng. Xem chính sách và biến môi trường trong [cấu hình RAG](config/README.md).
 
 Notebook 01 có cell hiển thị database trước ingestion; `APPLY=True` ghi vào database RAG riêng. `APPLY=True, FRESH_REBUILD=True` xóa các bảng thuộc schema `rag` và nạp lại trong cùng transaction; lỗi sẽ rollback. Nguồn và output notebook được giữ. Có thể đặt `APPLY=False` để dry-run. Model/tokenizer được pin commit; máy mới tải weights khoảng 2,2 GB. Ingestion tái chạy có checkpoint và không tạo duplicate.
 

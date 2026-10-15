@@ -8,7 +8,7 @@ from datetime import date, datetime
 from config.settings import ROOT
 from rag.llm.answering import generate_answer
 from rag.llm.context import load_generation_graph, prepare_context
-from rag.llm.groq_client import GroqError
+from rag.llm.errors import LLMError
 from rag.utils.files import digest, read, write_json
 from tests.support.evaluation import discover_qa
 
@@ -143,7 +143,7 @@ def run_evaluation(
                 row["run_status"] = (
                     "OK" if generated["validation"]["valid"] else "VALIDATION_FAILED"
                 )
-            except GroqError as exc:
+            except LLMError as exc:
                 row.update(
                     {
                         "run_status": "PROVIDER_ERROR",

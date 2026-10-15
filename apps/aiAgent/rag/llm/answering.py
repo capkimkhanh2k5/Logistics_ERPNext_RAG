@@ -2,10 +2,16 @@
 
 import json
 
-import jsonschema
-
-from rag.llm.groq_client import GroqClient, GroqError
-from rag.llm.validation import LEGAL_INFORMATION, _folded, _normalized, validate_answer
+from rag.llm.client import RAGClient
+from rag.llm.errors import LLMError
+from rag.llm.groq_client import GroqClient
+from rag.llm.validation import (
+    LEGAL_INFORMATION,
+    _folded,
+    _normalized,
+    schema_errors,
+    validate_answer,
+)
 from rag.prompts.product_review import PRODUCT_REVIEW_PROMPT
 from rag.prompts.schemas import ANSWER_SCHEMA, PRODUCT_REVIEW_SCHEMA
 from rag.utils.files import digest
@@ -32,7 +38,7 @@ def _review_abstention() -> dict:
 
 
 def _review_recommendation(
-    context: dict, answer: dict, client: GroqClient, model: str
+    context: dict, answer: dict, client: GroqClient | RAGClient, model: str
 ) -> tuple[dict, dict]:
     candidate = next(
         e for e in context["candidate_evidence"] if e["code"] == answer["suggested_hs_code"]
@@ -53,11 +59,13 @@ def _review_recommendation(
             model=model,
             allow_fallback=False,
         )
-    except GroqError as exc:
+    except LLMError as exc:
         return _review_abstention(), {
             "valid": False,
-            "errors": ["Product support review is unavailable"],
+            "errors": ["Không thể thực hiện kiểm tra dữ kiện hàng hóa"],
             "http_status": exc.status,
+            "provider": exc.provider,
+            "model": exc.model,
             "error_code": exc.error_code,
             "retry_after": exc.retry_after,
         }
@@ -65,21 +73,22 @@ def _review_recommendation(
         review = json.loads(generation["content"])
     except json.JSONDecodeError:
         review = {}
-    errors = [
-        e.message
-        for e in jsonschema.Draft202012Validator(PRODUCT_REVIEW_SCHEMA).iter_errors(review)
-    ]
+    errors = schema_errors(review, PRODUCT_REVIEW_SCHEMA)
     if generation["finish_reason"] != "stop":
-        errors.append("Product support review did not finish normally")
+        errors.append("Lượt kiểm tra dữ kiện hàng hóa chưa hoàn tất bình thường")
     if not errors:
         for fact in review["product_facts"]:
             quote = _normalized(fact["user_quote"])
             if not quote or quote not in _normalized(context["question"]):
-                errors.append("Product fact quotation does not occur in the user question")
+                errors.append(
+                    "Trích đoạn dữ kiện hàng hóa không khớp nguyên văn câu hỏi người dùng"
+                )
             if LEGAL_INFORMATION.search(_folded(quote)) or LEGAL_INFORMATION.search(
                 _folded(fact["fact"])
             ):
-                errors.append("Legal text supplied by the user must not become a product fact")
+                errors.append(
+                    "Nội dung pháp lý do người dùng nêu không được coi là dữ kiện hàng hóa"
+                )
         if review["status"] == "SUPPORTED":
             if (
                 not review["product_facts"]
@@ -87,7 +96,7 @@ def _review_recommendation(
                 or review["missing_legal_evidence"]
             ):
                 errors.append(
-                    "Supported product review requires user facts and no information gaps"
+                    "SUPPORTED yêu cầu có dữ kiện người dùng và không còn khoảng trống thông tin"
                 )
             proposed = answer
         else:
@@ -119,11 +128,15 @@ def _review_recommendation(
 
 
 def generate_answer(
-    context: dict, client: GroqClient, *, model: str | None = None, allow_fallback: bool = True
+    context: dict,
+    client: GroqClient | RAGClient,
+    *,
+    model: str | None = None,
+    allow_fallback: bool = True,
 ) -> dict:
     if not context["sources"]:
         answer = _legal_abstention(
-            ["Retrieval returned no usable legal sources within the generation context budget."]
+            ["Không có nguồn pháp lý dùng được trong giới hạn ngữ cảnh sinh câu trả lời."]
         )
         return {
             "answer": answer,
@@ -146,7 +159,7 @@ def generate_answer(
         validation = validate_answer(answer, context)
         if generation["finish_reason"] != "stop":
             validation["errors"].append(
-                "Generation did not finish normally; check output token budget"
+                "Lượt sinh câu trả lời chưa hoàn tất bình thường; kiểm tra giới hạn token đầu ra"
             )
             validation["valid"] = False
         attempts.append({**generation, "validation": validation})
@@ -158,8 +171,10 @@ def generate_answer(
                 {
                     "role": "user",
                     "content": "Hãy sửa các lỗi kiểm tra sau, chỉ sử dụng các nguồn đã cung cấp: "
-                    + json.dumps(validation["errors"])
-                    + ". Đặt nhãn dạng [S1] ngay trong trường answer. Trả JSON ngắn gọn, đúng schema.",
+                    + json.dumps(validation["errors"], ensure_ascii=False)
+                    + ". Đặt nhãn dạng [S1] ngay trong trường answer. "
+                    "Viết các phần diễn giải bằng tiếng Việt; giữ nguyên tên trường JSON, "
+                    "mã trạng thái và trích đoạn nguyên văn. Trả JSON ngắn gọn, đúng schema.",
                 },
             ]
         )
@@ -178,7 +193,7 @@ def generate_answer(
     if not validation["valid"] and validation.get("boundary_errors"):
         generation["guardrail_abstention"] = True
         answer = _legal_abstention(
-            ["Generated output failed the product/legal ownership or HS source hierarchy checks."]
+            ["Kết quả sinh vi phạm quy tắc phân biệt dữ kiện/chứng cứ pháp lý hoặc chuỗi nguồn HS."]
         )
         validation = validate_answer(answer, context)
     if validation["valid"] and answer["status"] == "RECOMMENDATION":
