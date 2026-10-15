@@ -15,9 +15,16 @@ import fitz
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from rag.data import source_files, tariff_bundle, write_json  # noqa: E402
-from rag.pdf_wording import validate_reviewed_extraction, wording_proof  # noqa: E402
-from rag.sources import source_manifest  # noqa: E402
+from rag.ingestion.pdf_wording import (  # noqa: E402
+    validate_reviewed_extraction,
+    wording_proof,
+)
+from rag.ingestion.sources import (  # noqa: E402
+    source_files,
+    source_manifest,  # noqa: E402
+    tariff_bundle,
+)
+from rag.utils.files import write_json  # noqa: E402
 
 RUN = ROOT / "artifacts/experiments/run_pdf_graph_v4"
 

@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "reason": "Functional-package relocation. Extraction/transcription algorithms unchanged; only imports and exact fingerprint compatibility checks differ. Original source artifacts and proofs remain untouched.",
+  "processors": [
+    {
+      "before_path": "rag/pdf_graph.py",
+      "after_path": "rag/ingestion/pdf_graph.py",
+      "hash_field": "parser_sha256",
+      "before_sha256": "392d6de6dd8b63ec7b3c7ebd9a3a98ac83a16906210cb5426865c1c965e496e2",
+      "after_sha256": "7f359b7c4d0b18cd59d7fa02e16bee2eb59cbbe0f534a017cb87eca22666db0c",
+      "preserved_definitions": {
+        "extractor_identity": "8d83df0d6b2c7f789aa74c0aba59d3346088284a521eb335d6e9a46a2ca32f04",
+        "clusters": "86b19a9aa682046c93a126db2b23ef0b99d1734766c1d0435924dbf3996aa3d2",
+        "cell_text": "7f764f821cda462398b6e1cb9082f70c43e9ac4acf09554b911f5eb512dcfca4",
+        "marker_depth": "a6e4b88cfb95ad5bcb2fae255c0ae9adab8dd4d840d8e6de36cbfd8daf7cd97e",
+        "raster_depth": "c7f39410e2ad132d556e845ad4738d02bccabf19ea4402f340cc710aa9316b08",
+        "table_rows": "b89aba10d005fc0a7541ed40c0854a544ffc864a621335d1a593e45859f8afd1"
+      }
+    },
+    {
+      "before_path": "rag/pdf_wording.py",
+      "after_path": "rag/ingestion/pdf_wording.py",
+      "hash_field": "sha256",
+      "before_sha256": "e39d5dc1d0b264fccfb7ea5a3d4ec32f2036ab1690ea4088362524f68e611e61",
+      "after_sha256": "ddaef53ccb72a074caa1feb240a5df3266807660163910f7ffea132e50955b0d",
+      "preserved_definitions": {
+        "review_processor": "5f3bdc48a2b09f3c7b0a6705ece8234aa6aa7953870c13bc05029ac1afc578a0",
+        "review_records": "a6818a16e79a89777cc80b643eb7c126192f7fab595c058610ff7b54f0b6952a",
+        "apply_wording_reviews": "d36627734fa49d72816c29c55c04762c18227e239eda16cdfa1bb379f7d9ec99",
+        "wording_proof": "2b2a573c8930aba30c185ae71c33e7f447dea5f887378be2171154125e38beb9"
+      }
+    }
+  ]
+}

@@ -5,9 +5,12 @@ import json
 import pytest
 
 from config.settings import GroqConfig
-from rag.answering import PRODUCT_REVIEW_SCHEMA, generate_answer, prepare_context, validate_answer
-from rag.context import GraphContext
-from rag.groq_client import GroqClient, GroqError
+from rag.graph.context import GraphContext
+from rag.llm.answering import generate_answer
+from rag.llm.context import prepare_context
+from rag.llm.groq_client import GroqClient, GroqError
+from rag.llm.validation import validate_answer
+from rag.prompts.schemas import PRODUCT_REVIEW_SCHEMA
 
 
 def hs_context(*, edges=None, records=None, config=None):

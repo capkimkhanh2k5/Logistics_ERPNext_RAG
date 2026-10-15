@@ -7,15 +7,16 @@ import numpy as np
 from rank_bm25 import BM25Okapi
 
 from config.retrieval import INSTRUCTION, MODELS, WEIGHTS
-from rag.context import GraphContext, fit_rerank_context
-from rag.data import ROOT, digest, read
-from rag.embedding import CrossEncoder
-from rag.sources import SOURCE_TYPES
+from config.settings import ROOT
+from rag.graph.context import GraphContext, fit_rerank_context
+from rag.ingestion.sources import SOURCE_TYPES
+from rag.retrieval.rerankers import CrossEncoder
+from rag.utils.files import digest, read
 
 
 def id_pool(channels: dict, weights: dict, limit: int, k: int = 60) -> list[dict]:
     """Reserve channel opportunity in every prefix; distinct cited IDs never collapse."""
-    from rag.retrieval import fuse
+    from rag.retrieval.retriever import fuse
 
     if (
         limit < 1
@@ -50,7 +51,7 @@ def id_pool(channels: dict, weights: dict, limit: int, k: int = 60) -> list[dict
 def rank_scores(
     rows: list[dict], scores: list[float], weight: float = 1.0, k: int = 60
 ) -> list[dict]:
-    from rag.retrieval import fuse
+    from rag.retrieval.retriever import fuse
 
     ordered = sorted(
         [
@@ -135,7 +136,7 @@ class UnifiedRetrieval:
         self.encoders: dict[str, CrossEncoder] = {}
 
     def channels(self, query: str) -> dict:
-        from rag.retrieval import code_mention_plan
+        from rag.retrieval.retriever import code_mention_plan
 
         r = self.retriever
         size = self.policy["candidate_pool"]

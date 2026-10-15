@@ -14,7 +14,8 @@ from sklearn.model_selection import StratifiedGroupKFold
 AGENT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(AGENT_ROOT))
 
-from rag.data import ROOT, digest, read  # noqa: E402
+from config.settings import ROOT  # noqa: E402
+from rag.utils.files import digest, read  # noqa: E402
 from tests.support.evaluation import query_for  # noqa: E402
 from tests.support.experiments import build_eval_groups  # noqa: E402
 

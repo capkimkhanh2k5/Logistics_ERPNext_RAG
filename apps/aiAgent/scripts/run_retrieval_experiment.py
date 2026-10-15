@@ -15,10 +15,12 @@ import numpy as np
 AGENT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(AGENT_ROOT))
 
-from rag.data import ROOT, digest, load_corpus, read  # noqa: E402
-from rag.db import connect  # noqa: E402
-from rag.embedding import Embedder  # noqa: E402
-from rag.retrieval import Retriever  # noqa: E402
+from config.settings import ROOT  # noqa: E402
+from rag.chunking.corpus import load_corpus  # noqa: E402
+from rag.embedding.bge_m3 import Embedder  # noqa: E402
+from rag.retrieval.retriever import Retriever  # noqa: E402
+from rag.utils.files import digest, read  # noqa: E402
+from rag.vectordb.postgres import connect  # noqa: E402
 from tests.support.evaluation import discover_gold, query_for  # noqa: E402
 from tests.support.experiments import prepare_manifest  # noqa: E402
 
@@ -62,17 +64,13 @@ def cache_identity(retriever: Retriever, cases: list[dict]) -> dict:
     bundle = load_corpus()
     if bundle["snapshot"] != retriever.snapshot:
         raise ValueError("Corpus artifact and active database snapshot differ")
-    code_files = [
+    code_files = [str(p.relative_to(ROOT)) for p in sorted((ROOT / "rag").rglob("*.py"))]
+    code_files += [
         "config/settings.py",
         "config/retrieval.py",
-        "rag/retrieval.py",
-        "rag/context.py",
-        "rag/sources.py",
-        "rag/data.py",
+        "rag/ingestion/provenance_relocations.json",
         "tests/support/evaluation.py",
         "tests/support/experiments.py",
-        "rag/db.py",
-        "rag/embedding.py",
         "scripts/run_retrieval_experiment.py",
     ]
     return {

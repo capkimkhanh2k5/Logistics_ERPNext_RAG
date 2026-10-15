@@ -16,10 +16,11 @@ import numpy as np
 AGENT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(AGENT_ROOT))
 
-from rag.data import ROOT, digest, read, write_json  # noqa: E402
-from rag.db import connect  # noqa: E402
-from rag.embedding import Embedder  # noqa: E402
-from rag.retrieval import Retriever, fuse, unique_codes  # noqa: E402
+from config.settings import ROOT  # noqa: E402
+from rag.embedding.bge_m3 import Embedder  # noqa: E402
+from rag.retrieval.retriever import Retriever, fuse, unique_codes  # noqa: E402
+from rag.utils.files import digest, read, write_json  # noqa: E402
+from rag.vectordb.postgres import connect  # noqa: E402
 from scripts.run_retrieval_experiment import (  # noqa: E402
     CandidateCache,
     cache_identity,

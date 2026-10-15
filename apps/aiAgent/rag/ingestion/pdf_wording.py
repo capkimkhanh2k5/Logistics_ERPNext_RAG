@@ -4,8 +4,9 @@ import copy
 import hashlib
 from pathlib import Path
 
-from rag.legal_evidence import evidence_digest, normalized_wording
-from rag.pdf_graph import validate_extraction
+from rag.graph.legal_evidence import evidence_digest, normalized_wording
+from rag.ingestion.pdf_graph import validate_extraction
+from rag.ingestion.provenance import same_processor
 
 
 def review_processor() -> dict:
@@ -86,6 +87,10 @@ def validate_reviewed_extraction(
     expected_rows, expected_extraction = apply_wording_reviews(
         native_rows, native_extraction, registry
     )
+    recorded_processor = extraction["wording_reviews"].get("processor")
+    if not same_processor(recorded_processor, review_processor()):
+        raise ValueError("Reviewed PDF processor fingerprint changed")
+    expected_extraction["wording_reviews"]["processor"] = recorded_processor
     if rows != expected_rows or extraction != expected_extraction:
         raise ValueError("Reviewed PDF extraction or review registry drifted")
 

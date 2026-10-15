@@ -1,32 +1,88 @@
-# RAG Module
+# Package RAG
 
-| File | Mục đích & Mô tả ngắn gọn |
-| :--- | :--- |
-| [`sources.py`] | **Data Adapters**: Đọc và chuẩn hóa cấu trúc dữ liệu biểu thuế thô. Chuyển đổi bản ghi biểu thuế về dạng chuẩn (`canonical_tariff`), phân loại vai trò (`candidate`, `scope`, `evidence`, `context`), chuẩn hóa mã HS, không suy diễn phạm vi nhánh pháp lý từ prefix mã. |
-| [`pdf_graph.py`] | **PDF Table Geometry**: Đọc hàng/cột và dấu thụt cấp in trên PDF TT31; không đọc câu hỏi hoặc nhãn đánh giá. `scripts/build_pdf_graph.py` materialize cạnh `CONTEXT_FOR` có hash PDF, page và bbox. |
-| [`data.py`] | **Corpus & Data Pipeline**: Kiểm toán tính toàn vẹn (audit) dữ liệu nguồn, đóng gói tập ngữ liệu bất biến (`corpus.json`). Xử lý tích hợp biểu thuế TT31, 6 quy tắc GIR, Thông tư 85, tự động suy diễn nút ảo HS6 (`DERIVED_HS6_...`) để khôi phục cây phân cấp, và quản lý snapshot theo hàm băm SHA-256. Gold Dev/Test chỉ dùng audit/evaluation, không được ingest. |
-| [`db.py`] | **Database & Ingestion**: Quản lý kết nối PostgreSQL với tiện ích mở rộng `pgvector`. Chịu trách nhiệm nạp dữ liệu snapshot có bảo đảm giao dịch (`transactional snapshot ingestion`), kiểm soát toàn vẹn vector/graph counts, hỗ trợ kiểm thử dry-run và quản lý trạng thái active snapshot/profile. |
-| [`embedding.py`] | **Embedding & Reranker Models**: BGE-M3 và các backend M3, Gemma, Qwen. Model/revision, instruction, token budget và layout inference được gắn vào cache. Scoring batch phục vụ thực nghiệm offline; runtime đo từng query. Luồng v5 dùng cùng reranker cho mọi nguồn. |
-| [`context.py`] | **Graph Context & Enrichment**: Khai thác đồ thị phân cấp biểu thuế (`GraphContext`). Truy vết chuỗi tổ tiên, nhánh ngữ cảnh trung gian và các chú giải pháp lý ràng buộc để làm giàu thông tin cho các mã ứng viên HS; tối ưu độ dài văn bản theo ngân sách token của reranker (`fit_rerank_context`). |
-| [`retrieval.py`] | **Core Hybrid Retriever**: Dense/Sparse/BM25/FTS/Exact và RRF. Khi có policy v5 đã khóa, `routed_search` gọi luồng chung cho mọi intent hint. Các API riêng HS/QA cũ giữ để tái lập đối chứng. |
-| [`unified.py`] | **Unified Source Retrieval**: Một pool nguồn theo ID, context BM25/dense từ graph, một policy rerank hoặc cascade cho HS và Legal. HS8 chỉ là phép chiếu đầu ra; semantic intent không thay đổi retrieval. |
-| [`answering.py`] | **Grounded Generation**: Đóng gói context, system prompt/schema tiếng Việt, gọi LLM và kiểm tra mã HS/citation. |
-| [`groq_client.py`] | **Groq Client**: Gọi API, xoay vòng key, xử lý giới hạn và fallback; nhận cấu hình từ `config/settings.py`. |
-| [`demoRAG.py`] | **Terminal Demo**: Nhập câu hỏi và dữ kiện bổ sung; dùng chung luồng HS/QA, truy xuất lại từng lượt và hiển thị câu trả lời/model/trích dẫn. Chạy `.venv/bin/python rag/demoRAG.py` từ thư mục `aiAgent`. |
-| [`ReadMe.md`] | Tài liệu tổng quan mô tả kiến trúc và mục đích của các file trong module RAG. |
+Code được nhóm theo chức năng. Các thư mục ở đây là Python package; import từ module cụ thể để thấy rõ phụ thuộc. Cấu hình nằm ngoài runtime package tại `config/`; dữ liệu và kết quả thực nghiệm giữ nguyên vị trí.
 
-Cấu hình và loader nằm trong [config/](../config/README.md). Gold, metrics, quét trọng số, tạo fold và kịch bản notebook nằm trong [tests/support/](../tests/support/README.md). Runtime không import các module kiểm thử. Các module chuẩn bị corpus/ingestion vẫn thuộc luồng xây knowledge base của RAG.
+```text
+rag/
+├── __init__.py
+├── __main__.py                 # python -m rag
+├── ingestion/
+│   ├── sources.py              # Manifest, adapters và chuẩn hóa records/NODE/EDGE
+│   ├── audit.py                # Kiểm tra nguồn, PDF, wording và provenance
+│   ├── pdf_graph.py            # Trích cấu trúc bảng từ hình học PDF
+│   ├── pdf_wording.py          # Bản chép đã đối chiếu ảnh và lớp chữ PDF gốc
+│   ├── provenance.py           # Kiểm tra tương thích fingerprint khi chuyển package
+│   └── provenance_relocations.json
+├── chunking/
+│   └── corpus.py               # Ghép ngữ cảnh nguồn, build/load corpus và snapshot
+├── embedding/
+│   ├── bge_m3.py               # Dense/sparse/ColBERT vectors và cache
+│   └── validation.py           # Kích thước, giá trị và chuẩn hóa vector
+├── vectordb/
+│   └── postgres.py             # Kết nối, migration, nạp snapshot và pgvector
+├── retrieval/
+│   ├── retriever.py            # Hybrid retrieval, RRF và các API tìm kiếm
+│   ├── unified.py              # Pool nguồn chung, cascade và source package
+│   └── rerankers.py            # CrossEncoder M3/Qwen/Gemma và ColBERT scoring
+├── graph/
+│   ├── context.py              # Hierarchy, Notes và graph context có nguồn
+│   └── legal_evidence.py       # Binding wording pháp lý và các cấp HS
+├── prompts/
+│   ├── system.py               # SYSTEM_PROMPT chính, dùng chung HS/QA
+│   ├── product_review.py       # PRODUCT_REVIEW_PROMPT kiểm tra dữ kiện hàng hóa
+│   └── schemas.py              # ANSWER_SCHEMA và PRODUCT_REVIEW_SCHEMA
+├── llm/
+│   ├── context.py              # Ghép câu hỏi, nguồn, citation và ứng viên HS vào messages
+│   ├── answering.py            # Sinh câu trả lời, sửa lỗi và kiểm tra đề xuất HS
+│   ├── validation.py           # Schema, trích nguyên văn, ancestry và quyền sở hữu dữ kiện
+│   └── groq_client.py          # Gọi API, giới hạn, xoay key và fallback
+├── api/
+│   └── cli.py                  # Giao diện terminal HS/QA; chưa có HTTP API
+└── utils/
+    ├── files.py                # Hash nội dung, JSON/JSONL và ghi JSON atomic
+    └── codes.py                # Chuẩn hóa định dạng mã HS
+```
 
----
+`chunking/corpus.py` giữ chiến lược ghép các đơn vị nguồn hiện tại, gồm GIR, điều/khoản TT85 và biểu thuế. Nó không bổ sung một thuật toán cắt văn bản mới.
 
-## Luồng chung v5
+## Luồng và ranh giới
 
-`scripts/benchmark_unified_retrieval.py run` resume thực nghiệm đã khóa: so sánh B1/B2, hai bộ trọng số chung, M3/Qwen/Gemma và cascade M3 → Qwen trên Dev; khóa `config/unified_retrieval.json` trước khi chấm Test qua Auto. Không dùng latency để loại phương án. Model M3 ở đây là BGE-reranker-v2-m3, không phải phương pháp M3 thủ công đã nghỉ sử dụng.
+Build knowledge base: `ingestion` → `chunking` → `embedding` → `vectordb`.
 
-`routed_search(query)` tìm cả dòng biểu thuế, GIR, Notes và điều khoản pháp lý. `intent="product"`/`"qa"` chỉ là hint; không lọc nguồn, thay trọng số hoặc chọn nhánh. Nhận diện ngữ nghĩa dùng logistic regression trên vector câu hỏi, chọn bằng Dev folds giữ nhóm, trả metadata sau ranking.
+Phục vụ câu hỏi: `api/cli.py` → `retrieval` + `graph` → `llm/context.py` + `prompts` → `llm/answering.py` → `llm/validation.py`.
 
-`matches` là Top-10 nguồn hỗn hợp; `hs_candidates` là Top-10 mã HS8 từ cùng ranked pool. `package` bổ sung các nguồn sơ cấp được trích trong context và có thể dài hơn Top-10. Không tính package thay cho primary Top-10 khi chấm Legal. Không tự ra kết luận HS hoặc thực thi đầy đủ GIR/exclusion reasoning.
+Luồng v5 vẫn dùng một policy chung: hybrid toàn nguồn → graph context → pool theo ID → M3 → Qwen. `intent="auto"`, `"product"`, `"qa"` chỉ là hint; không thay candidate pool/ranking. `matches` trả Top-10 nguồn, `hs_candidates` chiếu tối đa 10 mã HS8 từ ranked pool; `package` giữ các nguồn sơ cấp có citation. Retrieval không tự chốt mã HS.
 
-Notebook 01 chỉ build/audit nguồn. Notebook 02 đọc config và báo cáo v5; demo/runtime và resume benchmark tắt mặc định. Cấu hình khóa đúng snapshot/profile; thay nguồn hoặc embedding cần một lượt lựa chọn mới, không tự bỏ qua kiểm tra hash.
+LLM chỉ hỏi người dùng về dữ kiện hàng hóa/hồ sơ còn thiếu qua `MISSING_PRODUCT_INFO`. Thiếu wording, GIR, Notes hoặc quan hệ HS phải trả `INSUFFICIENT_LEGAL_EVIDENCE`; không yêu cầu người dùng bổ sung luật. Đề xuất HS vẫn cần hierarchy `CONTAINS` đã xác minh và đủ nhãn citation bắt buộc. Các kiểm tra này nằm trong code, ngoài system prompt.
 
-Auto v5 yêu cầu policy chung đã kích hoạt; thiếu policy sẽ báo lỗi. `legacy_routed_search` là API riêng để tái lập router v4, không là fallback của Auto.
+## Lệnh và import
+
+Chạy từ thư mục `aiAgent`:
+
+```bash
+.venv/bin/python -m rag
+.venv/bin/python -m rag --help
+```
+
+Import theo vị trí mới:
+
+```python
+from rag.chunking.corpus import build_corpus, load_corpus
+from rag.embedding.bge_m3 import Embedder
+from rag.ingestion.audit import audit
+from rag.llm.answering import generate_answer
+from rag.llm.context import prepare_context
+from rag.prompts.system import SYSTEM_PROMPT
+from rag.retrieval.retriever import Retriever
+from rag.vectordb.postgres import connect
+```
+
+Các đường dẫn cũ như `rag.data`, `rag.answering`, `rag.db` và lệnh `python rag/demoRAG.py` đã được thay thế. Scripts, tests và source cells trong cả ba notebook dùng đường dẫn mới.
+
+## Provenance và thực nghiệm
+
+Việc đổi import làm thay đổi SHA-256 của hai processor PDF. `ingestion/provenance_relocations.json` ghi đúng cặp fingerprint trước/sau và hash AST của các hàm xử lý giữ nguyên. `same_processor()` chỉ chấp nhận cặp đã đăng ký; thay code khác, version hoặc thư viện PDF vẫn bị từ chối. Fingerprint hiện tại luôn được tính từ file hiện tại. Các proof nguồn đã lưu không bị sửa.
+
+Cấu hình E0, nguồn chuẩn hóa, corpus snapshot, embeddings và prompt/schema không đổi. Báo cáo/checkpoint cũ giữ nguyên để bảo toàn lịch sử. Các benchmark khóa hash code cần một run ID mới khi chạy với code sau refactor; không trộn checkpoint từ hai phiên bản code.
+
+Gold, metrics, quét trọng số và kịch bản notebook nằm tại [tests/support/](../tests/support/README.md), cấu hình tại [config/](../config/README.md). Runtime không import các module kiểm thử. Xem [README-RAG.md](../README-RAG.md) để cài đặt và vận hành.

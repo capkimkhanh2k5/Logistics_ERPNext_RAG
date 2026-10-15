@@ -7,10 +7,10 @@ from types import SimpleNamespace
 import pytest
 
 from config.settings import GroqConfig
-from rag import demoRAG
-from rag.answering import PRODUCT_REVIEW_SCHEMA
-from rag.context import GraphContext
-from rag.groq_client import GroqError
+from rag.api import cli as demoRAG
+from rag.graph.context import GraphContext
+from rag.llm.groq_client import GroqError
+from rag.prompts.schemas import PRODUCT_REVIEW_SCHEMA
 
 
 def response(status="ANSWERED"):

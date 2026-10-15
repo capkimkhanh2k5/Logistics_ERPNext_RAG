@@ -13,11 +13,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from rag.data import digest, write_json  # noqa: E402
-from rag.legal_evidence import consolidated_bindings  # noqa: E402
-from rag.pdf_graph import table_rows, validate_extraction  # noqa: E402
-from rag.pdf_wording import apply_wording_reviews, wording_proof  # noqa: E402
-from rag.sources import canonical_tariff, first, read_source, source_manifest  # noqa: E402
+from rag.graph.legal_evidence import consolidated_bindings  # noqa: E402
+from rag.ingestion.pdf_graph import table_rows, validate_extraction  # noqa: E402
+from rag.ingestion.pdf_wording import (  # noqa: E402
+    apply_wording_reviews,
+    wording_proof,
+)
+from rag.ingestion.sources import (  # noqa: E402
+    canonical_tariff,
+    first,
+    read_source,
+    source_manifest,
+)
+from rag.utils.files import digest, write_json  # noqa: E402
 
 
 def normalized(text):

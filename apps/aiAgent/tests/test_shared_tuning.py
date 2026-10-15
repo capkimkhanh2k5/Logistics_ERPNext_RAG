@@ -6,14 +6,14 @@ import json
 import numpy as np
 import pytest
 
-from rag.embedding import Embedder
-from rag.retrieval import rerank_candidates
+from rag.embedding.bge_m3 import Embedder
+from rag.retrieval.retriever import rerank_candidates
 from scripts.benchmark_pdf_rerankers import compact_prediction
 from scripts.tune_shared_retrieval import candidate_policies, rank_scored_pool
 
 
 def test_context_cache_rebuilds_when_source_text_or_model_profile_changes(tmp_path, monkeypatch):
-    import rag.embedding as module
+    import rag.embedding.bge_m3 as module
 
     monkeypatch.setattr(module, "ROOT", tmp_path)
     embedder = Embedder.__new__(Embedder)
@@ -63,7 +63,8 @@ def test_cached_score_replay_matches_runtime_ranking(pool, weight):
 
 
 def test_policy_grid_is_shared_and_includes_baseline():
-    from rag.data import ROOT, read
+    from config.settings import ROOT
+    from rag.utils.files import read
 
     baseline = read(ROOT / "config/hybrid_retrieval.json")
     grid = candidate_policies(baseline)

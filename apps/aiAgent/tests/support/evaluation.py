@@ -9,9 +9,10 @@ from typing import Any
 import numpy as np
 
 from config.retrieval import retrieval_config
-from rag.data import ROOT, digest, read
-from rag.retrieval import Retriever, code_mention_plan
-from rag.sources import QA_CHUNK_TYPES
+from config.settings import ROOT
+from rag.ingestion.sources import QA_CHUNK_TYPES
+from rag.retrieval.retriever import Retriever, code_mention_plan
+from rag.utils.files import digest, read
 
 
 def clean_product_text(text: str) -> str:

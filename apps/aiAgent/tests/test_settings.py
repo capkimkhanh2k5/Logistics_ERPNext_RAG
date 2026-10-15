@@ -8,8 +8,8 @@ import pytest
 
 from config.settings import ROOT, DatabaseConfig, GroqConfig, load_environment
 from config.testing import GenerationTestConfig
-from rag.db import connect
-from rag.groq_client import GroqClient
+from rag.llm.groq_client import GroqClient
+from rag.vectordb.postgres import connect
 
 
 @pytest.fixture(autouse=True)
@@ -82,7 +82,7 @@ def test_env_settings_reach_model_payload_timeout_and_key_rotation(monkeypatch):
             ).encode()
         )
 
-    monkeypatch.setattr("rag.groq_client.urlopen", send)
+    monkeypatch.setattr("rag.llm.groq_client.urlopen", send)
     client = GroqClient()
     client.complete([], {})
     client.complete([], {})
@@ -138,8 +138,8 @@ def test_database_connection_uses_env_and_hides_password(monkeypatch):
         calls.append(kwargs)
         return connection
 
-    monkeypatch.setattr("rag.db.psycopg.connect", open_connection)
-    monkeypatch.setattr("rag.db.register_vector", lambda _: None)
+    monkeypatch.setattr("rag.vectordb.postgres.psycopg.connect", open_connection)
+    monkeypatch.setattr("rag.vectordb.postgres.register_vector", lambda _: None)
     assert connect() is connection
     for name, expected in {
         "host": "fixture-host",

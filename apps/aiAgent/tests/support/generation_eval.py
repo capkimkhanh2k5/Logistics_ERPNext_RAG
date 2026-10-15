@@ -5,9 +5,11 @@ import time
 from collections import defaultdict
 from datetime import date, datetime
 
-from rag.answering import generate_answer, load_generation_graph, prepare_context
-from rag.data import ROOT, digest, read, write_json
-from rag.groq_client import GroqError
+from config.settings import ROOT
+from rag.llm.answering import generate_answer
+from rag.llm.context import load_generation_graph, prepare_context
+from rag.llm.groq_client import GroqError
+from rag.utils.files import digest, read, write_json
 from tests.support.evaluation import discover_qa
 
 

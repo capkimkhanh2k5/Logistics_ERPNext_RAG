@@ -9,7 +9,8 @@ import fitz
 import numpy as np
 from scipy.ndimage import find_objects, label
 
-from rag.legal_evidence import evidence_digest
+from rag.graph.legal_evidence import evidence_digest
+from rag.ingestion.provenance import same_processor
 
 SOURCE_CODE_PATTERN = r"\b(?:\d{4}(?:\.\d{2}){1,2}|\d{2}\.\d{2})\b"
 
@@ -23,7 +24,7 @@ def extractor_identity() -> dict:
 
 
 def validate_extraction(rows: list[dict], extraction: dict, pdf_sha256: str) -> None:
-    if extraction.get("extractor") != extractor_identity():
+    if not same_processor(extraction.get("extractor"), extractor_identity()):
         raise ValueError("PDF table extractor version is stale")
     if extraction.get("sha256") != pdf_sha256 or any(
         r["locator"].get("sha256") != pdf_sha256 for r in rows

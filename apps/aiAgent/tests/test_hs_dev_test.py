@@ -5,7 +5,8 @@ import json
 
 import pytest
 
-from rag.data import ROOT, read
+from config.settings import ROOT
+from rag.utils.files import read
 from scripts.prepare_dev_test import export_split
 
 

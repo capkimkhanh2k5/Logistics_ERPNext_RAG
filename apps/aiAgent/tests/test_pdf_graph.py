@@ -2,9 +2,11 @@
 
 import pytest
 
-from rag.context import GraphContext, context_text, fit_rerank_context
-from rag.data import ROOT, load_corpus, read
-from rag.retrieval import Retriever
+from config.settings import ROOT
+from rag.chunking.corpus import load_corpus
+from rag.graph.context import GraphContext, context_text, fit_rerank_context
+from rag.retrieval.retriever import Retriever
+from rag.utils.files import read
 from scripts.audit_pdf_sources import locate
 from scripts.build_pdf_graph import materialize
 

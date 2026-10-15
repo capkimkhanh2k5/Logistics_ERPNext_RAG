@@ -8,10 +8,12 @@ import psycopg
 import pytest
 
 from config.retrieval import retrieval_config
-from rag.data import ROOT, digest, load_corpus, read
-from rag.db import connect, counts, ingest, migrate
-from rag.embedding import load_embeddings
-from rag.retrieval import Retriever
+from config.settings import ROOT
+from rag.chunking.corpus import load_corpus
+from rag.embedding.bge_m3 import load_embeddings
+from rag.retrieval.retriever import Retriever
+from rag.utils.files import digest, read
+from rag.vectordb.postgres import connect, counts, ingest, migrate
 
 pytestmark = pytest.mark.skipif(
     os.getenv("RAG_RUN_DB_TESTS") != "1", reason="Set RAG_RUN_DB_TESTS=1 for isolated RAG DB"
@@ -147,7 +149,7 @@ def test_parent_candidates_follow_cited_contains_edges(conn):
 
 
 def test_new_snapshot_without_frozen_policy_has_safe_section_fallback(conn, tmp_path, monkeypatch):
-    import rag.retrieval as retrieval_module
+    import rag.retrieval.retriever as retrieval_module
 
     (tmp_path / "config").mkdir()
     (tmp_path / "config/hybrid_retrieval.json").write_text(
@@ -227,7 +229,7 @@ def test_gir_family_expansion_uses_database_canonical_ids(conn):
 
 
 def test_questioned_code_retains_its_source_section_notes_scope(conn):
-    from rag.retrieval import code_mention_plan
+    from rag.retrieval.retriever import code_mention_plan
 
     retriever = Retriever(conn)
     plan = code_mention_plan("Có thuộc nhóm 87.08 không?")
@@ -242,7 +244,7 @@ def test_registered_new_chapter_runs_shared_hybrid_context_and_reranker(conn):
     """Real DB ingest/search path; model doubles check wiring, not semantic quality."""
     import numpy as np
 
-    from rag.data import tariff_bundle
+    from rag.ingestion.sources import tariff_bundle
     from tests.test_retrieval_enhancements import fixture_tariff
 
     source, data = fixture_tariff()

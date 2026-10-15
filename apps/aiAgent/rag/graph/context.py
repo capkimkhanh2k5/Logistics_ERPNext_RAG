@@ -5,14 +5,14 @@ from collections import defaultdict, deque
 from functools import lru_cache
 from typing import Any
 
-from rag.data import load_corpus
-from rag.legal_evidence import (
+from rag.chunking.corpus import load_corpus
+from rag.graph.legal_evidence import (
     BINDING_VERSION,
     CONSOLIDATED_ROW,
     evidence_digest,
     normalized_wording,
 )
-from rag.sources import first
+from rag.ingestion.sources import first
 
 
 def context_text(row: dict, hierarchy: list[dict], notes: list[dict], style: str) -> str:

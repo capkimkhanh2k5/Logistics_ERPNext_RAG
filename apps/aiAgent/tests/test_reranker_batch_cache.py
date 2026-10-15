@@ -2,7 +2,7 @@
 
 from types import SimpleNamespace
 
-from rag.embedding import CrossEncoder
+from rag.retrieval.rerankers import CrossEncoder
 
 
 def test_bulk_scores_keep_queries_separate_and_reuse_only_identical_model_pairs(tmp_path):

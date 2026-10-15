@@ -4,9 +4,11 @@ import time
 from dataclasses import replace
 from unittest.mock import patch
 
-from rag.answering import compose_query, generate_answer, load_generation_graph, prepare_context
-from rag.data import ROOT, digest, write_json
-from rag.groq_client import GroqError
+from config.settings import ROOT
+from rag.llm.answering import generate_answer
+from rag.llm.context import compose_query, load_generation_graph, prepare_context
+from rag.llm.groq_client import GroqError
+from rag.utils.files import digest, write_json
 from tests.support.generation_eval import load_cases, retrieval_for
 
 

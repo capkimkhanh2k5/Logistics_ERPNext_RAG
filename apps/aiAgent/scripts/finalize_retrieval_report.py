@@ -9,9 +9,11 @@ from pathlib import Path
 AGENT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(AGENT_ROOT))
 
-from rag.data import ROOT, load_corpus, read, write_json  # noqa: E402
-from rag.db import connect  # noqa: E402
-from rag.retrieval import Retriever  # noqa: E402
+from config.settings import ROOT  # noqa: E402
+from rag.chunking.corpus import load_corpus  # noqa: E402
+from rag.retrieval.retriever import Retriever  # noqa: E402
+from rag.utils.files import read, write_json  # noqa: E402
+from rag.vectordb.postgres import connect  # noqa: E402
 from scripts.run_retrieval_experiment import (  # noqa: E402
     cache_identity,
     compute_metrics,
@@ -266,7 +268,7 @@ def main() -> None:
         "",
         "Ruff check/format toàn rag/scripts/tests; phạm vi Mypy xem verification.json và cleanup_validation.json; Bandit mức medium/high không phát hiện lỗi. Hai notebooks hợp lệ và code cells compile; chưa chạy toàn bộ hai notebook từ đầu đến cuối. Runtime, ingest và đánh giá được chạy bằng scripts/tests thực tế.",
         "",
-        "Mypy các module mới chạy với --follow-imports=skip. Lượt theo import mặc định còn 3 lỗi typing ở rag/data.py (hai container thiếu annotation và một biến Optional dùng lại); chưa có bằng chứng full-repo typecheck sạch. Giữ nguyên code đã khóa trong benchmark; các lỗi typing được ghi ở mypy.log.",
+        "Mypy các module mới chạy với --follow-imports=skip. Lượt theo import mặc định còn 3 lỗi typing ở rag/chunking/corpus.py (hai container thiếu annotation và một biến Optional dùng lại); chưa có bằng chứng full-repo typecheck sạch. Giữ nguyên code đã khóa trong benchmark; các lỗi typing được ghi ở mypy.log.",
         "",
         "## 5. Hồ sơ bàn giao",
         "",

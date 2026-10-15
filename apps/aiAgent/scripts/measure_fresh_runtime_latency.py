@@ -13,10 +13,11 @@ import torch
 AGENT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(AGENT_ROOT))
 
-from rag.data import ROOT, write_json  # noqa: E402
-from rag.db import connect  # noqa: E402
-from rag.embedding import Embedder  # noqa: E402
-from rag.retrieval import Retriever  # noqa: E402
+from config.settings import ROOT  # noqa: E402
+from rag.embedding.bge_m3 import Embedder  # noqa: E402
+from rag.retrieval.retriever import Retriever  # noqa: E402
+from rag.utils.files import write_json  # noqa: E402
+from rag.vectordb.postgres import connect  # noqa: E402
 from tests.support.evaluation import discover_gold, query_for  # noqa: E402
 
 

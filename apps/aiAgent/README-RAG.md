@@ -15,7 +15,7 @@ Các lượt thực nghiệm lưu report và predictions trong `artifacts/experi
 Để tự nhập câu hỏi và thông tin bổ sung trong terminal, chạy từ thư mục `aiAgent`:
 
 ```bash
-.venv/bin/python rag/demoRAG.py
+.venv/bin/python -m rag
 ```
 
 Nhập câu hỏi trực tiếp trên một dòng. Retrieval dùng chung nguồn HS và pháp lý; LLM tự xác định nhu cầu từ câu hỏi để trả lời QA hoặc đề xuất HS. Semantic intent chỉ là gợi ý khi đóng gói context, không lọc nguồn retrieval và không bắt buộc loại câu trả lời. Nếu nhu cầu chưa rõ, AI hỏi thêm thông tin cụ thể. Sau mỗi câu trả lời, nhập thông tin bổ sung để chạy retrieval lại theo câu hỏi gốc và toàn bộ dữ kiện đã nhập. Nếu đính chính, ghi rõ dữ kiện nào được sửa. Terminal hiển thị trạng thái, model thực tế, câu trả lời và trích dẫn kèm tài liệu/trang nguồn. `/new` bắt đầu câu hỏi mới và xóa ngữ cảnh cũ; `/retry` thử lại; `/exit` thoát.
@@ -40,19 +40,21 @@ Mỗi đề xuất vượt qua kiểm tra cấu trúc còn có một lượt LLM
 
 [Luồng Retrieval HS/Legal v5](docs/RetrievalDocs/retrievalWF_Docs.md) mô tả nguồn, NODE/EDGE, Notes, cấu hình 160/100/40, cascade và đầu ra. [Sơ đồ Retrieval](docs/RetrievalDocs/retrievalWF.png) và Mermaid trong tài liệu thể hiện luồng đang sử dụng.
 
+Cấu trúc package và vị trí từng module: [rag/ReadMe.md](rag/ReadMe.md). System prompt chính nằm tại [rag/prompts/system.py](rag/prompts/system.py).
+
 ### Vai trò các file
 
 | File | Vai trò |
 |---|---|
-| `rag/sources.py` | Đọc manifest, chuẩn hóa định dạng records/NODE/EDGE và quan hệ nguồn khi build corpus; không chọn mã HS theo sản phẩm. |
-| `rag/pdf_graph.py` | Đọc ô bảng, mã, dấu phân cấp và mô tả nối trang từ PDF. Đây là parser nguồn khi build, không chạy phân loại câu hỏi. |
-| `rag/pdf_wording.py` | Áp dụng bản chép đã đối chiếu ảnh nguồn; kiểm tra code/PDF/locator/chữ gốc và giữ riêng lớp OCR. |
+| `rag/ingestion/sources.py` | Đọc manifest, chuẩn hóa định dạng records/NODE/EDGE và quan hệ nguồn khi build corpus; không chọn mã HS theo sản phẩm. |
+| `rag/ingestion/pdf_graph.py` | Đọc ô bảng, mã, dấu phân cấp và mô tả nối trang từ PDF. Đây là parser nguồn khi build, không chạy phân loại câu hỏi. |
+| `rag/ingestion/pdf_wording.py` | Áp dụng bản chép đã đối chiếu ảnh nguồn; kiểm tra code/PDF/locator/chữ gốc và giữ riêng lớp OCR. |
 | `scripts/build_pdf_graph.py` | Xuất nhãn PDF và cạnh `CONTEXT_FOR` bằng thứ tự/cấp dòng; không đọc câu hỏi hoặc đáp án benchmark. |
 | `scripts/audit_pdf_sources.py` | Kiểm tra mã neo, wording nguồn, Notes, hash PDF và tính toàn vẹn graph. |
 | `scripts/ocr_pdf.swift` | OCR PDF scan bằng PDFKit/Apple Vision trên macOS; kết quả OCR cần giữ giới hạn ngôn ngữ khi báo cáo. |
 | `scripts/benchmark_pdf_rerankers.py` | Công cụ benchmark biểu diễn PDF graph và reranker. |
 | `scripts/benchmark_unified_retrieval.py` | Runner v5: một luồng HS/Legal, sàng accuracy trên Dev, so sánh model/cascade, khóa policy và chấm Test Auto. |
-| `rag/demoRAG.py` | Demo terminal: tự nhập câu hỏi, dùng chung luồng HS/QA, bổ sung dữ kiện và hiển thị câu trả lời có dẫn nguồn. |
+| `rag/api/cli.py` | Demo terminal: tự nhập câu hỏi, dùng chung luồng HS/QA, bổ sung dữ kiện và hiển thị câu trả lời có dẫn nguồn. |
 | `config/settings.py` | Đọc và kiểm tra cấu hình Groq/DB từ môi trường; giữ key/password ngoài log và repr. |
 | `config/retrieval.py` | Loader `rag.yaml`, registry model/revision, instruction và bộ trọng số dùng với policy retrieval đã khóa. |
 | `config/testing.py` | Đọc các cờ chạy, cache, thời gian giãn request và ID ca test của notebook 03 từ `.env`. |
@@ -127,7 +129,7 @@ Notebook 01 có cell hiển thị database trước ingestion; `APPLY=True` ghi 
 ## Cấu trúc còn lại
 
 - `data/`: nguồn và gold dataset gốc; không sửa wording nguồn.
-- `rag/`: adapters, embeddings, database, retrieval và evaluation dùng chung.
+- `rag/`: các package ingestion, chunking, embedding, vectordb, retrieval, graph, prompts, llm, api và utils; xem [cấu trúc chi tiết](rag/ReadMe.md).
 - `config/`: model/retrieval settings và selected runtime config.
 - `sql/`, `docker-compose.rag.yml`: schema và PostgreSQL service riêng.
 - `tests/`: regression/integration checks; chạy bằng `RAG_RUN_DB_TESTS=1 .venv/bin/pytest tests/`.
@@ -136,9 +138,9 @@ Notebook 01 có cell hiển thị database trước ingestion; `APPLY=True` ghi 
 ## Retrieval khi đưa vào sử dụng
 
 ```python
-from rag.db import connect
-from rag.embedding import Embedder
-from rag.retrieval import Retriever
+from rag.vectordb.postgres import connect
+from rag.embedding.bge_m3 import Embedder
+from rag.retrieval.retriever import Retriever
 
 with connect() as conn:
     retriever = Retriever(conn, Embedder())

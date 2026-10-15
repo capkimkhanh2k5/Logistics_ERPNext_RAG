@@ -29,17 +29,17 @@ from config.retrieval import (  # noqa: E402
     WEIGHTS,
     retrieval_config,  # noqa: E402
 )
-from rag.data import digest, read, write_json  # noqa: E402
-from rag.db import connect  # noqa: E402
-from rag.embedding import Embedder  # noqa: E402
-from rag.retrieval import Retriever  # noqa: E402
-from rag.unified import (  # noqa: E402
+from rag.embedding.bge_m3 import Embedder  # noqa: E402
+from rag.retrieval.retriever import Retriever  # noqa: E402
+from rag.retrieval.unified import (  # noqa: E402
     UnifiedRetrieval,
     fit_inputs,
     hs_projection,
     make_encoder,
     rank_scores,
 )
+from rag.utils.files import digest, read, write_json  # noqa: E402
+from rag.vectordb.postgres import connect  # noqa: E402
 from tests.support.evaluation import discover_qa, qa_direct_coverage  # noqa: E402
 
 RUN = ROOT / "artifacts/experiments/run_unified_accuracy_v5"

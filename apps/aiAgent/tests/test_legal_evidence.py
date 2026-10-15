@@ -6,13 +6,15 @@ from unittest.mock import Mock
 import numpy as np
 import pytest
 
-from config.settings import GroqConfig
-from rag.answering import prepare_context, validate_answer
-from rag.context import GraphContext
-from rag.data import ROOT, load_corpus, read
-from rag.db import ingest
-from rag.legal_evidence import attach_bindings, consolidated_bindings, evidence_digest
-from rag.pdf_graph import extractor_identity, validate_extraction
+from config.settings import ROOT, GroqConfig
+from rag.chunking.corpus import load_corpus
+from rag.graph.context import GraphContext
+from rag.graph.legal_evidence import attach_bindings, consolidated_bindings, evidence_digest
+from rag.ingestion.pdf_graph import extractor_identity, validate_extraction
+from rag.llm.context import prepare_context
+from rag.llm.validation import validate_answer
+from rag.utils.files import read
+from rag.vectordb.postgres import ingest
 from tests.test_generation_boundaries import recommendation
 
 

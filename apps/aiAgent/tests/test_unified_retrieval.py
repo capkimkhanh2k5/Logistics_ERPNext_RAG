@@ -6,10 +6,11 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from rag.data import digest, write_json
-from rag.embedding import CrossEncoder, Embedder
-from rag.retrieval import Retriever
-from rag.unified import UnifiedRetrieval, hs_projection, id_pool
+from rag.embedding.bge_m3 import Embedder
+from rag.retrieval.rerankers import CrossEncoder
+from rag.retrieval.retriever import Retriever
+from rag.retrieval.unified import UnifiedRetrieval, hs_projection, id_pool
+from rag.utils.files import digest, write_json
 from scripts.benchmark_unified_retrieval import pool_coverage
 from tests.support.evaluation import qa_direct_coverage
 
@@ -122,7 +123,7 @@ def test_hs_projection_is_output_only_and_legal_top10_remains_mixed():
 
 
 def test_cascade_scores_original_source_notes_after_first_stage_budget(monkeypatch):
-    import rag.unified as module
+    import rag.retrieval.unified as module
 
     u = UnifiedRetrieval.__new__(UnifiedRetrieval)
     u.policy = {
@@ -197,7 +198,7 @@ def test_reader_package_materializes_only_actual_cited_atomic_sources():
 
 
 def test_context_vector_reuse_requires_matching_text_and_embedding_profile(tmp_path, monkeypatch):
-    import rag.embedding as module
+    import rag.embedding.bge_m3 as module
 
     monkeypatch.setattr(module, "ROOT", tmp_path)
     directory = tmp_path / "artifacts/context_embeddings"

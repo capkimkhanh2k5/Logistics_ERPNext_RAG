@@ -6,19 +6,15 @@ import time
 from pathlib import Path
 
 if __package__ in {None, ""}:
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from config.settings import GroqConfig  # noqa: E402
-from rag.answering import (  # noqa: E402
-    compose_query,
-    generate_answer,
-    load_generation_graph,
-    prepare_context,
-)
-from rag.db import connect  # noqa: E402
-from rag.embedding import Embedder  # noqa: E402
-from rag.groq_client import GroqClient, GroqError  # noqa: E402
-from rag.retrieval import Retriever  # noqa: E402
+from rag.embedding.bge_m3 import Embedder  # noqa: E402
+from rag.llm.answering import generate_answer
+from rag.llm.context import compose_query, load_generation_graph, prepare_context
+from rag.llm.groq_client import GroqClient, GroqError  # noqa: E402
+from rag.retrieval.retriever import Retriever  # noqa: E402
+from rag.vectordb.postgres import connect  # noqa: E402
 
 HELP = """Nhập câu hỏi trên một dòng và nhấn Enter.
 Sau khi AI trả lời, nhập thêm thông tin để làm rõ cùng câu hỏi.

@@ -5,7 +5,8 @@ import unicodedata
 
 from sklearn.model_selection import StratifiedGroupKFold
 
-from rag.data import ROOT, digest, write_json
+from config.settings import ROOT
+from rag.utils.files import digest, write_json
 from tests.support.evaluation import clean_product_text, discover_gold
 
 

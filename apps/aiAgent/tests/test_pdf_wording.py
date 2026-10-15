@@ -4,10 +4,17 @@ import copy
 
 import pytest
 
-from rag.data import ROOT, audit, load_corpus, read
-from rag.legal_evidence import evidence_digest
-from rag.pdf_graph import extractor_identity
-from rag.pdf_wording import apply_wording_reviews, validate_reviewed_extraction, wording_proof
+from config.settings import ROOT
+from rag.chunking.corpus import load_corpus
+from rag.graph.legal_evidence import evidence_digest
+from rag.ingestion.audit import audit
+from rag.ingestion.pdf_graph import extractor_identity
+from rag.ingestion.pdf_wording import (
+    apply_wording_reviews,
+    validate_reviewed_extraction,
+    wording_proof,
+)
+from rag.utils.files import read
 
 
 def fixture():

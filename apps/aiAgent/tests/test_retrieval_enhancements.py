@@ -2,9 +2,12 @@
 
 import pytest
 
-from rag.context import GraphContext, fit_rerank_context
-from rag.data import ROOT, build_corpus, read, tariff_bundle
-from rag.retrieval import Retriever
+from config.settings import ROOT
+from rag.chunking.corpus import build_corpus
+from rag.graph.context import GraphContext, fit_rerank_context
+from rag.ingestion.sources import tariff_bundle
+from rag.retrieval.retriever import Retriever
+from rag.utils.files import read
 from scripts.run_retrieval_experiment import CandidateCache, compute_metrics
 from tests.support.experiments import build_eval_groups
 
@@ -166,7 +169,7 @@ def test_new_chapter_metrics_have_no_default_section_assignment():
 def test_runtime_has_no_domain_classifier_import_or_literal_hs_injection():
     import ast
 
-    tree = ast.parse((ROOT / "rag/retrieval.py").read_text())
+    tree = ast.parse((ROOT / "rag/retrieval/retriever.py").read_text())
     imports = [n.module for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)]
     assert "rag.attributes" not in imports and "rag.quota" not in imports
     strings = [
@@ -185,7 +188,7 @@ def test_runtime_has_no_domain_classifier_import_or_literal_hs_injection():
 def test_unified_schema_accepts_new_section_but_taxonomy_rejects_wrong_metadata(monkeypatch):
     import jsonschema
 
-    import rag.data as data_module
+    import rag.ingestion.audit as data_module
 
     schema = read(ROOT / "data/normalized/TT31/UNIFIED_RAG_INGEST_SCHEMA.json")
     example = read(ROOT / "data/normalized/TT31/Section-XIV/SECTION_XIV_RAG_INGEST.jsonl")[0]
@@ -230,7 +233,7 @@ def test_group_bootstrap_reports_the_same_query_weighted_delta_as_metrics():
 
 
 def test_shared_channel_budget_prevents_graph_starvation_at_40_and_100():
-    from rag.retrieval import fuse, source_channel_pool, unique_codes
+    from rag.retrieval.retriever import fuse, source_channel_pool, unique_codes
 
     direct = [{"id": f"d{i}", "code": f"{i:08}", "level": 8, "score": 1.0} for i in range(100)]
     graph = [{"id": f"g{i}", "code": f"{i + 100:08}", "level": 8, "score": 1.0} for i in range(100)]

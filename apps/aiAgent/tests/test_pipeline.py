@@ -1,9 +1,12 @@
 import numpy as np
 import pytest
 
-from rag.data import audit, build_corpus, normalize_code, read
-from rag.embedding import validate_vectors
-from rag.retrieval import fuse, unique_codes
+from rag.chunking.corpus import build_corpus
+from rag.embedding.validation import validate_vectors
+from rag.ingestion.audit import audit
+from rag.retrieval.retriever import fuse, unique_codes
+from rag.utils.codes import normalize_code
+from rag.utils.files import read
 from tests.support.evaluation import benchmark_split, discover_gold, metrics, query_for
 
 
@@ -138,7 +141,7 @@ def test_weighted_fusion_and_conservative_routing():
         weights={"dense": 1, "fts": 0.1},
     )
     assert rows[0]["id"] == "a"
-    from rag.retrieval import Retriever
+    from rag.retrieval.retriever import Retriever
 
     router = Retriever.__new__(Retriever)
     assert router.route("Thịt bò tươi")["status"] == "UNCERTAIN"
@@ -149,7 +152,7 @@ def test_weighted_fusion_and_conservative_routing():
 
 
 def test_multilevel_metadata_and_form_registry():
-    from rag.data import NORMALIZED
+    from rag.ingestion.sources import NORMALIZED
 
     bundle = build_corpus()
     rows = bundle["records"]
@@ -170,7 +173,7 @@ def test_multilevel_metadata_and_form_registry():
 
 
 def test_product_filter_is_not_fixed_to_leaf_or_role():
-    from rag.retrieval import Retriever
+    from rag.retrieval.retriever import Retriever
 
     retriever = Retriever.__new__(Retriever)
     retriever.snapshot = "test"
@@ -186,7 +189,7 @@ def test_product_filter_is_not_fixed_to_leaf_or_role():
 
 
 def test_rrf_weight_scaling_preserves_rank_and_soft_section_beam():
-    from rag.retrieval import Retriever
+    from rag.retrieval.retriever import Retriever
 
     branches = {
         "dense": [
@@ -228,7 +231,7 @@ def test_verified_gold_uses_supplied_partitions_and_normalized_grid():
 
 
 def test_exact_features_preserve_code_units_purity_and_standards():
-    from rag.retrieval import Retriever
+    from rag.retrieval.retriever import Retriever
 
     features = Retriever.exact_features(
         "8517.13.00 USB-C 65 W 5G Li-ion 802.11ax bạc 925 độ tinh khiết 99,9%"
@@ -267,7 +270,7 @@ def test_supplied_query_sanitization_preserves_product_specs():
 
 
 def test_dual_paths_keep_direct_candidates_when_hierarchy_prunes():
-    from rag.retrieval import candidate_paths
+    from rag.retrieval.retriever import candidate_paths
 
     rows = [
         {"id": "a", "code": "87011000", "section": "XVII", "level": 8, "score": 1.0},
@@ -291,7 +294,7 @@ def test_rrf_omitted_branches_receive_no_implicit_weight():
 
 
 def test_definition_paths_do_not_turn_exclusions_into_positive_candidates():
-    from rag.retrieval import definition_passages
+    from rag.retrieval.retriever import definition_passages
 
     records = [
         {
@@ -331,7 +334,7 @@ def test_definition_paths_do_not_turn_exclusions_into_positive_candidates():
 
 
 def test_definition_reference_resolves_only_exact_source_subparagraph():
-    from rag.retrieval import definition_passages
+    from rag.retrieval.retriever import definition_passages
 
     records = [
         {
@@ -361,7 +364,7 @@ def test_definition_reference_resolves_only_exact_source_subparagraph():
 
 
 def test_disabled_definition_branch_preserves_baseline_and_new_candidates_can_enter():
-    from rag.retrieval import definition_fusion
+    from rag.retrieval.retriever import definition_fusion
 
     base = [{"id": "a", "code": "11111111", "score": 1}]
     added = [{"id": "b", "code": "22222222", "score": 7}]
@@ -432,7 +435,7 @@ def test_qa_verified_targets_match_current_sources():
     ],
 )
 def test_uncertain_code_mentions_do_not_become_legal_exclusions(query, status):
-    from rag.retrieval import Retriever, code_mention_plan
+    from rag.retrieval.retriever import Retriever, code_mention_plan
 
     plan = code_mention_plan(query + " USB-C 65 W")
     assert plan["semantic_query"] == query + " USB-C 65 W"
@@ -444,7 +447,7 @@ def test_uncertain_code_mentions_do_not_become_legal_exclusions(query, status):
 
 
 def test_gir_sequence_routing_requires_legal_sequence_cues():
-    from rag.retrieval import Retriever
+    from rag.retrieval.retriever import Retriever
 
     r = Retriever.__new__(Retriever)
     assert (
@@ -455,7 +458,7 @@ def test_gir_sequence_routing_requires_legal_sequence_cues():
 
 
 def test_rule_family_expansion_follows_retrieved_atomic_rules(monkeypatch):
-    from rag.retrieval import Retriever
+    from rag.retrieval.retriever import Retriever
 
     r = Retriever.__new__(Retriever)
     rules = [
@@ -489,7 +492,7 @@ def test_qa_direct_scoring_requires_atomic_chunk_not_context_alias():
 
 
 def test_qa_reranker_preserves_multiple_chunks_without_hs_codes():
-    from rag.retrieval import rerank_evidence
+    from rag.retrieval.retriever import rerank_evidence
 
     class FakeReranker:
         def score(self, query, texts):
@@ -504,7 +507,7 @@ def test_qa_reranker_preserves_multiple_chunks_without_hs_codes():
 
 
 def test_qa_graph_pool_keeps_direct_results_and_real_cited_neighbors():
-    from rag.retrieval import qa_candidate_pool
+    from rag.retrieval.retriever import qa_candidate_pool
 
     direct = [{"id": key, "score": 1.0} for key in "abcd"]
     parents = [
@@ -552,7 +555,7 @@ def test_qa_weight_sweep_uses_all_primary_sources():
 
 
 def test_routed_legal_query_uses_trained_qa_without_changing_product_dispatch(monkeypatch):
-    from rag.retrieval import Retriever
+    from rag.retrieval.retriever import Retriever
 
     retriever = object.__new__(Retriever)
     retriever.qa_policy = {"configuration": "C11"}

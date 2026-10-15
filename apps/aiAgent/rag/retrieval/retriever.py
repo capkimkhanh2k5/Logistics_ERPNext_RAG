@@ -12,10 +12,14 @@ from pgvector.psycopg import register_vector
 from psycopg import sql as pgsql
 
 from config.retrieval import retrieval_config
-from rag.context import GraphContext, fit_rerank_context
-from rag.data import ROOT, load_corpus, normalize_code, read
-from rag.embedding import CrossEncoder, Embedder, colbert_scores
-from rag.sources import QA_CHUNK_TYPES
+from config.settings import ROOT
+from rag.chunking.corpus import load_corpus
+from rag.embedding.bge_m3 import Embedder
+from rag.graph.context import GraphContext, fit_rerank_context
+from rag.ingestion.sources import QA_CHUNK_TYPES
+from rag.retrieval.rerankers import CrossEncoder, colbert_scores
+from rag.utils.codes import normalize_code
+from rag.utils.files import read
 
 
 def fuse(
@@ -1738,7 +1742,7 @@ class Retriever:
         return {"routing": routing, **result}
 
     def unified_search(self, query: str, intent_hint: str = "auto") -> dict:
-        from rag.unified import UnifiedRetrieval
+        from rag.retrieval.unified import UnifiedRetrieval
 
         if not self.embedder:
             raise ValueError("Unified retrieval requires an embedder")

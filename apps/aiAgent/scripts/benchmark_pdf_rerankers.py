@@ -16,11 +16,12 @@ import torch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from rag.context import fit_rerank_context  # noqa: E402
-from rag.data import digest, read, write_json  # noqa: E402
-from rag.db import connect  # noqa: E402
-from rag.embedding import CrossEncoder, Embedder  # noqa: E402
-from rag.retrieval import Retriever  # noqa: E402
+from rag.embedding.bge_m3 import Embedder  # noqa: E402
+from rag.graph.context import fit_rerank_context  # noqa: E402
+from rag.retrieval.rerankers import CrossEncoder  # noqa: E402
+from rag.retrieval.retriever import Retriever  # noqa: E402
+from rag.utils.files import digest, read, write_json  # noqa: E402
+from rag.vectordb.postgres import connect  # noqa: E402
 from scripts.run_retrieval_experiment import (  # noqa: E402
     CandidateCache,
     compute_metrics,
@@ -550,8 +551,13 @@ def main():
         frozen = read(RUN / "protocol.json")
         MODELS = frozen["models"]
         for path, value in frozen["code_hashes"].items():
-            if hashlib.sha256((ROOT / path).read_bytes()).hexdigest() != value:
-                raise ValueError(f"Frozen runtime code changed: {path}")
+            if (
+                not (ROOT / path).is_file()
+                or hashlib.sha256((ROOT / path).read_bytes()).hexdigest() != value
+            ):
+                raise ValueError(
+                    f"Frozen runtime code changed or moved: {path}; use a new --run-id"
+                )
         for path, value in frozen["source_hashes"].items():
             if hashlib.sha256((ROOT / "data/normalized" / path).read_bytes()).hexdigest() != value:
                 raise ValueError(f"Frozen source changed: {path}")
@@ -560,14 +566,11 @@ def main():
     if args.phase == "protocol":
         corpus = read(ROOT / "artifacts/corpus.json")
         source_manifest = read(ROOT / "config/source_manifest.json")
-        core_files = (
-            "rag/embedding.py",
-            "rag/retrieval.py",
-            "rag/context.py",
-            "rag/data.py",
-            "rag/pdf_graph.py",
+        core_files = [str(p.relative_to(ROOT)) for p in sorted((ROOT / "rag").rglob("*.py"))]
+        core_files += [
+            "rag/ingestion/provenance_relocations.json",
             "config/rag.yaml",
-        )
+        ]
         existing_path = RUN / "protocol.json"
         if existing_path.exists():
             existing = read(existing_path)
@@ -576,7 +579,8 @@ def main():
                 or existing["dev_sha256"] != manifest["files"]["dev"]["sha256"]
                 or existing["test_sha256"] != manifest["files"]["test"]["sha256"]
                 or any(
-                    hashlib.sha256((ROOT / path).read_bytes()).hexdigest() != value
+                    not (ROOT / path).is_file()
+                    or hashlib.sha256((ROOT / path).read_bytes()).hexdigest() != value
                     for path, value in existing["code_hashes"].items()
                 )
             ):

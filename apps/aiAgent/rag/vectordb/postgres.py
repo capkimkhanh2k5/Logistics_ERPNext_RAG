@@ -8,9 +8,9 @@ from pgvector.psycopg import register_vector
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
-from config.settings import DatabaseConfig
-from rag.data import ROOT, digest
-from rag.embedding import validate_vectors
+from config.settings import ROOT, DatabaseConfig
+from rag.embedding.validation import validate_vectors
+from rag.utils.files import digest
 
 
 def connect() -> psycopg.Connection[dict[str, Any]]:

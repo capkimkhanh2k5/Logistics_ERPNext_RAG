@@ -229,9 +229,9 @@ Gemma được chấm trong thực nghiệm Dev. Cascade phục vụ sử dụng
 `source_package` không tìm thêm Notes sau ranking hoặc materialize mọi `note_ids`. Nó bổ sung bản ghi thật của citation đã giữ trong context. ID Note có trong metadata không đồng nghĩa text Note đã được đọc/áp dụng hoặc nằm trong package.
 
 ```python
-from rag.db import connect
-from rag.embedding import Embedder
-from rag.retrieval import Retriever
+from rag.vectordb.postgres import connect
+from rag.embedding.bge_m3 import Embedder
+from rag.retrieval.retriever import Retriever
 
 with connect() as conn:
     retriever = Retriever(conn, Embedder())
@@ -301,9 +301,9 @@ Hồ sơ v5 ghi nhận 104 tests passed, runtime/replay khớp 6 câu với ba h
 
 | Nhóm file | Vai trò |
 |---|---|
-| `rag/unified.py`, `context.py`, `retrieval.py`, `embedding.py` | Runtime, context graph, tuyển ứng viên, cascade và cache |
+| `rag/retrieval/`, `rag/graph/`, `rag/embedding/` | Runtime, context graph, tuyển ứng viên, cascade và cache |
 | `config/unified_retrieval.json`, `semantic_intent.json` | Policy chung và artifact intent được khóa hash |
-| `rag/pdf_graph.py`, `scripts/build_pdf_graph.py`, `audit_pdf_sources.py`, `ocr_pdf.swift` | Trích xuất/audit PDF và OCR nguồn scan |
+| `rag/ingestion/pdf_graph.py`, `scripts/build_pdf_graph.py`, `audit_pdf_sources.py`, `ocr_pdf.swift` | Trích xuất/audit PDF và OCR nguồn scan |
 | PDF, NODE/EDGE, `PDF_SOURCE_GRAPH.json`, `PDF_SOURCE_PROVENANCE.json`, `PDF_SOURCE_TEXT_CORRECTIONS.json` | Căn cứ nguồn, provenance và tái dựng graph |
 | `scripts/benchmark_unified_retrieval.py`, `tests/` | Chọn cấu hình trên Dev, chấm Test và kiểm chứng cơ chế |
 | Pools, score matrices, predictions, protocol và report trong `artifacts/experiments/run_unified_accuracy_v5/` | Tái lập selection/replay; `dev_pools.sqlite` là pool thực nghiệm, không phải vector DB phục vụ |
@@ -313,9 +313,10 @@ Công cụ build/audit/benchmark chạy khi chuẩn bị nguồn hoặc thực n
 
 ## 13. Tham chiếu implementation
 
-- [retrieval.py](../../rag/retrieval.py): `Retriever.__init__`, `routed_search`, `unified_search`.
-- [unified.py](../../rag/unified.py): `channels`, `id_pool`, `prepare`, `rank_scores`, `rank`, `hs_projection`, `source_package`, `semantic_intent`, `search`.
-- [context.py](../../rag/context.py): `GraphContext`, `source_view`, `enrich`, `format_candidates`, `fit_rerank_context`.
-- [embedding.py](../../rag/embedding.py): context vectors, `CrossEncoder`, instruction/backend/cache.
+- [retrieval.py](../../rag/retrieval/retriever.py): `Retriever.__init__`, `routed_search`, `unified_search`.
+- [unified.py](../../rag/retrieval/unified.py): `channels`, `id_pool`, `prepare`, `rank_scores`, `rank`, `hs_projection`, `source_package`, `semantic_intent`, `search`.
+- [context.py](../../rag/graph/context.py): `GraphContext`, `source_view`, `enrich`, `format_candidates`, `fit_rerank_context`.
+- [bge_m3.py](../../rag/embedding/bge_m3.py): source context vectors và embedding cache.
+- [rerankers.py](../../rag/retrieval/rerankers.py): `CrossEncoder`, instruction/backend/cache.
 - [benchmark_unified_retrieval.py](../../scripts/benchmark_unified_retrieval.py): protocol, Dev, cascade, lock, Test, bootstrap và kiểm chứng.
 - [README-RAG.md](../../README-RAG.md): môi trường, dữ liệu và kết quả hiện tại.
