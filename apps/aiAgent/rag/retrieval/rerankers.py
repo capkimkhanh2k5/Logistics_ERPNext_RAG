@@ -6,6 +6,7 @@ import numpy as np
 
 from config.settings import ROOT
 from rag.embedding.bge_m3 import Embedder, multivectors
+from rag.prompts.reranking import RERANK_PROMPT_VERSION, format_qwen_prompt
 from rag.utils.files import digest, write_json
 
 
@@ -84,7 +85,7 @@ class CrossEncoder:
         if self.backend != "cross_encoder":
             identity.update(
                 backend=self.backend,
-                prompt_version="source-relevance-v1",
+                prompt_version=RERANK_PROMPT_VERSION,
                 device=self.device,
                 dtype="float16" if self.device != "cpu" else "float32",
             )
@@ -156,16 +157,7 @@ class CrossEncoder:
         import torch
 
         tokenizer = self.model.tokenizer
-        prefix = '<|im_start|>system\nJudge whether the Document meets the requirements based on the Query and the Instruct provided. Note that the answer can only be "yes" or "no".<|im_end|>\n<|im_start|>user\n'
-        suffix = "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
-        instruction = (
-            getattr(self, "instruction", None)
-            or "Retrieve the tariff entry whose cited description and hierarchy match the product described in the query."
-        )
-        texts = [
-            prefix + f"<Instruct>: {instruction}\n<Query>: {q}\n<Document>: {d}" + suffix
-            for q, d in pairs
-        ]
+        texts = [format_qwen_prompt(q, d, getattr(self, "instruction", None)) for q, d in pairs]
         result = []
         for start in range(0, len(texts), self.batch_size):
             encoded = tokenizer(

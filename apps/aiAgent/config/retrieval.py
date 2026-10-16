@@ -5,17 +5,14 @@ from typing import Any
 import yaml
 
 from config.settings import ROOT
+from rag.prompts.reranking import SOURCE_RELEVANCE_INSTRUCTION
 
 
 def retrieval_config() -> dict:
     return yaml.safe_load((ROOT / "config/rag.yaml").read_text())
 
 
-INSTRUCTION = (
-    "Retrieve cited source passages relevant to the query. For a product description, "
-    "find matching tariff descriptions using their source hierarchy. For a legal question, "
-    "find the source provisions that answer it. Do not assume unstated product attributes."
-)
+INSTRUCTION = SOURCE_RELEVANCE_INSTRUCTION
 MODELS: dict[str, dict[str, Any]] = {
     "m3": {
         "model": "BAAI/bge-reranker-v2-m3",

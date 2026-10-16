@@ -58,8 +58,75 @@ USER_REQUEST = re.compile(
 )
 
 
+_CORPUS_NAME = r"(?:co so du lieu|kho du lieu|kho tri thuc|database|corpus|knowledge base)"
+_CORPUS_OBJECT = (
+    r"(?:(?:du|bat ky|bat cu|cac|nhung|any|relevant|applicable|sufficient|the|enough)\s+){0,5}"
+    r"(?:quy dinh|mo ta|chu giai|gir|gri|ma hs|nhom|phan nhom|bieu thue|chung cu|"
+    r"can cu|nguon|tai lieu|du lieu|noi dung|ban ghi|thong tin|danh muc|ma ung vien|legal|evidence|"
+    r"sources?|documents?|data|records?|tariff|headings?|subheadings?|chapter|section|"
+    r"rules?|regulations?|legislation|law|notes?|[0-9]{4,8})\b"
+)
+_CORPUS_ABSENCE = re.compile(
+    rf"\b{_CORPUS_NAME}\s+"
+    r"(?:(?:hien tai|hien|dang|van|con|nay|cua he thong|currently|still|itself)\s+){0,3}"
+    r"(?:khong co|chua co|khong chua|chua chua|thieu|lacks?|is missing|is lacking|"
+    r"(?:has|have|contains?) (?:no|insufficient)|does not (?:contain|have)|doesn't (?:contain|have))"
+    rf"\s+{_CORPUS_OBJECT}"
+    rf"|\b(?:khong co|chua co|there (?:are|is) no)\s+{_CORPUS_OBJECT}"
+    rf"(?:(?!\.(?:\s|$))[^;!?\n]){{0,180}}?\s+(?:trong|in|from)\s+(?:the\s+)?{_CORPUS_NAME}\b"
+)
+_CORPUS_DISCLAIMER = re.compile(
+    r"\b(?:(?:khong|chua)(?: the)?\s+(?:ket luan|khang dinh|xac nhan|chung minh|suy ra|"
+    r"co nghia|dong nghia|phai)(?:\s+(?:rang|la|duoc|toan bo))*|"
+    r"(?:cannot|can not|can't|could not|do not|does not|don't|doesn't)\s+"
+    r"(?:conclude|assert|establish|confirm|prove|mean|imply|show|indicate)"
+    r"(?:\s+that)?(?:\s+(?:the|our|entire|whole|full)){0,3}|"
+    r"(?:there is )?(?:no|insufficient) (?:evidence|basis|proof)"
+    r"(?: to (?:conclude|assert|confirm))?(?: that)?(?: the)?)\s*$"
+)
+_RETRIEVED_CORPUS_PREFIX = re.compile(
+    r"\b(?:ngu canh(?: truy xuat)?|nguon truy xuat|cac ket qua truy xuat|"
+    r"retrieved (?:context|sources?|records?)|retrieval context)"
+    r"[^,;.!?\n]{0,80}\b(?:tu|trong|from|of|in)\s+(?:the\s+)?$"
+)
+
+
+def _corpus_scope_errors(answer: dict) -> list[str]:
+    for text in [answer["answer"], *answer["missing_legal_evidence"]]:
+        folded = _folded(text)
+        for claim in _CORPUS_ABSENCE.finditer(folded):
+            prefix = re.split(
+                r"[,;:\n]|\.(?:\s|$)|\b(?:nhung|tuy nhien|but|however|yet)\b",
+                folded[: claim.start()],
+            )[-1]
+            if _CORPUS_DISCLAIMER.search(prefix) or _RETRIEVED_CORPUS_PREFIX.search(prefix):
+                continue
+            return [
+                "Chưa có kiểm tra toàn kho dữ liệu đáng tin cậy: chỉ mô tả chứng cứ chưa được "
+                "cấp trong ngữ cảnh truy xuất lượt này, không kết luận database/corpus thiếu dữ liệu."
+            ]
+    return []
+
+
+def _requests_legal_information(sentence: str) -> bool:
+    for request in USER_REQUEST.finditer(sentence):
+        requested = re.split(
+            r"\b(?:de|nham|in order to|so as to|so that|for (?=(?:hs|ahtn|tariff|classification)\b))\b",
+            sentence[request.end() :],
+            maxsplit=1,
+        )[0]
+        if LEGAL_INFORMATION.search(requested):
+            return True
+        prefix = sentence[: request.start()].strip()
+        if LEGAL_INFORMATION.search(prefix) and not re.match(
+            r"^(?:de|nham|in order to|to|for)\b", prefix
+        ):
+            return True
+    return False
+
+
 def _ownership_errors(answer: dict) -> list[str]:
-    errors = []
+    errors = _corpus_scope_errors(answer)
     missing = answer["missing_information"]
     legal = answer["missing_legal_evidence"]
     if answer["status"] == "MISSING_PRODUCT_INFO":
@@ -91,7 +158,7 @@ def _ownership_errors(answer: dict) -> list[str]:
         diagnostic = re.match(r"(?:corpus|retrieval|he thong|nguon truy xuat)\b", folded.strip())
         if re.search(r"\b(?:ban|nguoi dung|vui long|please|you)\b", folded):
             diagnostic = None
-        if request and not diagnostic and LEGAL_INFORMATION.search(folded):
+        if request and not diagnostic and _requests_legal_information(folded):
             errors.append(
                 "Không yêu cầu người dùng cung cấp chứng cứ pháp lý; hãy báo khoảng trống truy xuất/kho dữ liệu"
             )

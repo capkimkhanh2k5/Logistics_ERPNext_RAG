@@ -205,12 +205,19 @@ class UnifiedRetrieval:
 
     def rank(self, query: str, rows: list[dict]) -> list[dict]:
         policy = self.policy
+        self._rank_timings: dict[str, float] = {}
+        self._rank_encoder_cache_cold: dict[str, bool] = {}
         first = "m3" if policy["model"] == "cascade" else policy["model"]
+        tick = time.perf_counter()
+        self._rank_encoder_cache_cold[first] = first not in getattr(self, "encoders", {})
         encoder = self.encoder(first)
         inputs = fit_inputs(query, rows[: policy["rerank_pool"]], encoder)
         scores = encoder.score(query, [r["rerank_text"] for r in inputs])
         ranked = rank_scores(inputs, scores, policy["rank_weight"], policy["rrf_k"])
+        self._rank_timings[first + "_ms"] = (time.perf_counter() - tick) * 1000
         if policy["model"] == "cascade":
+            tick = time.perf_counter()
+            self._rank_encoder_cache_cold["qwen"] = "qwen" not in getattr(self, "encoders", {})
             encoder = self.encoder("qwen")
             original = {r["id"]: r for r in rows}
             inputs = fit_inputs(
@@ -221,6 +228,7 @@ class UnifiedRetrieval:
                 rank_scores(inputs, scores, policy["cascade_weight"], policy["rrf_k"])
                 + ranked[policy["cascade_pool"] :]
             )
+            self._rank_timings["qwen_ms"] = (time.perf_counter() - tick) * 1000
         return ranked
 
     def semantic_intent(self, query: str) -> dict:
@@ -261,14 +269,24 @@ class UnifiedRetrieval:
         return package
 
     def search(self, query: str, intent_hint: str = "auto") -> dict:
+        """Measure disjoint retrieval and ranking wall times for this search.
+
+        Ranking includes lazy encoder initialization and score-cache reads. Retrieval
+        includes source packaging and semantic advisory; model-pass times are subsets
+        of ranking, rather than additional stages.
+        """
         tick = time.perf_counter()
         channels = self.channels(query)
         candidates = self.prepare(query, channels)
+        self._rank_timings = {}
+        self._rank_encoder_cache_cold = {}
+        rank_started = time.perf_counter()
         ranked = self.rank(query, candidates)
+        rank_finished = time.perf_counter()
         hs = hs_projection(ranked)
         matches = ranked[:10]
         package = self.source_package(matches)
-        return {
+        result = {
             "query": query,
             "intent": "knowledge",
             "routing": {
@@ -289,5 +307,13 @@ class UnifiedRetrieval:
             "package": package,
             "coverage": self.retriever.coverage,
             "automatic_hs_decision": False,
-            "timings": {"total_ms": (time.perf_counter() - tick) * 1000},
+            "reranking": {"encoder_cache_cold": self._rank_encoder_cache_cold.copy()},
         }
+        finished = time.perf_counter()
+        result["timings"] = {
+            "retrieval_ms": ((rank_started - tick) + (finished - rank_finished)) * 1000,
+            "reranking_ms": (rank_finished - rank_started) * 1000,
+            "total_ms": (finished - tick) * 1000,
+            **self._rank_timings,
+        }
+        return result

@@ -6,7 +6,9 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from config.model_limits import get_model_limits
 from config.settings import GroqConfig
+from rag.llm.budget import ContextBudgetError, check_request_budget
 from rag.llm.errors import LLMError
 
 API_BASE = "https://api.groq.com/openai/v1"
@@ -112,12 +114,35 @@ class GroqClient:
             models.append(self.config.fallback_model)
         failures: list[dict[str, Any]] = []
         started = time.perf_counter()
+        last_budget_error = None
         for candidate in models:
+            output_limit = self.config.max_output_tokens
+            if output_limit is None and get_model_limits(candidate) is None:
+                output_limit = 2048
+            try:
+                budget = check_request_budget(
+                    messages, schema, candidate, output_limit, provider="groq"
+                )
+            except ContextBudgetError as exc:
+                if not allow_fallback:
+                    raise
+                last_budget_error = exc
+                failures.append(
+                    {
+                        "model": candidate,
+                        "http_status": exc.status,
+                        "error_code": exc.error_code,
+                        "retry_after": 0,
+                        "request_budget": exc.budget,
+                    }
+                )
+                continue
+            last_budget_error = None
             payload = {
                 "model": candidate,
                 "messages": messages,
                 "temperature": self.config.temperature,
-                "max_completion_tokens": self.config.max_output_tokens,
+                "max_completion_tokens": budget["output_tokens"],
                 "response_format": {
                     "type": "json_schema",
                     "json_schema": {
@@ -168,8 +193,11 @@ class GroqClient:
                 "fallback_used": candidate != requested,
                 "failures": failures,
                 "usage": response.get("usage", {}),
+                "request_budget": budget,
                 "elapsed_ms": (time.perf_counter() - started) * 1000,
             }
+        if last_budget_error is not None:
+            raise last_budget_error
         raise GroqError(
             failures[-1]["http_status"],
             models[-1],

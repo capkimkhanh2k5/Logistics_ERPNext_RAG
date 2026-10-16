@@ -5,12 +5,14 @@ import re
 
 from rag.graph.context import GraphContext
 from rag.ingestion.sources import SOURCE_TYPES
+from rag.llm.budget import ContextBudgetError, request_budget
 from rag.prompts.schemas import ANSWER_SCHEMA
 from rag.prompts.system import SYSTEM_PROMPT
+from rag.prompts.tasks import TASK_INSTRUCTIONS, USER_SUPPLEMENT_TEMPLATE
 from rag.utils.files import digest
 
 
-def compose_query(question: str, supplements: list[str], max_chars: int) -> str:
+def compose_query(question: str, supplements: list[str], max_chars: int | None) -> str:
     """Combine user facts for a fresh retrieval, without carrying assistant claims."""
     if not question.strip():
         raise ValueError("Question must not be empty")
@@ -18,11 +20,11 @@ def compose_query(question: str, supplements: list[str], max_chars: int) -> str:
         raise ValueError("Additional context must not be empty")
     sections = [question.strip()]
     sections.extend(
-        f"Thông tin người dùng bổ sung ở lượt {i + 2}: {text.strip()}"
+        USER_SUPPLEMENT_TEMPLATE.format(turn=i + 2, text=text.strip())
         for i, text in enumerate(supplements)
     )
     combined = "\n\n".join(sections)
-    if len(combined) > max_chars:
+    if max_chars is not None and len(combined) > max_chars:
         raise ValueError("Combined question exceeds GROQ_MAX_INPUT_CHARS")
     return combined
 
@@ -171,97 +173,194 @@ def _compact_locator(locator: dict) -> dict:
     return {k: v for k, v in values.items() if v is not None}
 
 
+def _source_groups(rows: list[dict], candidates: list[dict], graph) -> list[list[dict]]:
+    labelled = [{"id": row["id"], "label": f"S{i + 1}"} for i, row in enumerate(rows)]
+    by_label = {source["label"]: source["id"] for source in labelled}
+    available = set(by_label.values())
+    groups = {}
+    for candidate, evidence in zip(
+        [c for c in candidates if c["id"] in available],
+        _candidate_evidence(candidates, labelled, graph),
+        strict=True,
+    ):
+        labels = set(evidence["required_citation_labels"]) | set(evidence["ancestor_labels"])
+        required = {by_label[label] for label in labels}
+        groups[candidate["id"]] = [
+            candidate,
+            *[row for row in rows if row["id"] in required and row["id"] != candidate["id"]],
+        ]
+    return [groups.get(row["id"], [row]) for row in rows]
+
+
+def _pack_source(row: dict, index: int) -> dict:
+    return {
+        "label": f"S{index}",
+        "id": row["id"],
+        "text": row["source_text"],
+        "code": row.get("code"),
+        "chunk_type": row.get("chunk_type"),
+        "locator": _compact_locator(row.get("locator", {})),
+        "effective_from": str(row.get("effective_from") or ""),
+        "effective_to": str(row.get("effective_to") or ""),
+        "legal_status": row.get("legal_status"),
+    }
+
+
+def _model_source(source: dict) -> dict:
+    """Keep readable source provenance in the model view; retain audit geometry outside it."""
+    projected = {key: value for key, value in source.items() if value not in (None, "", {})}
+    locator = {
+        key: value
+        for key, value in source.get("locator", {}).items()
+        if key in {"document", "physical_page", "printed_page", "physical_pages"}
+    }
+    if locator:
+        projected["locator"] = locator
+    else:
+        projected.pop("locator", None)
+    return projected
+
+
+def _model_candidate_evidence(evidence: list[dict]) -> list[dict]:
+    """Reference source labels once per chain without copying graph audit identifiers."""
+    compact = []
+    for candidate in evidence:
+        hierarchy = candidate["hierarchy"]
+        compact.append(
+            {
+                key: candidate[key]
+                for key in (
+                    "code",
+                    "wording_label",
+                    "context_labels",
+                    "required_citation_labels",
+                    "related_note_labels",
+                )
+            }
+            | {
+                "hierarchy": {
+                    "status": hierarchy["status"],
+                    "chain": [
+                        {
+                            key: node[key]
+                            for key in ("code", "level", "wording_origin", "evidence_labels")
+                        }
+                        for node in hierarchy["chain"]
+                    ],
+                    "errors": hierarchy["errors"],
+                }
+            }
+        )
+    return compact
+
+
+def _serialize(value: dict | list) -> str:
+    return json.dumps(value, ensure_ascii=False, default=str, separators=(",", ":"))
+
+
+def _context_payload(base: dict, packed: list[dict], candidates: list[dict], graph) -> dict:
+    included = {source["id"] for source in packed}
+    return {
+        **base,
+        "sources": [_model_source(source) for source in packed],
+        "candidate_hs_codes": [
+            row["code"]
+            for row in candidates
+            if row["id"] in included and re.fullmatch(r"[0-9]{8}", row.get("code") or "")
+        ],
+        "candidate_evidence": _model_candidate_evidence(
+            _candidate_evidence(candidates, packed, graph)
+        ),
+    }
+
+
+def _messages(user_message: str) -> list[dict]:
+    return [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": user_message},
+    ]
+
+
 def prepare_context(question: str, result: dict, task: str, config, graph=None) -> dict:
     if task not in {"hs", "qa", "auto"}:
         raise ValueError("Task must be hs, qa or auto")
-    if not question.strip() or len(question) > config.max_input_chars:
+    token_mode = getattr(config, "use_model_token_limits", False)
+    max_input_chars = None if token_mode else config.max_input_chars
+    max_context_chars = None if token_mode else config.max_context_chars
+    if not question.strip() or (max_input_chars is not None and len(question) > max_input_chars):
         raise ValueError("Question is empty or exceeds GROQ_MAX_INPUT_CHARS")
     rows, candidates = source_rows(result, task, graph)
-    packed: list[dict] = []
-    omitted: list[str] = []
-    for row in rows:
-        source = {
-            "label": f"S{len(packed) + 1}",
-            "id": row["id"],
-            "text": row["source_text"],
-            "code": row.get("code"),
-            "chunk_type": row.get("chunk_type"),
-            "locator": _compact_locator(row.get("locator", {})),
-            "effective_from": str(row.get("effective_from") or ""),
-            "effective_to": str(row.get("effective_to") or ""),
-            "legal_status": row.get("legal_status"),
-        }
-        if (
-            len(json.dumps([*packed, source], ensure_ascii=False, default=str))
-            > config.max_context_chars
-        ):
-            omitted.append(row["id"])
-        else:
-            packed.append(source)
-    instructions = {
-        "hs": (
-            "Trước tiên kiểm tra mâu thuẫn chưa đính chính và thuộc tính còn thiếu: "
-            "dùng MISSING_PRODUCT_INFO, mã rỗng khi chưa rõ. Chỉ đối chiếu dữ kiện hiện tại, "
-            "bỏ dữ kiện người dùng đã đính chính. Chỉ đề xuất mã HS 8 chữ số khi đủ chứng cứ: status=RECOMMENDATION, "
-            "suggested_hs_code=mã đã chọn. Nếu chưa thể kết luận, để trường mã rỗng."
-        ),
-        "qa": "Trả lời câu hỏi QA có dẫn nguồn; dùng status=ANSWERED khi đủ chứng cứ, không đề xuất mã HS.",
-        "auto": (
-            "Tự xác định nhu cầu từ câu hỏi gốc và thông tin người dùng bổ sung. "
-            "Nếu người dùng yêu cầu phân loại hàng hóa, áp dụng quy tắc HS: chỉ dùng "
-            "RECOMMENDATION kèm mã ứng viên 8 chữ số khi đủ thuộc tính và chứng cứ. "
-            "Nếu hỏi kiến thức, quy định, hồ sơ hoặc giải thích mã có sẵn, trả lời QA có dẫn nguồn: "
-            "ANSWERED, mã đề xuất rỗng và alternatives=[]. Việc nhắc tới HS/GIR không tự đồng nghĩa "
-            "với yêu cầu phân loại hàng hóa. Nếu cần cả phân loại và hỏi đáp, trả lời cả hai theo nguồn; "
-            "chỉ đề xuất HS khi phần phân loại đủ căn cứ. intent_advice chỉ là gợi ý, có thể sai; "
-            "không để gợi ý này quyết định thay câu hỏi. Khi nhu cầu chưa rõ hoặc thiếu thuộc tính, "
-            "dùng MISSING_PRODUCT_INFO, hỏi thông tin cụ thể, không yêu cầu người dùng chọn HS/QA. "
-            "Khi thiếu nguồn, dùng INSUFFICIENT_LEGAL_EVIDENCE hoặc REQUIRES_REVIEW."
-        ),
-    }
-    payload = {
+    base = {
         "task": task,
-        "task_instruction": instructions[task],
+        "task_instruction": TASK_INSTRUCTIONS[task],
         "question": question,
-        "sources": packed,
-        "omitted_source_ids": omitted,
+        "omitted_source_count": len(rows),
+        "evidence_scope": "RETRIEVED_CONTEXT_ONLY_NOT_ENTIRE_DATABASE",
         "scope": result.get("coverage", {}),
         "legal_validity": "LOCAL_SOURCE_METADATA_NOT_INDEPENDENTLY_VERIFIED",
     }
     if task == "auto":
-        payload["intent_advice"] = result.get("semantic_intent", {})
-    while True:
-        included = {s["id"] for s in packed}
-        allowed = [
-            r["code"]
-            for r in candidates
-            if r["id"] in included and re.fullmatch(r"[0-9]{8}", r.get("code") or "")
+        base["intent_advice"] = result.get("semantic_intent", {})
+    packed: list[dict] = []
+    payload = _context_payload(base, packed, candidates, graph)
+    user_message = _serialize(payload)
+    budget = (
+        request_budget(_messages(user_message), ANSWER_SCHEMA, config.model) if token_mode else None
+    )
+    if budget is not None and not budget["fits"]:
+        raise ContextBudgetError(config.model, "cliproxyapi", budget)
+    if max_input_chars is not None and len(user_message) > max_input_chars:
+        raise ValueError("Question and source metadata exceed GROQ_MAX_INPUT_CHARS")
+    included: set[str] = set()
+    for group in _source_groups(rows, candidates, graph):
+        additions = [row for row in group if row["id"] not in included]
+        if not additions:
+            continue
+        proposed = [
+            *packed,
+            *[_pack_source(row, len(packed) + i + 1) for i, row in enumerate(additions)],
         ]
-        payload["candidate_hs_codes"] = allowed
-        if candidates:
-            payload["candidate_evidence"] = _candidate_evidence(candidates, packed, graph)
-        user_message = json.dumps(payload, ensure_ascii=False, default=str)
-        if len(user_message) <= config.max_input_chars:
-            break
-        if not packed:
-            raise ValueError("Question and source metadata exceed GROQ_MAX_INPUT_CHARS")
-        omitted.append(packed.pop()["id"])
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": user_message},
-    ]
+        model_sources = [_model_source(source) for source in proposed]
+        if max_context_chars is not None and len(_serialize(model_sources)) > max_context_chars:
+            continue
+        trial = _context_payload(
+            {**base, "omitted_source_count": len(rows) - len(proposed)}, proposed, candidates, graph
+        )
+        message = _serialize(trial)
+        trial_budget = (
+            request_budget(_messages(message), ANSWER_SCHEMA, config.model) if token_mode else None
+        )
+        if (max_input_chars is None or len(message) <= max_input_chars) and (
+            trial_budget is None or trial_budget["fits"]
+        ):
+            packed, payload, user_message = proposed, trial, message
+            budget = trial_budget
+            included.update(row["id"] for row in additions)
+    omitted = [row["id"] for row in rows if row["id"] not in included]
+    messages = _messages(user_message)
     return {
         "task": task,
         "question": question,
         "sources": packed,
-        "allowed_hs_codes": allowed,
+        "allowed_hs_codes": payload["candidate_hs_codes"],
         "retrieved_hs_codes": [r["code"] for r in result.get("hs_candidates", [])],
-        "candidate_evidence": payload.get("candidate_evidence", []),
+        "candidate_evidence": _candidate_evidence(candidates, packed, graph),
         "source_locators": {
             s["label"]: next(r.get("locator", {}) for r in rows if r["id"] == s["id"])
             for s in packed
         },
         "omitted_source_ids": omitted,
+        "packing": {
+            "input_chars": len(user_message),
+            "max_input_chars": max_input_chars,
+            "system_chars": len(SYSTEM_PROMPT),
+            "user_chars": len(user_message),
+            "schema_chars": len(_serialize(ANSWER_SCHEMA)),
+            "source_chars": len(_serialize(payload["sources"])),
+            "max_context_chars": max_context_chars,
+            "request_budget": budget,
+            "omitted_candidate_codes": [c["code"] for c in candidates if c["id"] not in included],
+        },
         "context_hash": digest(payload),
         "prompt_hash": digest(SYSTEM_PROMPT),
         "schema_hash": digest(ANSWER_SCHEMA),

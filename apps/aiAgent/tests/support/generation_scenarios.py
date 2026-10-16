@@ -4,8 +4,10 @@ import time
 from dataclasses import replace
 from unittest.mock import patch
 
+from config.model_limits import get_model_limits
 from config.settings import ROOT
 from rag.llm.answering import generate_answer
+from rag.llm.budget import ContextBudgetError
 from rag.llm.context import compose_query, load_generation_graph, prepare_context
 from rag.llm.errors import LLMError
 from rag.llm.groq_client import GroqError
@@ -14,6 +16,15 @@ from tests.support.generation_eval import load_cases, retrieval_for
 
 
 def load_scenarios(config) -> list[dict]:
+    model_limits = (
+        get_model_limits(config.model) if getattr(config, "use_model_token_limits", False) else None
+    )
+    oversized_length = model_limits.input_tokens + 1 if model_limits else config.max_input_chars + 1
+    oversized_error = (
+        "context_length_exceeded"
+        if model_limits
+        else "Combined question exceeds GROQ_MAX_INPUT_CHARS"
+    )
     cases = load_cases("dev", 3)
     hs = [c for c in cases if c["task"] == "hs"]
     qa = [c for c in cases if c["task"] == "qa"]
@@ -113,7 +124,8 @@ def load_scenarios(config) -> list[dict]:
                         "mode": "empty_context",
                         "expected_statuses": ["INSUFFICIENT_LEGAL_EVIDENCE"],
                         "require_legal_evidence_gap": True,
-                        "expect_skipped": True,
+                        "expect_main_skipped": True,
+                        "require_decision_review": True,
                     }
                 ],
             },
@@ -192,10 +204,10 @@ def load_scenarios(config) -> list[dict]:
             },
             {
                 "id": "oversized_question",
-                "name": "Từ chối đầu vào vượt giới hạn ký tự",
+                "name": "Từ chối đầu vào vượt ngân sách cấu hình",
                 "task": "qa",
-                "question": "x" * (config.max_input_chars + 1),
-                "turns": [{"expected_error": "Combined question exceeds GROQ_MAX_INPUT_CHARS"}],
+                "question": "x" * oversized_length,
+                "turns": [{"expected_error": oversized_error}],
             },
         ]
     )
@@ -219,6 +231,12 @@ def check_expectations(turn: dict, generated: dict) -> dict:
         )
     if turn.get("expect_skipped"):
         checks["no_llm_call"] = generated["generation"].get("skipped", False)
+    if turn.get("expect_main_skipped"):
+        checks["no_main_generation_call"] = generated["generation"].get("main_skipped", False)
+    if turn.get("require_decision_review"):
+        checks["decision_review_valid"] = (
+            generated["generation"].get("decision_review", {}).get("valid", False)
+        )
     if turn.get("expect_fallback"):
         checks["fallback_used"] = generated["generation"].get("fallback_used", False)
     if turn.get("forbidden_codes"):
@@ -291,13 +309,18 @@ def run_scenarios(
                 query = compose_query(
                     scenario["question"], supplements, client.config.max_input_chars
                 )
-            except ValueError as exc:
+                if getattr(client.config, "use_model_token_limits", False):
+                    prepare_context(query, {}, scenario["task"], client.config)
+            except (ValueError, ContextBudgetError) as exc:
+                input_error = exc.error_code if isinstance(exc, ContextBudgetError) else str(exc)
                 row.update(
                     {
                         "run_status": "INPUT_REJECTED",
-                        "input_error": str(exc),
-                        "passed": turn.get("expected_error") == str(exc),
-                        "checks": {"expected_input_error": turn.get("expected_error") == str(exc)},
+                        "input_error": input_error,
+                        "passed": turn.get("expected_error") == input_error,
+                        "checks": {
+                            "expected_input_error": turn.get("expected_error") == input_error
+                        },
                     }
                 )
                 rows.append(row)
@@ -308,15 +331,16 @@ def run_scenarios(
             )
             if mode == "empty_context":
                 retrieved = {**retrieved, "matches": [], "package": [], "hs_candidates": []}
-            config = (
-                replace(client.config, max_context_chars=1)
-                if mode == "budget_limited"
-                else client.config
-            )
+            config = client.config
+            if mode == "budget_limited":
+                overrides = {"max_context_chars": 1}
+                if getattr(config, "use_model_token_limits", False):
+                    overrides["use_model_token_limits"] = False
+                config = replace(config, **overrides)
             context = prepare_context(query, retrieved, scenario["task"], config, graph)
             row.update({"query": query, "context": context, "retrieval_cache_hit": hit})
             try:
-                if context["sources"]:
+                if context["sources"] or context["task"] != "qa":
                     delay = min_turn_interval_seconds - (time.monotonic() - last_call)
                     if delay > 0:
                         progress(f"Chờ {delay:.0f}s để giãn các lượt gọi API.")

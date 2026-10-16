@@ -219,7 +219,9 @@ def test_binding_does_not_replace_required_branch_conditions():
         graph,
     )
     assert "branch" in ctx["omitted_source_ids"]
-    assert ctx["candidate_evidence"][0]["hierarchy"]["legal_evidence_status"] == "INSUFFICIENT"
+    assert "leaf" in ctx["omitted_source_ids"]
+    assert ctx["candidate_evidence"] == []
+    assert ctx["allowed_hs_codes"] == []
     assert not validate_answer(recommendation(ctx, leaf["code"]), ctx)["valid"]
 
 

@@ -163,6 +163,108 @@ def test_cascade_scores_original_source_notes_after_first_stage_budget(monkeypat
     assert seen == [("m3", ["trimmed", "trimmed"]), ("qwen", ["full source and notes"])]
 
 
+def test_unified_search_measures_retrieval_and_ranking_without_overlap(monkeypatch):
+    import rag.retrieval.unified as module
+
+    clock = SimpleNamespace(value=0.0)
+    monkeypatch.setattr(module.time, "perf_counter", lambda: clock.value)
+    u = UnifiedRetrieval.__new__(UnifiedRetrieval)
+    u.policy = {}
+    u.retriever = SimpleNamespace(snapshot="snapshot", profile="profile", coverage={})
+    u._rank_timings = {"m3_ms": 999}
+    u._rank_encoder_cache_cold = {"m3": True}
+    row = {"id": "source", "chunk_type": "legal_clause"}
+
+    def advance(seconds, result):
+        clock.value += seconds
+        return result
+
+    u.channels = lambda _: advance(0.1, {})
+    u.prepare = lambda query, channels: advance(0.2, [row])
+    u.rank = lambda query, rows: advance(0.5, rows)
+    u.source_package = lambda rows: advance(0.3, rows)
+    u.semantic_intent = lambda _: advance(0.4, {"used_for_retrieval": False})
+
+    result = u.search("query")
+
+    assert result["timings"] == pytest.approx(
+        {"retrieval_ms": 1000, "reranking_ms": 500, "total_ms": 1500}
+    )
+    assert result["reranking"]["encoder_cache_cold"] == {}
+    assert result["matches"] == [row]
+
+
+def test_cascade_pass_timings_include_encoder_initialization_only_when_needed(monkeypatch):
+    import rag.retrieval.unified as module
+
+    clock = SimpleNamespace(value=0.0)
+    monkeypatch.setattr(module.time, "perf_counter", lambda: clock.value)
+    u = UnifiedRetrieval.__new__(UnifiedRetrieval)
+    u.policy = {
+        "model": "cascade",
+        "rerank_pool": 2,
+        "rank_weight": 1,
+        "rrf_k": 60,
+        "cascade_pool": 1,
+        "cascade_weight": 1,
+    }
+    u.encoders = {}
+
+    def make_encoder(name):
+        clock.value += {"m3": 1, "qwen": 2}[name]
+
+        def score(query, texts):
+            clock.value += {"m3": 0.2, "qwen": 0.3}[name]
+            return [2 - i for i in range(len(texts))]
+
+        return SimpleNamespace(name=name, score=score)
+
+    def fit_inputs(query, rows, encoder):
+        clock.value += {"m3": 0.1, "qwen": 0.2}[encoder.name]
+        return rows
+
+    monkeypatch.setattr(module, "make_encoder", make_encoder)
+    monkeypatch.setattr(module, "fit_inputs", fit_inputs)
+    rows = [{"id": "a", "rerank_text": "a"}, {"id": "b", "rerank_text": "b"}]
+
+    assert [row["id"] for row in u.rank("query", rows)] == ["a", "b"]
+    assert u._rank_timings == pytest.approx({"m3_ms": 1300, "qwen_ms": 2500})
+    assert u._rank_encoder_cache_cold == {"m3": True, "qwen": True}
+
+    u.rank("query", rows)
+    assert u._rank_timings == pytest.approx({"m3_ms": 300, "qwen_ms": 500})
+    assert u._rank_encoder_cache_cold == {"m3": False, "qwen": False}
+
+
+def test_query_timings_include_lazy_unified_index_initialization_once(monkeypatch):
+    import rag.retrieval.unified as module
+
+    clock = SimpleNamespace(value=0.0)
+    monkeypatch.setattr(module.time, "perf_counter", lambda: clock.value)
+
+    class FakeUnifiedRetrieval:
+        def __init__(self, retriever, policy):
+            clock.value += 2
+
+        def search(self, query, intent_hint):
+            clock.value += 1
+            return {"timings": {"retrieval_ms": 600, "reranking_ms": 400, "total_ms": 1000}}
+
+    monkeypatch.setattr(module, "UnifiedRetrieval", FakeUnifiedRetrieval)
+    retriever = Retriever.__new__(Retriever)
+    retriever.embedder = object()
+    retriever.unified_policy = {}
+
+    cold = retriever.unified_search("query")
+    assert cold["timings"] == pytest.approx(
+        {"initialization_ms": 2000, "retrieval_ms": 2600, "reranking_ms": 400, "total_ms": 3000}
+    )
+    warm = retriever.unified_search("query")
+    assert warm["timings"] == pytest.approx(
+        {"initialization_ms": 0, "retrieval_ms": 600, "reranking_ms": 400, "total_ms": 1000}
+    )
+
+
 def test_instruction_changes_score_cache_identity(tmp_path):
     encoder = CrossEncoder.__new__(CrossEncoder)
     encoder.model_id, encoder.revision, encoder.backend = "fixture", "rev", "qwen"

@@ -17,6 +17,7 @@ from rag.chunking.corpus import load_corpus
 from rag.embedding.bge_m3 import Embedder
 from rag.graph.context import GraphContext, fit_rerank_context
 from rag.ingestion.sources import QA_CHUNK_TYPES
+from rag.prompts.tasks import SOURCE_COMPARISON_CLARIFICATION
 from rag.retrieval.rerankers import CrossEncoder, colbert_scores
 from rag.utils.codes import normalize_code
 from rag.utils.files import read
@@ -1742,13 +1743,24 @@ class Retriever:
         return {"routing": routing, **result}
 
     def unified_search(self, query: str, intent_hint: str = "auto") -> dict:
+        started = time.perf_counter()
         from rag.retrieval.unified import UnifiedRetrieval
 
         if not self.embedder:
             raise ValueError("Unified retrieval requires an embedder")
+        initialization_ms = 0.0
         if not hasattr(self, "_unified_retrieval"):
+            initialization_started = time.perf_counter()
             self._unified_retrieval = UnifiedRetrieval(self, self.unified_policy)
-        return self._unified_retrieval.search(query, intent_hint)
+            initialization_ms = (time.perf_counter() - initialization_started) * 1000
+        result = self._unified_retrieval.search(query, intent_hint)
+        total_ms = (time.perf_counter() - started) * 1000
+        timings = {**result.get("timings", {}), "initialization_ms": initialization_ms}
+        if "reranking_ms" in timings:
+            # The remaining wall time includes lazy index setup and wrapper overhead.
+            timings["retrieval_ms"] = total_ms - timings["reranking_ms"]
+        result["timings"] = {**timings, "total_ms": total_ms}
+        return result
 
     def registered_chapters(self) -> set[str]:
         if hasattr(self, "coverage"):
@@ -2000,9 +2012,7 @@ class Retriever:
         return {
             "status": "SHORTLIST_REQUIRES_PRODUCT_SOURCE_COMPARISON",
             "missing_attributes_assessed": False,
-            "clarification_prompt": (
-                "Please provide product specifications needed to compare these cited source conditions."
-            ),
+            "clarification_prompt": SOURCE_COMPARISON_CLARIFICATION,
             "alternatives": alternatives,
         }
 

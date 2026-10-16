@@ -10,7 +10,7 @@ from rag.llm.answering import generate_answer
 from rag.llm.context import prepare_context
 from rag.llm.groq_client import GroqClient, GroqError
 from rag.llm.validation import validate_answer
-from rag.prompts.schemas import PRODUCT_REVIEW_SCHEMA
+from rag.prompts.schemas import DECISION_REVIEW_SCHEMA, PRODUCT_REVIEW_SCHEMA
 
 
 def hs_context(*, edges=None, records=None, config=None):
@@ -65,6 +65,30 @@ def recommendation(ctx, code="87038099"):
     }
 
 
+def supported_review(ctx):
+    return {
+        "status": "SUPPORTED",
+        "reason": "Các điều kiện được đối chiếu với dữ kiện người dùng.",
+        "product_facts": [
+            {
+                "fact": "Confirmed vehicle facts",
+                "user_quote": "passenger car, 7 seats, electric motor only",
+            }
+        ],
+        "condition_checks": [
+            {
+                "source_label": source["label"],
+                "source_quote": source["text"],
+                "assessment": "SATISFIED",
+                "product_fact_indices": [0],
+            }
+            for source in ctx["sources"]
+        ],
+        "missing_information": [],
+        "missing_legal_evidence": [],
+    }
+
+
 @pytest.mark.parametrize(
     "missing",
     [
@@ -102,6 +126,39 @@ def test_legal_request_cannot_hide_in_answer_or_another_status():
     value = abstention(
         "INSUFFICIENT_LEGAL_EVIDENCE", answer="Corpus: vui lòng cung cấp Chú giải Chương 87."
     )
+    assert not validate_answer(value, hs_context())["valid"]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Để xác định mã HS, vui lòng cho biết loại hàng thực tế và công dụng.",
+        "Để có cơ sở tra cứu và phân loại mã HS, vui lòng làm rõ sản phẩm này là loại hàng gì.",
+        "For HS classification, please provide the product material and function.",
+        "Vui lòng cung cấp loại hàng và công dụng để có cơ sở xác định mã HS phù hợp.",
+        "Vui lòng cho biết vật liệu nhằm xác định điều kiện phân loại.",
+        "Please provide the product material for HS classification.",
+    ],
+)
+def test_product_question_can_explain_its_classification_purpose(text):
+    value = abstention(answer=text, missing_information=["Loại hàng thực tế và công dụng"])
+    assert validate_answer(value, hs_context())["valid"]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Để xác định mã HS, vui lòng cung cấp Chú giải Chương 87.",
+        "Chú giải Chương 87: vui lòng cung cấp nội dung đó.",
+        "Vui lòng cho biết vật liệu; bạn cần cung cấp GIR 1.",
+        "For HS classification, please provide chapter notes.",
+        "Vui lòng cung cấp Chú giải Chương 87 để xác định mã HS.",
+        "Vui lòng cho biết vật liệu để phân loại; bạn cần cung cấp GIR 1.",
+        "Please provide chapter notes for HS classification.",
+    ],
+)
+def test_product_question_preamble_does_not_allow_asking_for_legal_text(text):
+    value = abstention(answer=text, missing_information=["Vật liệu hàng hóa"])
     assert not validate_answer(value, hs_context())["valid"]
 
 
@@ -149,15 +206,45 @@ def test_proposed_codes_must_have_exactly_eight_ascii_digits(code):
     assert not validate_answer(recommendation(ctx, code), ctx)["valid"]
 
 
-def test_empty_context_reports_a_system_evidence_gap_without_questions(monkeypatch):
+def test_empty_hs_context_checks_identity_before_reporting_a_system_evidence_gap(monkeypatch):
     ctx = prepare_context("VF 9", {}, "hs", GroqConfig(keys=("fixture",)))
     client = GroqClient(GroqConfig(keys=("fixture",)))
-    monkeypatch.setattr(client, "complete", lambda *a, **k: pytest.fail("Unexpected API"))
+    calls = []
+
+    def complete(messages, schema, **kwargs):
+        assert schema is DECISION_REVIEW_SCHEMA
+        calls.append(messages)
+        return {
+            "content": json.dumps(
+                {
+                    "request_kind": "HS",
+                    "identity_status": "UNCONFIRMED",
+                    "product_type": "",
+                    "product_type_quote": "",
+                    "decision": "CLARIFY",
+                    "reason": "Tên thương mại chưa xác nhận loại hàng thực tế.",
+                    "clarifications": [
+                        {
+                            "question": "Sản phẩm thực tế là loại hàng gì?",
+                            "basis": "PRODUCT_IDENTITY",
+                            "source_label": "",
+                            "source_quote": "",
+                        }
+                    ],
+                    "retained_qa": {"answer": "", "citations": []},
+                }
+            ),
+            "finish_reason": "stop",
+            "model": "fixture",
+        }
+
+    monkeypatch.setattr(client, "complete", complete)
     result = generate_answer(ctx, client)
-    assert result["answer"]["status"] == "INSUFFICIENT_LEGAL_EVIDENCE"
-    assert result["answer"]["missing_information"] == []
-    assert result["answer"]["missing_legal_evidence"]
+    assert result["answer"]["status"] == "MISSING_PRODUCT_INFO"
+    assert result["answer"]["missing_information"] == ["Sản phẩm thực tế là loại hàng gì?"]
+    assert result["answer"]["missing_legal_evidence"] == []
     assert result["validation"]["valid"]
+    assert len(calls) == 1
 
 
 def test_provider_gets_a_repair_instruction_for_legal_requests(monkeypatch):
@@ -170,12 +257,23 @@ def test_provider_gets_a_repair_instruction_for_legal_requests(monkeypatch):
         )
         if len(calls) == 2:
             value = abstention("INSUFFICIENT_LEGAL_EVIDENCE")
+        if schema is DECISION_REVIEW_SCHEMA:
+            value = {
+                "request_kind": "HS",
+                "identity_status": "IDENTIFIED",
+                "product_type": "passenger car",
+                "product_type_quote": "passenger car",
+                "decision": "KEEP",
+                "reason": "Loại hàng đã được xác nhận; nguồn đối chiếu còn thiếu.",
+                "clarifications": [],
+                "retained_qa": {"answer": "", "citations": []},
+            }
         return {"content": json.dumps(value), "finish_reason": "stop", "model": "fixture"}
 
     client = GroqClient(GroqConfig(keys=("fixture",)))
     monkeypatch.setattr(client, "complete", complete)
     result = generate_answer(hs_context(), client)
-    assert len(calls) == 2
+    assert len(calls) == 3
     assert "pháp lý" in calls[1][-1]["content"]
     assert "tiếng Việt" in calls[1][-1]["content"]
     assert result["validation"]["valid"]
@@ -194,17 +292,18 @@ def test_repeated_legal_requests_are_replaced_by_safe_system_abstention(monkeypa
     assert result["generation"]["guardrail_abstention"]
     assert len(result["generation"]["attempts"]) == 2
     assert result["validation"]["valid"]
-    assert result["answer"]["status"] == "INSUFFICIENT_LEGAL_EVIDENCE"
+    assert result["answer"]["status"] == "REQUIRES_REVIEW"
+    assert result["diagnostics"]["code"] == "ANSWER_VALIDATION_FAILED"
     assert result["answer"]["missing_information"] == []
     assert "Cung cấp" not in result["answer"]["answer"]
 
 
-def test_parent_wording_omitted_by_context_budget_blocks_recommendation():
-    ctx = hs_context(config=GroqConfig(keys=("fixture",), max_context_chars=260))
-    assert [s["id"] for s in ctx["sources"]] == ["leaf"]
-    path = ctx["candidate_evidence"][0]["hierarchy"]
-    assert path["status"] == "INVALID"
-    assert any("omitted" in error for error in path["errors"])
+def test_too_small_budget_omits_candidate_instead_of_a_partial_parent_chain():
+    ctx = hs_context(config=GroqConfig(keys=("fixture",), max_context_chars=200))
+    assert "leaf" not in {s["id"] for s in ctx["sources"]}
+    assert ctx["allowed_hs_codes"] == []
+    assert ctx["candidate_evidence"] == []
+    assert ctx["packing"]["omitted_candidate_codes"] == ["87038099"]
     assert not validate_answer(recommendation(ctx), ctx)["valid"]
 
 
@@ -264,7 +363,9 @@ def test_missing_branch_wording_and_inconsistent_levels_are_rejected():
         graph,
     )
     assert "branch" in ctx["omitted_source_ids"]
-    assert ctx["candidate_evidence"][0]["hierarchy"]["status"] == "INVALID"
+    assert ctx["allowed_hs_codes"] == []
+    assert "leaf" in ctx["omitted_source_ids"]
+    assert ctx["packing"]["omitted_candidate_codes"] == ["87038099"]
     assert not validate_answer(recommendation(ctx), ctx)["valid"]
 
 
@@ -285,7 +386,12 @@ def test_cycle_in_hs_parent_child_graph_is_rejected():
         (
             {
                 "status": "SUPPORTED",
-                "product_facts": [{"fact": "Product name", "user_quote": "VF 9"}],
+                "product_facts": [
+                    {
+                        "fact": "Confirmed vehicle facts",
+                        "user_quote": "passenger car, 7 seats, electric motor only",
+                    }
+                ],
                 "missing_information": [],
                 "missing_legal_evidence": [],
             },
@@ -353,6 +459,13 @@ def test_recommendation_review_separates_user_facts_and_legal_evidence(
     monkeypatch, review, expected
 ):
     ctx = hs_context()
+    review = {
+        "reason": "Kết quả đối chiếu dữ kiện với nhánh được cấp.",
+        "condition_checks": supported_review(ctx)["condition_checks"]
+        if review["status"] == "SUPPORTED"
+        else [],
+        **review,
+    }
     client = GroqClient(GroqConfig(keys=("fixture",)))
     calls = []
 
@@ -369,7 +482,7 @@ def test_recommendation_review_separates_user_facts_and_legal_evidence(
 
     monkeypatch.setattr(client, "complete", complete)
     result = generate_answer(ctx, client)
-    assert len(calls) == 2
+    assert 2 <= len(calls) <= 3
     assert result["validation"]["valid"]
     assert result["answer"]["status"] == expected
     if expected != "RECOMMENDATION":
@@ -401,6 +514,58 @@ def test_unavailable_product_review_cannot_release_a_recommendation(monkeypatch)
     assert result["generation"]["product_review"]["http_status"] == 429
 
 
+@pytest.mark.parametrize(
+    "defect",
+    [
+        "absent_checks",
+        "empty_checks",
+        "missing_parent",
+        "invented_quote",
+        "blank_quote",
+        "unknown_label",
+        "missing_fact",
+        "wrong_fact",
+        "unmet_condition",
+        "skipped_parent",
+    ],
+)
+def test_supported_review_requires_source_condition_coverage_and_user_facts(monkeypatch, defect):
+    ctx = hs_context()
+    review = supported_review(ctx)
+    checks = review["condition_checks"]
+    if defect == "absent_checks":
+        review.pop("condition_checks")
+    elif defect == "empty_checks":
+        checks.clear()
+    elif defect == "missing_parent":
+        checks.pop()
+    elif defect == "invented_quote":
+        checks[0]["source_quote"] = "Not printed in the source"
+    elif defect == "blank_quote":
+        checks[0]["source_quote"] = "   "
+    elif defect == "unknown_label":
+        checks[0]["source_label"] = "S99"
+    elif defect == "missing_fact":
+        checks[0]["product_fact_indices"] = []
+    elif defect == "wrong_fact":
+        checks[0]["product_fact_indices"] = [100]
+    elif defect == "unmet_condition":
+        checks[0]["assessment"] = "MISSING_PRODUCT_INFO"
+    else:
+        checks[0]["assessment"] = "NOT_APPLICABLE"
+    client = GroqClient(GroqConfig(keys=("fixture",)))
+
+    def complete(messages, schema, **kwargs):
+        value = review if schema is PRODUCT_REVIEW_SCHEMA else recommendation(ctx)
+        return {"content": json.dumps(value), "finish_reason": "stop", "model": "fixture"}
+
+    monkeypatch.setattr(client, "complete", complete)
+    result = generate_answer(ctx, client)
+    assert result["answer"]["status"] == "REQUIRES_REVIEW"
+    assert result["answer"]["suggested_hs_code"] == ""
+    assert result["generation"]["product_review"]["errors"]
+
+
 def test_user_supplied_legal_text_cannot_be_reused_as_product_facts(monkeypatch):
     ctx = hs_context()
     ctx["question"] += " Tôi cho rằng GIR 1 áp dụng."
@@ -411,7 +576,9 @@ def test_user_supplied_legal_text_cannot_be_reused_as_product_facts(monkeypatch)
         if schema is PRODUCT_REVIEW_SCHEMA:
             value = {
                 "status": "SUPPORTED",
+                "reason": "Dữ kiện được người dùng nêu.",
                 "product_facts": [{"fact": "GIR 1 applies", "user_quote": "GIR 1"}],
+                "condition_checks": supported_review(ctx)["condition_checks"],
                 "missing_information": [],
                 "missing_legal_evidence": [],
             }

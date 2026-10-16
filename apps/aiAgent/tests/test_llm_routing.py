@@ -7,13 +7,16 @@ from urllib.error import HTTPError, URLError
 
 import pytest
 
+from config.model_limits import MODEL_LIMITS, ModelLimits
 from config.settings import CLIProxyConfig, GroqConfig
 from rag.llm.answering import generate_answer
+from rag.llm.budget import request_budget
 from rag.llm.client import RAGClient
 from rag.llm.cliproxy_client import CLIProxyClient
 from rag.llm.context import prepare_context
 from rag.llm.errors import LLMError
 from rag.llm.groq_client import GroqError
+from rag.prompts.schemas import ANSWER_SCHEMA
 from tests.support.generation_scenarios import _generate
 
 
@@ -69,13 +72,13 @@ def test_primary_sends_strict_schema_and_high_reasoning_without_groq_options(mon
             "schema": schema,
         }
         assert payload["reasoning_effort"] == "high"
-        assert payload["max_tokens"] == 8192
+        assert payload["max_tokens"] == 65535
         assert "reasoning_format" not in payload and "include_reasoning" not in payload
         return io.BytesIO(json.dumps(api_response()).encode())
 
     monkeypatch.setattr("rag.llm.cliproxy_client.urlopen", send)
     result = client.complete(messages, schema)
-    assert result["model"] == "gemini-3.8-flash-high"
+    assert result["model"] == "gemini-3.5-flash-lite"
     assert result["response_model"] == "gemini-3.8-flash-n"
 
 
@@ -140,6 +143,23 @@ def test_transport_failure_is_secret_free_and_recovers(client, monkeypatch, fail
     result = client.complete([], {})
     assert result["failures"][0]["http_status"] == 503
     assert "gateway-secret" not in repr(result)
+
+
+def test_failed_provider_duration_is_separate_from_successful_fallback(client, monkeypatch):
+    clock = [0.0]
+    monkeypatch.setattr("rag.llm.client.time.perf_counter", lambda: clock[0])
+
+    def complete(messages, schema, *, model):
+        if model == client.config.model:
+            clock[0] += 60
+            raise LLMError(503, model, provider="cliproxyapi")
+        clock[0] += 4
+        return {"content": "{}", "finish_reason": "stop", "model": model}
+
+    monkeypatch.setattr(client.primary, "complete", complete)
+    result = client.complete([], {})
+    assert result["failures"][0]["elapsed_ms"] == pytest.approx(60000)
+    assert result["elapsed_ms"] == pytest.approx(64000)
 
 
 def test_quota_cooldown_uses_groq_without_retrying_primary_until_retry_after(client, monkeypatch):
@@ -348,3 +368,208 @@ def test_notebook_fault_injection_targets_gateway_and_restores_transport(client,
     assert result["generation"]["model"] == client.config.fallback_model
     assert result["generation"]["failures"][0]["http_status"] == 503
     assert client.primary._request is original
+
+
+@pytest.mark.parametrize(
+    "preset,model,effort,fallback",
+    [
+        ("3.5-lite-high", "gemini-3.5-flash-lite", "high", "gpt-oss-120b-medium"),
+        ("3.8-high", "gemini-3.8-flash-high", "high", "gpt-oss-120b-medium"),
+        ("120b", "gpt-oss-120b-medium", "medium", "gemini-3.5-flash-lite"),
+    ],
+)
+def test_selected_model_sends_bound_alias_and_effort_without_duplicate_fallback(
+    monkeypatch, preset, model, effort, fallback
+):
+    config = CLIProxyConfig(
+        api_key="fixture-key", base_url="http://fixture-gateway/v1", max_output_tokens=4096
+    )
+    rag_client = RAGClient(config, GroqConfig(keys=("fixture-groq",)), model_preset=preset)
+    calls = []
+
+    def send(_self, path, payload):
+        calls.append(payload)
+        return api_response()
+
+    monkeypatch.setattr(CLIProxyClient, "_request", send)
+    result = rag_client.complete([], {"type": "object"}, allow_fallback=False)
+    assert len(calls) == 1
+    assert calls[0]["model"] == model
+    assert calls[0]["reasoning_effort"] == effort
+    assert calls[0]["max_tokens"] == 4096
+    assert ("response_format" in calls[0]) == (preset != "120b")
+    assert rag_client.primary.config.base_url == config.base_url
+    assert rag_client.primary.config.api_key == config.api_key
+    assert rag_client.config.fallback_model == fallback
+    assert rag_client.config.fallback_models[0] == fallback
+    assert rag_client._cli_models == (model, fallback)
+    assert result["model"] == result["requested_model"] == model
+    assert not result["fallback_used"]
+
+
+def test_switching_presets_retains_groq_state_and_gateway_settings(client):
+    groq_client = client.fallback
+    original = client.primary.config
+    cooldown = client._retry_at
+    cooldown[original.model] = 1234
+    for preset, primary_effort, fallback_effort in [
+        ("120b", "medium", "high"),
+        ("3.8-high", "high", "medium"),
+        ("3.5-lite-high", "high", "medium"),
+        ("120b", "medium", "high"),
+    ]:
+        client.select_model(preset)
+        config = client.primary.config
+        assert client.model_preset == preset
+        assert client.fallback is groq_client
+        assert client._retry_at is cooldown
+        assert client._retry_at[original.model] == 1234
+        assert config.reasoning_effort == primary_effort
+        assert config.fallback_reasoning_effort == fallback_effort
+        assert config.model != config.fallback_model
+        assert config.api_key == original.api_key
+        assert config.base_url == original.base_url
+        assert config.max_output_tokens == original.max_output_tokens
+        assert client.config.max_input_chars is None
+        assert client.config.max_context_chars is None
+        assert client.config.use_model_token_limits
+
+
+def test_invalid_model_selection_does_not_partially_mutate_client(client):
+    before = client.primary, client.config, client._cli_models, client.model_preset
+    with pytest.raises(ValueError):
+        client.select_model("unavailable-model")
+    assert (client.primary, client.config, client._cli_models, client.model_preset) == before
+
+
+def test_model_selection_rejects_groq_alias_collision_without_mutation():
+    rag_client = RAGClient(
+        CLIProxyConfig(api_key="fixture", model="gemini-3.8-flash-high"),
+        GroqConfig(keys=("fixture",), model="gemini-3.5-flash-lite"),
+    )
+    before = rag_client.primary, rag_client.config, rag_client.model_preset
+    with pytest.raises(ValueError):
+        rag_client.select_model("3.5-lite-high")
+    assert (rag_client.primary, rag_client.config, rag_client.model_preset) == before
+
+
+def test_pinned_quota_cooldown_survives_switching_away_and_back(client, monkeypatch):
+    calls = []
+    lite = "gemini-3.5-flash-lite"
+    monkeypatch.setattr("rag.llm.client.time.monotonic", lambda: 100)
+
+    def send(_self, path, payload):
+        calls.append(payload["model"])
+        if payload["model"] == lite:
+            raise LLMError(429, lite, retry_after=120, provider="cliproxyapi")
+        return api_response()
+
+    monkeypatch.setattr(CLIProxyClient, "_request", send)
+    with pytest.raises(LLMError):
+        client.complete([], {}, allow_fallback=False)
+    client.select_model("3.8-high")
+    client.select_model("3.5-lite-high")
+    with pytest.raises(LLMError) as raised:
+        client.complete([], {}, allow_fallback=False)
+    assert raised.value.status == 429
+    assert calls == [lite]
+    result = client.complete([], {})
+    assert calls == [lite, "gpt-oss-120b-medium"]
+    assert result["requested_model"] == lite
+    assert result["fallback_used"]
+    assert result["failures"][0]["http_status"] == 429
+
+
+def test_120b_primary_fallback_uses_lite_high_then_preserves_requested_model(client, monkeypatch):
+    client.select_model("120b")
+    calls = []
+
+    def send(_self, path, payload):
+        calls.append((payload["model"], payload["reasoning_effort"]))
+        if payload["model"] == "gpt-oss-120b-medium":
+            raise LLMError(503, payload["model"], provider="cliproxyapi")
+        return api_response()
+
+    monkeypatch.setattr(CLIProxyClient, "_request", send)
+    result = client.complete([], {})
+    assert calls == [("gpt-oss-120b-medium", "medium"), ("gemini-3.5-flash-lite", "high")]
+    assert result["requested_model"] == "gpt-oss-120b-medium"
+    assert result["model"] == "gemini-3.5-flash-lite"
+    assert result["fallback_used"]
+
+
+@pytest.mark.parametrize(
+    "preset,output_limit",
+    [("3.8-high", 65536), ("3.5-lite-high", 65535), ("120b", 32768)],
+)
+def test_full_output_limit_is_selected_per_model_and_usage_stays_provider_measured(
+    client, monkeypatch, preset, output_limit
+):
+    client.select_model(preset)
+    calls = []
+
+    def send(_self, path, payload):
+        calls.append(payload)
+        response = api_response()
+        response["usage"] = {"prompt_tokens": 10, "completion_tokens": 2, "total_tokens": 12}
+        return response
+
+    monkeypatch.setattr(CLIProxyClient, "_request", send)
+    result = client.complete([], {})
+    assert calls[0]["max_tokens"] == output_limit
+    assert result["request_budget"]["output_tokens"] == output_limit
+    assert result["request_budget"]["mode"] == "CONSERVATIVE_UTF8_BOUND"
+    assert result["usage"]["completion_tokens"] == 2
+    assert client.config.max_input_chars is client.config.max_context_chars is None
+
+
+def test_smaller_fallback_cannot_send_an_overbudget_request_or_drop_input(client, monkeypatch):
+    monkeypatch.setitem(
+        MODEL_LIMITS,
+        "gpt-oss-120b-medium",
+        ModelLimits(500, 100, shared_context=True),
+    )
+    original = [{"role": "user", "content": "Full product facts and full source wording."}]
+    calls = []
+
+    def primary(_self, path, payload):
+        calls.append(payload["model"])
+        raise LLMError(503, payload["model"], provider="cliproxyapi")
+
+    def groq(path, payload):
+        calls.append(payload["model"])
+        assert payload["messages"] == original
+        return api_response(), 1
+
+    monkeypatch.setattr(CLIProxyClient, "_request", primary)
+    monkeypatch.setattr(client.fallback, "_request", groq)
+    result = client.complete(original, {})
+    assert calls == [client.config.model, client.fallback.config.model]
+    assert original == [{"role": "user", "content": "Full product facts and full source wording."}]
+    assert result["failures"][1]["error_code"] == "context_length_exceeded"
+    assert result["failures"][1]["request_budget"]["fits"] is False
+
+
+def test_repair_budget_failure_keeps_invalid_attempt_and_returns_safe_diagnostic(
+    client, monkeypatch
+):
+    ctx = context()
+    initial = request_budget(ctx["messages"], ANSWER_SCHEMA, client.config.model)
+    monkeypatch.setitem(
+        MODEL_LIMITS,
+        client.config.model,
+        ModelLimits(initial["input_tokens"], 100),
+    )
+    calls = []
+
+    def send(_self, path, payload):
+        calls.append(payload)
+        return api_response("not JSON")
+
+    monkeypatch.setattr(CLIProxyClient, "_request", send)
+    result = generate_answer(ctx, client)
+    assert len(calls) == 1
+    assert result["validation"]["valid"]
+    assert result["answer"]["status"] == "REQUIRES_REVIEW"
+    assert result["generation"]["repair_budget_error"]["fits"] is False
+    assert result["generation"]["attempts"][0]["content"] == "not JSON"

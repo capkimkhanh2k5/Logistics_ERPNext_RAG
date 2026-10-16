@@ -21,12 +21,12 @@ ANSWER_SCHEMA: dict = {
         },
         "suggested_hs_code": {
             "type": "string",
-            "description": "Với HS và status=RECOMMENDATION, điền đúng mã ứng viên 8 chữ số đã chọn, ví dụ 85171300. Để rỗng với QA hoặc khi chưa thể kết luận.",
+            "description": "Với HS và status=RECOMMENDATION, điền đúng mã ứng viên 8 chữ số đã chọn. Để rỗng với QA hoặc khi chưa thể kết luận.",
         },
         "alternatives": {
             "type": "array",
             "items": {"type": "string"},
-            "description": "Các mã HS ứng viên 8 chữ số khác cần cân nhắc, chỉ lấy từ danh sách được cung cấp. Để rỗng với QA.",
+            "description": "Luôn để []; không phát hành mã khác chưa qua kiểm tra độc lập.",
         },
         "citations": {
             "type": "array",
@@ -64,6 +64,11 @@ PRODUCT_REVIEW_SCHEMA: dict = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
+        "reason": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Giải thích ngắn kết quả kiểm tra và điều kiện gây chặn nếu có; chỉ dựa trên dữ kiện và nguồn đã cấp, không đề xuất mã HS.",
+        },
         "status": {
             "type": "string",
             "enum": [
@@ -82,8 +87,101 @@ PRODUCT_REVIEW_SCHEMA: dict = {
                 "required": ["fact", "user_quote"],
             },
         },
+        "condition_checks": {
+            "type": "array",
+            "description": "Đối chiếu từng điều kiện quyết định trong nguồn với dữ kiện người dùng, gồm điều kiện tại cấp cha và nhánh. Không gộp nhiều điều kiện độc lập thành một kiểm tra.",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "source_label": {"type": "string"},
+                    "source_quote": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Trích nguyên văn điều kiện đang đối chiếu, giữ ngưỡng, đơn vị, phủ định và ngoại lệ liên quan.",
+                    },
+                    "assessment": {
+                        "type": "string",
+                        "enum": [
+                            "SATISFIED",
+                            "MISSING_PRODUCT_INFO",
+                            "CONTRADICTED",
+                            "INSUFFICIENT_LEGAL_EVIDENCE",
+                            "UNRESOLVED_APPLICATION",
+                            "NOT_APPLICABLE",
+                        ],
+                    },
+                    "product_fact_indices": {
+                        "type": "array",
+                        "items": {"type": "integer", "minimum": 0},
+                        "description": "Chỉ số từ 0 trong product_facts chứng minh riêng điều kiện này; [] nếu chưa có dữ kiện xác nhận.",
+                    },
+                },
+                "required": ["source_label", "source_quote", "assessment", "product_fact_indices"],
+            },
+        },
         "missing_information": ANSWER_SCHEMA["properties"]["missing_information"],
         "missing_legal_evidence": ANSWER_SCHEMA["properties"]["missing_legal_evidence"],
     },
-    "required": ["status", "product_facts", "missing_information", "missing_legal_evidence"],
+    "required": [
+        "status",
+        "reason",
+        "product_facts",
+        "condition_checks",
+        "missing_information",
+        "missing_legal_evidence",
+    ],
+}
+
+
+DECISION_REVIEW_SCHEMA: dict = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "request_kind": {"type": "string", "enum": ["HS", "QA", "MIXED", "UNCLEAR"]},
+        "identity_status": {
+            "type": "string",
+            "enum": ["IDENTIFIED", "UNCONFIRMED", "NOT_APPLICABLE"],
+        },
+        "product_type": {"type": "string"},
+        "product_type_quote": {"type": "string"},
+        "decision": {"type": "string", "enum": ["KEEP", "CLARIFY"]},
+        "reason": {"type": "string", "minLength": 1},
+        "retained_qa": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "answer": {"type": "string"},
+                "citations": ANSWER_SCHEMA["properties"]["citations"],
+            },
+            "required": ["answer", "citations"],
+        },
+        "clarifications": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "question": {"type": "string", "minLength": 1},
+                    "basis": {
+                        "type": "string",
+                        "enum": ["PRODUCT_IDENTITY", "QUESTION_SCOPE", "SOURCE_CONDITION"],
+                    },
+                    "source_label": {"type": "string"},
+                    "source_quote": {"type": "string"},
+                },
+                "required": ["question", "basis", "source_label", "source_quote"],
+            },
+        },
+    },
+    "required": [
+        "request_kind",
+        "identity_status",
+        "product_type",
+        "product_type_quote",
+        "decision",
+        "reason",
+        "retained_qa",
+        "clarifications",
+    ],
 }

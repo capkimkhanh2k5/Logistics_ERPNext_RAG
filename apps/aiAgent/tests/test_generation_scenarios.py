@@ -5,12 +5,13 @@ from types import SimpleNamespace
 
 import pytest
 
-from config.settings import GroqConfig
+from config.settings import GroqConfig, RAGGenerationConfig
 from rag.llm.context import compose_query
 from rag.llm.groq_client import GroqClient
 from tests.support.generation_scenarios import (
     _generate,
     check_expectations,
+    load_scenarios,
     run_scenarios,
 )
 
@@ -35,6 +36,29 @@ def test_combined_query_preserves_user_supplements_and_enforces_total_budget():
         compose_query("Câu hỏi", ["x" * 200], 100)
     with pytest.raises(ValueError, match="Additional context"):
         compose_query("Câu hỏi", [" "], 100)
+
+
+def test_token_mode_scenario_rejects_oversized_input_before_retrieval_or_generation(
+    monkeypatch, tmp_path
+):
+    config = RAGGenerationConfig(
+        "gemini-3.5-flash-lite", "gpt-oss-120b-medium", None, None, use_model_token_limits=True
+    )
+    scenario = next(row for row in load_scenarios(config) if row["id"] == "oversized_question")
+    monkeypatch.setattr("tests.support.generation_scenarios.load_generation_graph", lambda _: None)
+    monkeypatch.setattr(
+        "tests.support.generation_scenarios.retrieval_for",
+        lambda *args: pytest.fail("Oversized input must be rejected before retrieval"),
+    )
+    client = SimpleNamespace(
+        config=config,
+        complete=lambda *args, **kwargs: pytest.fail("Unexpected model call"),
+    )
+    retriever = SimpleNamespace(snapshot="s", profile="p", unified_policy={})
+    report = run_scenarios([scenario], retriever, client, tmp_path, progress=lambda _: None)
+    assert report["rows"][0]["run_status"] == "INPUT_REJECTED"
+    assert report["rows"][0]["input_error"] == "context_length_exceeded"
+    assert report["rows"][0]["passed"]
 
 
 def test_valid_json_does_not_pass_a_missing_information_scenario_if_it_selects_a_code():
@@ -172,3 +196,27 @@ def test_evidence_gap_expectation_cannot_pass_with_a_user_question():
         "missing_legal_evidence": ["Missing source wording"],
     }
     assert check_expectations({"require_legal_evidence_gap": True}, generated)["passed"]
+
+
+def test_empty_hs_scenario_requires_identity_review_but_explicit_qa_skips_all_calls():
+    scenarios = load_scenarios(GroqConfig(keys=("fixture",)))
+    hs = next(row for row in scenarios if row["id"] == "vf9_missing_legal_evidence")["turns"][0]
+    assert hs["expect_main_skipped"] and hs["require_decision_review"]
+    assert not hs.get("expect_skipped")
+    empty_qa = next(
+        row
+        for row in scenarios
+        if row["task"] == "qa" and row["turns"][0].get("mode") == "empty_context"
+    )
+    assert empty_qa["turns"][0]["expect_skipped"]
+    generated = {
+        "answer": {
+            **answered("INSUFFICIENT_LEGAL_EVIDENCE"),
+            "missing_legal_evidence": ["Nguồn liên quan chưa được cấp trong ngữ cảnh."],
+        },
+        "validation": {"valid": True},
+        "generation": {"main_skipped": True, "skipped": False, "decision_review": {"valid": True}},
+    }
+    assert check_expectations(hs, generated)["passed"]
+    generated["generation"]["decision_review"]["valid"] = False
+    assert not check_expectations(hs, generated)["passed"]

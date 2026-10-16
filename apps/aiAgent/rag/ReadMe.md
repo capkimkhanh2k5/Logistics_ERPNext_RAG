@@ -30,10 +30,18 @@ rag/
 ├── prompts/
 │   ├── system.py               # SYSTEM_PROMPT chính, dùng chung HS/QA
 │   ├── product_review.py       # PRODUCT_REVIEW_PROMPT kiểm tra dữ kiện hàng hóa
+│   ├── decision_review.py      # Nhận diện hàng hóa và kiểm tra quyết định chưa kết luận
+│   ├── tasks.py                # Chỉ dẫn HS/QA/Auto và nhãn dữ kiện bổ sung
+│   ├── repair.py               # Prompt sửa phản hồi theo lỗi validation
+│   ├── provider_format.py      # Chỉ dẫn JSON theo khả năng của provider
+│   ├── reranking.py            # Instruction và template Qwen, version cache
 │   └── schemas.py              # ANSWER_SCHEMA và PRODUCT_REVIEW_SCHEMA
 ├── llm/
 │   ├── context.py              # Ghép câu hỏi, nguồn, citation và ứng viên HS vào messages
+│   ├── budget.py               # Guard toàn request theo model; ước lượng UTF-8 và output còn lại
 │   ├── answering.py            # Sinh câu trả lời, sửa lỗi và kiểm tra đề xuất HS
+│   ├── decision_review.py      # Rà soát thiếu dữ kiện trước khi chấp nhận thiếu nguồn
+│   ├── quantitative.py         # Guard số đo/ngưỡng từ trích đoạn người dùng và nguồn
 │   ├── validation.py           # Schema, trích nguyên văn, ancestry và quyền sở hữu dữ kiện
 │   ├── client.py               # CLIProxyAPI chính → Groq fallback
 │   ├── cliproxy_client.py      # Structured JSON qua gateway local
@@ -54,9 +62,17 @@ Build knowledge base: `ingestion` → `chunking` → `embedding` → `vectordb`.
 
 Phục vụ câu hỏi: `api/cli.py` → `retrieval` + `graph` → `llm/context.py` + `prompts` → `llm/answering.py` → `llm/validation.py`.
 
+Terminal hiển thị riêng Retrieval, Reranking, LLM và Validation. LLM gồm sinh, sửa lỗi, Product Review và Decision Review, kể cả thời gian provider lỗi trước fallback; đóng gói context được đo riêng trong `/details`. Khi chưa kết luận được, mã ứng viên và nguồn chẩn đoán lấy từ context có thể hiển thị cùng lý do; đây chưa phải đề xuất HS. `/sources` mở nguồn hiện tại để đối chiếu mà không gọi model lại.
+
+Model đã có trong [registry giới hạn](../config/model_limits.py) dùng token budget riêng. `context.py` giữ nguyên bộ nguồn/ứng viên; `budget.py` kiểm tra system + user + schema + wrapper trước từng request main, review, repair và fallback. Không tự cắt hay đóng gói lại nguồn cho fallback nhỏ hơn. `MAX_OUTPUT_TOKENS=model` dùng mức output của model; số nguyên vẫn được hỗ trợ. Context dùng chung như GPT-OSS 120B giảm output theo phần còn lại. Alias chưa biết và caller legacy giữ đường cấu hình tương thích cũ; xem [cấu hình](../config/README.md).
+
+`CONSERVATIVE_UTF8_BOUND` là ước lượng bảo thủ bằng byte UTF-8, không phải tokenizer chính xác. `/details` hiển thị budget toàn request và usage provider riêng để tránh nhầm ước lượng với tiêu thụ thực tế.
+
 Luồng v5 vẫn dùng một policy chung: hybrid toàn nguồn → graph context → pool theo ID → M3 → Qwen. `intent="auto"`, `"product"`, `"qa"` chỉ là hint; không thay candidate pool/ranking. `matches` trả Top-10 nguồn, `hs_candidates` chiếu tối đa 10 mã HS8 từ ranked pool; `package` giữ các nguồn sơ cấp có citation. Retrieval không tự chốt mã HS.
 
 LLM chỉ hỏi người dùng về dữ kiện hàng hóa/hồ sơ còn thiếu qua `MISSING_PRODUCT_INFO`. Thiếu wording, GIR, Notes hoặc quan hệ HS phải trả `INSUFFICIENT_LEGAL_EVIDENCE`; không yêu cầu người dùng bổ sung luật. Đề xuất HS vẫn cần hierarchy `CONTAINS` đã xác minh và đủ nhãn citation bắt buộc. Các kiểm tra này nằm trong code, ngoài system prompt.
+
+Toàn bộ chỉ dẫn tác vụ, sửa lỗi, định dạng provider và template Qwen do ứng dụng định nghĩa được quản lý tại [prompts/README.md](prompts/README.md). Các module xử lý import template từ đó; policy JSON giữ bản chụp instruction để đối chiếu cấu hình đã khóa.
 
 ## Lệnh và import
 
@@ -64,8 +80,12 @@ Chạy từ thư mục `aiAgent`:
 
 ```bash
 .venv/bin/python -m rag
+.venv/bin/python -m rag --model 3.8-high
+.venv/bin/python -m rag --model 120b
 .venv/bin/python -m rag --help
 ```
+
+Không chọn thì dùng `3.5-lite-high`. `/model` hiển thị ba lựa chọn trong phiên; `/model 1|2|3` đổi model nhưng giữ dữ kiện, `/retry` chạy lại. Preset và reasoning tương ứng được quản lý tại `config/settings.py`; [cấu hình model](../config/README.md) giải thích fallback và độ ưu tiên so với `.env`.
 
 Import theo vị trí mới:
 

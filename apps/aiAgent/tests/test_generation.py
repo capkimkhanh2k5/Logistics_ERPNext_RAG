@@ -86,6 +86,52 @@ def test_total_user_message_budget_is_enforced_even_with_large_source_budget():
     assert ctx["sources"][0]["text"] == rows[0]["source_text"]
 
 
+def test_omitted_source_ids_do_not_displace_usable_evidence():
+    rows = [source(), *[source("omitted-" + str(i) + "x" * 100, "x" * 2000) for i in range(150)]]
+    cfg = GroqConfig(keys=("fixture",), max_input_chars=1500, max_context_chars=700)
+    ctx = prepare_context("A product question", {"matches": rows}, "qa", cfg)
+    payload = json.loads(ctx["messages"][1]["content"])
+    assert [s["id"] for s in ctx["sources"]] == ["a"]
+    assert len(ctx["omitted_source_ids"]) == 150
+    assert "omitted_source_ids" not in payload
+    assert payload["omitted_source_count"] == 150
+    assert len(ctx["messages"][1]["content"]) <= 1500
+
+
+def test_top_candidate_keeps_its_complete_source_bundle_with_a_qa_intent_hint():
+    leaf = {**source("leaf", "Portable computing equipment", "11111111"), "level": 8}
+    parent = {
+        **source("parent", "Portable equipment with specified components", "111111"),
+        "level": 6,
+    }
+    heading = {**source("heading", "Computing equipment", "1111"), "level": 4}
+    unrelated = [source(f"unrelated-{i}", "A general legal explanation. " * 15) for i in range(12)]
+    graph = GraphContext(
+        [leaf, parent, heading, *unrelated],
+        [],
+        [
+            {"source": "heading", "target": "parent", "relation": "CONTAINS"},
+            {"source": "parent", "target": "leaf", "relation": "CONTAINS"},
+        ],
+    )
+    ctx = prepare_context(
+        "A product described by its trade name",
+        {
+            "matches": [leaf, *unrelated],
+            "hs_candidates": [leaf],
+            "semantic_intent": {"intent": "qa", "status": "ADVISORY"},
+        },
+        "auto",
+        GroqConfig(keys=("fixture",), max_context_chars=1900, max_input_chars=3500),
+        graph,
+    )
+    assert {"leaf", "parent", "heading"} <= {s["id"] for s in ctx["sources"]}
+    assert ctx["candidate_evidence"][0]["hierarchy"]["status"] == "VERIFIED"
+    assert ctx["allowed_hs_codes"] == ["11111111"]
+    assert ctx["omitted_source_ids"]
+    assert len(ctx["messages"][1]["content"]) <= 3500
+
+
 def test_full_provenance_is_preserved_without_filling_the_llm_context():
     row = source()
     row["locator"] = {
@@ -288,7 +334,12 @@ def test_truncated_generation_never_passes_validation():
             "model": "test-model",
         }
     )
-    assert not generate_answer(context(), client)["validation"]["valid"]
+    result = generate_answer(context(), client)
+    assert all(not attempt["validation"]["valid"] for attempt in result["generation"]["attempts"])
+    assert result["answer"]["status"] == "REQUIRES_REVIEW"
+    assert result["answer"]["suggested_hs_code"] == ""
+    assert result["diagnostics"]["code"] == "ANSWER_VALIDATION_FAILED"
+    assert result["validation"]["valid"]
 
 
 @pytest.mark.parametrize(

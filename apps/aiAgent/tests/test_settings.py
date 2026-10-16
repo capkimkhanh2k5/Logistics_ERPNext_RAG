@@ -139,7 +139,7 @@ def test_cliproxy_settings_read_local_client_key_and_allow_env_override(monkeypa
     )
     config = CLIProxyConfig.from_env()
     assert config.api_key == "local-client"
-    assert config.model == "gemini-3.8-flash-high"
+    assert config.model == "gemini-3.5-flash-lite"
     assert config.fallback_model == "gpt-oss-120b-medium"
     assert config.fallback_reasoning_effort == "medium"
     assert "local-client" not in repr(config) and "admin-only" not in repr(config)
@@ -157,7 +157,7 @@ def test_cliproxy_settings_read_local_client_key_and_allow_env_override(monkeypa
         ("CLIPROXYAPI_BASE_URL", "http://key@localhost/v1"),
         ("CLIPROXYAPI_MODEL", ""),
         ("CLIPROXYAPI_FALLBACK_MODEL", ""),
-        ("CLIPROXYAPI_FALLBACK_MODEL", "gemini-3.8-flash-high"),
+        ("CLIPROXYAPI_FALLBACK_MODEL", "gemini-3.5-flash-lite"),
         ("CLIPROXYAPI_FALLBACK_REASONING_EFFORT", "invalid"),
         ("CLIPROXYAPI_MAX_OUTPUT_TOKENS", "0"),
         ("CLIPROXYAPI_TIMEOUT_SECONDS", "nan"),
@@ -171,6 +171,52 @@ def test_invalid_cliproxy_settings_are_rejected(monkeypatch, name, value):
     monkeypatch.setenv(name, value)
     with pytest.raises(ValueError):
         CLIProxyConfig.from_env()
+
+
+@pytest.mark.parametrize(
+    "preset,model,effort,fallback,fallback_effort",
+    [
+        ("3.5-lite-high", "gemini-3.5-flash-lite", "high", "gpt-oss-120b-medium", "medium"),
+        ("3.8-high", "gemini-3.8-flash-high", "high", "gpt-oss-120b-medium", "medium"),
+        ("120b", "gpt-oss-120b-medium", "medium", "gemini-3.5-flash-lite", "high"),
+    ],
+)
+def test_model_presets_override_old_model_env_without_changing_connection_settings(
+    monkeypatch, preset, model, effort, fallback, fallback_effort
+):
+    monkeypatch.setenv("CLIPROXYAPI_API_KEY", "fixture-client")
+    monkeypatch.setenv("CLIPROXYAPI_MODEL", "gemini-3.8-flash-high")
+    monkeypatch.setenv("CLIPROXYAPI_REASONING_EFFORT", "low")
+    monkeypatch.setenv("CLIPROXYAPI_FALLBACK_MODEL", "gpt-oss-120b-medium")
+    monkeypatch.setenv("CLIPROXYAPI_FALLBACK_REASONING_EFFORT", "low")
+    monkeypatch.setenv("CLIPROXYAPI_BASE_URL", "http://fixture-gateway:8317/v1")
+    monkeypatch.setenv("CLIPROXYAPI_MAX_OUTPUT_TOKENS", "4096")
+    config = CLIProxyConfig.from_env(model_preset=preset)
+    assert (config.model, config.reasoning_effort) == (model, effort)
+    assert (config.fallback_model, config.fallback_reasoning_effort) == (fallback, fallback_effort)
+    assert config.api_key == "fixture-client"
+    assert config.base_url == "http://fixture-gateway:8317/v1"
+    assert config.max_output_tokens == 4096
+
+
+def test_120b_selection_resolves_same_model_env_before_config_validation(monkeypatch):
+    monkeypatch.setenv("CLIPROXYAPI_API_KEY", "fixture-client")
+    monkeypatch.setenv("CLIPROXYAPI_MODEL", "gpt-oss-120b-medium")
+    monkeypatch.setenv("CLIPROXYAPI_FALLBACK_MODEL", "gpt-oss-120b-medium")
+    config = CLIProxyConfig.from_env(model_preset="120b")
+    assert config.model == "gpt-oss-120b-medium"
+    assert config.fallback_model == "gemini-3.5-flash-lite"
+    with pytest.raises(ValueError):
+        CLIProxyConfig.from_env()
+
+
+@pytest.mark.parametrize("name", ["GROQ_MAX_OUTPUT_TOKENS", "CLIPROXYAPI_MAX_OUTPUT_TOKENS"])
+def test_model_output_setting_uses_full_model_limit_instead_of_a_fixed_default(monkeypatch, name):
+    monkeypatch.setenv("GROQ_API_KEYS", "fixture-groq")
+    monkeypatch.setenv("CLIPROXYAPI_API_KEY", "fixture-cli")
+    monkeypatch.setenv(name, "model")
+    config = GroqConfig.from_env() if name.startswith("GROQ_") else CLIProxyConfig.from_env()
+    assert config.max_output_tokens is None
 
 
 def test_database_connection_uses_env_and_hides_password(monkeypatch):

@@ -13,6 +13,7 @@ class LLMError(RuntimeError):
     ):
         self.status, self.model, self.retry_after = status, model, retry_after
         self.error_code, self.provider = error_code, provider
+        self.timings: dict[str, float] = {}
         super().__init__(
             f"{provider} request failed: HTTP {status}, model={model or 'model inventory'}"
         )

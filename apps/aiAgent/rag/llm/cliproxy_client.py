@@ -6,7 +6,9 @@ import time
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from config.model_limits import get_model_limits
 from config.settings import CLIProxyConfig
+from rag.llm.budget import build_request_messages, check_request_budget
 from rag.llm.errors import LLMError
 
 ERROR_CODES = {
@@ -75,11 +77,15 @@ class CLIProxyClient:
 
     def complete(self, messages: list[dict], schema: dict, *, model: str | None = None) -> dict:
         requested = model or self.config.model
+        output_limit = self.config.max_output_tokens
+        if output_limit is None and get_model_limits(requested) is None:
+            output_limit = 8192
+        budget = check_request_budget(messages, schema, requested, output_limit)
         payload = {
             "model": requested,
-            "messages": messages,
+            "messages": build_request_messages(messages, schema, requested),
             "temperature": self.config.temperature,
-            "max_tokens": self.config.max_output_tokens,
+            "max_tokens": budget["output_tokens"],
             "reasoning_effort": self.config.fallback_reasoning_effort
             if requested == self.config.fallback_model
             else self.config.reasoning_effort,
@@ -93,14 +99,6 @@ class CLIProxyClient:
             # Antigravity rejects responseSchema for GPT-OSS through CLIProxyAPI v8.0.29.
             # Keep schema enforcement in RAG validation and its bounded repair pass.
             payload.pop("response_format")
-            payload["messages"] = [
-                {
-                    "role": "system",
-                    "content": "Return only a JSON object matching this JSON schema, without "
-                    "Markdown fences or extra text: " + json.dumps(schema, ensure_ascii=False),
-                },
-                *messages,
-            ]
         started = time.perf_counter()
         response = self._request("/chat/completions", payload)
         try:
@@ -123,5 +121,6 @@ class CLIProxyClient:
             "fallback_used": False,
             "failures": [],
             "usage": response.get("usage", {}),
+            "request_budget": budget,
             "elapsed_ms": (time.perf_counter() - started) * 1000,
         }
