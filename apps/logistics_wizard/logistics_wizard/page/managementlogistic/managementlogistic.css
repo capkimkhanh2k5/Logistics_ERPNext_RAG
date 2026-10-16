@@ -705,8 +705,8 @@
 .logistics-sidebar-brand {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 4px 6px 14px;
+    gap: 11px;
+    padding: 6px 14px 14px;
     border-bottom: 1px solid #f1f5f9;
     margin-bottom: 12px;
 }
@@ -715,12 +715,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    background: linear-gradient(135deg, #0284c7, #0369a1);
-    border-radius: 9px;
-    color: #ffffff;
-    box-shadow: 0 3px 8px rgba(2, 132, 199, 0.28);
+    width: 20px;
+    height: 20px;
+    color: #0284c7;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    flex-shrink: 0;
+}
+
+.sidebar-brand-icon svg {
+    width: 20px;
+    height: 20px;
+    display: block;
 }
 
 .sidebar-brand-info {
