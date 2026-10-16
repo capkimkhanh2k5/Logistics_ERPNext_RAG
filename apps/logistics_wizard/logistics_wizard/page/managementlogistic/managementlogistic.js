@@ -11,8 +11,9 @@
 class UnifiedLogisticsHub {
     constructor(wrapper) {
         this.wrapper = wrapper;
-        this.currentTab = 'overview';
+        this.currentTab = 'executive';
         this.currentCaseId = 'IMP-2026-001';
+        this.executiveDashboard = wrapper ? wrapper.executive_dashboard : null;
         this.trackingHub = wrapper ? wrapper.shipment_tracking_hub : null;
         this.overviewController = wrapper ? wrapper.trade_case_overview : null;
         this.tradeCostDashboard = wrapper ? wrapper.trade_cost_dashboard : null;
@@ -26,18 +27,23 @@ class UnifiedLogisticsHub {
             ? $(this.wrapper.shipment_tracking_hub.page.body)
             : $(document);
 
-        let targetKey = 'overview';
-        if (tabName === 'tracking' || tabName === 'shipment-tracking-hub') {
+        let targetKey = 'executive';
+        if (tabName === 'overview' || tabName === 'trade-case' || tabName === 'dossier') {
+            targetKey = 'overview';
+        } else if (tabName === 'tracking' || tabName === 'shipment-tracking-hub') {
             targetKey = 'tracking';
         } else if (tabName === 'cost' || tabName === 'trade-cost' || tabName === 'trade-cost-dashboard') {
             targetKey = 'cost';
         } else if (tabName === 'copilot' || tabName === 'ai-copilot' || tabName === 'logistics-ai-chatbot') {
             targetKey = 'copilot';
+        } else if (tabName === 'executive' || tabName === 'exec' || tabName === 'command-center') {
+            targetKey = 'executive';
         }
 
         // 1. Update active sidebar tab button
         $page.find('.logistics-nav-tab').removeClass('active');
-        if (targetKey === 'overview') $page.find('#btn-tab-overview').addClass('active');
+        if (targetKey === 'executive') $page.find('#btn-tab-executive').addClass('active');
+        else if (targetKey === 'overview') $page.find('#btn-tab-overview').addClass('active');
         else if (targetKey === 'tracking') $page.find('#btn-tab-tracking').addClass('active');
         else if (targetKey === 'cost') $page.find('#btn-tab-cost').addClass('active');
         else if (targetKey === 'copilot') $page.find('#btn-tab-copilot').addClass('active');
@@ -47,8 +53,9 @@ class UnifiedLogisticsHub {
         $panes.removeClass('active').removeAttr('style');
 
         // 3. Show target pane with forced reflow for smooth keyframe entrance animation
-        let targetSelector = '#tab-pane-trade-case';
-        if (targetKey === 'tracking') targetSelector = '#tab-pane-shipment-tracking';
+        let targetSelector = '#tab-pane-executive';
+        if (targetKey === 'overview') targetSelector = '#tab-pane-trade-case';
+        else if (targetKey === 'tracking') targetSelector = '#tab-pane-shipment-tracking';
         else if (targetKey === 'cost') targetSelector = '#tab-pane-trade-cost';
         else if (targetKey === 'copilot') targetSelector = '#tab-pane-ai-copilot';
 
@@ -61,16 +68,21 @@ class UnifiedLogisticsHub {
         // 4. Update Desk Page Title
         if (this.wrapper && this.wrapper.shipment_tracking_hub && this.wrapper.shipment_tracking_hub.page) {
             const titles = {
-                overview: __('Trade Case Overview'),
+                executive: __('Executive Logistics Command Center'),
+                overview: __('Trade Case Dossier'),
                 tracking: __('Shipment Tracking Hub'),
                 cost: __('Trade Cost & Landed Cost Dashboard'),
                 copilot: __('Logistics AI Copilot')
             };
-            this.wrapper.shipment_tracking_hub.page.set_title(titles[targetKey] || titles.overview);
+            this.wrapper.shipment_tracking_hub.page.set_title(titles[targetKey] || titles.executive);
         }
 
         // 5. Trigger sub-controller logic
-        if (targetKey === 'tracking') {
+        if (targetKey === 'executive') {
+            if (this.executiveDashboard) {
+                this.executiveDashboard.load_data();
+            }
+        } else if (targetKey === 'tracking') {
             if (this.trackingHub) {
                 if (this.trackingHub && this.trackingHub.map) {
                     setTimeout(() => {
@@ -141,15 +153,18 @@ function register_management_logistic_page(pageName) {
 
     frappe.pages[pageName].on_page_load = function (wrapper) {
         make_page_full_bleed(wrapper);
+        wrapper.executive_dashboard = new ExecutiveDashboardController(wrapper);
         wrapper.shipment_tracking_hub = new ShipmentTrackingHub(wrapper);
         wrapper.trade_case_overview = new TradeCaseOverviewController(wrapper, wrapper.shipment_tracking_hub);
         wrapper.trade_cost_dashboard = new EmbeddedTradeCostDashboardController(wrapper);
         wrapper.logistics_ai_copilot = new EmbeddedLogisticsAICopilot(wrapper);
         wrapper.unifiedHub = new UnifiedLogisticsHub(wrapper);
+        wrapper.unifiedHub.executiveDashboard = wrapper.executive_dashboard;
         wrapper.unifiedHub.trackingHub = wrapper.shipment_tracking_hub;
         wrapper.unifiedHub.overviewController = wrapper.trade_case_overview;
         wrapper.unifiedHub.tradeCostDashboard = wrapper.trade_cost_dashboard;
         wrapper.unifiedHub.aiCopilot = wrapper.logistics_ai_copilot;
+        wrapper.executive_dashboard.unifiedHub = wrapper.unifiedHub;
         wrapper.trade_case_overview.unifiedHub = wrapper.unifiedHub;
         wrapper.trade_cost_dashboard.unifiedHub = wrapper.unifiedHub;
         wrapper.logistics_ai_copilot.unifiedHub = wrapper.unifiedHub;
@@ -162,6 +177,8 @@ function register_management_logistic_page(pageName) {
                     wrapper.unifiedHub.switch_tab('cost', { case_id: extraParam });
                 } else if (tabName === 'copilot' || tabName === 'ai-copilot') {
                     wrapper.unifiedHub.switch_tab('copilot');
+                } else if (tabName === 'executive' || tabName === 'exec') {
+                    wrapper.unifiedHub.switch_tab('executive');
                 } else {
                     wrapper.unifiedHub.switch_tab('overview', { case_id: extraParam });
                 }
@@ -171,6 +188,7 @@ function register_management_logistic_page(pageName) {
         };
 
         setup_logistics_hub_tabs(wrapper);
+        wrapper.executive_dashboard.init();
         wrapper.trade_case_overview.init();
         wrapper.trade_cost_dashboard.init();
         wrapper.logistics_ai_copilot.init();
@@ -208,14 +226,222 @@ function register_management_logistic_page(pageName) {
         } else if (targetTab === 'overview' && wrapper.switch_to_tab) {
             wrapper.switch_to_tab('overview');
         } else {
-            if (wrapper.shipment_tracking_hub && !wrapper.shipment_tracking_hub.data) {
-                wrapper.shipment_tracking_hub.refresh();
-            }
+            wrapper.switch_to_tab('executive');
         }
     };
 }
 
 ['managementLogistic', 'managementlogistic', 'management-logistic', 'management_logistic', 'manageLogistic', 'managelogistic', 'manage-logistic', 'manage_logistic'].forEach(register_management_logistic_page);
+
+/**
+ * ExecutiveDashboardController
+ * Trung tâm chỉ huy vận hành vĩ mô (Macro Operations Command Center)
+ * Hiển thị trực quan toàn bộ sức khỏe hệ thống, phễu luồng hàng, cơ cấu chi phí và radar sự cố
+ */
+class ExecutiveDashboardController {
+    constructor(wrapper) {
+        this.wrapper = wrapper;
+        this.data = null;
+        this.currentTimeRange = '30d';
+        this.bind_events();
+    }
+
+    bind_events() {
+        const self = this;
+        $(document).off('click', '#exec-btn-refresh').on('click', '#exec-btn-refresh', function (e) {
+            e.preventDefault();
+            self.load_data();
+        });
+
+        $(document).off('change', '#exec-time-range').on('change', '#exec-time-range', function () {
+            self.currentTimeRange = $(this).val();
+            self.load_data();
+        });
+
+        // Clicking on Action Alert buttons triggers switch_tab to overview (Trade Case Dossier)
+        $(document).off('click', '.exec-action-btn').on('click', '.exec-action-btn', function (e) {
+            e.preventDefault();
+            const caseId = $(this).data('case');
+            if (caseId && self.wrapper && self.wrapper.unifiedHub) {
+                self.wrapper.unifiedHub.switch_tab('overview', { case_id: caseId });
+            }
+        });
+
+        // Clicking on a pipeline step
+        $(document).off('click', '.pipeline-step').on('click', '.pipeline-step', function (e) {
+            e.preventDefault();
+            const stepName = $(this).find('.pipeline-step-name').text();
+            if (frappe && frappe.show_alert) {
+                frappe.show_alert({
+                    message: __('Đang quan sát chặng: ') + stepName,
+                    indicator: 'blue'
+                }, 3);
+            }
+        });
+    }
+
+    init() {
+        this.load_data();
+    }
+
+    load_data() {
+        const self = this;
+        frappe.call({
+            method: "logistics_wizard.api.get_executive_dashboard_summary",
+            args: { time_range: self.currentTimeRange },
+            callback: function (r) {
+                if (r && r.message && r.message.status === 'success') {
+                    self.data = r.message.data;
+                    self.render();
+                } else if (r && r.message && r.message.metrics) {
+                    self.data = r.message;
+                    self.render();
+                }
+            }
+        });
+    }
+
+    render() {
+        if (!this.data) return;
+        const d = this.data;
+
+        // 1. Render Macro KPIs
+        if (d.metrics) {
+            $('#exec-val-total-cases').text(d.metrics.total_cases || 28);
+            $('#exec-sub-import').text(d.metrics.import_cases || 20);
+            $('#exec-sub-export').text(d.metrics.export_cases || 8);
+            const impPct = Math.round(((d.metrics.import_cases || 20) / (d.metrics.total_cases || 28)) * 100);
+            $('#exec-bar-import').css('width', impPct + '%');
+            $('#exec-bar-export').css('width', (100 - impPct) + '%');
+
+            $('#exec-val-in-transit').text(d.metrics.in_transit_shipments || 18);
+            $('#exec-val-alerts').text(d.metrics.active_exceptions || 3);
+            
+            const spend = d.metrics.total_spend ? ('$' + Number(d.metrics.total_spend).toLocaleString()) : '$1,245,500';
+            $('#exec-val-spend').text(spend);
+        }
+
+        // 2. Render Pipeline Funnel
+        if (d.pipeline && d.pipeline.length > 0) {
+            const html = d.pipeline.map(p => {
+                const isWarn = p.status === 'warning' ? 'step-warning' : '';
+                return `
+                    <div class="pipeline-step ${isWarn}" data-step="${p.key}">
+                        <div class="pipeline-step-header">
+                            <span class="pipeline-step-num">${p.step_no}</span>
+                            <span class="pipeline-step-count">${p.count} đơn</span>
+                        </div>
+                        <div class="pipeline-step-name">${p.label}</div>
+                        <span class="pipeline-step-sub">${p.sub_label}</span>
+                        <div class="pipeline-step-bar">
+                            <div class="pipeline-step-fill ${p.status === 'warning' ? 'bg-amber' : 'bg-blue'}" style="width: ${p.pct}%;"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            $('#exec-pipeline-container').html(html);
+        }
+
+        // 3. Render Health Donut SVG
+        if (d.health_donut) {
+            const hd = d.health_donut;
+            $('#exec-health-score').text(hd.score_pct + '%');
+            const segs = hd.segments || [];
+            let offset = 0;
+            segs.forEach(s => {
+                if (s.key === 'on_time') {
+                    $('#donut-segment-ontime').attr('stroke-dasharray', `${s.pct}, 100`).attr('stroke-dashoffset', offset);
+                    $('#legend-ontime-val').text(`${s.count} đơn (${s.pct}%)`);
+                } else if (s.key === 'at_risk') {
+                    $('#donut-segment-atrisk').attr('stroke-dasharray', `${s.pct}, 100`).attr('stroke-dashoffset', -offset);
+                    $('#legend-atrisk-val').text(`${s.count} đơn (${s.pct}%)`);
+                } else if (s.key === 'critical') {
+                    $('#donut-segment-critical').attr('stroke-dasharray', `${s.pct}, 100`).attr('stroke-dashoffset', -offset);
+                    $('#legend-critical-val').text(`${s.count} đơn (${s.pct}%)`);
+                }
+                offset += s.pct;
+            });
+        }
+
+        // 4. Render Cost Breakdown Bars
+        if (d.cost_breakdown && d.cost_breakdown.categories) {
+            const html = d.cost_breakdown.categories.map(c => {
+                const varSign = c.variance_pct > 0 ? '+' : '';
+                const barBg = c.variance_pct <= 0 ? 'bg-emerald' : 'bg-amber';
+                return `
+                    <div class="cost-bar-item">
+                        <div class="cost-bar-header">
+                            <span class="cost-bar-name">${c.name}</span>
+                            <div class="cost-bar-figures">
+                                <span class="cost-bar-amount">$${Number(c.amount).toLocaleString()}</span>
+                                <span class="exec-badge ${c.variance_pct <= 0 ? 'exec-badge-success' : 'exec-badge-amber'}">${varSign}${c.variance_pct}%</span>
+                            </div>
+                        </div>
+                        <div class="cost-bar-progress">
+                            <div class="cost-bar-fill ${barBg}" style="width: ${c.pct_of_total}%;"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            $('#exec-cost-breakdown-list').html(html);
+        }
+
+        // 5. Render Corridors
+        if (d.corridors && d.corridors.length > 0) {
+            const html = d.corridors.map(c => {
+                const icon = c.mode === 'Air' ? 'fa-plane' : 'fa-ship';
+                const badgeClass = c.health_level === 'warning' ? 'exec-badge-amber' : 'exec-badge-success';
+                return `
+                    <div class="corridor-item">
+                        <div class="corridor-main">
+                            <div class="corridor-mode-icon">
+                                <i class="fa ${icon}"></i>
+                            </div>
+                            <div>
+                                <span class="corridor-name">${c.route}</span>
+                                <span class="corridor-meta">${c.active_voyages} chuyến đang chạy • Thời gian: ${c.avg_transit}</span>
+                            </div>
+                        </div>
+                        <div class="corridor-status">
+                            <span class="exec-badge ${badgeClass}">${c.status}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            $('#exec-corridors-container').html(html);
+        }
+
+        // 6. Render Actionable Alerts
+        if (d.action_alerts && d.action_alerts.length > 0) {
+            const html = d.action_alerts.map(a => {
+                const isCrit = a.severity === 'critical';
+                const cardClass = isCrit ? 'alert-critical' : 'alert-warning';
+                const iconColor = isCrit ? 'text-coral' : 'text-amber';
+                const iconName = isCrit ? 'fa-exclamation-circle' : 'fa-exclamation-triangle';
+                const btnClass = isCrit ? 'btn-primary' : 'btn-default';
+                return `
+                    <div class="exec-alert-card ${cardClass}">
+                        <div class="exec-alert-top">
+                            <span class="exec-alert-title">
+                                <i class="fa ${iconName} ${iconColor}"></i>
+                                ${a.title}
+                            </span>
+                            <span class="exec-badge ${isCrit ? 'exec-badge-amber' : 'exec-badge-info'}">${a.badge_label}</span>
+                        </div>
+                        <p class="exec-alert-desc">${a.description}</p>
+                        <div class="exec-alert-footer">
+                            <span class="exec-alert-tags">Hồ sơ: <strong>${a.case_id}</strong> (${a.shipment_id})</span>
+                            <button class="btn btn-xs ${btnClass} exec-action-btn" data-case="${a.case_id}">
+                                ${a.action_text} &rarr;
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            $('#exec-alerts-container').html(html);
+        }
+    }
+}
 
 function setup_logistics_hub_tabs(wrapper) {
     const $page = $(wrapper.shipment_tracking_hub.page.body);
