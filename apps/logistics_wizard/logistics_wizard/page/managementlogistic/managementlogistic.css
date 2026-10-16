@@ -562,19 +562,104 @@
    Strictly complies with PURPLE BAN (No purple/violet/magenta/indigo).
    ============================================================================== */
 
-/* Desk Container Reset: Remove excessive margins/padding so layout utilizes full width */
+/* ==============================================================================
+   DESK CONTAINER FULL-BLEED RESET (EDGE-TO-EDGE 100% NO SIDE BLANK GUTTERS)
+   Removes Frappe default 1140px/1320px container restrictions and padding,
+   allowing the vertical sidebar to dock flush to the left edge and content to fill
+   the entire widescreen monitor.
+   ============================================================================== */
+
+/* 1. Page Container Root & Full-width Class */
+.page-container[data-page-route="managementlogistic"],
+.page-container[data-page-route="managementLogistic"],
+.page-container[data-page-route="manage-logistic"],
+.page-container[data-page-route="managelogistic"],
+.page-container[data-page-route="trade-case-overview"],
+.page-container[data-page-route="shipment-tracking-hub"],
+.page-container.logistics-full-width,
+.logistics-full-bleed-page {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* 2. Hide Redundant Page Head on Unified Hub */
+.page-container[data-page-route="managementlogistic"] .page-head,
 .page-container[data-page-route="managementLogistic"] .page-head,
+.page-container[data-page-route="manage-logistic"] .page-head,
+.page-container[data-page-route="managelogistic"] .page-head,
 .page-container[data-page-route="trade-case-overview"] .page-head,
-.page-container[data-page-route="shipment-tracking-hub"] .page-head {
+.page-container[data-page-route="shipment-tracking-hub"] .page-head,
+.page-container.logistics-full-width .page-head,
+.logistics-full-bleed-page .page-head {
     display: none !important;
 }
 
+/* 3. Strip Page Body & Container Gutters */
+.page-container[data-page-route="managementlogistic"] .page-body,
+.page-container[data-page-route="managementLogistic"] .page-body,
+.page-container[data-page-route="manage-logistic"] .page-body,
+.page-container[data-page-route="managelogistic"] .page-body,
+.page-container[data-page-route="trade-case-overview"] .page-body,
+.page-container[data-page-route="shipment-tracking-hub"] .page-body,
+.page-container.logistics-full-width .page-body,
+.logistics-full-bleed-page .page-body,
+.page-container[data-page-route="managementlogistic"] .page-content,
 .page-container[data-page-route="managementLogistic"] .page-content,
+.page-container[data-page-route="manage-logistic"] .page-content,
+.page-container[data-page-route="managelogistic"] .page-content,
 .page-container[data-page-route="trade-case-overview"] .page-content,
-.page-container[data-page-route="shipment-tracking-hub"] .page-content {
+.page-container[data-page-route="shipment-tracking-hub"] .page-content,
+.page-container.logistics-full-width .page-content,
+.logistics-full-bleed-page .page-content,
+.page-container[data-page-route="managementlogistic"] .container,
+.page-container[data-page-route="managementLogistic"] .container,
+.page-container[data-page-route="manage-logistic"] .container,
+.page-container[data-page-route="managelogistic"] .container,
+.page-container[data-page-route="trade-case-overview"] .container,
+.page-container[data-page-route="shipment-tracking-hub"] .container,
+.page-container.logistics-full-width .container,
+.logistics-full-bleed-page .container,
+.page-container[data-page-route="managementlogistic"] .container-fluid,
+.page-container[data-page-route="managementLogistic"] .container-fluid,
+.page-container.logistics-full-width .container-fluid,
+.logistics-full-bleed-page .container-fluid {
+    max-width: 100% !important;
+    width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
+}
+
+/* 4. Strip Layout Section Wrappers & Frappe Card Styling */
+.page-container[data-page-route="managementlogistic"] .layout-main-section-wrapper,
+.page-container[data-page-route="managementLogistic"] .layout-main-section-wrapper,
+.page-container[data-page-route="manage-logistic"] .layout-main-section-wrapper,
+.page-container[data-page-route="managelogistic"] .layout-main-section-wrapper,
+.page-container[data-page-route="trade-case-overview"] .layout-main-section-wrapper,
+.page-container[data-page-route="shipment-tracking-hub"] .layout-main-section-wrapper,
+.page-container.logistics-full-width .layout-main-section-wrapper,
+.logistics-full-bleed-page .layout-main-section-wrapper,
+.page-container[data-page-route="managementlogistic"] .layout-main-section,
+.page-container[data-page-route="managementLogistic"] .layout-main-section,
+.page-container[data-page-route="manage-logistic"] .layout-main-section,
+.page-container[data-page-route="managelogistic"] .layout-main-section,
+.page-container[data-page-route="trade-case-overview"] .layout-main-section,
+.page-container[data-page-route="shipment-tracking-hub"] .layout-main-section,
+.page-container.logistics-full-width .layout-main-section,
+.logistics-full-bleed-page .layout-main-section,
+.page-container[data-page-route="managementlogistic"] .layout-main,
+.page-container[data-page-route="managementLogistic"] .layout-main,
+.page-container.logistics-full-width .layout-main,
+.logistics-full-bleed-page .layout-main {
     max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
 }
 
 .logistics-page-container {

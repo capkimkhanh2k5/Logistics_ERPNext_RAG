@@ -76,10 +76,37 @@ class UnifiedLogisticsHub {
     }
 }
 
+function make_page_full_bleed(wrapper) {
+    if (!wrapper) return;
+    try {
+        const $w = $(wrapper);
+        $w.addClass('logistics-full-bleed-page');
+        const $pageContainer = $w.closest('.page-container');
+        if ($pageContainer.length) {
+            $pageContainer.addClass('logistics-full-width');
+            $pageContainer.css({ 'max-width': '100%', 'padding': '0', 'margin': '0', 'width': '100%' });
+        }
+        $w.find('.page-content.container').removeClass('container').addClass('container-fluid');
+        $w.find('.container').removeClass('container').addClass('container-fluid');
+        $w.find('.page-body, .page-content, .container-fluid, .layout-main-section-wrapper, .layout-main-section, .layout-main').css({
+            'max-width': '100%',
+            'width': '100%',
+            'padding': '0',
+            'margin': '0',
+            'border': 'none',
+            'box-shadow': 'none',
+            'background': 'transparent'
+        });
+    } catch (e) {
+        console.warn('make_page_full_bleed warning:', e);
+    }
+}
+
 function register_management_logistic_page(pageName) {
     frappe.pages[pageName] = frappe.pages[pageName] || {};
 
     frappe.pages[pageName].on_page_load = function (wrapper) {
+        make_page_full_bleed(wrapper);
         wrapper.shipment_tracking_hub = new ShipmentTrackingHub(wrapper);
         wrapper.trade_case_overview = new TradeCaseOverviewController(wrapper, wrapper.shipment_tracking_hub);
         wrapper.unifiedHub = new UnifiedLogisticsHub(wrapper);
@@ -97,9 +124,11 @@ function register_management_logistic_page(pageName) {
         };
         setup_logistics_hub_tabs(wrapper);
         wrapper.trade_case_overview.init();
+        make_page_full_bleed(wrapper);
     };
 
     frappe.pages[pageName].on_page_show = function (wrapper) {
+        make_page_full_bleed(wrapper);
         let focusShipment = null;
         let focusCase = null;
         let targetTab = null;
@@ -665,6 +694,11 @@ class ShipmentTrackingHub {
                 title: __('Shipment Tracking Hub'),
                 single_column: true
             });
+            if (this.page && this.page.container) {
+                this.page.container.removeClass('container').addClass('container-fluid');
+                this.page.container.css({ 'max-width': '100%', 'padding': '0', 'margin': '0' });
+            }
+            make_page_full_bleed(wrapper);
         }
 
         this.data = null;

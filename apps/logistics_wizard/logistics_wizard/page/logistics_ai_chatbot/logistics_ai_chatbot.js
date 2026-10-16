@@ -56,6 +56,14 @@ class LogisticsAIChatbotUI {
                 title: __('Logistics AI Copilot'),
                 single_column: true
             });
+            if (this.page && this.page.container) {
+                this.page.container.removeClass('container').addClass('container-fluid');
+                this.page.container.css({ 'max-width': '100%', 'padding': '0', 'margin': '0' });
+            }
+            const $w = $(this.wrapper);
+            $w.closest('.page-container').addClass('logistics-full-width').css({ 'max-width': '100%', 'padding': '0', 'margin': '0' });
+            $w.find('.page-content.container').removeClass('container').addClass('container-fluid');
+            $w.find('.page-body, .page-content, .layout-main-section-wrapper, .layout-main-section').css({ 'max-width': '100%', 'padding': '0', 'margin': '0', 'border': 'none', 'box-shadow': 'none' });
             this.$body = $(this.page.body);
         } else {
             this.$body = $(this.wrapper || document.body);
