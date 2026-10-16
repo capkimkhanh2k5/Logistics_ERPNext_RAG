@@ -4,9 +4,9 @@
         <div class="logistics-sidebar-brand">
             <div class="sidebar-brand-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
                 </svg>
             </div>
             <div class="sidebar-brand-info">
@@ -30,7 +30,8 @@
             <button class="logistics-nav-tab" data-tab="tracking" id="btn-tab-tracking" title="Shipment Tracking Hub">
                 <span class="tab-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
                     </svg>
                 </span>
                 <span class="tab-text">Shipment Tracking Hub</span>
@@ -40,8 +41,9 @@
             <button class="logistics-nav-tab" data-tab="cost" id="btn-tab-cost" title="Trade Cost Dashboard">
                 <span class="tab-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="1" x2="12" y2="23"></line>
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
                     </svg>
                 </span>
                 <span class="tab-text">Trade Cost Dashboard</span>
@@ -51,7 +53,7 @@
             <button class="logistics-nav-tab" data-tab="copilot" id="btn-tab-copilot" title="Logistics AI Copilot">
                 <span class="tab-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"></path>
                     </svg>
                 </span>
                 <span class="tab-text">Logistics AI Copilot</span>
@@ -535,9 +537,10 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- TAB 3: TRADE COST & LANDED COST MANAGEMENT DASHBOARD -->
-        <div class="logistics-tab-pane" id="tab-pane-trade-cost">
+    <!-- TAB 3: TRADE COST & LANDED COST MANAGEMENT DASHBOARD -->
+    <div class="logistics-tab-pane" id="tab-pane-trade-cost">
             <!-- 1. Top Control Bar (matching tc-tab-control-bar) -->
             <div class="tc-tab-control-bar">
                 <div class="tc-select-case-group">

@@ -220,27 +220,7 @@ function register_management_logistic_page(pageName) {
 function setup_logistics_hub_tabs(wrapper) {
     const $page = $(wrapper.shipment_tracking_hub.page.body);
 
-    $page.find('#btn-tab-overview').on('click', function (e) {
-        e.preventDefault();
-        wrapper.unifiedHub.switch_tab('overview');
-    });
-
-    $page.find('#btn-tab-tracking').on('click', function (e) {
-        e.preventDefault();
-        wrapper.unifiedHub.switch_tab('tracking');
-    });
-
-    $page.find('#btn-tab-cost').on('click', function (e) {
-        e.preventDefault();
-        wrapper.unifiedHub.switch_tab('cost');
-    });
-
-    $page.find('#btn-tab-copilot').on('click', function (e) {
-        e.preventDefault();
-        wrapper.unifiedHub.switch_tab('copilot');
-    });
-
-    $page.on('click', '.logistics-nav-tab', function (e) {
+    $page.off('click', '.logistics-nav-tab').on('click', '.logistics-nav-tab', function (e) {
         e.preventDefault();
         const tab = $(this).data('tab');
         if (tab && wrapper.unifiedHub) {

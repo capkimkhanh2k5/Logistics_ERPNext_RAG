@@ -717,10 +717,10 @@
     justify-content: center;
     width: 36px;
     height: 36px;
-    background: linear-gradient(135deg, #0f766e, #0d9488);
-    border-radius: 8px;
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    border-radius: 9px;
     color: #ffffff;
-    box-shadow: 0 2px 6px rgba(13, 148, 136, 0.25);
+    box-shadow: 0 3px 8px rgba(2, 132, 199, 0.28);
 }
 
 .sidebar-brand-info {
