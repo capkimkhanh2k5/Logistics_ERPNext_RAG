@@ -1,0 +1,105 @@
+{
+ "actions": [],
+ "creation": "2026-10-15 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "document_type",
+  "document_name",
+  "posting_date",
+  "party_type",
+  "party",
+  "currency",
+  "grand_total",
+  "total_qty",
+  "is_active",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "document_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Loại chứng từ (Document Type)",
+   "options": "Purchase Receipt\nPurchase Invoice\nSales Order\nDelivery Note\nSales Invoice\nLanded Cost Voucher",
+   "reqd": 1
+  },
+  {
+   "columns": 3,
+   "fieldname": "document_name",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Mã chứng từ (Document Name)",
+   "options": "document_type",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Ngày ghi sổ (Posting Date)"
+  },
+  {
+   "fieldname": "party_type",
+   "fieldtype": "Select",
+   "label": "Loại đối tác (Party Type)",
+   "options": "Supplier\nCustomer\n"
+  },
+  {
+   "columns": 2,
+   "fieldname": "party",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Đối tác (Party)",
+   "options": "party_type"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Tiền tệ (Currency)",
+   "options": "Currency"
+  },
+  {
+   "columns": 2,
+   "default": "0.0",
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Tổng giá trị (Grand Total)",
+   "options": "currency"
+  },
+  {
+   "default": "0.0",
+   "fieldname": "total_qty",
+   "fieldtype": "Float",
+   "label": "Tổng số lượng (Total Qty)"
+  },
+  {
+   "columns": 1,
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Kích hoạt (Is Active)"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Ghi chú (Remarks)"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-15 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Trade Cost Document Link",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

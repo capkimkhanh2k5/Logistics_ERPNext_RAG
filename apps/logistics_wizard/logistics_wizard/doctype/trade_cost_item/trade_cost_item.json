@@ -1,0 +1,202 @@
+{
+ "actions": [],
+ "creation": "2026-10-15 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "cost_type",
+  "cost_description",
+  "service_provider",
+  "invoice_number",
+  "invoice_date",
+  "currency",
+  "exchange_rate",
+  "estimated_cost",
+  "actual_cost",
+  "base_estimated_cost",
+  "base_actual_cost",
+  "estimated_amount",
+  "actual_amount",
+  "estimated_amount_base",
+  "actual_amount_base",
+  "variance_amount",
+  "variance_pct",
+  "status",
+  "expense_account",
+  "is_critical",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "cost_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Loại chi phí (Cost Type)",
+   "options": "Freight\nInsurance\nDuty\nTax\nPort\nHandling\nStorage\nDemurrage/Detention\nTrucking\nBroker Fee\nOther",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "cost_description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Diễn giải chi phí (Description)"
+  },
+  {
+   "columns": 2,
+   "fieldname": "service_provider",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Đơn vị cung cấp (Service Provider)",
+   "options": "Supplier"
+  },
+  {
+   "columns": 1,
+   "fieldname": "invoice_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Số hóa đơn (Invoice Number)"
+  },
+  {
+   "fieldname": "invoice_date",
+   "fieldtype": "Date",
+   "label": "Ngày hóa đơn (Invoice Date)"
+  },
+  {
+   "default": "USD",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Tiền tệ (Currency)",
+   "options": "Currency"
+  },
+  {
+   "default": "1.0",
+   "fieldname": "exchange_rate",
+   "fieldtype": "Float",
+   "label": "Tỷ giá (Exchange Rate)",
+   "precision": "4"
+  },
+  {
+   "columns": 1,
+   "default": "0.0",
+   "fieldname": "estimated_cost",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Chi phí dự toán (Estimated Cost)",
+   "options": "currency"
+  },
+  {
+   "columns": 1,
+   "default": "0.0",
+   "fieldname": "actual_cost",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Chi phí thực tế (Actual Cost)",
+   "options": "currency"
+  },
+  {
+   "default": "0.0",
+   "fieldname": "base_estimated_cost",
+   "fieldtype": "Currency",
+   "label": "Dự toán quy đổi (Base Estimated Cost)",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "default": "0.0",
+   "fieldname": "base_actual_cost",
+   "fieldtype": "Currency",
+   "label": "Thực tế quy đổi (Base Actual Cost)",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "default": "0.0",
+   "fieldname": "estimated_amount",
+   "fieldtype": "Currency",
+   "label": "Dự toán (Estimated Amount)",
+   "options": "currency"
+  },
+  {
+   "default": "0.0",
+   "fieldname": "actual_amount",
+   "fieldtype": "Currency",
+   "label": "Thực tế (Actual Amount)",
+   "options": "currency"
+  },
+  {
+   "default": "0.0",
+   "fieldname": "estimated_amount_base",
+   "fieldtype": "Currency",
+   "label": "Dự toán quy đổi (Base Amount)",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "default": "0.0",
+   "fieldname": "actual_amount_base",
+   "fieldtype": "Currency",
+   "label": "Thực tế quy đổi (Base Amount)",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "default": "0.0",
+   "fieldname": "variance_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Chênh lệch tiền (Variance Amount)",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "default": "0.0",
+   "fieldname": "variance_pct",
+   "fieldtype": "Float",
+   "label": "Tỷ lệ chênh lệch % (Variance %)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Trạng thái (Status)",
+   "options": "Draft\nVerified\nAllocated\nCancelled",
+   "reqd": 1
+  },
+  {
+   "fieldname": "expense_account",
+   "fieldtype": "Link",
+   "label": "Tài khoản chi phí (Expense Account)",
+   "options": "Account"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_critical",
+   "fieldtype": "Check",
+   "label": "Chi phí trọng yếu (Is Critical)"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Ghi chú (Remarks)"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-15 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Trade Cost Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
