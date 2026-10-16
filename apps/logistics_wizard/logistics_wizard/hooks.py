@@ -16,7 +16,8 @@ app_include_css = [
 
 
 doctype_js = {
-    "Shipment Tracking": "public/js/shipment_tracking.js"
+    "Shipment Tracking": "public/js/shipment_tracking.js",
+    "Trade Cost Sheet": "doctype/trade_cost_sheet/trade_cost_sheet.js"
 }
 
 doc_events = {

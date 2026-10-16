@@ -481,9 +481,12 @@ class TradeCaseOverviewController {
             `);
         }
 
-        // 7. Cost Summary
+        // 7. Cost Summary (Supports both Import Landed Cost & Export Cost Variance)
         if (data.cost_summary) {
             let cs = data.cost_summary;
+            let isExport = data.header && String(data.header.trade_type || '').toLowerCase() === 'export';
+            let orderLabel = isExport ? 'Trị giá Lô xuất (SO/SI)' : 'Trị giá Hàng mua (PO)';
+            let costLabel = isExport ? 'Chi phí Xuất khẩu Thực tế' : 'Tổng Chi phí Logistics Thực tế';
             let varianceSign = cs.variance_amount >= 0 ? '+' : '';
             let varianceClass = cs.variance_amount > 0 ? 'text-danger' : 'text-success';
             $('#tc-cost-status-badge').text(`${cs.cost_finalization_status} (${varianceSign}${cs.variance_pct}%)`);
@@ -491,24 +494,30 @@ class TradeCaseOverviewController {
             let breakdownRows = (cs.breakdown || []).map(b => `
                 <tr>
                     <td style="padding: 4px 0; color: #64748b;">${b.label}</td>
-                    <td style="padding: 4px 0; text-align: right; font-weight: 600;">$${b.amount.toLocaleString()}</td>
+                    <td style="padding: 4px 0; text-align: right; font-weight: 600;">$${Number(b.amount || 0).toLocaleString()}</td>
                 </tr>
             `).join('');
 
             $('#tc-cost-body').html(`
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
                     <div>
-                        <div style="font-size: 11px; color: #64748b;">Trị giá Hàng mua (PO)</div>
-                        <div style="font-size: 15px; font-weight: 800; color: #0f172a;">$${cs.purchase_value.toLocaleString()}</div>
+                        <div style="font-size: 11px; color: #64748b;">${orderLabel}</div>
+                        <div style="font-size: 14px; font-weight: 800; color: #0f172a;">$${Number(cs.purchase_value || 0).toLocaleString()}</div>
                     </div>
                     <div>
-                        <div style="font-size: 11px; color: #64748b;">Landed Cost Dự toán / Thực tế</div>
-                        <div style="font-size: 15px; font-weight: 800;" class="${varianceClass}">
-                            $${cs.actual_cost.toLocaleString()} <span style="font-size: 11px;">(${varianceSign}${cs.variance_pct}%)</span>
+                        <div style="font-size: 11px; color: #64748b;">Dự toán: $${Number(cs.estimated_cost || 0).toLocaleString()}</div>
+                        <div style="font-size: 14px; font-weight: 800;" class="${varianceClass}">
+                            $${Number(cs.actual_cost || 0).toLocaleString()} <span style="font-size: 11px;">(${varianceSign}${cs.variance_pct}%)</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: #64748b;">${isExport ? 'Chênh lệch Dự toán' : 'Tổng Landed Cost'}</div>
+                        <div style="font-size: 14px; font-weight: 800; color: #0f766e;">
+                            ${isExport ? (varianceSign + '$' + Number(cs.variance_amount || 0).toLocaleString()) : ('$' + Number(cs.actual_landed_cost || 0).toLocaleString())}
                         </div>
                     </div>
                 </div>
-                <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">Bảng Chi Phí Thành Phần:</div>
+                <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">${costLabel} Theo Nhóm:</div>
                 <table style="width: 100%; font-size: 12px; margin-bottom: 12px;">
                     ${breakdownRows}
                 </table>

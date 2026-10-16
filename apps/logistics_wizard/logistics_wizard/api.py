@@ -117,6 +117,28 @@ from .GEO_shipTracking import (
 )
 
 # 4. Pure Simulation & Backward-Compatible Aliases (Removed obsolete external aftership.py)
+# 5. Module 5: Trade Cost & Landed Cost Management
+try:
+    from logistics_wizard.costing_engine.api import (
+        get_case_cost_summary,
+        get_case_export_profitability,
+        audit_case_costs,
+        allocate_and_sync_lcv,
+    )
+except ImportError:
+    try:
+        from .costing_engine.api import (
+            get_case_cost_summary,
+            get_case_export_profitability,
+            audit_case_costs,
+            allocate_and_sync_lcv,
+        )
+    except ImportError:
+        get_case_cost_summary = None
+        get_case_export_profitability = None
+        audit_case_costs = None
+        allocate_and_sync_lcv = None
+
 @frappe.whitelist(allow_guest=True)
 def sync_aftership(tracking_number: Optional[str] = None, shipment_name: Optional[str] = None) -> Any:
     """
@@ -1659,7 +1681,7 @@ def get_trade_case_list():
     Queries DocType 'Trade Case' if exists, otherwise returns realistic demo cases.
     """
     case_list = []
-    if frappe and hasattr(frappe, "db") and frappe.db.exists("DocType", "Trade Case"):
+    if frappe and hasattr(frappe, "db") and hasattr(frappe.db, "exists") and frappe.db.exists("DocType", "Trade Case"):
         try:
             records = frappe.db.get_all(
                 "Trade Case",
@@ -2366,6 +2388,17 @@ def get_trade_case_overview_data(case_id=None):
             ]
         }
     }
+
+    # Dynamic live cost summary from costing_engine if cost sheet exists
+    target_case_id = data.get("case_id") or case_id
+    if target_case_id and get_case_cost_summary:
+        try:
+            live_cost = get_case_cost_summary(target_case_id)
+            if live_cost and live_cost.get("invoices_total", 0) > 0:
+                data["cost_summary"] = live_cost
+        except Exception:
+            pass
+
     return data
 
 

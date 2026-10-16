@@ -1,0 +1,396 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2026-10-15 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_overview",
+  "naming_series",
+  "trade_case",
+  "case_title",
+  "trade_type",
+  "status",
+  "col_break_1",
+  "company",
+  "posting_date",
+  "currency",
+  "conversion_rate",
+  "allocation_rule",
+  "landed_cost_voucher",
+  "section_financial_totals",
+  "total_purchase_value",
+  "total_estimated_cost",
+  "total_actual_cost",
+  "col_break_2",
+  "variance_amount",
+  "variance_pct",
+  "actual_landed_cost",
+  "section_status_rollups",
+  "invoices_total",
+  "invoices_received",
+  "col_break_3",
+  "costs_verified",
+  "costs_allocated",
+  "cost_finalization_status",
+  "section_export_profitability",
+  "export_revenue",
+  "export_cogs",
+  "export_logistics_cost",
+  "col_break_4",
+  "export_gross_margin",
+  "export_gross_margin_pct",
+  "export_net_profit",
+  "export_net_margin_pct",
+  "section_cost_items",
+  "cost_items",
+  "section_document_links",
+  "document_links",
+  "section_notes",
+  "audit_warnings",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_overview",
+   "fieldtype": "Section Break",
+   "label": "Định danh & Thông tin Chung (Overview & Identification)"
+  },
+  {
+   "default": "TCS-.YYYY.-.",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Mã Series",
+   "options": "TCS-.YYYY.-.",
+   "reqd": 1
+  },
+  {
+   "fieldname": "trade_case",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Hồ sơ Trade Case",
+   "options": "Trade Case",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "trade_case.case_title",
+   "fieldname": "case_title",
+   "fieldtype": "Data",
+   "label": "Tiêu đề Case",
+   "read_only": 1
+  },
+  {
+   "default": "Import",
+   "fieldname": "trade_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Loại hình thương mại (Trade Type)",
+   "options": "Import\nExport",
+   "reqd": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Trạng thái bảng chi phí",
+   "options": "Draft\nSubmitted\nVerified\nAllocated\nFinalized\nCancelled"
+  },
+  {
+   "fieldname": "col_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "trade_case.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Công ty (Company)",
+   "options": "Company"
+  },
+  {
+   "default": "Today",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Ngày hạch toán (Posting Date)"
+  },
+  {
+   "default": "USD",
+   "fetch_from": "trade_case.currency",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Đồng tiền chi phí (Currency)",
+   "options": "Currency"
+  },
+  {
+   "default": "1.0",
+   "fieldname": "conversion_rate",
+   "fieldtype": "Float",
+   "label": "Tỷ giá quy đổi (Conversion Rate)"
+  },
+  {
+   "default": "By Value",
+   "fieldname": "allocation_rule",
+   "fieldtype": "Select",
+   "label": "Quy tắc phân bổ (Allocation Rule)",
+   "options": "By Value\nBy Quantity\nBy Weight\nBy Volume\nCustom Factor"
+  },
+  {
+   "fieldname": "landed_cost_voucher",
+   "fieldtype": "Link",
+   "label": "Chứng từ LCV (Landed Cost Voucher)",
+   "options": "Landed Cost Voucher",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_financial_totals",
+   "fieldtype": "Section Break",
+   "label": "Tổng hợp Tài chính & Landed Cost (Financial Totals)"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_purchase_value",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Tổng trị giá hàng mua (Purchase Value)",
+   "options": "currency"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_estimated_cost",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Tổng chi phí dự toán (Total Estimated Cost)",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "total_actual_cost",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Tổng chi phí thực tế (Total Actual Cost)",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "variance_amount",
+   "fieldtype": "Currency",
+   "label": "Chênh lệch chi phí (Variance Amount)",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "variance_pct",
+   "fieldtype": "Percent",
+   "label": "Tỷ lệ chênh lệch (%) (Variance %)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "actual_landed_cost",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Tổng giá vốn Landed Cost thực tế (Actual Landed Cost)",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_status_rollups",
+   "fieldtype": "Section Break",
+   "label": "Tiến độ Hóa đơn & Đối soát (Invoicing & Verification Rollups)"
+  },
+  {
+   "default": "0",
+   "fieldname": "invoices_total",
+   "fieldtype": "Int",
+   "label": "Tổng số khoản chi phí (Invoices Total)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "invoices_received",
+   "fieldtype": "Int",
+   "label": "Số hóa đơn đã nhận (Invoices Received)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "costs_verified",
+   "fieldtype": "Int",
+   "label": "Chi phí đã đối soát (Costs Verified)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "costs_allocated",
+   "fieldtype": "Int",
+   "label": "Chi phí đã phân bổ (Costs Allocated)",
+   "read_only": 1
+  },
+  {
+   "default": "DRAFT",
+   "fieldname": "cost_finalization_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Trạng thái chốt chi phí (Cost Finalization Status)",
+   "options": "DRAFT\nIN PROGRESS\nALMOST READY\nALLOCATED\nFINALIZED",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.trade_type=='Export'",
+   "fieldname": "section_export_profitability",
+   "fieldtype": "Section Break",
+   "label": "Hiệu quả Kinh doanh Xuất khẩu (Export Profitability Analysis)"
+  },
+  {
+   "default": "0",
+   "fieldname": "export_revenue",
+   "fieldtype": "Currency",
+   "label": "Doanh thu xuất khẩu (Export Revenue)",
+   "options": "currency"
+  },
+  {
+   "default": "0",
+   "fieldname": "export_cogs",
+   "fieldtype": "Currency",
+   "label": "Giá vốn hàng xuất bán (Export COGS)",
+   "options": "currency"
+  },
+  {
+   "default": "0",
+   "fieldname": "export_logistics_cost",
+   "fieldtype": "Currency",
+   "label": "Chi phí logistics xuất khẩu (Logistics Cost)",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "export_gross_margin",
+   "fieldtype": "Currency",
+   "label": "Lợi nhuận gộp (Export Gross Margin)",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "export_gross_margin_pct",
+   "fieldtype": "Percent",
+   "label": "Tỷ suất LN gộp (%) (Gross Margin %)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "export_net_profit",
+   "fieldtype": "Currency",
+   "label": "Lợi nhuận thuần (Export Net Profit)",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "export_net_margin_pct",
+   "fieldtype": "Percent",
+   "label": "Tỷ suất LN thuần (%) (Net Margin %)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_cost_items",
+   "fieldtype": "Section Break",
+   "label": "Chi tiết các khoản Chi phí Logistics (Cost Items - 11 Types)"
+  },
+  {
+   "fieldname": "cost_items",
+   "fieldtype": "Table",
+   "label": "Danh sách chi phí",
+   "options": "Trade Cost Item"
+  },
+  {
+   "fieldname": "section_document_links",
+   "fieldtype": "Section Break",
+   "label": "Chứng từ ERP Liên quan (Linked ERP Documents)"
+  },
+  {
+   "fieldname": "document_links",
+   "fieldtype": "Table",
+   "label": "Chứng từ liên kết",
+   "options": "Trade Cost Document Link"
+  },
+  {
+   "fieldname": "section_notes",
+   "fieldtype": "Section Break",
+   "label": "Kiểm toán & Ghi chú (Audit & Remarks)"
+  },
+  {
+   "fieldname": "audit_warnings",
+   "fieldtype": "Small Text",
+   "label": "Cảnh báo kiểm toán (Audit Warnings)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Ghi chú thêm (Remarks)"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-15 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Trade Cost Sheet",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Stock User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
