@@ -1,6 +1,7 @@
 """Search hypotheses must stay separate from facts and preserve raw-query opportunities."""
 
 import json
+from copy import deepcopy
 from dataclasses import replace
 from types import SimpleNamespace
 
@@ -157,6 +158,77 @@ def test_routed_fallback_still_searches_and_has_diagnostics(monkeypatch):
     out = r.routed_search("ThinkPad")
     assert out["query"] == "ThinkPad"
     assert out["query_plan"]["error"]["http_status"] == 429
+
+
+@pytest.mark.parametrize(
+    "payload", [{"terms": [hint()]}, {"terms": []}, {"terms": [hint(term="84713020")]}]
+)
+def test_precomputed_plan_executes_without_replanning_and_accounts_for_shared_time(
+    monkeypatch, payload
+):
+    r = Retriever.__new__(Retriever)
+    r.unified_policy = {"version": "fixture"}
+    r.query_planner, calls = planner(payload)
+    plan = r.query_planner.plan("ThinkPad")
+    plan["elapsed_ms"] = 250
+    monkeypatch.setattr(
+        r.query_planner, "plan", lambda _: pytest.fail("Must reuse the supplied plan")
+    )
+    monkeypatch.setattr(
+        r,
+        "unified_search",
+        lambda *args, **kwargs: {
+            "timings": {"retrieval_ms": 10, "total_ms": 30, "reranking_ms": 20}
+        },
+    )
+    out = r.routed_search("ThinkPad", query_plan=plan)
+    assert len(calls) == 1 and out["query_plan"] is plan
+    assert out["timings"]["query_planning_ms"] >= 250
+    assert out["timings"]["total_ms"] == pytest.approx(
+        out["timings"]["retrieval_ms"] + out["timings"]["reranking_ms"]
+    )
+
+
+@pytest.mark.parametrize(
+    "change", ["query", "model", "terms", "queries", "ranking_query", "status", "facts"]
+)
+def test_stale_or_modified_plan_is_rejected_before_retrieval_without_replanning(
+    monkeypatch, change
+):
+    r = Retriever.__new__(Retriever)
+    r.unified_policy = {"version": "fixture"}
+    r.query_planner, calls = planner({"terms": [hint()]})
+    plan = r.query_planner.plan("ThinkPad")
+    query = "ThinkPad"
+    if change == "query":
+        query = "Điện thoại?"
+    elif change == "model":
+        r.query_planner.client.config = replace(r.query_planner.client.config, model="changed")
+    elif change == "terms":
+        plan["terms"][0]["term"] = "Máy có công suất 100 W"
+    elif change == "queries":
+        plan["queries"][1] = "Stale unrelated context"
+    elif change == "ranking_query":
+        plan["ranking_query"] = "Stale unrelated context"
+    elif change == "facts":
+        plan["used_as_product_facts"] = True
+    else:
+        plan["status"] = "CLARIFY"
+    monkeypatch.setattr(r, "unified_search", lambda *a, **kw: pytest.fail("Must not search"))
+    with pytest.raises((ValueError, TypeError)):
+        r.routed_search(query, query_plan=plan)
+    assert len(calls) == 1
+
+
+def test_returned_plan_mutation_does_not_modify_retry_cache():
+    p, calls = planner({"terms": [hint()]})
+    original = deepcopy(p.plan("ThinkPad"))
+    cached = p.plan("ThinkPad")
+    cached["terms"].clear()
+    cached["queries"].append("Unrelated message")
+    again = p.plan("ThinkPad")
+    assert again["terms"] == original["terms"] and again["queries"] == original["queries"]
+    assert len(calls) == 1
 
 
 def test_multiquery_reserves_raw_sources_in_every_channel_and_merges_by_id():

@@ -14,7 +14,10 @@ from config.settings import DEFAULT_MODEL_PRESET, MODEL_PRESETS, GroqConfig, RAG
 from rag.api import cli as demoRAG
 from rag.graph.context import GraphContext
 from rag.llm.groq_client import GroqError
+from rag.prompts.query_planning import QUERY_PLAN_SCHEMA, TURN_PLAN_SCHEMA
 from rag.prompts.schemas import ANSWER_SCHEMA, PRODUCT_REVIEW_SCHEMA
+from rag.retrieval.query_planning import QueryPlanner
+from rag.retrieval.retriever import Retriever
 from tests.support.legacy_generation import prepare_legacy_context
 
 
@@ -52,8 +55,13 @@ def conversation(
     selectable=False,
     model_selections=None,
     token_limits=False,
+    turn_actions=None,
+    turn_requests=None,
+    request_schemas=None,
+    use_real_routed_search=False,
 ):
     inputs, answers = iter(inputs), deque(answers)
+    turn_actions = deque(turn_actions or [])
     review_answers = deque(review_answers) if review_answers is not None else None
     queries, payloads = [], []
     output: list[str] = []
@@ -74,16 +82,42 @@ def conversation(
         ],
     )
 
-    def search(query, *, intent):
+    def search(query, *, intent, query_plan):
         queries.append((query, intent))
         return {
             "matches": [source],
             "hs_candidates": [source],
             "semantic_intent": {"status": "ADVISORY", "intent": advisory_intent},
             "timings": retrieval_timings,
+            "query_plan": query_plan,
         }
 
     def complete(messages, schema, **kwargs):
+        if request_schemas is not None:
+            request_schemas.append(schema)
+        if schema is QUERY_PLAN_SCHEMA:
+            return {"content": json.dumps({"terms": []}), "finish_reason": "stop"}
+        if "action" in schema.get("properties", {}):
+            payload = json.loads(messages[1]["content"])
+            if turn_requests is not None:
+                turn_requests.append(payload)
+            action = turn_actions.popleft() if turn_actions else "FOLLOW_UP"
+            if isinstance(action, Exception):
+                raise action
+            return {
+                "content": json.dumps(
+                    {
+                        "action": action,
+                        "message_anchor": payload["message"][:160],
+                        "context_anchor": payload["active_question"][:160]
+                        if action == "FOLLOW_UP"
+                        else "",
+                        "terms": [],
+                    }
+                ),
+                "finish_reason": "stop",
+                "model": "fixture-router",
+            }
         if schema is PRODUCT_REVIEW_SCHEMA:
             if review_answers is not None:
                 return {
@@ -166,12 +200,26 @@ def conversation(
             "errors": [],
         }
 
+    retriever = SimpleNamespace(routed_search=search)
+    if use_real_routed_search:
+        retriever = Retriever.__new__(Retriever)
+        retriever.unified_policy = {"version": "fixture"}
+        retriever.query_planner = QueryPlanner(client)
+
+        def unified_search(query, intent_hint="auto", *, query_plan=None):
+            result = search(query, intent=intent_hint, query_plan=query_plan)
+            if result["timings"] is None:
+                del result["timings"]
+            return result
+
+        retriever.unified_search = unified_search
+
     with (
         patch("rag.llm.answering.review_decision", side_effect=keep_fixture_decision),
         patch.object(demoRAG, "prepare_context", side_effect=prepare_legacy_context),
     ):
         demoRAG.run_console(
-            SimpleNamespace(routed_search=search),
+            retriever,
             client,
             graph,
             read=read,
@@ -238,6 +286,156 @@ def test_new_question_discards_previous_supplements():
     assert queries[-1][0] == "Phiên B"
 
 
+def test_auto_topic_switch_keeps_macbook_facts_out_of_iphone_and_vinfast_queries():
+    macbook = "MacBook Pro M5 Pro có mã HS bao nhiêu?"
+    facts = "MacBook Pro 14 inch, bàn phím và màn hình tích hợp, trọng lượng dưới 10 kg."
+    iphone = "Điện thoại iPhone 18 Pro Max có mã HS bao nhiêu?"
+    vinfast = "Xe ô tô điện VinFast VF 9 có mã HS bao nhiêu?"
+    queries, payloads, output = conversation(
+        [macbook, facts, iphone, vinfast],
+        [response("MISSING_PRODUCT_INFO"), response(), response(), response()],
+        turn_actions=["FOLLOW_UP", "NEW_QUESTION", "NEW_QUESTION"],
+    )
+    assert macbook in queries[1][0] and facts in queries[1][0]
+    assert [query for query, _ in queries[2:]] == [iphone, vinfast]
+    assert [payload["question"] for payload in payloads[2:]] == [iphone, vinfast]
+    assert output.count("Đã nhận diện câu hỏi mới") == 2
+
+
+def test_console_uses_one_preprocessing_request_per_turn_and_none_on_cached_retry():
+    schemas = []
+    macbook = "MacBook có mã HS nào?"
+    facts = "Máy nặng 1,6 kg."
+    iphone = "Điện thoại iPhone có mã HS nào?"
+    vinfast = "Xe điện VinFast có mã HS nào?"
+    queries, payloads, output = conversation(
+        [macbook, facts, iphone, vinfast, "/retry", "/details"],
+        [response()] * 5,
+        turn_actions=["FOLLOW_UP", "NEW_QUESTION", "NEW_QUESTION"],
+        request_schemas=schemas,
+        use_real_routed_search=True,
+    )
+    assert schemas.count(QUERY_PLAN_SCHEMA) == 1  # First turn has no semantic routing.
+    assert schemas.count(TURN_PLAN_SCHEMA) == 3
+    assert schemas.count(ANSWER_SCHEMA) == 5
+    assert len(schemas) == 9  # Four preparations + five answers; retry reuses its plan.
+    assert [q for q, _ in queries[2:]] == [iphone, vinfast, vinfast]
+    assert [p["question"] for p in payloads[2:]] == [iphone, vinfast, vinfast]
+    assert "cache có" in output
+
+
+def test_hs_recommendation_has_three_calls_per_uncached_turn_including_product_review():
+    schemas = []
+    conversation(
+        ["Nhẫn bằng vàng", "Tôi bổ sung: sản phẩm hoàn chỉnh", "/details"],
+        [response("RECOMMENDATION")] * 2,
+        request_schemas=schemas,
+        use_real_routed_search=True,
+    )
+    assert schemas.count(QUERY_PLAN_SCHEMA) == 1
+    assert schemas.count(TURN_PLAN_SCHEMA) == 1
+    assert schemas.count(ANSWER_SCHEMA) == 2
+    assert schemas.count(PRODUCT_REVIEW_SCHEMA) == 2
+    assert len(schemas) == 6
+
+
+def test_new_topic_while_awaiting_clarification_is_independent_and_retry_skips_routing():
+    requests = []
+    iphone = "Điện thoại iPhone 18 Pro Max có mã HS bao nhiêu?"
+    queries, payloads, _ = conversation(
+        ["MacBook Pro có mã HS bao nhiêu?", iphone, "/retry"],
+        [response("MISSING_PRODUCT_INFO"), response(), response()],
+        turn_actions=["NEW_QUESTION"],
+        turn_requests=requests,
+    )
+    assert queries[1:] == [(iphone, "auto")] * 2
+    assert payloads[1]["question"] == payloads[2]["question"] == iphone
+    assert len(requests) == 1
+    assert (
+        requests[0]["pending_questions"] == response("MISSING_PRODUCT_INFO")["missing_information"]
+    )
+    assert set(requests[0]) == {"active_question", "supplements", "pending_questions", "message"}
+    assert "Chỉ dẫn của AI" not in json.dumps(requests, ensure_ascii=False)
+
+
+def test_related_questions_and_corrections_keep_user_context_without_rewriting():
+    original = "MacBook Pro có mã HS bao nhiêu?"
+    follow_up = "Vì sao khối lượng của máy này lại ảnh hưởng đến phân loại?"
+    correction = "Thực ra tôi đang hỏi bàn phím rời của máy, không phải máy nguyên chiếc."
+    queries, payloads, _ = conversation(
+        [original, follow_up, correction],
+        [response(), response(), response()],
+        turn_actions=["FOLLOW_UP", "FOLLOW_UP"],
+    )
+    assert original in queries[-1][0]
+    assert follow_up in queries[-1][0] and correction in queries[-1][0]
+    assert payloads[-1]["question"] == queries[-1][0]
+    assert "Chỉ dẫn của AI" not in queries[-1][0]
+
+
+@pytest.mark.parametrize("action", ["CLARIFY", GroqError(503, "fixture-router")])
+def test_ambiguous_or_failed_routing_keeps_previous_context_sources_and_retry(action):
+    queries, _, output = conversation(
+        ["Câu hỏi gốc", "Còn cái đó?", "/sources", "/retry"],
+        [response(), response()],
+        turn_actions=[action],
+    )
+    assert queries == [("Câu hỏi gốc", "auto")] * 2
+    assert "Ngữ cảnh hiện tại được giữ nguyên" in output
+    assert "Nội dung nguồn" in output
+    assert "Chỉ dẫn của AI" in output
+
+
+def test_manual_commands_and_explicit_prefixes_skip_semantic_routing():
+    requests = []
+    queries, _, output = conversation(
+        [
+            "/add Chưa có câu hỏi",
+            "/new MacBook Pro có mã HS bao nhiêu?",
+            "/add Khối lượng dưới 10 kg.",
+            "Đính chính: Máy có khối lượng 1,6 kg.",
+            "/NEW Điện thoại có mã HS bao nhiêu?",
+            "Câu hỏi mới: Xe điện có mã HS bao nhiêu?",
+            "/add",
+        ],
+        [response()] * 5,
+        turn_requests=requests,
+    )
+    assert len(queries) == 5
+    assert "Khối lượng dưới 10 kg." in queries[2][0]
+    assert "Máy có khối lượng 1,6 kg." in queries[2][0]
+    assert queries[3][0] == "Điện thoại có mã HS bao nhiêu?"
+    assert queries[4][0] == "Câu hỏi mới: Xe điện có mã HS bao nhiêu?"
+    assert requests == []
+    assert "Chưa có câu hỏi để bổ sung" in output
+    assert "Dùng /add <dữ kiện>" in output
+
+
+@pytest.mark.parametrize("failure", [GroqError(503, "fixture-model"), ValueError("packing")])
+def test_new_topic_failure_clears_previous_sources_and_never_restores_previous_question(failure):
+    iphone = "Điện thoại iPhone có mã HS bao nhiêu?"
+    queries, _, output = conversation(
+        ["MacBook có mã HS bao nhiêu?", iphone, "/sources", "/retry"],
+        [response(), failure, response()],
+        turn_actions=["NEW_QUESTION"],
+    )
+    assert queries[1:] == [(iphone, "auto")] * 2
+    assert "Nội dung nguồn" not in output
+    assert "Chưa có câu trả lời hợp lệ" in output or "Chưa có kết quả" in output
+
+
+def test_rejected_supplement_does_not_mutate_context_but_new_question_can_replace_full_context():
+    original = "A" * 70
+    queries, _, output = conversation(
+        [original, "Thông tin quá dài khi ghép", "/retry", "Câu hỏi độc lập"],
+        [response(), response(), response()],
+        max_chars=100,
+        turn_actions=["FOLLOW_UP", "NEW_QUESTION"],
+    )
+    assert queries == [(original, "auto"), (original, "auto"), ("Câu hỏi độc lập", "auto")]
+    assert "vượt giới hạn 100" in output
+
+
 def test_provider_failure_preserves_question_and_context_for_retry():
     queries, _, output = conversation(
         ["Câu hỏi gốc", "Thông tin bổ sung", "/details", "/retry"],
@@ -297,7 +495,7 @@ def test_missing_sources_skip_main_generation_and_only_review_decision():
         read=lambda _: next(inputs),
         write=output.append,
     )
-    assert len(calls) == 1
+    assert len(calls) == 2  # Query preparation and the existing decision review.
     assert not any("Mã HS đề xuất:" in line for line in output)
     assert not any("Thông tin bạn cần bổ sung" in line for line in output)
     assert not any("Không gọi LLM" in line for line in output)
@@ -749,7 +947,7 @@ def test_token_budget_details_distinguish_full_request_estimates_and_provider_us
 def test_budget_overflow_preserves_all_user_facts_for_model_switch_and_retry():
     facts = ("Dữ kiện hàng hóa được người dùng xác nhận. " * 5000).strip()
     queries, payloads, output = conversation(
-        ["/model 3", "Câu hỏi gốc", facts, "/details", "/model 2", "/retry", "/sources"],
+        ["/model 3", "Câu hỏi gốc", "/add " + facts, "/details", "/model 2", "/retry", "/sources"],
         [response("MISSING_PRODUCT_INFO"), response()],
         selectable=True,
         token_limits=True,

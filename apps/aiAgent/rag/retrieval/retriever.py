@@ -1709,7 +1709,14 @@ class Retriever:
             return {"intent": "tt85", "status": "LEGAL_QUERY", "reason": "PROCEDURE_INTENT"}
         return {"intent": "product", "status": "UNCERTAIN", "reason": "SOFT_CROSS_SECTION"}
 
-    def routed_search(self, query: str, mode: str | None = None, intent: str = "auto") -> dict:
+    def routed_search(
+        self,
+        query: str,
+        mode: str | None = None,
+        intent: str = "auto",
+        *,
+        query_plan: dict | None = None,
+    ) -> dict:
         if intent not in {"auto", "product", "qa"}:
             raise ValueError("Intent must be auto, product or qa")
         if not getattr(self, "unified_policy", None):
@@ -1718,8 +1725,15 @@ class Retriever:
             raise ValueError("Unified retrieval uses the locked full_hybrid policy")
         started = time.perf_counter()
         planner = getattr(self, "query_planner", None)
-        plan = planner.plan(query) if planner else raw_query_plan(query)
-        planning_ms = (time.perf_counter() - started) * 1000
+        if query_plan is None:
+            plan = planner.plan(query) if planner else raw_query_plan(query)
+            planning_ms = (time.perf_counter() - started) * 1000
+        else:
+            if planner is None:
+                raise ValueError("A precomputed plan requires its query planner")
+            planner.validate_plan(query, query_plan)
+            plan = query_plan
+            planning_ms = plan["elapsed_ms"] + (time.perf_counter() - started) * 1000
         if plan["status"] == "EXPANDED":
             result = self.unified_search(query, intent_hint=intent, query_plan=plan)
         else:

@@ -19,6 +19,7 @@ from rag.llm.answering import generate_answer
 from rag.llm.budget import ContextBudgetError
 from rag.llm.client import RAGClient
 from rag.llm.context import compose_query, load_generation_graph, prepare_context
+from rag.llm.conversation import turn_context
 from rag.llm.errors import LLMError
 from rag.retrieval.query_planning import QueryPlanner
 from rag.retrieval.retriever import Retriever  # noqa: E402
@@ -27,8 +28,9 @@ from rag.vectordb.postgres import connect  # noqa: E402
 INTRO = """RAG Demo
 Nhập câu hỏi để bắt đầu. Dùng /help để xem các lệnh."""
 
-HELP = """Nhập câu hỏi, rồi bổ sung dữ kiện để tiếp tục cùng câu hỏi.
-/new      Bắt đầu câu hỏi mới, xóa ngữ cảnh cũ
+HELP = """Tự nhận diện câu hỏi mới hoặc thông tin bổ sung cho câu hỏi đang xét.
+/new      Bắt đầu câu hỏi mới; /new <câu hỏi> để hỏi ngay
+/add <dữ kiện>  Bổ sung hoặc đính chính cho câu hỏi đang xét
 /retry    Thử lại với dữ kiện hiện tại
 /sources  Xem trích đoạn và vị trí nguồn của câu trả lời vừa rồi
 /details  Xem model, thời gian và thông tin kiểm tra
@@ -168,17 +170,16 @@ def _duration(milliseconds) -> str:
 def _show_stage_timings(context: dict, generated: dict, write) -> None:
     retrieval = context.get("retrieval_timings") or {}
     generation = generated.get("timings") or {}
+    stages = [
+        ("Retrieval", retrieval.get("retrieval_ms")),
+        ("Reranking", retrieval.get("reranking_ms")),
+        ("LLM", generation.get("llm_ms")),
+        ("Validation", generation.get("validation_ms")),
+    ]
+    if context.get("conversation_routing"):
+        stages.insert(0, ("Hội thoại", context["conversation_routing"].get("elapsed_ms")))
     _write_text(
-        "Đo từng bước: "
-        + " · ".join(
-            f"{label} {_duration(value)}"
-            for label, value in (
-                ("Retrieval", retrieval.get("retrieval_ms")),
-                ("Reranking", retrieval.get("reranking_ms")),
-                ("LLM", generation.get("llm_ms")),
-                ("Validation", generation.get("validation_ms")),
-            )
-        ),
+        "Đo từng bước: " + " · ".join(f"{label} {_duration(value)}" for label, value in stages),
         write,
     )
 
@@ -265,6 +266,20 @@ def show_details(
     write(f"Thời gian: {elapsed:.1f}s")
     if show_timings:
         _show_stage_timings(context, generated, write)
+    routing = context.get("conversation_routing")
+    if routing:
+        _write_text(f"Nhận diện hội thoại: {routing['action']} · {routing['method']}", write)
+        if routing.get("shared_with_query_plan"):
+            _write_text(
+                "Nhận diện và diễn giải dùng chung một request (nằm trong Retrieval).", write
+            )
+        elif routing.get("generation"):
+            route_generation = routing["generation"]
+            _write_text(
+                f"Model hội thoại: {route_generation.get('model', 'chưa rõ')} · "
+                f"usage: {route_generation.get('usage', {})}",
+                write,
+            )
     retrieval_timings = context.get("retrieval_timings") or {}
     if retrieval_timings:
         _write_text(
@@ -474,14 +489,19 @@ def run_console(retriever, client, graph, *, read=input, write=print, debug: boo
     question = ""
     supplements: list[str] = []
     needs_product_info = False
+    pending_questions: list[str] = []
+    planner = getattr(retriever, "query_planner", None)
+    if planner is None:
+        planner = QueryPlanner(client)
+        retriever.query_planner = planner
     last_result: tuple[dict, dict, float] | None = None
     write(INTRO)
     _write_text(f"Model: {_current_model_label(client)} · /model để đổi", write)
     while True:
         prompt = (
-            "\nBổ sung thông tin: "
+            "\nBổ sung thông tin hoặc nhập câu hỏi mới: "
             if needs_product_info
-            else "\nTiếp tục (/new để hỏi câu mới): "
+            else "\nCâu hỏi mới hoặc thông tin bổ sung: "
             if question
             else "\nCâu hỏi: "
         )
@@ -515,42 +535,92 @@ def run_console(retriever, client, graph, *, read=input, write=print, debug: boo
         if command == "/new":
             question, supplements = "", []
             needs_product_info = False
+            pending_questions = []
             last_result = None
             write("Đã bắt đầu câu hỏi mới.")
             continue
-        if text.startswith("/") and command != "/retry":
+        forced_action = None
+        verb, *arguments = text.split(maxsplit=1)
+        if verb.lower() in {"/new", "/add"}:
+            if not arguments:
+                write("Dùng /add <dữ kiện> để bổ sung cho câu hỏi đang xét.")
+                continue
+            if verb.lower() == "/add" and not question:
+                write("Chưa có câu hỏi để bổ sung. Hãy nhập câu hỏi trước.")
+                continue
+            forced_action = "NEW_QUESTION" if verb.lower() == "/new" else "FOLLOW_UP"
+            text = arguments[0]
+        elif text.startswith("/") and command != "/retry":
             write("Lệnh không hợp lệ. Dùng /help để xem hướng dẫn.")
             continue
         if command == "/retry" and not question:
             write("Chưa có câu hỏi để thử lại.")
             continue
 
-        previous_question, previous_supplements = question, supplements
-        if command != "/retry":
-            if question:
-                supplements = [*supplements, text]
-            else:
-                question = text
+        started = time.perf_counter()
+        routing: dict = {"action": "FOLLOW_UP", "method": "RETRY", "elapsed_ms": 0.0}
+        next_question, next_supplements = question, supplements
+        if (
+            command != "/retry"
+            and client.config.max_input_chars is not None
+            and len(text) > client.config.max_input_chars
+        ):
+            write(f"Nội dung vượt giới hạn {client.config.max_input_chars} ký tự.")
+            continue
+        write("Đang chuẩn bị câu hỏi và từ khóa tìm nguồn…")
         try:
-            query = compose_query(question, supplements, client.config.max_input_chars)
+            with _runtime_output(debug):
+                if command == "/retry":
+                    query = compose_query(question, supplements, client.config.max_input_chars)
+                    plan = planner.plan(query)
+                else:
+                    routing, plan = planner.plan_turn(
+                        question,
+                        supplements,
+                        text,
+                        pending_questions,
+                        forced_action=forced_action,
+                        max_chars=client.config.max_input_chars,
+                    )
+            if routing["action"] == "CLARIFY":
+                write(
+                    "Chưa xác định được đây là câu hỏi mới hay thông tin bổ sung. "
+                    "Ngữ cảnh hiện tại được giữ nguyên. "
+                    "Dùng /new <câu hỏi> hoặc /add <dữ kiện> để chỉ định."
+                )
+                if debug and routing.get("error_code"):
+                    write("Nhận diện hội thoại: " + routing["error_code"])
+                continue
+            if command != "/retry":
+                next_question, next_supplements = turn_context(
+                    question, supplements, text, routing["action"]
+                )
+            query = compose_query(next_question, next_supplements, client.config.max_input_chars)
+        except KeyboardInterrupt:
+            return
         except ValueError:
-            question, supplements = previous_question, previous_supplements
             write(
                 f"Tổng câu hỏi và thông tin bổ sung vượt giới hạn "
                 f"{client.config.max_input_chars} ký tự. Hãy rút gọn hoặc dùng /new."
             )
             continue
 
-        started = time.perf_counter()
-        context = {}
+        if routing["action"] == "NEW_QUESTION":
+            if question:
+                write("Đã nhận diện câu hỏi mới; bắt đầu với ngữ cảnh riêng.")
+            needs_product_info = False
+            pending_questions = []
+        question, supplements = next_question, next_supplements
+        context = {"conversation_routing": routing}
         last_result = None
         try:
             write("Đang tìm nguồn và soạn câu trả lời…")
             with _runtime_output(debug):
-                result = retriever.routed_search(query, intent="auto")
+                result = retriever.routed_search(query, intent="auto", query_plan=plan)
                 context["retrieval_timings"] = dict(result.get("timings") or {})
                 packing_started = time.perf_counter()
                 context = prepare_context(query, result, "auto", client.config, graph)
+                context["conversation_routing"] = routing
                 context["packing_ms"] = (time.perf_counter() - packing_started) * 1000
                 context["retrieval_timings"] = dict(result.get("timings") or {})
                 generated = generate_answer(context, client)
@@ -559,6 +629,11 @@ def run_console(retriever, client, graph, *, read=input, write=print, debug: boo
             needs_product_info = (
                 generated["validation"]["valid"]
                 and generated["answer"].get("status") == "MISSING_PRODUCT_INFO"
+            )
+            pending_questions = (
+                list(generated["answer"].get("missing_information", []))
+                if needs_product_info
+                else []
             )
             show_answer(context, generated, elapsed, write, debug=debug)
         except ContextBudgetError as exc:
@@ -606,10 +681,9 @@ def run_console(retriever, client, graph, *, read=input, write=print, debug: boo
             if debug:
                 show_details(context, generated, elapsed, write, show_timings=False)
         except ValueError:
-            question, supplements = previous_question, previous_supplements
             write(
                 "Chưa xử lý được lượt này. Hãy rút gọn thông tin vừa nhập hoặc dùng /new; "
-                "thông tin trước đó được giữ lại."
+                "câu hỏi và dữ kiện hiện tại được giữ lại để /retry."
             )
         except KeyboardInterrupt:
             return
