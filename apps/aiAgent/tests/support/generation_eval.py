@@ -52,6 +52,7 @@ def retrieval_for(case: dict, retriever, cache_dir, use_cache: bool = True) -> t
         "snapshot": retriever.snapshot,
         "profile": retriever.profile,
         "policy_hash": digest(retriever.unified_policy),
+        "query_preprocessing_hash": retriever.query_preprocessing_hash(),
     }
     target = cache_dir / f"{digest(identity)}.json"
     if use_cache and target.exists():
@@ -60,7 +61,8 @@ def retrieval_for(case: dict, retriever, cache_dir, use_cache: bool = True) -> t
             raise ValueError("Retrieval cache identity mismatch")
         return cached["result"], True
     result = json_safe(retriever.routed_search(case["query"]))
-    write_json(target, {"identity": identity, "result": result})
+    if result.get("query_plan", {}).get("status") != "FALLBACK_RAW":
+        write_json(target, {"identity": identity, "result": result})
     return result, False
 
 

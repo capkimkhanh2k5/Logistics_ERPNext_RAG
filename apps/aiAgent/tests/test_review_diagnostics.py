@@ -9,9 +9,9 @@ from rag.graph.context import GraphContext
 from rag.llm.answering import generate_answer
 from rag.llm.client import RAGClient
 from rag.llm.cliproxy_client import CLIProxyClient
-from rag.llm.context import prepare_context
 from rag.llm.groq_client import GroqClient
 from rag.prompts.schemas import PRODUCT_REVIEW_SCHEMA
+from tests.support.legacy_generation import prepare_legacy_context as prepare_context
 
 
 def context(question="Complete equipment made of aluminum for daily use."):

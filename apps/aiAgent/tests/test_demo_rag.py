@@ -15,6 +15,7 @@ from rag.api import cli as demoRAG
 from rag.graph.context import GraphContext
 from rag.llm.groq_client import GroqError
 from rag.prompts.schemas import ANSWER_SCHEMA, PRODUCT_REVIEW_SCHEMA
+from tests.support.legacy_generation import prepare_legacy_context
 
 
 def response(status="ANSWERED"):
@@ -165,7 +166,10 @@ def conversation(
             "errors": [],
         }
 
-    with patch("rag.llm.answering.review_decision", side_effect=keep_fixture_decision):
+    with (
+        patch("rag.llm.answering.review_decision", side_effect=keep_fixture_decision),
+        patch.object(demoRAG, "prepare_context", side_effect=prepare_legacy_context),
+    ):
         demoRAG.run_console(
             SimpleNamespace(routed_search=search),
             client,
@@ -324,10 +328,16 @@ def test_startup_selects_default_or_explicit_model_without_interactive_menu(monk
     conn = SimpleNamespace(execute=lambda _: None)
     retriever = SimpleNamespace(unified_policy={"active": True})
     conversations = []
+    planners = []
+
+    def retriever_factory(*_, query_planner):
+        planners.append(query_planner)
+        return retriever
+
     monkeypatch.setattr(demoRAG, "RAGClient", client_factory)
     monkeypatch.setattr(demoRAG, "connect", lambda: nullcontext(conn))
     monkeypatch.setattr(demoRAG, "Embedder", lambda: object())
-    monkeypatch.setattr(demoRAG, "Retriever", lambda *_: retriever)
+    monkeypatch.setattr(demoRAG, "Retriever", retriever_factory)
     monkeypatch.setattr(demoRAG, "load_generation_graph", lambda _: None)
     monkeypatch.setattr(
         demoRAG,
@@ -337,6 +347,7 @@ def test_startup_selects_default_or_explicit_model_without_interactive_menu(monk
     assert demoRAG.main([] if choice is None else ["--model", choice]) == 0
     expected = choice or DEFAULT_MODEL_PRESET
     assert selected == conversations == [expected]
+    assert planners[0].client.model_preset == expected
 
 
 def test_invalid_startup_model_is_rejected_before_initializing_runtime(monkeypatch, capsys):

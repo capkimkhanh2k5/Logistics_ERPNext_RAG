@@ -20,6 +20,7 @@ from rag.llm.budget import ContextBudgetError
 from rag.llm.client import RAGClient
 from rag.llm.context import compose_query, load_generation_graph, prepare_context
 from rag.llm.errors import LLMError
+from rag.retrieval.query_planning import QueryPlanner
 from rag.retrieval.retriever import Retriever  # noqa: E402
 from rag.vectordb.postgres import connect  # noqa: E402
 
@@ -272,6 +273,29 @@ def show_details(
             f"Tổng truy xuất: {_duration(retrieval_timings.get('total_ms'))}",
             write,
         )
+    plan = context.get("query_plan") or {}
+    if plan:
+        _write_text(
+            f"Diễn giải truy vấn: {plan['status']} · "
+            f"{_duration(retrieval_timings.get('query_planning_ms'))} · "
+            f"cache {'có' if plan.get('cache_hit') else 'không'} (nằm trong Retrieval)",
+            write,
+        )
+        if plan.get("terms"):
+            _write_text(
+                "Từ khóa tìm nguồn (chưa xác minh dữ kiện): "
+                + "; ".join(row["term"] for row in plan["terms"]),
+                write,
+            )
+        if plan.get("error"):
+            _write_text("Diễn giải không thành công; đã tìm bằng câu hỏi gốc.", write)
+        if plan.get("generation"):
+            planning_generation = plan["generation"]
+            _write_text(
+                f"Model diễn giải: {planning_generation.get('model', 'chưa rõ')} · "
+                f"usage lần tạo plan: {planning_generation.get('usage', {})}",
+                write,
+            )
     if "packing_ms" in context:
         _write_text(f"Đóng gói ngữ cảnh: {_duration(context['packing_ms'])}", write)
     generation_timings = generated.get("timings") or {}
@@ -619,7 +643,7 @@ def main(argv: list[str] | None = None) -> int:
         with connect() as conn:
             conn.execute("SET default_transaction_read_only = on")
             with _runtime_output(args.debug):
-                retriever = Retriever(conn, Embedder())
+                retriever = Retriever(conn, Embedder(), query_planner=QueryPlanner(client))
                 if not getattr(retriever, "unified_policy", None):
                     raise ValueError("No active unified retrieval policy")
                 graph = load_generation_graph(retriever)

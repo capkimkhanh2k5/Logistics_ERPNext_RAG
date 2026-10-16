@@ -185,3 +185,117 @@ DECISION_REVIEW_SCHEMA: dict = {
         "clarifications",
     ],
 }
+
+
+# Wire contracts reference immutable backend registries. ANSWER_SCHEMA remains the
+# public terminal/notebook result contract; older saved contexts can still replay it.
+_IDS = {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": True}
+_CLAIMS = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "kind": {"type": "string", "enum": ["PRODUCT_FACT", "LEGAL_ANALYSIS", "CONCLUSION"]},
+            "text": {"type": "string", "minLength": 1},
+            "evidence_ids": _IDS,
+            "fact_ids": _IDS,
+        },
+        "required": ["kind", "text", "evidence_ids", "fact_ids"],
+    },
+}
+_CLARIFICATIONS = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "question": {"type": "string", "minLength": 1},
+            "attribute": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Tên thuộc tính do điều kiện nguồn xác định; không giới hạn danh mục. product_type/question_scope dành cho nhận diện hoặc phạm vi.",
+            },
+            "evidence_ids": _IDS,
+        },
+        "required": ["question", "attribute", "evidence_ids"],
+    },
+}
+
+MODEL_ANSWER_SCHEMA: dict = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "status": ANSWER_SCHEMA["properties"]["status"],
+        "claims": {**_CLAIMS, "minItems": 1},
+        "suggested_hs_code": ANSWER_SCHEMA["properties"]["suggested_hs_code"],
+        "clarifications": _CLARIFICATIONS,
+        "missing_legal_evidence": ANSWER_SCHEMA["properties"]["missing_legal_evidence"],
+    },
+    "required": [
+        "status",
+        "claims",
+        "suggested_hs_code",
+        "clarifications",
+        "missing_legal_evidence",
+    ],
+}
+
+MODEL_PRODUCT_REVIEW_SCHEMA: dict = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "status": PRODUCT_REVIEW_SCHEMA["properties"]["status"],
+        "reason": PRODUCT_REVIEW_SCHEMA["properties"]["reason"],
+        "condition_checks": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "evidence_id": {"type": "string", "minLength": 1},
+                    "assessment": PRODUCT_REVIEW_SCHEMA["properties"]["condition_checks"]["items"][
+                        "properties"
+                    ]["assessment"],
+                    "fact_ids": _IDS,
+                    "user_quotes": {"type": "array", "items": {"type": "string", "minLength": 1}},
+                },
+                "required": ["evidence_id", "assessment", "fact_ids", "user_quotes"],
+            },
+        },
+        "clarifications": _CLARIFICATIONS,
+        "missing_legal_evidence": ANSWER_SCHEMA["properties"]["missing_legal_evidence"],
+    },
+    "required": [
+        "status",
+        "reason",
+        "condition_checks",
+        "clarifications",
+        "missing_legal_evidence",
+    ],
+}
+
+MODEL_DECISION_REVIEW_SCHEMA: dict = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "request_kind": DECISION_REVIEW_SCHEMA["properties"]["request_kind"],
+        "identity_status": DECISION_REVIEW_SCHEMA["properties"]["identity_status"],
+        "identity_fact_ids": _IDS,
+        "product_type": {"type": "string"},
+        "decision": DECISION_REVIEW_SCHEMA["properties"]["decision"],
+        "reason": DECISION_REVIEW_SCHEMA["properties"]["reason"],
+        "retained_qa": _CLAIMS,
+        "clarifications": _CLARIFICATIONS,
+    },
+    "required": [
+        "request_kind",
+        "identity_status",
+        "identity_fact_ids",
+        "product_type",
+        "decision",
+        "reason",
+        "retained_qa",
+        "clarifications",
+    ],
+}

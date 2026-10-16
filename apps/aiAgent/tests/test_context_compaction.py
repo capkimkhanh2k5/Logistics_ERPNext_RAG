@@ -51,19 +51,26 @@ def test_model_projection_keeps_code_label_chain_and_full_server_provenance():
     assert [row["code"] for row in result["hs_candidates"]] == ["11111100", "11111101", "11111102"]
     for full, compact in zip(ctx["candidate_evidence"], payload["candidate_evidence"], strict=True):
         assert compact["code"] == full["code"]
-        assert compact["required_citation_labels"] == full["required_citation_labels"]
+        ids = {source["label"]: source["evidence_id"] for source in ctx["sources"]}
+        assert compact["required_citation_evidence_ids"] == [
+            ids[label] for label in full["required_citation_labels"]
+        ]
         assert compact["hierarchy"]["status"] == full["hierarchy"]["status"] == "VERIFIED"
         for node, projected in zip(
             full["hierarchy"]["chain"], compact["hierarchy"]["chain"], strict=True
         ):
             assert node["id"] and node["legal_evidence_ids"]
             assert projected["code"] == node["code"]
-            assert projected["evidence_labels"] == node["evidence_labels"]
+            assert projected["evidence_evidence_ids"] == [
+                ids[label] for label in node["evidence_labels"]
+            ]
             assert "id" not in projected and "legal_evidence_ids" not in projected
 
     for full, compact in zip(ctx["sources"], payload["sources"], strict=True):
-        assert compact["id"] == full["id"]
+        assert "id" not in compact
         assert compact["text"] == full["text"]
+        assert "label" not in compact
+        assert compact["evidence_id"] == full["evidence_id"]
         assert full["locator"]["sha256"] == locator["sha256"]
         assert full["locator"]["bbox"] == locator["bbox"]
         assert compact["locator"] == {

@@ -14,6 +14,7 @@ from tests.support.generation_scenarios import (
     load_scenarios,
     run_scenarios,
 )
+from tests.support.protocol_fixtures import qa_response
 
 
 def answered(status="ANSWERED"):
@@ -91,7 +92,11 @@ def test_clarification_retrieves_again_and_does_not_carry_facts_to_another_scena
     def complete(prompt, *args, **kwargs):
         messages.append(prompt)
         status = "MISSING_PRODUCT_INFO" if len(messages) == 1 else "ANSWERED"
-        return {"content": json.dumps(answered(status)), "finish_reason": "stop", "model": "main"}
+        return {
+            "content": json.dumps(qa_response(prompt, status)),
+            "finish_reason": "stop",
+            "model": "main",
+        }
 
     client = SimpleNamespace(config=GroqConfig(keys=("x",)), complete=complete)
     retriever = SimpleNamespace(snapshot="s", profile="p", unified_policy={})

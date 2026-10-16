@@ -10,7 +10,7 @@ from config.settings import GroqConfig
 from rag.graph.context import GraphContext
 from rag.llm.budget import ContextBudgetError, request_budget
 from rag.llm.context import compose_query, prepare_context
-from rag.prompts.schemas import ANSWER_SCHEMA
+from rag.prompts.schemas import MODEL_ANSWER_SCHEMA as ANSWER_SCHEMA
 
 
 def runtime_config(model="gemini-3.5-flash-lite"):
@@ -110,7 +110,8 @@ def test_budget_counts_system_schema_and_explicit_utf8_cost():
     unicode_ctx = prepare_context("ắ" * 20, {}, "qa", runtime_config())
     budget = unicode_ctx["packing"]["request_budget"]
     assert budget["mode"] == "CONSERVATIVE_UTF8_BOUND"
-    assert budget["input_tokens"] - ascii_ctx["packing"]["request_budget"]["input_tokens"] == 40
+    # Both the question and its provenance-backed statement retain the original text.
+    assert budget["input_tokens"] - ascii_ctx["packing"]["request_budget"]["input_tokens"] == 80
     assert budget == request_budget(unicode_ctx["messages"], ANSWER_SCHEMA, runtime_config().model)
     user_only = request_budget([unicode_ctx["messages"][1]], {}, runtime_config().model)
     assert budget["input_tokens"] > user_only["input_tokens"]

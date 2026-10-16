@@ -7,8 +7,8 @@ import pytest
 
 from config.settings import GroqConfig
 from rag.llm.answering import generate_answer
-from rag.llm.context import prepare_context
 from rag.llm.errors import LLMError
+from tests.support.legacy_generation import prepare_legacy_context as prepare_context
 
 
 def legal_answer():

@@ -41,6 +41,7 @@ rag/
 │   ├── budget.py               # Guard toàn request theo model; ước lượng UTF-8 và output còn lại
 │   ├── answering.py            # Sinh câu trả lời, sửa lỗi và kiểm tra đề xuất HS
 │   ├── decision_review.py      # Rà soát thiếu dữ kiện trước khi chấp nhận thiếu nguồn
+│   ├── evidence.py             # ID lời người dùng/chứng cứ, dựng citation và giải mã contract
 │   ├── quantitative.py         # Guard số đo/ngưỡng từ trích đoạn người dùng và nguồn
 │   ├── validation.py           # Schema, trích nguyên văn, ancestry và quyền sở hữu dữ kiện
 │   ├── client.py               # CLIProxyAPI chính → Groq fallback
@@ -70,7 +71,23 @@ Model đã có trong [registry giới hạn](../config/model_limits.py) dùng to
 
 Luồng v5 vẫn dùng một policy chung: hybrid toàn nguồn → graph context → pool theo ID → M3 → Qwen. `intent="auto"`, `"product"`, `"qa"` chỉ là hint; không thay candidate pool/ranking. `matches` trả Top-10 nguồn, `hs_candidates` chiếu tối đa 10 mã HS8 từ ranked pool; `package` giữ các nguồn sơ cấp có citation. Retrieval không tự chốt mã HS.
 
+Terminal và notebook generation dùng `QueryPlanner(client)` để diễn giải từ khóa tìm nguồn từ toàn bộ câu hỏi và các lượt bổ sung. Prompt/schema nằm ở [prompts/query_planning.py](prompts/query_planning.py), không tra danh sách hãng, loại hàng hoặc thuộc tính viết sẵn. Mỗi từ khóa phải có anchor nguyên văn trong câu hỏi; schema và code chặn mã số, điều kiện số học, nhãn citation hoặc đầu ra lỗi. Loại hàng diễn giải vẫn là giả thuyết của model, chưa phải dữ kiện được xác minh.
+
+Luồng mới: câu hỏi gốc + một truy vấn có từ khóa bổ sung → chạy cả hai trên cùng các kênh retrieval → hợp nhất theo source ID, chia cơ hội giữa truy vấn gốc và truy vấn mở rộng trong từng kênh → pool chung → M3 → Qwen. Xếp hạng dùng câu hỏi gốc kèm các từ khóa; semantic intent vẫn chỉ là advisory dựa trên câu hỏi gốc. Trọng số, ngân sách nguồn, model và instruction reranker trong policy đã khóa giữ nguyên. Đây là thay đổi luồng truy vấn, không phải kết quả đánh giá lại policy cũ. Câu hỏi/phủ định/mã do người dùng cung cấp không bị thay bằng bản diễn giải.
+
+Từ khóa tìm kiếm chỉ nằm trong chẩn đoán `query_plan`; không đi vào `user_context`, messages trả lời, citation hoặc bằng chứng pháp lý. Model diễn giải dùng chung lựa chọn model và chuỗi fallback của client; nếu lỗi provider/schema/anchor hoặc đầu ra bị cắt, vẫn tìm bằng câu hỏi gốc. Không cache lỗi tạm thời. `/retry` dùng lại plan trong bộ nhớ; thêm dữ kiện, đổi model hoặc sửa prompt làm đổi khóa cache. `/details` hiển thị từ khóa, model, usage và thời gian diễn giải **nằm trong Retrieval**; LLM ở dòng đo bốn bước là các cuộc gọi tạo/kiểm tra câu trả lời. Bước diễn giải làm phát sinh thêm một cuộc gọi model khi chưa có cache.
+
+API cấp thấp `Retriever(conn, embedder)` và `unified_search(query)` giữ tìm kiếm gốc để chạy offline/replay policy. Muốn cùng luồng với terminal, khởi tạo `Retriever(conn, embedder, query_planner=QueryPlanner(client))` và gọi `routed_search(query)`. Cache generation đánh dấu riêng hash prompt/schema/cấu hình model của planner; không dùng lại cache từ cơ chế nhận diện bằng danh sách cũ. Chạy đối chiếu retrieval trên corpus chỉ đọc bằng `python scripts/diagnose_retrieval_flow.py --queries <queries.json> --out <report.json>`; file truy vấn là danh sách `{id, query}`. Đây là chẩn đoán ứng viên/nguồn, không tự chốt tính đúng pháp lý hoặc đo chất lượng trên holdout.
+
 LLM chỉ hỏi người dùng về dữ kiện hàng hóa/hồ sơ còn thiếu qua `MISSING_PRODUCT_INFO`. Thiếu wording, GIR, Notes hoặc quan hệ HS phải trả `INSUFFICIENT_LEGAL_EVIDENCE`; không yêu cầu người dùng bổ sung luật. Đề xuất HS vẫn cần hierarchy `CONTAINS` đã xác minh và đủ nhãn citation bắt buộc. Các kiểm tra này nằm trong code, ngoài system prompt.
+
+Context mới dùng `registry-v2`: `user_context.statements` lưu lời người dùng theo thứ tự lượt và các trích đoạn nguyên văn có ID. Không tự gán loại hàng, thuộc tính, trạng thái đúng/sai hoặc tài liệu nhà sản xuất. Main, Product Review và Decision Review dùng chung ngữ cảnh này. Model chịu trách nhiệm đọc ý nghĩa, chủ thể, phủ định, mức độ chắc chắn, mâu thuẫn và đính chính; ID chỉ xác nhận nguồn gốc lời nói.
+
+Các nhận định dùng `evidence_ids` và `fact_ids` (ID lời người dùng); backend dựng `[S#]`, trích đoạn nguồn và citations. Product Review kiểm tra cả câu trả lời nháp và từng điều kiện của ứng viên, dùng `user_quotes` lấy đúng từ các ID lời người dùng đã tham chiếu. Backend chặn trích đoạn không có trong nguồn gốc đó, kiểm tra cấu trúc, nguồn/citation và ancestry. Kiểm tra định lượng giữ các phép so sánh số đo/đơn vị dùng chung; không nhận diện hãng, bộ phận hoặc thuộc tính theo một danh mục sản phẩm. Đối chiếu ngữ nghĩa vẫn là đánh giá của model, không phải chứng minh pháp lý tự động.
+
+`clarifications.attribute` là tên thuộc tính mở do điều kiện trong nguồn xác định. `product_type` và `question_scope` là hai vai trò chung cho nhận diện đối tượng/phạm vi câu hỏi và có thể không cần nguồn; thuộc tính khác phải có `evidence_ids`. Model chỉ hỏi dữ kiện thực sự ảnh hưởng lựa chọn hoặc điều kiện bắt buộc, không hỏi lại điều đã rõ. Đã xóa các cấu hình nhận diện theo danh mục, tham chiếu thông số theo dòng sản phẩm, parser Product Fact và nhãn thuộc tính cố định trong CLI. Mở rộng phạm vi pháp lý vẫn cần corpus phù hợp; chỉ thêm corpus không đảm bảo model đã đối chiếu đúng mọi trường hợp.
+
+Ngữ cảnh `registry-v1` cần được dựng lại; runtime từ chối rõ ràng thay vì tái sử dụng dữ kiện nhận diện/tham chiếu tự động cũ. Contract kết quả công khai `ANSWER_SCHEMA` giữ nguyên; fixture pre-registry vẫn kiểm tra đường replay công khai cũ và các chốt nguồn/số đo. Sơ đồ từ câu hỏi đến câu trả lời: [GenerationFlow.md](../docs/GenerationFlow/GenerationFlow.md), Retrieval được gom thành một khối.
 
 Toàn bộ chỉ dẫn tác vụ, sửa lỗi, định dạng provider và template Qwen do ứng dụng định nghĩa được quản lý tại [prompts/README.md](prompts/README.md). Các module xử lý import template từ đó; policy JSON giữ bản chụp instruction để đối chiếu cấu hình đã khóa.
 

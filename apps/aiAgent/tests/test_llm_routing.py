@@ -13,11 +13,11 @@ from rag.llm.answering import generate_answer
 from rag.llm.budget import request_budget
 from rag.llm.client import RAGClient
 from rag.llm.cliproxy_client import CLIProxyClient
-from rag.llm.context import prepare_context
 from rag.llm.errors import LLMError
 from rag.llm.groq_client import GroqError
 from rag.prompts.schemas import ANSWER_SCHEMA
 from tests.support.generation_scenarios import _generate
+from tests.support.legacy_generation import prepare_legacy_context as prepare_context
 
 
 def answer():

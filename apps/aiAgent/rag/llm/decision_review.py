@@ -5,12 +5,13 @@ import re
 from time import perf_counter
 
 from rag.llm.errors import LLMError
+from rag.llm.evidence import decode_decision_review, model_sources, user_registry
 from rag.llm.validation import _folded, schema_errors, validate_answer
 from rag.prompts.decision_review import (
     DECISION_REVIEW_PROMPT,
     format_decision_review_repair_prompt,
 )
-from rag.prompts.schemas import DECISION_REVIEW_SCHEMA
+from rag.prompts.schemas import DECISION_REVIEW_SCHEMA, MODEL_DECISION_REVIEW_SCHEMA
 from rag.utils.files import digest
 
 
@@ -49,6 +50,9 @@ def _checked_decision(review: dict, context: dict, answer: dict) -> tuple[dict, 
     if identity == "IDENTIFIED":
         if not product_type.strip() or not quote.strip():
             errors.append("Loại hàng đã nhận diện phải có tên loại hàng và trích đoạn người dùng")
+        elif context.get("response_protocol") == "registry-v2":
+            if not any(f["text"] == quote for f in user_registry(context).values()):
+                errors.append("Căn cứ nhận diện không thuộc lời người dùng hiện tại.")
         elif quote not in context["question"] or product_type not in quote:
             errors.append("Loại hàng phải nằm nguyên văn trong trích đoạn thực tế của người dùng")
     elif product_type or quote:
@@ -164,16 +168,24 @@ def review_decision(
     for key in ("llm_ms", "decision_review_llm_ms", "validation_ms"):
         timings.setdefault(key, 0.0)
     started = perf_counter()
+    registry_protocol = context.get("response_protocol") == "registry-v2"
+    review_schema = MODEL_DECISION_REVIEW_SCHEMA if registry_protocol else DECISION_REVIEW_SCHEMA
+    payload = {
+        "question": context["question"],
+        "sources": context["sources"],
+        "current_answer": answer,
+    }
+    if registry_protocol:
+        payload.update(
+            user_context=context["user_context"],
+            sources=model_sources(context["sources"]),
+        )
     messages = [
         {"role": "system", "content": DECISION_REVIEW_PROMPT},
         {
             "role": "user",
             "content": json.dumps(
-                {
-                    "question": context["question"],
-                    "sources": context["sources"],
-                    "current_answer": answer,
-                },
+                payload,
                 ensure_ascii=False,
             ),
         },
@@ -185,7 +197,7 @@ def review_decision(
         try:
             generation = client.complete(
                 messages,
-                DECISION_REVIEW_SCHEMA,
+                review_schema,
                 model=model if index == 0 else attempts[0].get("model", model),
                 allow_fallback=allow_fallback if index == 0 else False,
             )
@@ -226,7 +238,11 @@ def review_decision(
             review = json.loads(generation["content"])
         except (json.JSONDecodeError, TypeError):
             review = {}
+        protocol_errors: list[str] = []
+        if registry_protocol:
+            review, protocol_errors = decode_decision_review(review, context)
         proposed, errors = _checked_decision(review, context, answer)
+        errors.extend(protocol_errors)
         if generation.get("finish_reason") != "stop":
             errors.append("Lượt kiểm tra nhu cầu và dữ kiện chưa hoàn tất bình thường")
         timings["validation_ms"] += (perf_counter() - validation_started) * 1000
@@ -263,6 +279,6 @@ def review_decision(
         "requested_model": attempts[0].get("requested_model", model),
         "fallback_used": any(attempt.get("fallback_used", False) for attempt in attempts),
         "prompt_hash": digest(DECISION_REVIEW_PROMPT),
-        "schema_hash": digest(DECISION_REVIEW_SCHEMA),
+        "schema_hash": digest(review_schema),
     }
     return proposed, metadata

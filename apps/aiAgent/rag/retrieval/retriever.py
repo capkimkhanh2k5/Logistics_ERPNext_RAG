@@ -18,9 +18,10 @@ from rag.embedding.bge_m3 import Embedder
 from rag.graph.context import GraphContext, fit_rerank_context
 from rag.ingestion.sources import QA_CHUNK_TYPES
 from rag.prompts.tasks import SOURCE_COMPARISON_CLARIFICATION
+from rag.retrieval.query_planning import QUERY_FLOW_VERSION, QueryPlanner, raw_query_plan
 from rag.retrieval.rerankers import CrossEncoder, colbert_scores
 from rag.utils.codes import normalize_code
-from rag.utils.files import read
+from rag.utils.files import digest, read
 
 
 def fuse(
@@ -411,10 +412,12 @@ class Retriever:
         embedder: Embedder | None = None,
         *,
         load_unified_policy: bool = True,
+        query_planner: QueryPlanner | None = None,
     ) -> None:
         register_vector(conn)
         self.conn = conn
         self.embedder = embedder
+        self.query_planner = query_planner
         self.cfg = retrieval_config()
         active = conn.execute("SELECT snapshot,profile FROM rag.active").fetchone()
         if not active:
@@ -1713,7 +1716,36 @@ class Retriever:
             raise ValueError("Activate a locked unified retrieval policy before using Auto")
         if mode not in (None, "full_hybrid"):
             raise ValueError("Unified retrieval uses the locked full_hybrid policy")
-        return self.unified_search(query, intent_hint=intent)
+        started = time.perf_counter()
+        planner = getattr(self, "query_planner", None)
+        plan = planner.plan(query) if planner else raw_query_plan(query)
+        planning_ms = (time.perf_counter() - started) * 1000
+        if plan["status"] == "EXPANDED":
+            result = self.unified_search(query, intent_hint=intent, query_plan=plan)
+        else:
+            result = self.unified_search(query, intent_hint=intent)
+        result["query_plan"] = plan
+        result["query_preprocessing_hash"] = self.query_preprocessing_hash()
+        if "timings" in result:
+            timings = result["timings"]
+            result = {
+                **result,
+                "timings": {
+                    **timings,
+                    "query_planning_ms": planning_ms,
+                    "retrieval_ms": timings["retrieval_ms"] + planning_ms,
+                    "total_ms": timings["total_ms"] + planning_ms,
+                },
+            }
+        return result
+
+    def query_preprocessing_hash(self) -> str:
+        planner = getattr(self, "query_planner", None)
+        return (
+            planner.fingerprint()
+            if planner
+            else digest({"version": QUERY_FLOW_VERSION, "raw": True})
+        )
 
     def legacy_routed_search(
         self, query: str, mode: str | None = None, intent: str = "auto"
@@ -1742,7 +1774,9 @@ class Retriever:
             result = self.search(query, intent=routing["intent"], mode=mode)
         return {"routing": routing, **result}
 
-    def unified_search(self, query: str, intent_hint: str = "auto") -> dict:
+    def unified_search(
+        self, query: str, intent_hint: str = "auto", *, query_plan: dict | None = None
+    ) -> dict:
         started = time.perf_counter()
         from rag.retrieval.unified import UnifiedRetrieval
 
@@ -1753,7 +1787,10 @@ class Retriever:
             initialization_started = time.perf_counter()
             self._unified_retrieval = UnifiedRetrieval(self, self.unified_policy)
             initialization_ms = (time.perf_counter() - initialization_started) * 1000
-        result = self._unified_retrieval.search(query, intent_hint)
+        if query_plan is None:
+            result = self._unified_retrieval.search(query, intent_hint)
+        else:
+            result = self._unified_retrieval.search(query, intent_hint, query_plan=query_plan)
         total_ms = (time.perf_counter() - started) * 1000
         timings = {**result.get("timings", {}), "initialization_ms": initialization_ms}
         if "reranking_ms" in timings:

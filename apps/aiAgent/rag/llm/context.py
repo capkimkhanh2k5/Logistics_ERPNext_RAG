@@ -6,7 +6,8 @@ import re
 from rag.graph.context import GraphContext
 from rag.ingestion.sources import SOURCE_TYPES
 from rag.llm.budget import ContextBudgetError, request_budget
-from rag.prompts.schemas import ANSWER_SCHEMA
+from rag.llm.evidence import bind_evidence, bind_user_context, model_candidate, model_sources
+from rag.prompts.schemas import MODEL_ANSWER_SCHEMA
 from rag.prompts.system import SYSTEM_PROMPT
 from rag.prompts.tasks import TASK_INSTRUCTIONS, USER_SUPPLEMENT_TEMPLATE
 from rag.utils.files import digest
@@ -259,18 +260,20 @@ def _serialize(value: dict | list) -> str:
 
 
 def _context_payload(base: dict, packed: list[dict], candidates: list[dict], graph) -> dict:
+    packed = bind_evidence(packed, base.get("snapshot"))
     included = {source["id"] for source in packed}
     return {
         **base,
-        "sources": [_model_source(source) for source in packed],
+        "sources": model_sources([_model_source(source) for source in packed]),
         "candidate_hs_codes": [
             row["code"]
             for row in candidates
             if row["id"] in included and re.fullmatch(r"[0-9]{8}", row.get("code") or "")
         ],
-        "candidate_evidence": _model_candidate_evidence(
-            _candidate_evidence(candidates, packed, graph)
-        ),
+        "candidate_evidence": [
+            model_candidate(item, packed)
+            for item in _model_candidate_evidence(_candidate_evidence(candidates, packed, graph))
+        ],
     }
 
 
@@ -290,10 +293,13 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
     if not question.strip() or (max_input_chars is not None and len(question) > max_input_chars):
         raise ValueError("Question is empty or exceeds GROQ_MAX_INPUT_CHARS")
     rows, candidates = source_rows(result, task, graph)
+    user_context = bind_user_context(question)
     base = {
         "task": task,
         "task_instruction": TASK_INSTRUCTIONS[task],
         "question": question,
+        "user_context": user_context,
+        "snapshot": result.get("snapshot"),
         "omitted_source_count": len(rows),
         "evidence_scope": "RETRIEVED_CONTEXT_ONLY_NOT_ENTIRE_DATABASE",
         "scope": result.get("coverage", {}),
@@ -305,7 +311,9 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
     payload = _context_payload(base, packed, candidates, graph)
     user_message = _serialize(payload)
     budget = (
-        request_budget(_messages(user_message), ANSWER_SCHEMA, config.model) if token_mode else None
+        request_budget(_messages(user_message), MODEL_ANSWER_SCHEMA, config.model)
+        if token_mode
+        else None
     )
     if budget is not None and not budget["fits"]:
         raise ContextBudgetError(config.model, "cliproxyapi", budget)
@@ -320,15 +328,19 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
             *packed,
             *[_pack_source(row, len(packed) + i + 1) for i, row in enumerate(additions)],
         ]
-        model_sources = [_model_source(source) for source in proposed]
-        if max_context_chars is not None and len(_serialize(model_sources)) > max_context_chars:
+        projected_sources = model_sources(
+            [_model_source(source) for source in bind_evidence(proposed, result.get("snapshot"))]
+        )
+        if max_context_chars is not None and len(_serialize(projected_sources)) > max_context_chars:
             continue
         trial = _context_payload(
             {**base, "omitted_source_count": len(rows) - len(proposed)}, proposed, candidates, graph
         )
         message = _serialize(trial)
         trial_budget = (
-            request_budget(_messages(message), ANSWER_SCHEMA, config.model) if token_mode else None
+            request_budget(_messages(message), MODEL_ANSWER_SCHEMA, config.model)
+            if token_mode
+            else None
         )
         if (max_input_chars is None or len(message) <= max_input_chars) and (
             trial_budget is None or trial_budget["fits"]
@@ -338,12 +350,17 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
             included.update(row["id"] for row in additions)
     omitted = [row["id"] for row in rows if row["id"] not in included]
     messages = _messages(user_message)
+    packed = bind_evidence(packed, result.get("snapshot"))
     return {
+        "response_protocol": "registry-v2",
+        "user_context": user_context,
         "task": task,
         "question": question,
         "sources": packed,
         "allowed_hs_codes": payload["candidate_hs_codes"],
         "retrieved_hs_codes": [r["code"] for r in result.get("hs_candidates", [])],
+        "query_plan": result.get("query_plan", {}),
+        "query_preprocessing_hash": result.get("query_preprocessing_hash"),
         "candidate_evidence": _candidate_evidence(candidates, packed, graph),
         "source_locators": {
             s["label"]: next(r.get("locator", {}) for r in rows if r["id"] == s["id"])
@@ -355,7 +372,7 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
             "max_input_chars": max_input_chars,
             "system_chars": len(SYSTEM_PROMPT),
             "user_chars": len(user_message),
-            "schema_chars": len(_serialize(ANSWER_SCHEMA)),
+            "schema_chars": len(_serialize(MODEL_ANSWER_SCHEMA)),
             "source_chars": len(_serialize(payload["sources"])),
             "max_context_chars": max_context_chars,
             "request_budget": budget,
@@ -363,7 +380,7 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
         },
         "context_hash": digest(payload),
         "prompt_hash": digest(SYSTEM_PROMPT),
-        "schema_hash": digest(ANSWER_SCHEMA),
+        "schema_hash": digest(MODEL_ANSWER_SCHEMA),
         "messages": messages,
         "snapshot": result.get("snapshot"),
         "profile": result.get("profile"),

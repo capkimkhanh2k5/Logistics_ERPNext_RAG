@@ -7,6 +7,12 @@ from rag.llm.budget import ContextBudgetError
 from rag.llm.client import RAGClient
 from rag.llm.decision_review import review_decision
 from rag.llm.errors import LLMError
+from rag.llm.evidence import (
+    decode_answer,
+    decode_product_review,
+    model_candidate,
+    model_sources,
+)
 from rag.llm.groq_client import GroqClient
 from rag.llm.quantitative import quantitative_grounding_errors
 from rag.llm.validation import (
@@ -18,7 +24,12 @@ from rag.llm.validation import (
 )
 from rag.prompts.product_review import PRODUCT_REVIEW_PROMPT
 from rag.prompts.repair import format_product_review_repair_prompt, format_repair_prompt
-from rag.prompts.schemas import ANSWER_SCHEMA, PRODUCT_REVIEW_SCHEMA
+from rag.prompts.schemas import (
+    ANSWER_SCHEMA,
+    MODEL_ANSWER_SCHEMA,
+    MODEL_PRODUCT_REVIEW_SCHEMA,
+    PRODUCT_REVIEW_SCHEMA,
+)
 from rag.utils.files import digest
 
 
@@ -166,12 +177,26 @@ def _review_recommendation(
     candidate = next(
         e for e in context["candidate_evidence"] if e["code"] == answer["suggested_hs_code"]
     )
-    labels = set(candidate["required_citation_labels"]) | set(candidate["related_note_labels"])
+    labels = (
+        set(candidate["required_citation_labels"])
+        | set(candidate["related_note_labels"])
+        | {citation["label"] for citation in answer["citations"]}
+    )
     payload = {
         "question": context["question"],
+        "proposed_answer": answer,
         "candidate": candidate,
         "sources": [s for s in context["sources"] if s["label"] in labels],
     }
+    registry_protocol = context.get("response_protocol") == "registry-v2"
+    review_schema = MODEL_PRODUCT_REVIEW_SCHEMA if registry_protocol else PRODUCT_REVIEW_SCHEMA
+    if registry_protocol:
+        payload = {
+            **payload,
+            "user_context": context["user_context"],
+            "candidate": model_candidate(candidate, context["sources"]),
+            "sources": model_sources(payload["sources"]),
+        }
     messages = [
         {"role": "system", "content": PRODUCT_REVIEW_PROMPT},
         {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
@@ -190,7 +215,7 @@ def _review_recommendation(
         generation = _complete(
             client,
             messages,
-            PRODUCT_REVIEW_SCHEMA,
+            review_schema,
             timings,
             "product_review",
             model=model,
@@ -216,13 +241,18 @@ def _review_recommendation(
         review = json.loads(generation["content"])
     except json.JSONDecodeError:
         review = {}
-    errors = schema_errors(review, PRODUCT_REVIEW_SCHEMA)
+    errors: list[str] = []
+    if registry_protocol:
+        review, errors = decode_product_review(review, context)
+    errors.extend(schema_errors(review, PRODUCT_REVIEW_SCHEMA))
     if generation["finish_reason"] != "stop":
         errors.append("Lượt kiểm tra dữ kiện hàng hóa chưa hoàn tất bình thường")
     if not errors:
         if not review["reason"].strip():
             errors.append("Kết quả kiểm tra phải giải thích lý do cụ thể")
-        sources = {source["label"]: source for source in payload["sources"]}
+        sources = {
+            source["label"]: source for source in context["sources"] if source["label"] in labels
+        }
         for fact in review["product_facts"]:
             quote = _normalized(fact["user_quote"])
             if not quote or quote not in _normalized(context["question"]):
@@ -233,7 +263,9 @@ def _review_recommendation(
                 _folded(fact["fact"])
             ):
                 errors.append(
-                    "Nội dung pháp lý do người dùng nêu không được coi là dữ kiện hàng hóa"
+                    "Nội dung pháp lý do người dùng nêu không được coi là dữ kiện hàng hóa. "
+                    "user_quotes chỉ lấy phần mô tả hàng hóa liên quan; không chép cả yêu cầu "
+                    "hỏi mã hoặc đoạn pháp lý. Sửa trích đoạn, không coi lỗi này là thiếu dữ kiện."
                 )
         checked = set()
         for check in review["condition_checks"]:
@@ -255,11 +287,19 @@ def _review_recommendation(
                 check["assessment"] != "NOT_APPLICABLE"
                 or label in candidate["required_citation_labels"]
             ):
-                errors.append("SUPPORTED không được bỏ qua điều kiện chưa được đáp ứng")
+                errors.append(
+                    "SUPPORTED không được bỏ qua điều kiện chưa được đáp ứng: "
+                    + check["source_quote"]
+                    + " ("
+                    + check["assessment"]
+                    + ")."
+                )
         if review["status"] == "SUPPORTED":
             errors.extend(
                 quantitative_grounding_errors(
-                    review, sources, set(candidate["required_citation_labels"])
+                    review,
+                    sources,
+                    set(candidate["required_citation_labels"]),
                 )
             )
             if not set(candidate["required_citation_labels"]) <= checked:
@@ -316,7 +356,7 @@ def _review_recommendation(
         "valid": not errors,
         "errors": errors,
         "prompt_hash": digest(PRODUCT_REVIEW_PROMPT),
-        "schema_hash": digest(PRODUCT_REVIEW_SCHEMA),
+        "schema_hash": digest(review_schema),
     }
     timings["validation_ms"] += (perf_counter() - validation_started) * 1000
     if errors:
@@ -345,6 +385,8 @@ def generate_answer(
     model: str | None = None,
     allow_fallback: bool = True,
 ) -> dict:
+    if context.get("response_protocol") not in (None, "registry-v2"):
+        raise ValueError("Ngữ cảnh registry cũ cần được dựng lại từ câu hỏi và retrieval.")
     started = perf_counter()
     timings = {
         "llm_ms": 0.0,
@@ -385,13 +427,15 @@ def generate_answer(
             "timings": timings,
         }
     messages = list(context["messages"])
+    registry_protocol = context.get("response_protocol") == "registry-v2"
+    answer_schema = MODEL_ANSWER_SCHEMA if registry_protocol else ANSWER_SCHEMA
     attempts: list[dict] = []
     for attempt in range(2):
         try:
             generation = _complete(
                 client,
                 messages,
-                ANSWER_SCHEMA,
+                answer_schema,
                 timings,
                 "answer",
                 model=model if not attempts else attempts[0]["model"],
@@ -410,7 +454,12 @@ def generate_answer(
             answer = json.loads(generation["content"])
         except json.JSONDecodeError:
             answer = {}
+        protocol_errors: list[str] = []
+        if registry_protocol:
+            answer, protocol_errors = decode_answer(answer, context)
         validation = validate_answer(answer, context)
+        validation["errors"].extend(protocol_errors)
+        validation["valid"] = not validation["errors"]
         if generation["finish_reason"] != "stop":
             validation["errors"].append(
                 "Lượt sinh câu trả lời chưa hoàn tất bình thường; kiểm tra giới hạn token đầu ra"

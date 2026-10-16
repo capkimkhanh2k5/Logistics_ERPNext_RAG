@@ -32,6 +32,14 @@ _OPERATORS = (
     ("=", r"(?:=|exactly|equal\s+to|bằng|bang)"),
 )
 _BASE_UNITS = {
+    "chỗ": ("seats", "1"),
+    "cho": ("seats", "1"),
+    "người": ("seats", "1"),
+    "nguoi": ("seats", "1"),
+    "seat": ("seats", "1"),
+    "seats": ("seats", "1"),
+    "persons": ("seats", "1"),
+    "people": ("seats", "1"),
     "kg": ("mass", "1000"),
     "g": ("mass", "1"),
     "mg": ("mass", "0.001"),
@@ -70,6 +78,7 @@ _CASE_UNITS = {
 }
 _AMBIGUOUS_UNITS = {"mw": "power", "ma": "current", "mhz": "frequency"}
 _NAMES = {
+    "seats": "số chỗ ngồi",
     "mass": "khối lượng",
     "power": "công suất",
     "length": "kích thước",
@@ -253,7 +262,9 @@ def _proves(fact: _Quantity, threshold: _Quantity) -> bool:
 
 
 def quantitative_grounding_errors(
-    review: dict, sources: dict[str, dict], required_labels: set[str]
+    review: dict,
+    sources: dict[str, dict],
+    required_labels: set[str],
 ) -> list[str]:
     """Require quoted user measurements for numeric conditions claimed SUPPORTED."""
     if review.get("status") != "SUPPORTED":

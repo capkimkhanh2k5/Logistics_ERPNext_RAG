@@ -198,6 +198,23 @@ class UnifiedRetrieval:
         )
         return self.graph.format_candidates(rows, policy.get("context_format", "plain"))
 
+    def query_channels(self, queries: list[str]) -> dict:
+        """Reserve raw-query opportunities in each channel before the locked source pool."""
+        branches = [self.channels(q) for q in queries]
+        merged = {}
+        for channel in branches[0]:
+            variants = {str(i): branch[channel] for i, branch in enumerate(branches)}
+            rows = id_pool(
+                variants,
+                dict.fromkeys(variants, 1),
+                self.policy["candidate_pool"],
+                self.policy.get("rrf_k", 60),
+            )
+            for row in rows:
+                row["query_variants"] = [int(i) for i in row["branches"]]
+            merged[channel] = rows
+        return merged
+
     def encoder(self, name: str) -> CrossEncoder:
         if name not in self.encoders:
             self.encoders[name] = make_encoder(name)
@@ -268,7 +285,9 @@ class UnifiedRetrieval:
                     package.append({**source, "included_as": "CITED_RERANK_CONTEXT"})
         return package
 
-    def search(self, query: str, intent_hint: str = "auto") -> dict:
+    def search(
+        self, query: str, intent_hint: str = "auto", *, query_plan: dict | None = None
+    ) -> dict:
         """Measure disjoint retrieval and ranking wall times for this search.
 
         Ranking includes lazy encoder initialization and score-cache reads. Retrieval
@@ -276,18 +295,21 @@ class UnifiedRetrieval:
         of ranking, rather than additional stages.
         """
         tick = time.perf_counter()
-        channels = self.channels(query)
-        candidates = self.prepare(query, channels)
+        queries = query_plan["queries"] if query_plan else [query]
+        ranking_query = query_plan["ranking_query"] if query_plan else query
+        channels = self.query_channels(queries) if len(queries) > 1 else self.channels(query)
+        candidates = self.prepare(ranking_query, channels)
         self._rank_timings = {}
         self._rank_encoder_cache_cold = {}
         rank_started = time.perf_counter()
-        ranked = self.rank(query, candidates)
+        ranked = self.rank(ranking_query, candidates)
         rank_finished = time.perf_counter()
         hs = hs_projection(ranked)
         matches = ranked[:10]
         package = self.source_package(matches)
         result = {
             "query": query,
+            "retrieval_queries": queries,
             "intent": "knowledge",
             "routing": {
                 "status": "UNIFIED_SOURCE_RETRIEVAL",

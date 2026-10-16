@@ -14,6 +14,8 @@ from rag.llm.context import prepare_context
 from rag.llm.groq_client import GroqClient, GroqError
 from rag.llm.validation import validate_answer
 from tests.support.generation_eval import run_evaluation, score_case
+from tests.support.legacy_generation import prepare_legacy_context
+from tests.support.protocol_fixtures import qa_response
 
 
 def source(sid="a", text="A printed source passage with evidence.", code=None):
@@ -33,7 +35,7 @@ def context(task="qa"):
         ],
     )
     result = {"matches": [row], "package": [row], "hs_candidates": [row]}
-    return prepare_context("A question", result, task, GroqConfig(keys=("secret",)), graph)
+    return prepare_legacy_context("A question", result, task, GroqConfig(keys=("secret",)), graph)
 
 
 def answer():
@@ -205,8 +207,8 @@ def test_cached_evaluation_does_not_require_lazy_retrieval_state(monkeypatch, tm
     )
     client = SimpleNamespace(
         config=GroqConfig(keys=("x",)),
-        complete=lambda *a, **k: {
-            "content": json.dumps(answer()),
+        complete=lambda messages, *a, **k: {
+            "content": json.dumps(qa_response(messages)),
             "finish_reason": "stop",
             "model": "test-model",
         },

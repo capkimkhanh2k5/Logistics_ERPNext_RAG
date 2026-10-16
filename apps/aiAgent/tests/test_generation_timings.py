@@ -9,9 +9,9 @@ import pytest
 from config.settings import GroqConfig
 from rag.graph.context import GraphContext
 from rag.llm import answering
-from rag.llm.context import prepare_context
 from rag.llm.groq_client import GroqClient, GroqError
 from rag.prompts.schemas import ANSWER_SCHEMA, PRODUCT_REVIEW_SCHEMA
+from tests.support.legacy_generation import prepare_legacy_context as prepare_context
 
 
 class Clock:
