@@ -1,0 +1,391 @@
+/* Copyright (c) 2026, Logistics Wizard and contributors */
+/* Logistics AI Copilot - Global Floating PopUp Widget Styling */
+/* Strict Compliance: No purple/violet/indigo/magenta hues */
+
+:root {
+    --lw-fab-teal: #0d9488;
+    --lw-fab-teal-hover: #0f766e;
+    --lw-fab-dark: #0f172a;
+    --lw-fab-border: #e2e8f0;
+    --lw-fab-bg: #ffffff;
+    --lw-fab-text: #0f172a;
+    --lw-fab-muted: #64748b;
+    --lw-fab-success: #10b981;
+}
+
+/* ==========================================================================
+   FLOATING ACTION BUTTON (FAB)
+   ========================================================================== */
+#logistics-ai-fab-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 99990;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    user-select: none;
+}
+
+.logistics-fab-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0f766e, #0d9488);
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 8px 24px -4px rgba(13, 148, 136, 0.45), 0 4px 8px -2px rgba(13, 148, 136, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.logistics-fab-btn:hover {
+    transform: scale(1.08) translateY(-2px);
+    box-shadow: 0 12px 28px -4px rgba(13, 148, 136, 0.55), 0 6px 12px -2px rgba(13, 148, 136, 0.3);
+}
+
+.logistics-fab-btn:active {
+    transform: scale(0.96);
+}
+
+.fab-badge-dot {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background-color: var(--lw-fab-success);
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+}
+
+.fab-tooltip-pill {
+    background-color: var(--lw-fab-dark);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(8px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    white-space: nowrap;
+}
+
+#logistics-ai-fab-container:hover .fab-tooltip-pill {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* ==========================================================================
+   POPUP CHAT DRAWER
+   ========================================================================== */
+#logistics-ai-drawer {
+    position: fixed;
+    bottom: 92px;
+    right: 24px;
+    width: 410px;
+    height: 590px;
+    max-height: calc(100vh - 120px);
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.3), 0 8px 16px -4px rgba(15, 23, 42, 0.1);
+    border: 1px solid var(--lw-fab-border);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 99995;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    animation: drawerSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes drawerSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* DRAWER HEADER */
+.drawer-header {
+    height: 54px;
+    padding: 0 16px;
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--lw-fab-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.drawer-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.drawer-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #0f766e, #0d9488);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drawer-header-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.drawer-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--lw-fab-text);
+    line-height: 1.2;
+}
+
+.drawer-sub {
+    font-size: 11px;
+    color: var(--lw-fab-success);
+    font-weight: 500;
+}
+
+.drawer-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.drawer-action-btn {
+    background: transparent;
+    border: none;
+    color: var(--lw-fab-muted);
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.drawer-action-btn:hover {
+    background-color: #f1f5f9;
+    color: var(--lw-fab-text);
+}
+
+/* DRAWER BODY & MESSAGES */
+.drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px;
+    background-color: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.drawer-body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.drawer-body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+/* DRAWER EMPTY / QUICK PROMPTS */
+.drawer-welcome-box {
+    text-align: center;
+    padding: 18px 10px 10px;
+}
+
+.drawer-welcome-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.drawer-welcome-text {
+    font-size: 13px;
+    color: var(--lw-fab-muted);
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+.drawer-quick-prompts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+}
+
+.drawer-prompt-btn {
+    background-color: #ffffff;
+    border: 1px solid var(--lw-fab-border);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--lw-fab-text);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.drawer-prompt-btn:hover {
+    border-color: var(--lw-fab-teal);
+    background-color: #ecfdf5;
+    color: #0f766e;
+    transform: translateX(2px);
+}
+
+/* DRAWER MESSAGE BUBBLES */
+.drawer-msg-row {
+    display: flex;
+    width: 100%;
+}
+
+.drawer-msg-row.user {
+    justify-content: flex-end;
+}
+
+.drawer-msg-bubble {
+    max-width: 85%;
+    padding: 9px 13px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.55;
+    word-break: break-word;
+}
+
+.drawer-msg-row.user .drawer-msg-bubble {
+    background-color: #f1f5f9;
+    color: var(--lw-fab-text);
+    border: 1px solid var(--lw-fab-border);
+    border-bottom-right-radius: 3px;
+}
+
+.drawer-msg-row.assistant .drawer-msg-bubble {
+    background-color: #ffffff;
+    color: var(--lw-fab-text);
+    border: 1px solid var(--lw-fab-border);
+    border-bottom-left-radius: 3px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.drawer-msg-bubble p {
+    margin: 0 0 6px;
+}
+
+.drawer-msg-bubble p:last-child {
+    margin-bottom: 0;
+}
+
+.drawer-msg-bubble code {
+    background-color: #f1f5f9;
+    color: #0f766e;
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* THINKING MINI ACCORDION */
+.drawer-thinking-mini {
+    background-color: #f0fdf4;
+    border-left: 3px solid var(--lw-fab-teal);
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 11.5px;
+    color: #065f46;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+/* DRAWER FOOTER INPUT */
+.drawer-footer {
+    padding: 10px 14px;
+    background-color: #ffffff;
+    border-top: 1px solid var(--lw-fab-border);
+    flex-shrink: 0;
+}
+
+.drawer-input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    background-color: #f8fafc;
+    border: 1px solid var(--lw-fab-border);
+    border-radius: 12px;
+    padding: 6px 10px;
+    transition: border-color 0.18s ease;
+}
+
+.drawer-input-row:focus-within {
+    border-color: var(--lw-fab-teal);
+    background-color: #ffffff;
+}
+
+.drawer-textarea {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--lw-fab-text);
+    max-height: 80px;
+    resize: none;
+    padding: 4px 0;
+    line-height: 1.4;
+}
+
+.drawer-btn-send {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background-color: var(--lw-fab-teal);
+    color: #ffffff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+
+.drawer-btn-send:hover {
+    background-color: var(--lw-fab-teal-hover);
+}
+
+.drawer-btn-send:disabled {
+    background-color: #cbd5e1;
+    cursor: not-allowed;
+}
+
+/* RESPONSIVE FOR MOBILE */
+@media (max-width: 480px) {
+    #logistics-ai-drawer {
+        right: 12px;
+        left: 12px;
+        width: auto;
+        bottom: 84px;
+        height: calc(100vh - 100px);
+    }
+}

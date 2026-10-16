@@ -1,0 +1,167 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"hdr_shortcuts\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Truy Cập Nhanh (Logistics Quick Access)</b></span>\",\"col\":12}},{\"id\":\"sc_ai\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Logistics AI Copilot\",\"col\":3}},{\"id\":\"sc_cost_dash\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trade Cost & Landed Cost Dashboard\",\"col\":3}},{\"id\":\"sc_hub\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Management Logistic Hub\",\"col\":3}},{\"id\":\"sc_cost_sheet\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trade Cost Sheet\",\"col\":3}},{\"id\":\"sc_trade_case\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trade Case\",\"col\":3}},{\"id\":\"sc_tracking\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Shipment Tracking\",\"col\":3}},{\"id\":\"sc_lcv\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Landed Cost Voucher\",\"col\":3}},{\"id\":\"sp_1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"hdr_modules\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Phân Hệ Quản Trị & Nghiệp Vụ</b></span>\",\"col\":12}},{\"id\":\"card_ai\",\"type\":\"card\",\"data\":{\"card_name\":\"AI & Financial Analytics\",\"col\":4}},{\"id\":\"card_costing\",\"type\":\"card\",\"data\":{\"card_name\":\"Costing & Landed Cost\",\"col\":4}},{\"id\":\"card_operations\",\"type\":\"card\",\"data\":{\"card_name\":\"Trade Operations & Tracking\",\"col\":4}}]",
+ "creation": "2026-10-16 00:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "shipment",
+ "idx": 1,
+ "is_hidden": 0,
+ "label": "Logistics Wizard",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "AI & Financial Analytics",
+   "link_count": 0,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Logistics AI Copilot (ChatBot)",
+   "link_count": 0,
+   "link_to": "logistics-ai-chatbot",
+   "link_type": "Page",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trade Cost & Landed Cost Dashboard",
+   "link_count": 0,
+   "link_to": "trade-cost-dashboard",
+   "link_type": "Page",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Management Logistic Hub",
+   "link_count": 0,
+   "link_to": "managementLogistic",
+   "link_type": "Page",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Costing & Landed Cost",
+   "link_count": 0,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trade Cost Sheet",
+   "link_count": 0,
+   "link_to": "Trade Cost Sheet",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Landed Cost Voucher",
+   "link_count": 0,
+   "link_to": "Landed Cost Voucher",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trade Operations & Tracking",
+   "link_count": 0,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trade Case",
+   "link_count": 0,
+   "link_to": "Trade Case",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Shipment Tracking",
+   "link_count": 0,
+   "link_to": "Shipment Tracking",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-10-16 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Logistics Wizard",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "restrict_to_domain": "",
+ "roles": [],
+ "sequence_id": 20.0,
+ "shortcuts": [
+  {
+   "label": "Logistics AI Copilot",
+   "link_to": "logistics-ai-chatbot",
+   "type": "Page"
+  },
+  {
+   "label": "Trade Cost & Landed Cost Dashboard",
+   "link_to": "trade-cost-dashboard",
+   "type": "Page"
+  },
+  {
+   "label": "Management Logistic Hub",
+   "link_to": "managementLogistic",
+   "type": "Page"
+  },
+  {
+   "label": "Trade Cost Sheet",
+   "link_to": "Trade Cost Sheet",
+   "type": "DocType"
+  },
+  {
+   "label": "Trade Case",
+   "link_to": "Trade Case",
+   "type": "DocType"
+  },
+  {
+   "label": "Shipment Tracking",
+   "link_to": "Shipment Tracking",
+   "type": "DocType"
+  },
+  {
+   "label": "Landed Cost Voucher",
+   "link_to": "Landed Cost Voucher",
+   "type": "DocType"
+  }
+ ],
+ "title": "Logistics Wizard"
+}

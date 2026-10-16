@@ -37,13 +37,22 @@ try:
     frappe.connect()
     from frappe.modules.import_file import import_file_by_path
     app_path = frappe.get_app_path('logistics_wizard')
-    page_json = os.path.join(app_path, 'page', 'shipment_tracking_hub', 'shipment_tracking_hub.json')
-    if os.path.exists(page_json):
-        import_file_by_path(page_json, force=True)
-        frappe.db.commit()
-        print('>>> Page shipment-tracking-hub registered successfully.')
+    items_to_sync = [
+        ('page', 'shipment_tracking_hub', 'shipment_tracking_hub.json'),
+        ('page', 'managementlogistic', 'managementlogistic.json'),
+        ('page', 'trade_case_overview', 'trade_case_overview.json'),
+        ('page', 'logistics_ai_chatbot', 'logistics_ai_chatbot.json'),
+        ('page', 'trade_cost_dashboard', 'trade_cost_dashboard.json'),
+        ('workspace', 'logistics_wizard', 'logistics_wizard.json')
+    ]
+    for sub in items_to_sync:
+        f_path = os.path.join(app_path, *sub)
+        if os.path.exists(f_path):
+            import_file_by_path(f_path, force=True)
+            print(f'>>> Registered {sub[-1]} successfully.')
+    frappe.db.commit()
 except Exception as e:
-    print('>>> Page sync error:', e)
+    print('>>> Page/Workspace sync error:', e)
 " || true
 else
     echo ">>> Creating site '$SITE_NAME'..."

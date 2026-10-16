@@ -7,11 +7,13 @@ app_license = "mit"
 
 app_include_js = [
     "leaflet.bundle.js",
-    "smart_workflow_widget.bundle.js"
+    "smart_workflow_widget.bundle.js",
+    "logistics_chatbot_widget.js"
 ]
 app_include_css = [
     "leaflet.bundle.css",
-    "smart_workflow_widget.bundle.css"
+    "smart_workflow_widget.bundle.css",
+    "logistics_chatbot_widget.css"
 ]
 
 
