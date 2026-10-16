@@ -752,37 +752,54 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 10px;
+    gap: 11px;
     width: 100%;
-    padding: 10px 12px;
+    padding: 10px 14px;
     border-radius: 8px;
     border: 1px solid transparent;
     background: transparent;
     cursor: pointer;
     text-decoration: none !important;
-    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     text-align: left;
     box-sizing: border-box;
     font-size: 13px;
     font-weight: 600;
     color: #475569;
+    overflow: hidden;
+}
+
+.logistics-nav-tab::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 3.5px;
+    height: 65%;
+    border-radius: 0 4px 4px 0;
+    background-color: #0284c7;
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .logistics-nav-tab:hover {
     color: #0284c7;
     background: #f0f9ff;
     border-color: #e0f2fe;
-    transform: translateY(-1px);
+    transform: translateX(3px);
 }
 
 .logistics-nav-tab.active {
     color: #0284c7;
     background: #e0f2fe;
     border-color: #bae6fd;
-    border-left: 3.5px solid #0284c7;
     font-weight: 700;
-    box-shadow: 0 1px 3px rgba(2, 132, 199, 0.08);
+    box-shadow: 0 1px 3px rgba(2, 132, 199, 0.1);
+}
+
+.logistics-nav-tab.active::before {
+    transform: translateY(-50%) scaleY(1);
 }
 
 .logistics-nav-tab .tab-icon {
@@ -793,12 +810,13 @@
     height: 18px;
     color: #64748b;
     flex-shrink: 0;
-    transition: color 0.18s ease;
+    transition: color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .logistics-nav-tab:hover .tab-icon,
 .logistics-nav-tab.active .tab-icon {
     color: #0284c7;
+    transform: scale(1.12);
 }
 
 .logistics-nav-tab .tab-text {
@@ -821,29 +839,33 @@
     background-color: #f8fafc;
 }
 
-/* 3. Tab Panes with Smooth Fade-in & Slide Transition */
+/* 3. Tab Panes with Silky Smooth Slide & Fade-in Entrance Transition */
 .logistics-tab-pane {
     padding: 20px 24px 60px;
-    transition: opacity 0.25s ease;
+    display: none !important;
+    opacity: 0;
 }
 
 .logistics-tab-pane.active {
     display: block !important;
-    animation: tabPaneFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: tabEntranceSmooth 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .logistics-tab-pane:not(.active) {
     display: none !important;
 }
 
-@keyframes tabPaneFadeIn {
+@keyframes tabEntranceSmooth {
     0% {
         opacity: 0;
-        transform: translateY(8px);
+        transform: translateY(12px) scale(0.996);
+    }
+    60% {
+        opacity: 0.9;
     }
     100% {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
 
@@ -1358,4 +1380,510 @@
 
 .tc-event-desc {
     color: #1e293b;
+}
+
+/* ==============================================================================
+   TAB 3: TRADE COST & LANDED COST MANAGEMENT DASHBOARD STYLES
+   Strictly complies with PURPLE BAN (No purple/violet/magenta/indigo)
+   ============================================================================== */
+
+.tcd-alloc-btn {
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #475569 !important;
+    transition: all 0.18s ease !important;
+}
+
+.tcd-alloc-btn:hover {
+    background: #f0f9ff !important;
+    border-color: #0284c7 !important;
+    color: #0284c7 !important;
+}
+
+.tcd-alloc-btn.active {
+    background: #0284c7 !important;
+    border-color: #0284c7 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 5px rgba(2, 132, 199, 0.25) !important;
+}
+
+.tcd-type-btn {
+    border: none;
+    background: transparent;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.tcd-type-btn.active {
+    background: #0284c7;
+    color: #ffffff;
+}
+
+.tcd-type-btn:hover:not(.active) {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.tcd-var-positive {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.tcd-var-negative {
+    color: #059669;
+    font-weight: 600;
+}
+
+.tcd-var-zero {
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* ==============================================================================
+   TAB 4: LOGISTICS AI COPILOT WORKSPACE STYLES
+   Light Theme & Strict PURPLE BAN
+   ============================================================================== */
+
+.lw-copilot-container {
+    display: flex;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    height: calc(100vh - 120px);
+    min-height: 580px;
+    overflow: hidden;
+}
+
+/* 1. Left Sessions Panel */
+.lw-copilot-sessions-panel {
+    width: 270px;
+    min-width: 270px;
+    background: #f8fafc;
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    user-select: none;
+}
+
+.lw-copilot-sessions-header {
+    padding: 14px 14px 10px;
+}
+
+.lw-copilot-search-wrap {
+    padding: 0 14px 10px;
+    position: relative;
+}
+
+.lw-copilot-search-icon {
+    position: absolute;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.lw-copilot-search-input {
+    height: 32px !important;
+    font-size: 12px !important;
+    padding-left: 30px !important;
+    border-radius: 6px !important;
+    border-color: #cbd5e1 !important;
+    background: #ffffff !important;
+}
+
+.lw-copilot-search-input:focus {
+    border-color: #0284c7 !important;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15) !important;
+}
+
+.lw-copilot-sessions-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 10px 14px;
+}
+
+.lw-session-group-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    padding: 8px 6px 4px;
+}
+
+.lw-session-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-bottom: 2px;
+    color: #475569;
+}
+
+.lw-session-item:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.lw-session-item.active {
+    background: #e0f2fe;
+    color: #0284c7;
+    font-weight: 600;
+}
+
+.lw-session-icon {
+    font-size: 13px;
+    flex-shrink: 0;
+    color: #64748b;
+}
+
+.lw-session-item.active .lw-session-icon {
+    color: #0284c7;
+}
+
+.lw-session-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.lw-session-title {
+    font-size: 12.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+.lw-session-time {
+    font-size: 10.5px;
+    color: #94a3b8;
+    line-height: 1.2;
+}
+
+/* 2. Right Conversation Workspace */
+.lw-copilot-chat-workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-width: 0;
+    background: #ffffff;
+}
+
+.lw-copilot-chat-header {
+    height: 58px;
+    padding: 0 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    background: #ffffff;
+}
+
+.lw-copilot-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lw-copilot-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: #0284c7;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+}
+
+.lw-copilot-main-title {
+    margin: 0;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.lw-copilot-sub-title {
+    font-size: 11.5px;
+    color: #64748b;
+}
+
+.lw-copilot-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 3. Messages Stream */
+.lw-copilot-messages-thread {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    background: #ffffff;
+}
+
+.lw-copilot-welcome-box {
+    text-align: center;
+    padding: 30px 16px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    margin: auto 0;
+}
+
+.lw-welcome-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #e0f2fe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+}
+
+.lw-suggestions-grid {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.lw-suggestion-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 20px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.lw-suggestion-pill:hover {
+    border-color: #0284c7;
+    background: #f0f9ff;
+    color: #0284c7;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(2, 132, 199, 0.12);
+}
+
+/* Chat Messages */
+.lw-chat-message {
+    display: flex;
+    gap: 12px;
+    max-width: 88%;
+}
+
+.lw-chat-message.lw-chat-user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.lw-chat-message.lw-chat-assistant {
+    align-self: flex-start;
+}
+
+.lw-chat-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.lw-chat-user .lw-chat-avatar {
+    background: #334155;
+    color: #ffffff;
+}
+
+.lw-chat-assistant .lw-chat-avatar {
+    background: #0284c7;
+    color: #ffffff;
+}
+
+.lw-chat-bubble {
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.lw-chat-user .lw-chat-bubble {
+    background: #0284c7;
+    color: #ffffff;
+    border-bottom-right-radius: 3px;
+}
+
+.lw-chat-assistant .lw-chat-bubble {
+    background: #f8fafc;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    border-bottom-left-radius: 3px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+/* Thinking accordion block */
+.lw-thinking-block {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.lw-thinking-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    background: #e2e8f0;
+    user-select: none;
+}
+
+.lw-thinking-content {
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #334155;
+    border-top: 1px solid #cbd5e1;
+    line-height: 1.5;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Chat actions row */
+.lw-chat-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.lw-chat-action-btn {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    border-radius: 5px;
+    padding: 3px 8px;
+    font-size: 11px;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.lw-chat-action-btn:hover {
+    color: #0284c7;
+    border-color: #0284c7;
+    background: #f0f9ff;
+}
+
+/* 4. Input Area */
+.lw-copilot-input-area {
+    padding: 12px 24px 14px;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.lw-copilot-input-box {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 8px 12px;
+    background: #ffffff;
+    transition: all 0.18s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.lw-copilot-input-box:focus-within {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.18);
+}
+
+.lw-copilot-textarea {
+    flex: 1;
+    border: none;
+    outline: none;
+    resize: none;
+    font-size: 13px;
+    line-height: 1.45;
+    max-height: 120px;
+    height: 38px;
+    color: #0f172a;
+    font-family: inherit;
+    background: transparent;
+    padding: 4px 0;
+}
+
+.lw-copilot-textarea::placeholder {
+    color: #94a3b8;
+}
+
+.lw-copilot-send-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: #0284c7;
+    color: #ffffff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.18s ease;
+}
+
+.lw-copilot-send-btn:hover {
+    background: #0369a1;
+    transform: scale(1.05);
+}
+
+.lw-copilot-send-btn:active {
+    transform: scale(0.96);
+}
+
+.lw-copilot-disclaimer {
+    font-size: 11px;
+    color: #94a3b8;
+    text-align: center;
+    margin-top: 6px;
 }

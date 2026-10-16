@@ -17,7 +17,7 @@
 
         <nav class="logistics-nav-list">
             <!-- 1. Trade Case Overview -->
-            <button class="logistics-nav-tab active" data-tab="trade-case-overview" data-target="overview" id="btn-tab-overview" title="Trade Case Overview">
+            <button class="logistics-nav-tab active" data-tab="overview" id="btn-tab-overview" title="Trade Case Overview">
                 <span class="tab-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
@@ -27,7 +27,7 @@
             </button>
 
             <!-- 2. Shipment Tracking Hub -->
-            <button class="logistics-nav-tab" data-tab="shipment-tracking-hub" data-target="tracking" id="btn-tab-tracking" title="Shipment Tracking Hub">
+            <button class="logistics-nav-tab" data-tab="tracking" id="btn-tab-tracking" title="Shipment Tracking Hub">
                 <span class="tab-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="3 11 22 2 13 21 11 13 3 11"/>
@@ -37,7 +37,7 @@
             </button>
 
             <!-- 3. Trade Cost Dashboard -->
-            <a href="/app/trade-cost-dashboard" class="logistics-nav-tab" id="btn-nav-trade-cost" title="Trade Cost Dashboard">
+            <button class="logistics-nav-tab" data-tab="cost" id="btn-tab-cost" title="Trade Cost Dashboard">
                 <span class="tab-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="12" y1="1" x2="12" y2="23"></line>
@@ -45,17 +45,17 @@
                     </svg>
                 </span>
                 <span class="tab-text">Trade Cost Dashboard</span>
-            </a>
+            </button>
 
             <!-- 4. Logistics AI Copilot -->
-            <a href="/app/logistics-ai-chatbot" class="logistics-nav-tab" id="btn-nav-ai-copilot" title="Logistics AI Copilot">
+            <button class="logistics-nav-tab" data-tab="copilot" id="btn-tab-copilot" title="Logistics AI Copilot">
                 <span class="tab-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     </svg>
                 </span>
                 <span class="tab-text">Logistics AI Copilot</span>
-            </a>
+            </button>
         </nav>
     </aside>
 
@@ -317,7 +317,7 @@
     </div>
 
     <!-- TAB 2: SHIPMENT TRACKING HUB (100% NGUYÊN BẢN CỦA 7d1ef41) -->
-    <div class="logistics-tab-pane" id="tab-pane-shipment-tracking" style="display: none;">
+    <div class="logistics-tab-pane" id="tab-pane-shipment-tracking">
         <div class="shipment-tracking-hub-container">
             <!-- Top Action Header -->
             <div class="hub-header-bar">
@@ -535,6 +535,377 @@
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- TAB 3: TRADE COST & LANDED COST MANAGEMENT DASHBOARD -->
+        <div class="logistics-tab-pane" id="tab-pane-trade-cost">
+            <!-- 1. Top Control Bar (matching tc-tab-control-bar) -->
+            <div class="tc-tab-control-bar">
+                <div class="tc-select-case-group">
+                    <label for="tcd-case-selector" class="tc-select-label">
+                        <i class="fa fa-calculator" style="color: #0284c7;"></i> Chọn hồ sơ Trade Case:
+                    </label>
+                    <div class="tc-select-wrapper">
+                        <select id="tcd-case-selector" class="form-control tc-case-select-dropdown">
+                            <option value="IMP-2026-001" selected>IMP-2026-001 - ABC Electronics Co., Ltd (Import Case • In Transit)</option>
+                            <option value="EXP-2026-002">EXP-2026-002 - Global Coffee Exporter (Export Case • Ready)</option>
+                            <option value="IMP-2026-003">IMP-2026-003 - Pacific Seafood Import (Import Case • Delivered)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="tc-tab-control-actions">
+                    <div class="hub-filter-tabs" style="border: 1px solid #e2e8f0; border-radius: 6px; background: #ffffff; padding: 2px;">
+                        <button class="hub-tab-btn active tcd-type-btn" data-type="all">Tất cả</button>
+                        <button class="hub-tab-btn tcd-type-btn" data-type="import">Nhập khẩu (Landed Cost)</button>
+                        <button class="hub-tab-btn tcd-type-btn" data-type="export">Xuất khẩu (Export Margin)</button>
+                    </div>
+                    <button class="btn btn-default btn-sm" id="tcd-btn-refresh" title="Làm mới"><i class="fa fa-refresh"></i> Làm mới</button>
+                    <button class="btn btn-primary btn-sm hub-btn-sync" id="tcd-btn-new-sheet"><i class="fa fa-plus"></i> Lập Cost Sheet</button>
+                    <button class="btn btn-default btn-sm" id="tcd-btn-sync-lcv" title="Đồng bộ sang ERPNext Landed Cost Voucher"><i class="fa fa-exchange"></i> Đồng bộ LCV</button>
+                </div>
+            </div>
+
+            <!-- 2. KPI Summary Grid (4 Cards matching Hub style) -->
+            <div class="hub-kpi-grid">
+                <div class="hub-kpi-card kpi-total">
+                    <div class="kpi-icon-wrap">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2">
+                            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                            <line x1="12" y1="8" x2="12" y2="16"></line>
+                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                        </svg>
+                    </div>
+                    <div class="kpi-data">
+                        <div class="kpi-label">Trị giá hàng mua (FOB)</div>
+                        <div class="kpi-value" id="tcd-kpi-po-val">$125,000.00</div>
+                        <div class="kpi-desc">Trị giá trên hợp đồng ngoại thương</div>
+                    </div>
+                </div>
+
+                <div class="hub-kpi-card kpi-transit">
+                    <div class="kpi-icon-wrap">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                    </div>
+                    <div class="kpi-data">
+                        <div class="kpi-label">Chi phí dự toán (Estimated)</div>
+                        <div class="kpi-value" id="tcd-kpi-est-val" style="color: #0284c7;">$16,800.00</div>
+                        <div class="kpi-desc">Định mức chi phí logistics dự kiến</div>
+                    </div>
+                </div>
+
+                <div class="hub-kpi-card">
+                    <div class="kpi-icon-wrap" style="background-color: #ecfdf5;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                    </div>
+                    <div class="kpi-data">
+                        <div class="kpi-label">Chi phí thực tế (Actual)</div>
+                        <div class="kpi-value" id="tcd-kpi-act-val" style="color: #059669;">$18,350.00</div>
+                        <div class="kpi-desc">Tổng chi phí theo hóa đơn nhà cung cấp</div>
+                    </div>
+                </div>
+
+                <div class="hub-kpi-card kpi-delayed">
+                    <div class="kpi-icon-wrap">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                            <polyline points="17 6 23 6 23 12"></polyline>
+                        </svg>
+                    </div>
+                    <div class="kpi-data">
+                        <div class="kpi-label">Chênh lệch chi phí (Variance)</div>
+                        <div class="kpi-value" id="tcd-kpi-var-val" style="color: #dc2626;">+$1,550.00 (+9.2%)</div>
+                        <div class="kpi-desc">Cảnh báo: Vượt dự toán ban đầu</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Split Section (65% / 35%) -->
+            <div class="hub-split-section">
+                <!-- CỘT TRÁI (65%): Bảng Kê Chi Tiết 11 Khoản Chi Phí & Custom Allocation Engine -->
+                <div class="hub-table-panel">
+                    <div class="hub-card-header">
+                        <div class="card-header-title">
+                            <span class="header-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2">
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                                </svg>
+                            </span>
+                            <span class="header-text">Bảng Kê Chi Tiết 11 Khoản Chi Phí Logistics (Cost Sheet Items)</span>
+                        </div>
+                        <div class="card-header-controls">
+                            <span class="badge-status badge-in-transit" id="tcd-status-badge">Đang Đối Soát</span>
+                        </div>
+                    </div>
+
+                    <div class="hub-table-wrapper" style="max-height: 380px;">
+                        <table class="table hub-data-table">
+                            <thead>
+                                <tr>
+                                    <th>Khoản Chi Phí (Cost Type)</th>
+                                    <th>Nhà Cung Cấp</th>
+                                    <th>Số Hóa Đơn</th>
+                                    <th class="text-right">Dự Toán</th>
+                                    <th class="text-right">Thực Tế</th>
+                                    <th class="text-right">Chênh Lệch</th>
+                                    <th class="text-center">Trạng Thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tcd-cost-items-tbody">
+                                <!-- Rendered dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Custom Landed Cost Allocation Engine Card inside Panel -->
+                    <div style="border-top: 1px solid #e2e8f0; padding: 16px 18px; background: #ffffff;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                            <div>
+                                <h4 style="margin: 0; font-size: 13.5px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa fa-sliders" style="color: #0d9488;"></i>
+                                    Custom Cost Allocation Engine (Phân Bổ Giá Vốn Landed Cost)
+                                </h4>
+                                <span style="font-size: 11.5px; color: #64748b;">Tự động phân bổ chi phí vào từng mặt hàng trong Purchase Receipt theo chuẩn kế toán ERPNext</span>
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <button class="btn btn-xs btn-default tcd-alloc-btn active" data-rule="weight"><i class="fa fa-balance-scale"></i> Trọng lượng (Weight)</button>
+                                <button class="btn btn-xs btn-default tcd-alloc-btn" data-rule="value"><i class="fa fa-dollar"></i> Trị giá (Value)</button>
+                                <button class="btn btn-xs btn-default tcd-alloc-btn" data-rule="qty"><i class="fa fa-cubes"></i> Số lượng (Qty)</button>
+                                <button class="btn btn-xs btn-default tcd-alloc-btn" data-rule="volume"><i class="fa fa-cube"></i> Thể tích (CBM)</button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive" style="max-height: 240px; overflow-y: auto;">
+                            <table class="table table-bordered hub-data-table" style="font-size: 12px;">
+                                <thead>
+                                    <tr style="background: #f8fafc;">
+                                        <th>Mã Hàng (Item)</th>
+                                        <th>Tên Mặt Hàng</th>
+                                        <th class="text-center">Số Lượng</th>
+                                        <th class="text-right">Đơn Giá Mua</th>
+                                        <th class="text-right">Phí Phân Bổ</th>
+                                        <th class="text-right">Giá Vốn Thực Tế (Landed Cost)</th>
+                                        <th class="text-center">% Tăng</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tcd-allocation-tbody">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #e2e8f0; font-size: 12px; flex-wrap: wrap; gap: 8px;">
+                            <span style="color: #059669; font-weight: 600;"><i class="fa fa-check-circle"></i> Độ lệch làm tròn: 0.00 USD (Khớp 100% chi phí thực tế)</span>
+                            <button class="btn btn-xs btn-primary hub-btn-sync" id="tcd-btn-apply-lcv"><i class="fa fa-check"></i> Cập Nhật Giá Vốn Vào ERPNext LCV</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CỘT PHẢI (35%): Audit, LCV Sync, Export Margin -->
+                <div class="hub-exceptions-panel">
+                    <!-- 1. Audit & Anomaly Detection -->
+                    <div class="hub-card-header">
+                        <div class="card-header-title">
+                            <span class="header-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                            </span>
+                            <span class="header-text">Kiểm Toán & Rủi Ro Chi Phí (Cost Audit)</span>
+                        </div>
+                        <span class="badge-status badge-stale" id="tcd-audit-badge">1 Lưu ý</span>
+                    </div>
+                    <div class="hub-exceptions-list" id="tcd-audit-list">
+                        <!-- Duplicate Check -->
+                        <div class="hub-exception-card" style="border-left: 4px solid #10b981;">
+                            <div class="exception-card-header">
+                                <span class="exception-title" style="color: #047857;"><i class="fa fa-check"></i> Trùng Lặp Hóa Đơn (Duplicate Check)</span>
+                                <span class="delay-tag-ontime">Hợp lệ</span>
+                            </div>
+                            <div class="exception-card-body">Không phát hiện hóa đơn trùng lặp số chứng từ hoặc nhà cung cấp.</div>
+                        </div>
+
+                        <!-- Missing Critical Cost Check -->
+                        <div class="hub-exception-card warning">
+                            <div class="exception-card-header">
+                                <span class="exception-title" style="color: #b45309;"><i class="fa fa-exclamation-triangle"></i> Chi Phí Trọng Yếu (Missing Cost Check)</span>
+                                <span class="delay-tag-positive">Cần rà soát</span>
+                            </div>
+                            <div class="exception-card-body">Chưa nhận hóa đơn nâng hạ cảng đích (Port Handling D/O). Cần liên hệ đại lý hãng tàu trước ngày 14/10.</div>
+                        </div>
+
+                        <!-- Wrong-case Check -->
+                        <div class="hub-exception-card" style="border-left: 4px solid #10b981;">
+                            <div class="exception-card-header">
+                                <span class="exception-title" style="color: #047857;"><i class="fa fa-check"></i> Gán Đúng Vụ Việc (Association Check)</span>
+                                <span class="delay-tag-ontime">Khớp 100%</span>
+                            </div>
+                            <div class="exception-card-body">Tất cả 6 hóa đơn dịch vụ đều tham chiếu chính xác số PO-2026-0042 và Trade Case IMP-2026-001.</div>
+                        </div>
+                    </div>
+
+                    <!-- 2. ERPNext Landed Cost Voucher Status Card -->
+                    <div style="border-top: 1px solid #e2e8f0; padding: 14px 16px; background: #ffffff;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 12.5px; font-weight: 700; color: #0f172a;"><i class="fa fa-link" style="color: #0284c7;"></i> ERPNext Landed Cost Voucher</span>
+                            <span class="tc-badge-erp submitted" id="tcd-lcv-badge">LCV-2026-0004</span>
+                        </div>
+                        <div style="font-size: 11.5px; color: #64748b; line-height: 1.45; margin-bottom: 10px;">
+                            Dữ liệu phân bổ được ghi nhận tự động vào chứng từ tiêu chuẩn của ERPNext, cập nhật trực tiếp vào định giá tồn kho (Inventory Valuation) và giá vốn (COGS).
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="/app/landed-cost-voucher" class="btn btn-default btn-xs" style="flex: 1; text-align: center;"><i class="fa fa-external-link"></i> Mở LCV ERPNext</a>
+                        </div>
+                    </div>
+
+                    <!-- 3. Export Profitability Card -->
+                    <div id="tcd-export-profitability-box" style="border-top: 1px solid #e2e8f0; padding: 14px 16px; background: #ffffff;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 12.5px; font-weight: 700; color: #0f172a;"><i class="fa fa-bar-chart" style="color: #059669;"></i> Hiệu Quả Lô Xuất Khẩu (Export Margin)</span>
+                            <span class="delay-tag-ontime">+24.3% Biên Lợi Nhuận</span>
+                        </div>
+                        <table class="table tc-table" style="margin-bottom: 0;">
+                            <tr>
+                                <td class="label-col">Doanh thu xuất khẩu:</td>
+                                <td class="val-col text-right">$65,000.00</td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">Giá vốn hàng bán (COGS):</td>
+                                <td class="val-col text-right">$45,000.00</td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">Chi phí logistics xuất khẩu:</td>
+                                <td class="val-col text-right">$4,200.00</td>
+                            </tr>
+                            <tr style="border-top: 1px solid #e2e8f0; font-weight: 700;">
+                                <td class="label-col" style="color: #059669;">Lợi nhuận gộp thực tế:</td>
+                                <td class="val-col text-right" style="color: #059669; font-size: 13.5px;">$15,800.00</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: LOGISTICS AI COPILOT WORKSPACE -->
+        <div class="logistics-tab-pane" id="tab-pane-ai-copilot">
+            <div class="lw-copilot-container">
+                <!-- Left: Chat Sessions Sidebar (Light theme matching system) -->
+                <aside class="lw-copilot-sessions-panel">
+                    <div class="lw-copilot-sessions-header">
+                        <button id="copilot-btn-new-chat" class="btn btn-primary btn-sm hub-btn-sync" style="width: 100%;">
+                            <i class="fa fa-plus"></i> Cuộc hội thoại mới
+                        </button>
+                    </div>
+                    <div class="lw-copilot-search-wrap">
+                        <i class="fa fa-search lw-copilot-search-icon"></i>
+                        <input type="text" id="copilot-session-search" class="form-control lw-copilot-search-input" placeholder="Tìm kiếm hội thoại...">
+                    </div>
+                    <div class="lw-copilot-sessions-list" id="copilot-sessions-list">
+                        <div class="lw-session-group-title">Hôm nay</div>
+                        <div class="lw-session-item active">
+                            <i class="fa fa-commenting-o lw-session-icon"></i>
+                            <div class="lw-session-info">
+                                <span class="lw-session-title">Phân tích sai lệch chi phí IMP-2026-001</span>
+                                <span class="lw-session-time">10:45 AM</span>
+                            </div>
+                        </div>
+                        <div class="lw-session-item">
+                            <i class="fa fa-commenting-o lw-session-icon"></i>
+                            <div class="lw-session-info">
+                                <span class="lw-session-title">Tra cứu lịch tàu Maersk Mc-Kinney</span>
+                                <span class="lw-session-time">09:12 AM</span>
+                            </div>
+                        </div>
+                        <div class="lw-session-group-title" style="margin-top: 12px;">7 ngày trước</div>
+                        <div class="lw-session-item">
+                            <i class="fa fa-commenting-o lw-session-icon"></i>
+                            <div class="lw-session-info">
+                                <span class="lw-session-title">Thủ tục C/O Form E xuất khẩu</span>
+                                <span class="lw-session-time">14 Oct</span>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Right: Chat Conversation Workspace -->
+                <main class="lw-copilot-chat-workspace">
+                    <div class="lw-copilot-chat-header">
+                        <div class="lw-copilot-title-group">
+                            <div class="lw-copilot-avatar">
+                                <i class="fa fa-bolt"></i>
+                            </div>
+                            <div>
+                                <h3 class="lw-copilot-main-title">Trợ Lý Trí Tuệ Nhân Tạo Logistics (AI Copilot)</h3>
+                                <span class="lw-copilot-sub-title">Tự động phân tích hồ sơ Trade Case, cảnh báo lệch ETA và tối ưu chi phí Landed Cost</span>
+                            </div>
+                        </div>
+                        <div class="lw-copilot-actions">
+                            <div class="tc-select-case-group" style="margin: 0;">
+                                <span style="font-size: 12px; font-weight: 600; color: #64748b;">Ngữ cảnh:</span>
+                                <select id="copilot-context-case" class="form-control tc-case-select-dropdown" style="height: 32px; font-size: 12px; min-width: 140px;">
+                                    <option value="IMP-2026-001" selected>IMP-2026-001</option>
+                                    <option value="EXP-2026-002">EXP-2026-002</option>
+                                    <option value="IMP-2026-003">IMP-2026-003</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-default btn-xs" id="copilot-btn-clear" title="Xóa hội thoại"><i class="fa fa-trash-o"></i> Xóa hội thoại</button>
+                        </div>
+                    </div>
+
+                    <!-- Messages stream -->
+                    <div class="lw-copilot-messages-thread" id="copilot-messages-thread">
+                        <div class="lw-copilot-welcome-box">
+                            <div class="lw-welcome-icon"><i class="fa fa-compass" style="color: #0284c7; font-size: 26px;"></i></div>
+                            <h4 style="margin: 6px 0; font-size: 15px; font-weight: 700; color: #0f172a;">Chào bạn! Tôi là Trợ Lý Logistics AI Copilot</h4>
+                            <p style="color: #64748b; font-size: 12.5px; max-width: 580px; margin: 0 auto 14px;">
+                                Tôi có thể kết nối dữ liệu hành trình tàu thực tế, bảng kê 11 khoản chi phí và công cụ phân bổ Landed Cost để giải quyết nhanh các nghiệp vụ của bạn:
+                            </p>
+                            <div class="lw-suggestions-grid">
+                                <button class="lw-suggestion-pill" data-prompt="Kiểm tra chi tiết nguyên nhân chênh lệch chi phí thực tế so với dự toán lô hàng IMP-2026-001">
+                                    <i class="fa fa-dollar" style="color: #0284c7;"></i>
+                                    <span>Phân tích sai lệch chi phí lô IMP-2026-001</span>
+                                </button>
+                                <button class="lw-suggestion-pill" data-prompt="Dự báo thời gian tàu cập cảng Đà Nẵng và các mốc thủ tục hải quan tiếp theo">
+                                    <i class="fa fa-ship" style="color: #0d9488;"></i>
+                                    <span>Dự báo ETA & thủ tục cảng Đà Nẵng</span>
+                                </button>
+                                <button class="lw-suggestion-pill" data-prompt="Gợi ý quy tắc phân bổ giá vốn tối ưu cho các mặt hàng theo Gross Weight">
+                                    <i class="fa fa-sliders" style="color: #d97706;"></i>
+                                    <span>Gợi ý quy tắc phân bổ Landed Cost</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Chat Messages List -->
+                        <div id="copilot-chat-history"></div>
+                    </div>
+
+                    <!-- Input area -->
+                    <div class="lw-copilot-input-area">
+                        <div class="lw-copilot-input-box">
+                            <textarea id="copilot-input-textarea" class="lw-copilot-textarea" placeholder="Hỏi AI Copilot về chứng từ, phân bổ chi phí, hành trình tàu... (Nhấn Enter để gửi)"></textarea>
+                            <button id="copilot-btn-send" class="lw-copilot-send-btn" title="Gửi câu hỏi">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="lw-copilot-disclaimer">
+                            Logistics AI Copilot được tích hợp trực tiếp vào hệ thống Logistics Wizard Hub.
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
     </div>
 </div>

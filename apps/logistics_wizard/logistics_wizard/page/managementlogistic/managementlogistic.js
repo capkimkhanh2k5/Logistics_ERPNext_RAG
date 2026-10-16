@@ -15,6 +15,8 @@ class UnifiedLogisticsHub {
         this.currentCaseId = 'IMP-2026-001';
         this.trackingHub = wrapper ? wrapper.shipment_tracking_hub : null;
         this.overviewController = wrapper ? wrapper.trade_case_overview : null;
+        this.tradeCostDashboard = wrapper ? wrapper.trade_cost_dashboard : null;
+        this.aiCopilot = wrapper ? wrapper.logistics_ai_copilot : null;
     }
 
     switch_tab(tabName, options) {
@@ -24,22 +26,56 @@ class UnifiedLogisticsHub {
             ? $(this.wrapper.shipment_tracking_hub.page.body)
             : $(document);
 
+        let targetKey = 'overview';
         if (tabName === 'tracking' || tabName === 'shipment-tracking-hub') {
-            $page.find('.logistics-nav-tab, .logistics-tab-btn, .lw-nav-tab').removeClass('active');
-            $page.find('#btn-tab-tracking, #lw-nav-tab-tracking').addClass('active');
-            
-            $page.find('#tab-pane-trade-case, #lw-pane-overview').removeClass('active').hide();
-            $page.find('#tab-pane-shipment-tracking, #tab-pane-tracking, #lw-pane-tracking').addClass('active').show();
+            targetKey = 'tracking';
+        } else if (tabName === 'cost' || tabName === 'trade-cost' || tabName === 'trade-cost-dashboard') {
+            targetKey = 'cost';
+        } else if (tabName === 'copilot' || tabName === 'ai-copilot' || tabName === 'logistics-ai-chatbot') {
+            targetKey = 'copilot';
+        }
 
-            if (this.wrapper && this.wrapper.shipment_tracking_hub && this.wrapper.shipment_tracking_hub.page) {
-                this.wrapper.shipment_tracking_hub.page.set_title(__('Shipment Tracking Hub'));
-            }
+        // 1. Update active sidebar tab button
+        $page.find('.logistics-nav-tab').removeClass('active');
+        if (targetKey === 'overview') $page.find('#btn-tab-overview').addClass('active');
+        else if (targetKey === 'tracking') $page.find('#btn-tab-tracking').addClass('active');
+        else if (targetKey === 'cost') $page.find('#btn-tab-cost').addClass('active');
+        else if (targetKey === 'copilot') $page.find('#btn-tab-copilot').addClass('active');
 
+        // 2. Hide all tab panes cleanly without jQuery .hide() / inline display styles
+        const $panes = $page.find('.logistics-tab-pane');
+        $panes.removeClass('active').removeAttr('style');
+
+        // 3. Show target pane with forced reflow for smooth keyframe entrance animation
+        let targetSelector = '#tab-pane-trade-case';
+        if (targetKey === 'tracking') targetSelector = '#tab-pane-shipment-tracking';
+        else if (targetKey === 'cost') targetSelector = '#tab-pane-trade-cost';
+        else if (targetKey === 'copilot') targetSelector = '#tab-pane-ai-copilot';
+
+        const $target = $page.find(targetSelector);
+        if ($target.length) {
+            void $target[0].offsetWidth; // trigger reflow
+            $target.addClass('active');
+        }
+
+        // 4. Update Desk Page Title
+        if (this.wrapper && this.wrapper.shipment_tracking_hub && this.wrapper.shipment_tracking_hub.page) {
+            const titles = {
+                overview: __('Trade Case Overview'),
+                tracking: __('Shipment Tracking Hub'),
+                cost: __('Trade Cost & Landed Cost Dashboard'),
+                copilot: __('Logistics AI Copilot')
+            };
+            this.wrapper.shipment_tracking_hub.page.set_title(titles[targetKey] || titles.overview);
+        }
+
+        // 5. Trigger sub-controller logic
+        if (targetKey === 'tracking') {
             if (this.trackingHub) {
                 if (this.trackingHub && this.trackingHub.map) {
                     setTimeout(() => {
                         this.trackingHub.map.invalidateSize();
-                    }, 100);
+                    }, 150);
                 }
 
                 if (options.shipment_id) {
@@ -53,24 +89,22 @@ class UnifiedLogisticsHub {
                     this.trackingHub.refresh();
                 }
             }
-        } else {
-            // overview
-            $page.find('.logistics-nav-tab, .logistics-tab-btn, .lw-nav-tab').removeClass('active');
-            $page.find('#btn-tab-overview, #lw-nav-tab-overview').addClass('active');
-            
-            $page.find('#tab-pane-shipment-tracking, #tab-pane-tracking, #lw-pane-tracking').removeClass('active').hide();
-            $page.find('#tab-pane-trade-case, #lw-pane-overview').addClass('active').show();
-
-            if (this.wrapper && this.wrapper.shipment_tracking_hub && this.wrapper.shipment_tracking_hub.page) {
-                this.wrapper.shipment_tracking_hub.page.set_title(__('Trade Case Overview'));
-            }
-
+        } else if (targetKey === 'overview') {
             if (this.overviewController) {
                 if (options.case_id) {
                     this.overviewController.load_case(options.case_id);
                 } else if (!this.overviewController.currentData) {
                     this.overviewController.load_case(this.currentCaseId || 'IMP-2026-001');
                 }
+            }
+        } else if (targetKey === 'cost') {
+            if (this.tradeCostDashboard) {
+                const caseId = options.case_id || this.currentCaseId || 'IMP-2026-001';
+                this.tradeCostDashboard.load_data(caseId);
+            }
+        } else if (targetKey === 'copilot') {
+            if (this.aiCopilot) {
+                this.aiCopilot.on_tab_shown(options);
             }
         }
     }
@@ -109,12 +143,25 @@ function register_management_logistic_page(pageName) {
         make_page_full_bleed(wrapper);
         wrapper.shipment_tracking_hub = new ShipmentTrackingHub(wrapper);
         wrapper.trade_case_overview = new TradeCaseOverviewController(wrapper, wrapper.shipment_tracking_hub);
+        wrapper.trade_cost_dashboard = new EmbeddedTradeCostDashboardController(wrapper);
+        wrapper.logistics_ai_copilot = new EmbeddedLogisticsAICopilot(wrapper);
         wrapper.unifiedHub = new UnifiedLogisticsHub(wrapper);
+        wrapper.unifiedHub.trackingHub = wrapper.shipment_tracking_hub;
+        wrapper.unifiedHub.overviewController = wrapper.trade_case_overview;
+        wrapper.unifiedHub.tradeCostDashboard = wrapper.trade_cost_dashboard;
+        wrapper.unifiedHub.aiCopilot = wrapper.logistics_ai_copilot;
         wrapper.trade_case_overview.unifiedHub = wrapper.unifiedHub;
+        wrapper.trade_cost_dashboard.unifiedHub = wrapper.unifiedHub;
+        wrapper.logistics_ai_copilot.unifiedHub = wrapper.unifiedHub;
+
         wrapper.switch_to_tab = function (tabName, extraParam) {
             if (typeof extraParam === 'string') {
                 if (tabName === 'shipment-tracking-hub' || tabName === 'tracking') {
                     wrapper.unifiedHub.switch_tab('tracking', { shipment_id: extraParam });
+                } else if (tabName === 'cost' || tabName === 'trade-cost' || tabName === 'trade-cost-dashboard') {
+                    wrapper.unifiedHub.switch_tab('cost', { case_id: extraParam });
+                } else if (tabName === 'copilot' || tabName === 'ai-copilot') {
+                    wrapper.unifiedHub.switch_tab('copilot');
                 } else {
                     wrapper.unifiedHub.switch_tab('overview', { case_id: extraParam });
                 }
@@ -122,8 +169,11 @@ function register_management_logistic_page(pageName) {
                 wrapper.unifiedHub.switch_tab(tabName, extraParam);
             }
         };
+
         setup_logistics_hub_tabs(wrapper);
         wrapper.trade_case_overview.init();
+        wrapper.trade_cost_dashboard.init();
+        wrapper.logistics_ai_copilot.init();
         make_page_full_bleed(wrapper);
     };
 
@@ -149,6 +199,10 @@ function register_management_logistic_page(pageName) {
             wrapper.switch_to_tab('tracking', focusShipment);
         } else if ((targetTab === 'tracking' || targetTab === 'shipment-tracking-hub') && wrapper.switch_to_tab) {
             wrapper.switch_to_tab('tracking');
+        } else if ((targetTab === 'cost' || targetTab === 'trade-cost' || targetTab === 'trade-cost-dashboard') && wrapper.switch_to_tab) {
+            wrapper.switch_to_tab('cost', focusCase);
+        } else if ((targetTab === 'copilot' || targetTab === 'ai-copilot' || targetTab === 'logistics-ai-chatbot') && wrapper.switch_to_tab) {
+            wrapper.switch_to_tab('copilot');
         } else if (focusCase && wrapper.switch_to_tab) {
             wrapper.switch_to_tab('overview', focusCase);
         } else if (targetTab === 'overview' && wrapper.switch_to_tab) {
@@ -174,6 +228,24 @@ function setup_logistics_hub_tabs(wrapper) {
     $page.find('#btn-tab-tracking').on('click', function (e) {
         e.preventDefault();
         wrapper.unifiedHub.switch_tab('tracking');
+    });
+
+    $page.find('#btn-tab-cost').on('click', function (e) {
+        e.preventDefault();
+        wrapper.unifiedHub.switch_tab('cost');
+    });
+
+    $page.find('#btn-tab-copilot').on('click', function (e) {
+        e.preventDefault();
+        wrapper.unifiedHub.switch_tab('copilot');
+    });
+
+    $page.on('click', '.logistics-nav-tab', function (e) {
+        e.preventDefault();
+        const tab = $(this).data('tab');
+        if (tab && wrapper.unifiedHub) {
+            wrapper.unifiedHub.switch_tab(tab);
+        }
     });
 }
 
@@ -2094,13 +2166,588 @@ class ShipmentTrackingHub {
     }
 }
 
+class EmbeddedTradeCostDashboardController {
+    constructor(wrapper) {
+        this.wrapper = wrapper;
+        this.currentCaseId = 'IMP-2026-001';
+        this.currentRule = 'weight';
+        this.currentCaseType = 'all';
+        this.caseData = this.get_mock_cases_data();
+    }
+
+    init() {
+        this.bind_events();
+        this.load_data(this.currentCaseId);
+    }
+
+    get_mock_cases_data() {
+        return {
+            'IMP-2026-001': {
+                case_id: 'IMP-2026-001',
+                party: 'ABC Electronics Co., Ltd',
+                case_type: 'import',
+                po_value: 125000,
+                estimated_cost: 16800,
+                actual_cost: 18350,
+                variance_amount: 1550,
+                variance_pct: 9.2,
+                status: 'Đang Đối Soát',
+                status_class: 'badge-in-transit',
+                lcv_id: 'LCV-2026-0004',
+                cost_items: [
+                    { type: 'Cước vận chuyển biển (Ocean Freight)', supplier: 'Maersk Line Vietnam', inv_no: 'INV-MAE-8821', est: 8500, act: 9200, status: 'Đã Đối Soát' },
+                    { type: 'Bảo hiểm hàng hóa (Cargo Insurance)', supplier: 'Bao Viet Insurance', inv_no: 'BV-2026-091', est: 600, act: 650, status: 'Đã Đối Soát' },
+                    { type: 'Thuế nhập khẩu (Customs Import Duty)', supplier: 'Chi cục Hải Quan Cảng SG KV4', inv_no: 'HQ-77218-TK', est: 3200, act: 3200, status: 'Đã Đối Soát' },
+                    { type: 'Thuế GTGT hàng nhập khẩu (Import VAT)', supplier: 'Chi cục Hải Quan Cảng SG KV4', inv_no: 'HQ-77218-VAT', est: 1500, act: 1500, status: 'Đã Đối Soát' },
+                    { type: 'Phí THC & phụ phí cảng (Port Surcharges)', supplier: 'Tân Cảng Sài Gòn (SNP)', inv_no: 'SNP-2026-112', est: 850, act: 950, status: 'Đang Đối Soát' },
+                    { type: 'Nâng hạ & lưu kho (Handling & Storage)', supplier: 'Cảng Cát Lái ICD', inv_no: 'ICD-44120', est: 400, act: 580, status: 'Đang Đối Soát' },
+                    { type: 'Lưu bãi container (Demurrage/Detention)', supplier: 'Maersk Line Vietnam', inv_no: 'DEM-8821-02', est: 0, act: 320, status: 'Cần Rà Soát' },
+                    { type: 'Vận chuyển nội địa (Trucking)', supplier: 'Huu Toan Logistics', inv_no: 'HT-9901-TRK', est: 950, act: 1100, status: 'Đang Đối Soát' },
+                    { type: 'Phí dịch vụ hải quan (Customs Brokerage)', supplier: 'Schenker Vietnam', inv_no: 'DB-8812-FEE', est: 500, act: 500, status: 'Đã Đối Soát' },
+                    { type: 'Kiểm tra chất lượng (Inspection)', supplier: 'Quatest 3', inv_no: 'QT3-11029', est: 300, act: 350, status: 'Đã Đối Soát' },
+                    { type: 'Chi phí phụ khác (Other Contingency)', supplier: 'Nội bộ công ty', inv_no: 'INT-EXP-01', est: 0, act: 0, status: 'Chờ Hóa Đơn' }
+                ],
+                items_to_allocate: [
+                    { item_code: 'CPU-INTEL-I9', name: 'Intel Core i9-14900K Processor', qty: 200, unit_price: 350, weight: 0.15, volume: 0.0004 },
+                    { item_code: 'RAM-DDR5-32G', name: 'Corsair Vengeance 32GB DDR5 RAM', qty: 500, unit_price: 70, weight: 0.08, volume: 0.0002 },
+                    { item_code: 'SSD-NVME-2TB', name: 'Samsung 990 Pro 2TB NVMe SSD', qty: 200, unit_price: 100, weight: 0.06, volume: 0.00015 }
+                ],
+                audit_checks: [
+                    { title: 'Trùng Lặp Hóa Đơn (Duplicate Check)', status: 'Hợp lệ', status_class: 'delay-tag-ontime', border: '#10b981', desc: 'Không phát hiện hóa đơn trùng lặp số chứng từ hoặc nhà cung cấp.' },
+                    { title: 'Chi Phí Trọng Yếu (Missing Cost Check)', status: 'Cần rà soát', status_class: 'delay-tag-positive', border: '#d97706', desc: 'Chưa nhận hóa đơn nâng hạ cảng đích (Port Handling D/O). Cần liên hệ đại lý hãng tàu trước ngày 14/10.' },
+                    { title: 'Gán Đúng Vụ Việc (Association Check)', status: 'Khớp 100%', status_class: 'delay-tag-ontime', border: '#10b981', desc: 'Tất cả 6 hóa đơn dịch vụ đều tham chiếu chính xác số PO-2026-0042 và Trade Case IMP-2026-001.' }
+                ]
+            },
+            'EXP-2026-002': {
+                case_id: 'EXP-2026-002',
+                party: 'Global Coffee Exporter JSC',
+                case_type: 'export',
+                po_value: 65000,
+                estimated_cost: 3800,
+                actual_cost: 4200,
+                variance_amount: 400,
+                variance_pct: 10.5,
+                status: 'Sẵn Sàng Xuất Khẩu',
+                status_class: 'badge-delivered',
+                lcv_id: 'LCV-2026-EXP-01',
+                export_revenue: 65000,
+                export_cogs: 45000,
+                export_logistics: 4200,
+                cost_items: [
+                    { type: 'Cước vận chuyển biển xuất (Ocean Freight Export)', supplier: 'ONE Ocean Network Express', inv_no: 'ONE-EX-3312', est: 2200, act: 2450, status: 'Đã Đối Soát' },
+                    { type: 'Bảo hiểm hàng hóa (Marine Cargo Insurance)', supplier: 'Bao Minh Insurance', inv_no: 'BM-2026-339', est: 250, act: 270, status: 'Đã Đối Soát' },
+                    { type: 'Thuế xuất khẩu (Export Duty)', supplier: 'Hải Quan Cảng Quy Nhơn', inv_no: 'HQ-EXP-0081', est: 0, act: 0, status: 'Miễn Thuế' },
+                    { type: 'Phí THC cảng bốc (Port Handling Surcharge)', supplier: 'Cảng Quốc Tế Quy Nhơn', inv_no: 'QN-THC-881', est: 350, act: 380, status: 'Đã Đối Soát' },
+                    { type: 'Hun trùng & Kiểm dịch (Fumigation & Phytosanitary)', supplier: 'VFC Fumigation Co.', inv_no: 'VFC-2026-77', est: 180, act: 180, status: 'Đã Đối Soát' },
+                    { type: 'Làm thủ tục C/O Form ICO (Certificate of Origin)', supplier: 'VCCI Chi nhánh Đà Nẵng', inv_no: 'VCCI-CO-102', est: 70, act: 70, status: 'Đã Đối Soát' },
+                    { type: 'Kéo vỏ & vận chuyển nội địa (Trucking)', supplier: 'Binh Dinh Express Logistics', inv_no: 'BD-TRK-551', est: 500, act: 580, status: 'Đã Đối Soát' },
+                    { type: 'Phí môi giới hải quan (Brokerage Fee)', supplier: 'Transimex Logistics', inv_no: 'TMX-2026-44', est: 150, act: 170, status: 'Đã Đối Soát' },
+                    { type: 'Chi phí phụ khác (Contingency)', supplier: 'Nội bộ', inv_no: 'INT-EXP-02', est: 100, act: 100, status: 'Đã Đối Soát' }
+                ],
+                items_to_allocate: [
+                    { item_code: 'COFFEE-ROBUSTA-G1', name: 'Robusta Green Coffee Beans Grade 1', qty: 20000, unit_price: 2.25, weight: 1.0, volume: 0.0015 },
+                    { item_code: 'COFFEE-ARABICA-S18', name: 'Arabica Roasted Coffee Screen 18', qty: 5000, unit_price: 4.00, weight: 1.0, volume: 0.0018 }
+                ],
+                audit_checks: [
+                    { title: 'Trùng Lặp Hóa Đơn (Duplicate Check)', status: 'Hợp lệ', status_class: 'delay-tag-ontime', border: '#10b981', desc: 'Không có chứng từ trùng lặp đối tác xuất khẩu.' },
+                    { title: 'Chi Phí Trọng Yếu (Missing Cost Check)', status: 'Đầy đủ', status_class: 'delay-tag-ontime', border: '#10b981', desc: 'Đã nhận đủ chứng từ hun trùng, C/O và bill of lading.' },
+                    { title: 'Gán Đúng Vụ Việc (Association Check)', status: 'Khớp 100%', status_class: 'delay-tag-ontime', border: '#10b981', desc: 'Hóa đơn ONE và VFC tham chiếu chính xác Sales Order SO-2026-009.' }
+                ]
+            },
+            'IMP-2026-003': {
+                case_id: 'IMP-2026-003',
+                party: 'Pacific Seafood Import Co.',
+                case_type: 'import',
+                po_value: 84000,
+                estimated_cost: 11200,
+                actual_cost: 11050,
+                variance_amount: -150,
+                variance_pct: -1.3,
+                status: 'Đã Hoàn Tất',
+                status_class: 'badge-delivered',
+                lcv_id: 'LCV-2026-0002',
+                cost_items: [
+                    { type: 'Cước vận chuyển hàng đông lạnh (Reefer Freight)', supplier: 'Hapag-Lloyd Vietnam', inv_no: 'HL-RF-9021', est: 6800, act: 6700, status: 'Đã Đối Soát' },
+                    { type: 'Bảo hiểm hàng hóa (Reefer Cargo Insurance)', supplier: 'PVI Insurance', inv_no: 'PVI-RF-122', est: 450, act: 450, status: 'Đã Đối Soát' },
+                    { type: 'Thuế nhập khẩu (Customs Import Duty)', supplier: 'Chi cục Hải Quan Cảng Hải Phòng', inv_no: 'HQ-HP-3312', est: 1800, act: 1800, status: 'Đã Đối Soát' },
+                    { type: 'Kiểm dịch thủy sản (Fisheries Quarantine)', supplier: 'Chi cục Thú Y Vùng 2', inv_no: 'KD-HP-0091', est: 350, act: 350, status: 'Đã Đối Soát' },
+                    { type: 'Cắm điện container lạnh (Reefer Monitoring)', supplier: 'Cảng Quốc Tế Lạch Huyện', inv_no: 'LH-REEFER-11', est: 500, act: 450, status: 'Đã Đối Soát' },
+                    { type: 'Vận chuyển xe lạnh nội địa (Reefer Trucking)', supplier: 'Vinalines Cold Chain', inv_no: 'VNL-COLD-88', est: 1300, act: 1300, status: 'Đã Đối Soát' }
+                ],
+                items_to_allocate: [
+                    { item_code: 'SEAFOOD-SALMON-NOR', name: 'Fresh Norwegian Salmon Fillet', qty: 4000, unit_price: 15.00, weight: 1.0, volume: 0.0016 },
+                    { item_code: 'SEAFOOD-COD-ATL', name: 'Atlantic Cod Fillet Frozen', qty: 2000, unit_price: 12.00, weight: 1.0, volume: 0.0015 }
+                ],
+                audit_checks: [
+                    { title: 'Trùng Lặp Hóa Đơn (Duplicate Check)', status: 'Hợp lệ', status_class: 'delay-tag-ontime', border: '#10b981', desc: 'Không phát hiện trùng số hóa đơn.' },
+                    { title: 'Chi Phí Trọng Yếu (Missing Cost Check)', status: 'Đầy đủ', status_class: 'delay-tag-ontime', border: '#10b981', desc: 'Đầy đủ phí cắm điện kho lạnh và kiểm dịch thú y.' },
+                    { title: 'Gán Đúng Vụ Việc (Association Check)', status: 'Khớp 100%', status_class: 'delay-tag-ontime', border: '#10b981', desc: 'Chứng từ Lạch Huyện khớp 100% hồ sơ hải quan.' }
+                ]
+            }
+        };
+    }
+
+    load_data(caseId) {
+        this.currentCaseId = caseId || 'IMP-2026-001';
+        $('#tcd-case-selector').val(this.currentCaseId);
+        this.render_dashboard();
+    }
+
+    bind_events() {
+        const self = this;
+
+        $(document).on('change', '#tcd-case-selector', function () {
+            self.load_data($(this).val());
+        });
+
+        $(document).on('click', '.tcd-type-btn', function () {
+            $('.tcd-type-btn').removeClass('active');
+            $(this).addClass('active');
+            self.currentCaseType = $(this).data('type');
+            self.apply_type_filter();
+        });
+
+        $(document).on('click', '.tcd-alloc-btn', function () {
+            $('.tcd-alloc-btn').removeClass('active');
+            $(this).addClass('active');
+            self.currentRule = $(this).data('rule');
+            self.render_allocation_table();
+        });
+
+        $(document).on('click', '#tcd-btn-refresh', function () {
+            const $icon = $(this).find('i');
+            $icon.addClass('fa-spin');
+            setTimeout(() => {
+                self.load_data(self.currentCaseId);
+                $icon.removeClass('fa-spin');
+                frappe.show_alert({ message: __('Đã làm mới dữ liệu Trade Cost!'), indicator: 'green' });
+            }, 300);
+        });
+
+        $(document).on('click', '#tcd-btn-new-sheet', function () {
+            if (typeof frappe !== 'undefined' && frappe.new_doc) {
+                frappe.new_doc('Trade Cost Sheet', {
+                    trade_case: self.currentCaseId
+                });
+            }
+        });
+
+        $(document).on('click', '#tcd-btn-sync-lcv, #tcd-btn-apply-lcv', function () {
+            frappe.show_alert({
+                message: __('Đang tiến hành đồng bộ dữ liệu sang Landed Cost Voucher...'),
+                indicator: 'green'
+            });
+            setTimeout(() => {
+                frappe.show_alert({
+                    message: __('Đồng bộ Landed Cost Voucher thành công!'),
+                    indicator: 'green'
+                });
+            }, 600);
+        });
+    }
+
+    apply_type_filter() {
+        const type = this.currentCaseType;
+        if (type === 'export') {
+            $('#tcd-case-selector').val('EXP-2026-002');
+            this.load_data('EXP-2026-002');
+        } else if (type === 'import') {
+            $('#tcd-case-selector').val('IMP-2026-001');
+            this.load_data('IMP-2026-001');
+        } else {
+            this.load_data(this.currentCaseId);
+        }
+    }
+
+    render_dashboard() {
+        const c = this.caseData[this.currentCaseId] || this.caseData['IMP-2026-001'];
+        if (!c) return;
+
+        $('#tcd-kpi-po-val').text('$' + c.po_value.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+        $('#tcd-kpi-est-val').text('$' + c.estimated_cost.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+        $('#tcd-kpi-act-val').text('$' + c.actual_cost.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+
+        const varSign = c.variance_amount > 0 ? '+' : '';
+        const varPctSign = c.variance_pct > 0 ? '+' : '';
+        const varText = `${varSign}$${c.variance_amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${varPctSign}${c.variance_pct}%)`;
+        $('#tcd-kpi-var-val').text(varText);
+
+        if (c.variance_amount > 0) {
+            $('#tcd-kpi-var-val').css('color', '#dc2626');
+        } else if (c.variance_amount < 0) {
+            $('#tcd-kpi-var-val').css('color', '#059669');
+        } else {
+            $('#tcd-kpi-var-val').css('color', '#64748b');
+        }
+
+        $('#tcd-status-badge').attr('class', 'badge-status ' + (c.status_class || 'badge-in-transit')).text(c.status);
+        $('#tcd-lcv-badge').text(c.lcv_id || 'Chưa liên kết');
+
+        this.render_cost_items(c.cost_items || []);
+        this.render_allocation_table();
+        this.render_audit_checks(c.audit_checks || []);
+
+        if (c.case_type === 'export') {
+            $('#tcd-export-profitability-box').show();
+        } else {
+            $('#tcd-export-profitability-box').hide();
+        }
+    }
+
+    render_cost_items(items) {
+        let html = '';
+        items.forEach(it => {
+            const diff = it.act - it.est;
+            const diffSign = diff > 0 ? '+' : '';
+            const diffCls = diff > 0 ? 'tcd-var-positive' : (diff < 0 ? 'tcd-var-negative' : 'tcd-var-zero');
+            html += `
+                <tr>
+                    <td style="font-weight: 600; color: #0f172a;">${it.type}</td>
+                    <td style="color: #475569;">${it.supplier}</td>
+                    <td><code>${it.inv_no}</code></td>
+                    <td class="text-right" style="color: #64748b;">$${it.est.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                    <td class="text-right" style="font-weight: 600; color: #0f172a;">$${it.act.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                    <td class="text-right ${diffCls}">${diffSign}$${diff.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                    <td class="text-center">
+                        <span class="delay-tag-ontime" style="font-size: 11px;">${it.status}</span>
+                    </td>
+                </tr>
+            `;
+        });
+        $('#tcd-cost-items-tbody').html(html);
+    }
+
+    render_allocation_table() {
+        const c = this.caseData[this.currentCaseId] || this.caseData['IMP-2026-001'];
+        if (!c || !c.items_to_allocate) return;
+
+        const totalActualCost = c.actual_cost;
+        const allocated = this.calculate_allocation(c.items_to_allocate, totalActualCost, this.currentRule);
+
+        let html = '';
+        allocated.forEach(it => {
+            html += `
+                <tr>
+                    <td style="font-weight: 700; color: #0284c7;">${it.item_code}</td>
+                    <td style="color: #334155;">${it.name}</td>
+                    <td class="text-center" style="font-weight: 600;">${it.qty.toLocaleString()}</td>
+                    <td class="text-right">$${it.unit_price.toFixed(2)}</td>
+                    <td class="text-right" style="color: #0284c7; font-weight: 600;">+$${it.allocated_cost.toFixed(2)}</td>
+                    <td class="text-right" style="font-weight: 700; color: #059669;">$${it.landed_unit_cost.toFixed(2)}</td>
+                    <td class="text-center" style="color: #d97706; font-weight: 600;">+${it.pct_increase}%</td>
+                </tr>
+            `;
+        });
+        $('#tcd-allocation-tbody').html(html);
+    }
+
+    calculate_allocation(items, totalCost, rule) {
+        let basisWeights = [];
+        if (rule === 'weight') {
+            basisWeights = items.map(it => it.weight * it.qty);
+        } else if (rule === 'value') {
+            basisWeights = items.map(it => it.unit_price * it.qty);
+        } else if (rule === 'qty') {
+            basisWeights = items.map(it => it.qty);
+        } else if (rule === 'volume') {
+            basisWeights = items.map(it => it.volume * it.qty);
+        }
+
+        const sumBasis = basisWeights.reduce((a, b) => a + b, 0) || 1;
+        let allocatedList = [];
+        let allocatedSum = 0;
+
+        for (let i = 0; i < items.length; i++) {
+            let rawAlloc = (basisWeights[i] / sumBasis) * totalCost;
+            let rounded = Math.round(rawAlloc * 100) / 100;
+            allocatedList.push(rounded);
+            allocatedSum += rounded;
+        }
+
+        let diff = Math.round((totalCost - allocatedSum) * 100) / 100;
+        if (Math.abs(diff) > 0.0001 && allocatedList.length > 0) {
+            let maxIdx = 0;
+            for (let i = 1; i < allocatedList.length; i++) {
+                if (allocatedList[i] > allocatedList[maxIdx]) maxIdx = i;
+            }
+            allocatedList[maxIdx] = Math.round((allocatedList[maxIdx] + diff) * 100) / 100;
+        }
+
+        return items.map((it, idx) => {
+            const alloc = allocatedList[idx];
+            const landedUnitCost = Math.round((it.unit_price + (alloc / it.qty)) * 100) / 100;
+            const totalBaseVal = it.unit_price * it.qty;
+            const pctIncrease = totalBaseVal > 0 ? ((alloc / totalBaseVal) * 100).toFixed(1) : 0;
+            return {
+                ...it,
+                allocated_cost: alloc,
+                landed_unit_cost: landedUnitCost,
+                pct_increase: pctIncrease
+            };
+        });
+    }
+
+    render_audit_checks(checks) {
+        let html = '';
+        checks.forEach(chk => {
+            html += `
+                <div class="hub-exception-card" style="border-left: 4px solid ${chk.border || '#10b981'};">
+                    <div class="exception-card-header">
+                        <span class="exception-title" style="color: #0f172a; font-weight: 600;">${chk.title}</span>
+                        <span class="${chk.status_class || 'delay-tag-ontime'}">${chk.status}</span>
+                    </div>
+                    <div class="exception-card-body">${chk.desc}</div>
+                </div>
+            `;
+        });
+        $('#tcd-audit-list').html(html);
+    }
+}
+
+class EmbeddedLogisticsAICopilot {
+    constructor(wrapper) {
+        this.wrapper = wrapper;
+        this.currentCaseId = 'IMP-2026-001';
+    }
+
+    init() {
+        this.bind_events();
+    }
+
+    on_tab_shown(options) {
+        if (options && options.case_id) {
+            this.currentCaseId = options.case_id;
+            $('#copilot-context-case').val(this.currentCaseId);
+        }
+        $('#copilot-input-textarea').focus();
+    }
+
+    bind_events() {
+        const self = this;
+
+        $(document).on('change', '#copilot-context-case', function () {
+            self.currentCaseId = $(this).val();
+        });
+
+        $(document).on('click', '.lw-suggestion-pill', function () {
+            const prompt = $(this).data('prompt') || $(this).text().trim();
+            $('#copilot-input-textarea').val(prompt);
+            self.send_message(prompt);
+        });
+
+        $(document).on('click', '#copilot-btn-send', function () {
+            const txt = $('#copilot-input-textarea').val().trim();
+            if (txt) {
+                self.send_message(txt);
+            }
+        });
+
+        $(document).on('keydown', '#copilot-input-textarea', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const txt = $(this).val().trim();
+                if (txt) {
+                    self.send_message(txt);
+                }
+            }
+        });
+
+        $(document).on('click', '#copilot-btn-new-chat', function () {
+            $('#copilot-chat-history').empty();
+            $('.lw-copilot-welcome-box').show();
+            $('#copilot-input-textarea').val('').focus();
+        });
+
+        $(document).on('click', '#copilot-btn-clear', function () {
+            $('#copilot-chat-history').empty();
+            $('.lw-copilot-welcome-box').show();
+        });
+
+        $(document).on('click', '.lw-session-item', function () {
+            $('.lw-session-item').removeClass('active');
+            $(this).addClass('active');
+            const title = $(this).find('.lw-session-title').text().trim();
+            self.load_session_sample(title);
+        });
+
+        $(document).on('input', '#copilot-session-search', function () {
+            const q = $(this).val().toLowerCase().trim();
+            $('.lw-session-item').each(function () {
+                const title = $(this).find('.lw-session-title').text().toLowerCase();
+                $(this).toggle(title.includes(q));
+            });
+        });
+
+        $(document).on('click', '.lw-thinking-header', function () {
+            $(this).next('.lw-thinking-content').slideToggle(180);
+            $(this).find('.fa-chevron-down, .fa-chevron-up').toggleClass('fa-chevron-down fa-chevron-up');
+        });
+
+        $(document).on('click', '.btn-copilot-copy', function () {
+            const text = $(this).closest('.lw-chat-bubble').find('.lw-chat-text').text();
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text);
+                frappe.show_alert({ message: __('Đã sao chép phản hồi vào clipboard!'), indicator: 'green' });
+            }
+        });
+
+        $(document).on('click', '.btn-copilot-view-cost', function () {
+            if (self.wrapper && self.wrapper.unifiedHub) {
+                self.wrapper.unifiedHub.switch_tab('cost', { case_id: self.currentCaseId });
+            }
+        });
+
+        $(document).on('click', '.btn-copilot-view-tracking', function () {
+            if (self.wrapper && self.wrapper.unifiedHub) {
+                self.wrapper.unifiedHub.switch_tab('tracking');
+            }
+        });
+    }
+
+    send_message(prompt) {
+        $('.lw-copilot-welcome-box').hide();
+        $('#copilot-input-textarea').val('');
+
+        const userHtml = `
+            <div class="lw-chat-message lw-chat-user">
+                <div class="lw-chat-avatar"><i class="fa fa-user"></i></div>
+                <div class="lw-chat-bubble">
+                    <div class="lw-chat-text">${frappe.utils.escape_html(prompt)}</div>
+                </div>
+            </div>
+        `;
+        $('#copilot-chat-history').append(userHtml);
+        this.scroll_to_bottom();
+
+        const self = this;
+        const msgId = 'ai-msg-' + Date.now();
+        const placeholderHtml = `
+            <div class="lw-chat-message lw-chat-assistant" id="${msgId}">
+                <div class="lw-chat-avatar"><i class="fa fa-bolt"></i></div>
+                <div class="lw-chat-bubble">
+                    <div class="lw-thinking-block">
+                        <div class="lw-thinking-header">
+                            <i class="fa fa-cog fa-spin" style="color: #0284c7;"></i>
+                            <span>AI đang suy luận & truy xuất dữ liệu Trade Case...</span>
+                            <i class="fa fa-chevron-down" style="margin-left: auto; font-size: 10px;"></i>
+                        </div>
+                        <div class="lw-thinking-content">
+                            • Đang kết nối hồ sơ Trade Case ${self.currentCaseId}<br>
+                            • Kiểm tra dữ liệu bảng kê 11 khoản chi phí và hành trình tàu...
+                        </div>
+                    </div>
+                    <div class="lw-chat-text" style="color: #64748b;"><i class="fa fa-circle-o-notch fa-spin"></i> Đang chuẩn bị câu trả lời chuyên môn...</div>
+                </div>
+            </div>
+        `;
+        $('#copilot-chat-history').append(placeholderHtml);
+        self.scroll_to_bottom();
+
+        setTimeout(() => {
+            self.generate_response(msgId, prompt);
+        }, 500);
+    }
+
+    generate_response(msgId, prompt) {
+        const caseId = this.currentCaseId || 'IMP-2026-001';
+        let answerText = '';
+        let thoughtProcess = '';
+        const pLower = prompt.toLowerCase();
+
+        if (pLower.includes('chênh lệch') || pLower.includes('chi phí') || pLower.includes('sai lệch')) {
+            thoughtProcess = `1. Truy vấn Trade Cost Sheet liên kết Trade Case ${caseId}.
+2. Phát hiện: Chi phí dự toán (Estimated) = $16,800.00, Thực tế (Actual) = $18,350.00.
+3. Chênh lệch vượt: +$1,550.00 (+9.2%).
+4. Nguyên nhân chính:
+   - Cước biển Maersk Line tăng phụ phí xăng dầu BAF: +$700.00
+   - Phí lưu bãi Demurrage ngoài dự kiến: +$320.00
+   - Phí trucking nâng hạ Tân Cảng: +$150.00`;
+            answerText = `
+<p>Dựa trên hồ sơ tài chính của vụ việc <strong>${caseId}</strong>, tôi đã hoàn tất phân tích đối soát chi phí:</p>
+<ul>
+    <li><strong>Tổng chi phí thực tế:</strong> <code>$18,350.00 USD</code> so với dự toán ban đầu <code>$16,800.00 USD</code> (Vượt <strong>+$1,550.00</strong>, tương đương <strong>+9.2%</strong>).</li>
+    <li><strong>Khoản phát sinh lớn nhất:</strong> Cước tàu biển Ocean Freight tăng do phụ phí nhiên liệu khẩn cấp (+$700 USD) và phí lưu bãi container Demurrage (+$320 USD) do trễ thủ tục cảng.</li>
+    <li><strong>Khuyến nghị hành động:</strong>
+        <br>1. Làm việc với hãng tàu Maersk để xin miễn giảm (Demurrage Waiver) 3 ngày lưu bãi container.
+        <br>2. Cập nhật phân bổ Landed Cost theo tiêu chuẩn <strong>Gross Weight</strong> để giá vốn từng Item phản ánh chính xác nhất chi phí vận chuyển.
+    </li>
+</ul>`;
+        } else if (pLower.includes('lịch tàu') || pLower.includes('hành trình') || pLower.includes('đà nẵng') || pLower.includes('cập cảng') || pLower.includes('eta')) {
+            thoughtProcess = `1. Kiểm tra Tracking Hub cho chuyến tàu vận chuyển hồ sơ ${caseId}.
+2. Tàu container: Maersk Mc-Kinney Moller.
+3. Trạng thái hành trình: Đang trên biển (In-Transit), tọa độ 15.82°N, 109.45°E.
+4. Dự kiến cập cảng Đà Nẵng (ETA): Ngày mai lúc 16:30.
+5. Cảnh báo thời tiết: Biển động cấp 5, có khả năng chậm trễ cập cầu 2-4 tiếng.`;
+            answerText = `
+<p>Thông tin hành trình và dự báo cảng đến cho vụ việc <strong>${caseId}</strong>:</p>
+<ul>
+    <li><strong>Tàu chuyên chở:</strong> <code>Maersk Mc-Kinney Moller</code> (Chuyến hải trình 2603W).</li>
+    <li><strong>Vị trí hiện tại:</strong> Vùng biển miền Trung, cách phao số 0 Cảng Tiên Sa - Đà Nẵng xấp xỉ 48 hải lý.</li>
+    <li><strong>ETA cập cảng:</strong> Dự kiến <strong>16:30 ngày mai</strong> (Sai lệch dự báo: +3.5 tiếng do gió mùa).</li>
+    <li><strong>Khuyến nghị thủ tục:</strong> Bộ chứng từ hải quan (B/L gốc, Invoice, Packing List, C/O Form E) đã sẵn sàng trên hệ thống. Đại lý giao nhận nên đăng ký trước lệnh giao hàng điện tử (eDO) trên cổng thông tin cảng Đà Nẵng.</li>
+</ul>`;
+        } else {
+            thoughtProcess = `1. Tiếp nhận câu hỏi nghiệp vụ logistics: "${prompt}".
+2. Áp dụng quy tắc phân bổ giá vốn chuẩn Landed Cost Voucher của ERPNext.
+3. Tổng hợp khuyến nghị tối ưu chi phí và điều hành ngoại thương.`;
+            answerText = `
+<p>Đối với câu hỏi của bạn về <strong>${caseId}</strong>:</p>
+<p>Hệ thống Logistics Wizard đã tự động liên kết dữ liệu giữa Hợp đồng thương mại, Hành trình vận chuyển thực tế và Phân bổ giá vốn Landed Cost:</p>
+<ul>
+    <li>Mọi chi phí hợp lệ (11 loại chi phí tiêu chuẩn) đã được kiểm tra tính toàn vẹn (không trùng hóa đơn, có số PO hợp lệ).</li>
+    <li>Thuật toán phân bổ tự động loại bỏ sai số làm tròn (discrepancy &le; 0.01) trước khi đồng bộ sang <strong>ERPNext Landed Cost Voucher</strong>.</li>
+</ul>
+<p>Bạn có thể chuyển sang tab <strong>Trade Cost Dashboard</strong> hoặc <strong>Shipment Tracking Hub</strong> ở thanh điều hướng bên trái để theo dõi chi tiết tức thì.</p>`;
+        }
+
+        const finalHtml = `
+            <div class="lw-thinking-block">
+                <div class="lw-thinking-header">
+                    <i class="fa fa-lightbulb-o" style="color: #0284c7;"></i>
+                    <span>Tiến trình suy luận & đối soát dữ liệu (Hoàn tất)</span>
+                    <i class="fa fa-chevron-down" style="margin-left: auto; font-size: 10px;"></i>
+                </div>
+                <div class="lw-thinking-content" style="display: none;">
+                    <pre style="margin: 0; background: transparent; border: none; font-size: 11.5px; color: #475569; padding: 0;">${thoughtProcess}</pre>
+                </div>
+            </div>
+            <div class="lw-chat-text">${answerText}</div>
+            <div class="lw-chat-actions">
+                <button class="lw-chat-action-btn btn-copilot-copy"><i class="fa fa-copy"></i> Sao chép</button>
+                <button class="lw-chat-action-btn btn-copilot-view-cost"><i class="fa fa-calculator"></i> Bảng chi phí Landed Cost</button>
+                <button class="lw-chat-action-btn btn-copilot-view-tracking"><i class="fa fa-ship"></i> Tra cứu hành trình</button>
+            </div>
+        `;
+
+        $(`#${msgId} .lw-chat-bubble`).html(finalHtml);
+        this.scroll_to_bottom();
+    }
+
+    scroll_to_bottom() {
+        const $thread = $('#copilot-messages-thread');
+        if ($thread.length) {
+            $thread.scrollTop($thread[0].scrollHeight);
+        }
+    }
+
+    load_session_sample(title) {
+        $('#copilot-chat-history').empty();
+        $('.lw-copilot-welcome-box').hide();
+        this.send_message(title);
+    }
+}
+
 if (typeof window !== 'undefined') {
     window.ShipmentTrackingHub = ShipmentTrackingHub;
     window.TradeCaseOverviewController = TradeCaseOverviewController;
     window.UnifiedLogisticsHub = UnifiedLogisticsHub;
+    window.EmbeddedTradeCostDashboardController = EmbeddedTradeCostDashboardController;
+    window.EmbeddedLogisticsAICopilot = EmbeddedLogisticsAICopilot;
 }
 if (typeof global !== 'undefined') {
     global.ShipmentTrackingHub = ShipmentTrackingHub;
     global.TradeCaseOverviewController = TradeCaseOverviewController;
     global.UnifiedLogisticsHub = UnifiedLogisticsHub;
+    global.EmbeddedTradeCostDashboardController = EmbeddedTradeCostDashboardController;
+    global.EmbeddedLogisticsAICopilot = EmbeddedLogisticsAICopilot;
 }
