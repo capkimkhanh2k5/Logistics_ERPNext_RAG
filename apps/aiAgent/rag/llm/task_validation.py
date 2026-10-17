@@ -46,7 +46,7 @@ def item_quote_errors(quotes: list[str], context: dict) -> list[str]:
             for m in matches
         ):
             return [
-                "Trích đoạn thuộc mặt hàng khác, không được dùng chứng minh điều kiện của mặt hàng đang xét."
+                f"Trích đoạn '{quote}' thuộc mặt hàng khác, không được dùng chứng minh điều kiện của mặt hàng đang xét ({item_id}); hãy xóa hoặc thay bằng trích đoạn của {item_id}."
             ]
     return []
 
@@ -104,10 +104,10 @@ def item_context(context: dict, item_id: str, level: int, selected_code: str | N
 
 
 _NEGATED_CODE_SPAN = re.compile(
-    r"(?:không\s+(?:thuộc|phân\s*loại|xếp\s*vào|áp\s*(?:dụng|mã)|phải(?:\s+là)?)"
-    r"|loại\s*trừ(?:\s+khỏi)?|thay\s+vì(?:\s+(?:thuộc|nhóm|phân\s*nhóm|mã))?)"
-    r"[^.;,\n]{0,45}?\b(?:nhóm|phân\s*nhóm|mã(?:\s*hs)?|heading|subheading)?\s*"
-    r"(?:\d{4}(?:\.\d{2}(?:\.\d{2})?)?|\d{6}|\d{8})\b",
+    r"(?:không\s+(?:được\s+|bị\s+|thể\s+)?(?:thuộc|phân\s*loại|xếp\s*vào|áp\s*(?:dụng|mã)|phải(?:\s+là)?|coi\s+là|xem\s+là)"
+    r"|(?:bị\s+)?loại\s*trừ(?:\s+khỏi)?|thay\s+vì(?:\s+(?:thuộc|nhóm|phân\s*nhóm|mã))?|bác\s+bỏ(?:\s+(?:hướng|nhóm|phân\s*nhóm|mã))?)"
+    r"[^.;!\n]{0,120}?\b(?:như\s+)?(?:nhóm|phân\s*nhóm|mã(?:\s*hs)?|heading|subheading)?\s*"
+    r"(?:\d{4}(?:\.\d{2}(?:\.\d{2})?)?|\d{6}|\d{8})\b\)?",
     re.I,
 )
 
@@ -193,12 +193,19 @@ def decode_task_answer(value: dict, context: dict) -> tuple[list[dict], list[str
     if errors:
         return [], errors
     goals = {g["id"]: g for g in context["request"]["objectives"]}
+
+    def _row_item_id(row: dict) -> str:
+        goal = goals.get(row["objective_id"])
+        if goal and goal["kind"] != "CLASSIFY" and row["item_id"] in set(goal["item_ids"]):
+            return ""
+        return row["item_id"]
+
     expected = {
         (g["id"], item)
         for g in goals.values()
         for item in (g["item_ids"] if g["kind"] == "CLASSIFY" else [""])
     }
-    actual = [(r["objective_id"], r["item_id"]) for r in value["results"]]
+    actual = [(r["objective_id"], _row_item_id(r)) for r in value["results"]]
     declared: dict[tuple[str, str], set[str]] = {}
     for row in value["results"]:
         goal = goals.get(row["objective_id"], {})
@@ -226,17 +233,26 @@ def decode_task_answer(value: dict, context: dict) -> tuple[list[dict], list[str
         )
     decoded = []
     for index, row in enumerate(value["results"], 1):
-        if (row["objective_id"], row["item_id"]) not in expected:
+        item_id = _row_item_id(row)
+        if (row["objective_id"], item_id) not in expected:
             continue
         goal = goals[row["objective_id"]]
+        dependencies = {
+            key: codes
+            for key, codes in declared.items()
+            if key[1] in goal["item_ids"] and key != (goal["id"], item_id)
+        }
+        registered = set().union(*dependencies.values()) if dependencies else set()
         scoped = item_context(
             context,
-            row["item_id"],
+            item_id,
             goal["level"] if goal["kind"] == "CLASSIFY" else 0,
             row["code"] or None,
         )
+        if registered:
+            scoped = {**scoped, "registered_hs_codes": sorted(registered)}
         text, citations, row_errors = render_claims(row["claims"], scoped)
-        if actual.count((row["objective_id"], row["item_id"])) != 1:
+        if actual.count((row["objective_id"], item_id)) != 1:
             row_errors.append("Kết quả objective/item bị lặp, chưa thể chọn kết luận nào.")
         answer = {
             "status": row["status"],
@@ -254,12 +270,6 @@ def decode_task_answer(value: dict, context: dict) -> tuple[list[dict], list[str
             row_errors.append(
                 "fact_ids được phép cho mặt hàng này: " + ", ".join(sorted(allowed_facts))
             )
-        dependencies = {
-            key: codes
-            for key, codes in declared.items()
-            if key[1] in goal["item_ids"] and key != (goal["id"], row["item_id"])
-        }
-        registered = set().union(*dependencies.values()) if dependencies else set()
         row_errors.extend(
             code_claim_errors(
                 row["claims"], row["code"], context, registered, allow_comparison_refs=True
@@ -283,7 +293,7 @@ def decode_task_answer(value: dict, context: dict) -> tuple[list[dict], list[str
                 **answer,
                 "result_id": f"R{index}",
                 "objective_id": goal["id"],
-                "item_id": row["item_id"],
+                "item_id": item_id,
                 "level": goal["level"],
                 "required": goal["required"],
                 "kind": goal["kind"],
@@ -296,7 +306,7 @@ def decode_task_answer(value: dict, context: dict) -> tuple[list[dict], list[str
                     and any(
                         codes & referenced_codes(c["text"])
                         for c in row["claims"]
-                        if c["kind"] == "CONCLUSION"
+                        if c["kind"] in {"LEGAL_ANALYSIS", "CONCLUSION"}
                     )
                 ],
             }

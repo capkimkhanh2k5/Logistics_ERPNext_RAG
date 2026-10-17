@@ -42,6 +42,23 @@ def _resolve_goal_scope(goals: list[dict]) -> None:
                 continue
         if (
             goal["kind"] == "CLASSIFY"
+            and len(goal["item_ids"]) >= 2
+            and re.search(
+                r"\b(?:cả\s+hai|tất\s+cả|cùng\s+(?:thuộc|được\s+phân\s*loại|mã|nhóm|phân\s*nhóm))\b",
+                goal["anchor"],
+                re.I,
+            )
+            and any(
+                other is not goal
+                and other["kind"] == "CLASSIFY"
+                and set(other["item_ids"]) == set(goal["item_ids"])
+                for other in goals
+            )
+        ):
+            goal["kind"] = "COMPARE"
+            continue
+        if (
+            goal["kind"] == "CLASSIFY"
             and not explicit_level(goal["anchor"])
             and not referenced_codes(goal["anchor"])
             and not re.search(r"\b(?:nhóm|phân\s*nhóm|mã|hs|phân\s*loại)\b", goal["anchor"], re.I)

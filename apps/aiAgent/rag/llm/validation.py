@@ -147,10 +147,16 @@ def _ownership_errors(answer: dict) -> list[str]:
     if answer["status"] == "MISSING_PRODUCT_INFO":
         if not missing or any(not item.strip() for item in missing):
             errors.append("MISSING_PRODUCT_INFO yêu cầu nêu rõ dữ kiện người dùng cần bổ sung")
-        if any(LEGAL_INFORMATION.search(_folded(item)) for item in missing):
-            errors.append(
-                "Chứng cứ pháp lý thuộc trách nhiệm truy xuất/kho dữ liệu, không phải dữ kiện người dùng cần bổ sung"
-            )
+        for item in missing:
+            match = LEGAL_INFORMATION.search(_folded(item))
+            if match:
+                errors.append(
+                    f"Chứng cứ pháp lý thuộc trách nhiệm truy xuất/kho dữ liệu, không phải dữ kiện người dùng cần bổ sung "
+                    f"(câu hỏi trong clarifications/missing_information đang chứa thuật ngữ pháp lý '{match[0]}'; "
+                    "hãy xóa mọi từ khóa pháp lý như 'Chú giải', 'Chương', 'nhóm', 'phân nhóm', 'mã HS', 'GIR' khỏi question "
+                    "và chỉ hỏi trực tiếp đặc tính kỹ thuật/công dụng thực tế của hàng hóa)."
+                )
+                break
     elif missing:
         errors.append("Chỉ MISSING_PRODUCT_INFO được yêu cầu người dùng bổ sung dữ kiện")
     if answer["status"] == "INSUFFICIENT_LEGAL_EVIDENCE":
@@ -205,18 +211,19 @@ def validate_answer(answer: dict, context: dict) -> dict:
     if answer["status"] in {"ANSWERED", "RECOMMENDATION"} and not cited:
         errors.append("Câu trả lời có kết luận phải có trích dẫn nguồn")
     codes = [c for c in [answer["suggested_hs_code"], *answer["alternatives"]] if c]
+    registered = set(codes) | set(context.get("registered_hs_codes", ()))
     mentioned = {
         c.replace(".", "")
         for c in re.findall(r"(?<!\d)(?:\d{4}\.\d{2}\.\d{2}|\d{8})(?!\d)", answer["answer"])
     }
-    if mentioned - set(codes):
+    if mentioned - registered:
         from rag.retrieval.request_plan import referenced_codes
 
         references = referenced_codes(context.get("question", ""))
         applying = re.search(
             r"(?:đề xuất|thuộc\s+mã|phân loại\s+(?:vào|theo)\s+mã)", answer["answer"], re.I
         )
-        if applying or mentioned - set(codes) - references:
+        if applying or mentioned - registered - references:
             errors.append(
                 "Mã HS8 trong diễn giải chưa qua kiểm tra đề xuất; đăng ký mã trong kết quả có cấu trúc."
             )

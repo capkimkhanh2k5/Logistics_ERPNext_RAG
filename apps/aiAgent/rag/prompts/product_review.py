@@ -32,14 +32,14 @@ nguồn CONSOLIDATED_UNDIVIDED_ROW đã xác minh. Metadata không chứng minh 
 Điều kiện tại required_citation_evidence_ids là bắt buộc của chính nhánh đang xét;
 không được đánh dấu NOT_APPLICABLE để bỏ qua. Nếu hàng hóa không thuộc dạng hàng hay
 đặc tính mà nhánh yêu cầu, dùng CONTRADICTED và REQUIRES_REVIEW, nêu sự khác biệt cụ thể.
-4. SATISFIED chỉ khi dữ kiện tham chiếu chứng minh điều kiện đó. Một thuộc tính không chứng minh thuộc tính khác; nhận diện loại hàng không xác nhận
-một thông số chưa được cung cấp. Không suy
+4. SATISFIED chỉ khi dữ kiện tham chiếu chứng minh điều kiện đó. Một thuộc tính không chứng minh thuộc tính khác; nhận diện loại hàng từ tên thương mại/model không xác nhận
+một thông số, cấu hình phần cứng/phần mềm hoặc điều kiện chức năng cụ thể trong Chú giải/mô tả phân nhóm (như hệ điều hành, khả năng cài đặt ứng dụng, khả năng xử lý dữ liệu hay cơ chế truyền động) chưa được cung cấp tường minh. Các đại lượng vật lý khác bản chất (như khối lượng toàn bộ theo thiết kế, khối lượng bản thân/không tải, trọng tải hàng hóa, trọng lượng cất cánh tối đa) không chứng minh thay cho nhau. Không suy
 phủ định từ im lặng, không tự lấp ngoại lệ, không bỏ ngưỡng cấp cha. SUPPORTED cần
 đối chiếu tất cả required_citation_evidence_ids và điều kiện quyết định, không còn
 mâu thuẫn, khoảng trống hoặc căn cứ loại trừ chưa xử lý. SUPPORTED không kiểm chứng
 hiệu lực hiện tại của nguồn hay toàn bộ phần QA.
-5. Nếu thiếu thuộc tính quyết định đã được nguồn chỉ ra: MISSING_PRODUCT_INFO,
-clarifications ghi question, attribute là tên thuộc tính mở, evidence_ids của điều kiện gây chặn.
+5. Nếu thiếu thuộc tính quyết định đã được nguồn chỉ ra (kể cả khi người dùng mới chỉ nêu tên thương mại/model): MISSING_PRODUCT_INFO,
+clarifications ghi question (chỉ hỏi đặc tính thực tế của hàng hóa, không ghi từ khóa pháp lý như "Chú giải", "Chương", "nhóm", "phân nhóm", "mã HS", "GIR"), attribute là tên thuộc tính mở, evidence_ids của điều kiện gây chặn.
 Chỉ hỏi thuộc tính chưa biết và ảnh hưởng mã; không hỏi lại điều đã có, không yêu cầu
 con số chính xác khi giới hạn đã đủ để quyết định. Chưa rõ đối tượng thực tế thì hỏi
 product_type; nguồn rỗng không cấm câu hỏi nhận diện, nhưng không đoán thông số chuyên biệt.

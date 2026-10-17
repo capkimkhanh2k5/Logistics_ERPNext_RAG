@@ -169,6 +169,18 @@ def test_guard_is_read_only_and_rejects_ambiguous_source_quantities_conservative
         ("Chiều dài không quá 1 m.", "Chiều rộng 50 cm."),
         ("Máy có khối lượng không quá 10 kg.", "Khối lượng bao bì 2 kg."),
         ("Công suất động cơ không quá 100 W.", "Công suất đèn 50 W."),
+        (
+            "- - Khối lượng toàn bộ theo thiết kế (SEN) không quá 5 tấn:",
+            "Trọng tải hàng hóa thiết kế 950 kg.",
+        ),
+        (
+            "- - Khối lượng toàn bộ theo thiết kế (SEN) không quá 5 tấn:",
+            "Khối lượng bản thân 1800 kg.",
+        ),
+        (
+            "Trọng lượng cất cánh tối đa không quá 250 g.",
+            "Khối lượng pin 100 g.",
+        ),
     ],
 )
 def test_negated_or_explicitly_different_measurements_cannot_prove_a_condition(source, quote):
@@ -187,6 +199,14 @@ def test_negated_or_explicitly_different_measurements_cannot_prove_a_condition(s
         ("Khối lượng không dưới 1 kg.", "Khối lượng không dưới 2 kg."),
         ("Khối lượng không quá 10 kg.", "Máy A có khối lượng chính xác 10,000 kg."),
         ("Khối lượng trên 10 kg.", "Máy B có khối lượng thực tế 10,100 kg."),
+        (
+            "- - Khối lượng toàn bộ theo thiết kế (SEN) không quá 5 tấn:",
+            "Xe có khối lượng toàn bộ theo thiết kế 3200 kg.",
+        ),
+        (
+            "Trọng lượng cất cánh tối đa không quá 250 g.",
+            "Trọng lượng cất cánh tối đa 249 g.",
+        ),
     ],
 )
 def test_consistent_measurement_subject_and_valid_non_negative_bounds_remain_accepted(

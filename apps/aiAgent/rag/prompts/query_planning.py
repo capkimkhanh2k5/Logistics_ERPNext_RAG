@@ -102,6 +102,9 @@ Trong cùng JSON, thêm request mô tả nhiệm vụ, không giải bài toán 
   CLASSIFY cần kết quả riêng cho từng item. COMPARE giải thích sự khác nhau, không
   thay thế CLASSIFY nếu cũng được yêu cầu phân loại từng sản phẩm.
   Một mặt hàng hỏi "thuộc nhóm/phân nhóm/mã X hay Y" là CLASSIFY ở cấp được hỏi, không chỉ COMPARE.
+  Khi có nhiều mặt hàng và câu hỏi vừa hỏi chung liệu cả hai/tất cả có cùng thuộc một nhóm/phân nhóm/mã
+  hay không, vừa yêu cầu phân loại từng mặt hàng, thì vế hỏi chung là COMPARE ở cấp tương ứng và vế
+  phân loại từng mặt hàng là CLASSIFY (không tạo hai mục tiêu CLASSIFY trùng lặp cho cùng tập mặt hàng).
   Vế hỏi về bản chất kỹ thuật, cơ chế hoạt động, định nghĩa hoặc nguyên tắc/quy tắc áp dụng
   (dạng hỏi khái niệm "là loại A hay loại B?", "áp dụng quy tắc nào?" không yêu cầu xuất mã số)
   đi kèm câu hỏi phân loại của cùng mặt hàng là EXPLAIN level=0, không lặp thêm CLASSIFY.

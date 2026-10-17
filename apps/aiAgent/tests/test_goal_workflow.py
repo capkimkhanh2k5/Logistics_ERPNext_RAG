@@ -663,4 +663,76 @@ def test_legal_analysis_hs8_reference_and_negated_competitor_code_are_allowed():
         }
     ]
     assert not code_claim_errors(negated_conclusion, "7113", ctx)
+    passive_parenthetical_exclusion = [
+        {
+            "kind": "CONCLUSION",
+            "text": (
+                "Theo Chú giải 2 Phần XVII, các thiết bị điện thuộc Chương 85 không được phân loại "
+                "là bộ phận theo các nhóm xe của Phần XVII (như 8708)."
+            ),
+        }
+    ]
+    assert not code_claim_errors(passive_parenthetical_exclusion, "8507", ctx)
+
+
+def test_non_classify_item_id_canonicalization_and_registered_hs8_in_explain():
+    ctx = context(explain=True)
+    for c in ctx["candidate_evidence"]:
+        c["code"] = "71131190" if c["code"] == "7113" else "71171920"
+        c["hierarchy"]["chain"].append({"code": c["code"], "level": 8})
+    ctx["request"]["objectives"][0]["level"] = 8
+    main = model_answer(ctx)
+    main["results"][0]["code"] = "71131190"
+    main["results"][1]["code"] = "71171920"
+    main["results"][2]["item_id"] = "I1"
+    main["results"][2]["claims"][0]["text"] = (
+        "Kim loại nền quyết định phân loại Dây A vào mã 7113.11.90 và Dây B vào mã 7117.19.20."
+    )
+    rows, errors = decode_task_answer(main, ctx)
+    assert not errors
+    assert rows[2]["item_id"] == ""
+    assert rows[2]["depends_on"] == [["G1", "I1"], ["G1", "I2"]]
+
+
+def test_collective_multi_item_question_becomes_compare_and_resolves_from_reviews():
+    q = "Dây A; Dây B. Cả hai có được phân loại vào phân nhóm 7113.11 hay không? Hướng phân loại từng dây."
+    plan = request("Dây A; Dây B. Xác định nhóm HS")
+    plan["objectives"][0].update(
+        level=6, anchor="Cả hai có được phân loại vào phân nhóm 7113.11 hay không?"
+    )
+    plan["objectives"].append(
+        {**plan["objectives"][0], "id": "G2", "level": 8, "anchor": "Hướng phân loại từng dây."}
+    )
+    validated = validate_request(q, plan)["objectives"]
+    assert [(g["kind"], g["level"]) for g in validated] == [("COMPARE", 6), ("CLASSIFY", 6)]
+
+
+def test_required_detail_missing_product_info_is_preserved_when_heading_also_needs_info():
+    rows = [
+        {
+            "kind": "CLASSIFY",
+            "item_id": "I1",
+            "level": 4,
+            "required": True,
+            "valid": True,
+            "status": "MISSING_PRODUCT_INFO",
+            "answer": "Cần xác định chức năng chính giữa 8471 và 8517.",
+            "missing_information": ["Chức năng chính của thiết bị là gì?"],
+            "suggested_hs_code": "",
+        },
+        {
+            "kind": "CLASSIFY",
+            "item_id": "I1",
+            "level": 8,
+            "required": True,
+            "valid": True,
+            "status": "MISSING_PRODUCT_INFO",
+            "answer": "Tiêu chí điện thoại thông minh phụ thuộc thiết kế chủ yếu.",
+            "missing_information": ["Thiết bị có thiết kế chủ yếu làm điện thoại di động không?"],
+            "suggested_hs_code": "",
+        },
+    ]
+    resolved = _resolve_levels(rows)
+    assert resolved[1]["status"] == "MISSING_PRODUCT_INFO"
+    assert "Tiêu chí điện thoại thông minh" in resolved[1]["answer"]
 

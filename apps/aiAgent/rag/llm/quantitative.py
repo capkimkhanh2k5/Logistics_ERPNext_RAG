@@ -108,7 +108,25 @@ _NEGATED_ASSERTION = re.compile(
     r"\b(?:khong\s+(?:phai|bang)|not\s+equal|is\s+not|was\s+not|does\s+not|isn't|wasn't)\b"
 )
 _ATTRIBUTES = {
-    "mass": (("mass", r"khoi luong|trong luong|mass|weight"),),
+    "mass": (
+        (
+            "gross_mass",
+            r"khoi luong toan bo(?:\s+theo\s+thiet\s+ke)?|trong luong toan bo(?:\s+theo\s+thiet\s+ke)?|gross (?:vehicle )?(?:weight|mass)|gvw",
+        ),
+        (
+            "mtom",
+            r"(?:trong|khoi) luong cat canh(?:\s+toi\s+da)?|maximum take[- ]?off (?:weight|mass)|mtow|mtom",
+        ),
+        (
+            "unladen_mass",
+            r"khoi luong ban than|trong luong ban than|trong luong khong tai|khoi luong khong tai|unladen (?:weight|mass)|kerb (?:weight|mass)|curb (?:weight|mass)",
+        ),
+        (
+            "payload",
+            r"trong tai(?:\s+hang\s+hoa)?(?:\s+theo\s+thiet\s+ke|\s+thiet\s+ke)?|tai trong(?:\s+hang\s+hoa)?(?:\s+theo\s+thiet\s+ke|\s+thiet\s+ke)?|payload|load capacity",
+        ),
+        ("mass", r"khoi luong|trong luong|mass|weight"),
+    ),
     "power": (("power", r"cong suat|power"),),
     "length": (
         ("length", r"chieu dai|length"),
@@ -120,6 +138,7 @@ _ATTRIBUTES = {
         ("radius", r"ban kinh|radius"),
     ),
 }
+_SPECIFIC_MASS_ATTRIBUTES = {"gross_mass", "mtom", "unladen_mass", "payload"}
 _TARGET_STOPWORDS = {
     "cua",
     "co",
@@ -154,7 +173,8 @@ def _fold(text: str) -> str:
 
 def _attribution(prefix: str, dimension: str) -> tuple[str | None, str | None]:
     """Read only a nearby explicit physical attribute and simple measurement subject."""
-    prefix = re.split(r"[.;,:!?()\n]|\b(?:va|and)\b", _fold(prefix[-160:]))[-1]
+    cleaned = re.sub(r"\([^)]*\)", " ", _fold(prefix[-160:]))
+    prefix = re.split(r"[.;,:!?()\n]|\b(?:va|and)\b", cleaned)[-1]
     matches = [
         (match, attribute)
         for attribute, pattern in _ATTRIBUTES.get(dimension, ())
@@ -162,10 +182,13 @@ def _attribution(prefix: str, dimension: str) -> tuple[str | None, str | None]:
     ]
     if not matches:
         return None, None
-    match, attribute = max(matches, key=lambda item: item[0].end())
+    match, attribute = max(matches, key=lambda item: (item[0].end(), -item[0].start()))
     before, after = prefix[: match.start()].strip(), prefix[match.end() :].strip()
     subject = after or before
-    if re.match(r"^(?:may|thiet bi|san pham|hang hoa|product|device|equipment|machine)\b", subject):
+    if re.match(
+        r"^(?:may|thiet bi|san pham|hang hoa|xe|phuong tien|product|device|equipment|machine|vehicle)\b",
+        subject,
+    ):
         if not re.search(r"\b(?:gom|contains|includes|component|part|with|of)\b", subject):
             return attribute, "WHOLE"
     words = [word for word in re.findall(r"\w+", subject) if word not in _TARGET_STOPWORDS]
@@ -245,6 +268,15 @@ def _proves(fact: _Quantity, threshold: _Quantity) -> bool:
         return False
     if threshold.dimension == "length" and (
         threshold.attribute is None or fact.attribute != threshold.attribute
+    ):
+        return False
+    if (
+        threshold.dimension == "mass"
+        and (
+            threshold.attribute in _SPECIFIC_MASS_ATTRIBUTES
+            or fact.attribute in _SPECIFIC_MASS_ATTRIBUTES
+        )
+        and fact.attribute != threshold.attribute
     ):
         return False
     if (fact.subject or "WHOLE") != (threshold.subject or "WHOLE"):

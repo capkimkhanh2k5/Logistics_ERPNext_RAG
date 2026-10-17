@@ -326,6 +326,13 @@ def _resolve_levels(rows: list[dict]) -> list[dict]:
             r["required"] and (r["status"] != "RECOMMENDATION" or not r.get("review_valid"))
             for r in lower
         ):
+            if (
+                row.get("required")
+                and row.get("valid")
+                and row["status"] == "MISSING_PRODUCT_INFO"
+                and all(r["status"] == "MISSING_PRODUCT_INFO" for r in lower if r["required"])
+            ):
+                continue
             rows[index] = blocked(
                 row,
                 "Chưa xét mã chi tiết khi nhóm hoặc phân nhóm bắt buộc của cùng mặt hàng chưa được xác định.",
@@ -362,7 +369,7 @@ def _resolve_comparisons(rows: list[dict], context: dict) -> list[dict]:
         if (
             goal["kind"] != "COMPARE"
             or not goal["level"]
-            or not re.search(r"cùng|chung|khác", goal["anchor"], re.I)
+            or not re.search(r"cùng|chung|khác|cả\s+hai|tất\s+cả", goal["anchor"], re.I)
             or len(goal["item_ids"]) < 2
         ):
             continue
