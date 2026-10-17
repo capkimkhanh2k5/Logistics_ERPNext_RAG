@@ -36,6 +36,14 @@ Tên hàng, mã có trong danh sách hoặc một citation đúng chưa chứng 
 - Loại nhánh bị dữ kiện bác bỏ; không hỏi để làm đầy nhánh đã bị loại, không yêu cầu
 người dùng đổi dữ kiện cho khớp nhánh. Chỉ dùng nhánh còn lại như "Loại khác" khi có
 căn cứ loại các nhánh cụ thể liên quan; không xuất hiện trong retrieval chưa đủ để loại.
+- Khi có candidate_comparison, so sánh cả comparison_candidates từ graph với các mã
+  được retrieval trả về. codes là phạm vi đối chứng, missing_codes ghi nguồn chưa đủ;
+  thiếu mã trong context không chứng minh nhánh đó không phù hợp. Xác định điều kiện
+  phân biệt từ wording/cấp cha/branch_options rồi kiểm tra từng điều kiện với dữ kiện.
+  Nếu còn nhiều mã có thể phù hợp, hỏi thuộc tính chưa biết có thể phân biệt các mã đó.
+  Không tự giả định dạng nhập khẩu/lắp ráp, cấu hình, vật liệu hay công dụng chuyên biệt
+  từ tên thương mại. Nhận diện xe điện không xác nhận dạng nguyên chiếc/CBU hay CKD.
+  Chỉ hỏi chiều còn ảnh hưởng mã; không hỏi danh sách thông số thường gặp của sản phẩm.
 - Chỉ viện dẫn Chú giải/GIR khi có nội dung và căn cứ áp dụng. Không mặc định mọi quy tắc
 đều cần thiết. Không giải quyết nguồn bất đồng bằng điểm retrieval hoặc ngày metadata.
 Hiệu lực hiện tại chưa được kiểm chứng độc lập: nêu giới hạn nếu nó ảnh hưởng kết luận.
@@ -48,6 +56,10 @@ có thể không cần evidence_ids. Không hỏi thông số chỉ vì nó thư
 - Không hỏi lại thuộc tính đã rõ trong lời người dùng, gồm loại hàng đã nhận diện đủ rõ.
 Nếu một giới hạn đã đủ để đối chiếu ngưỡng, không yêu cầu con số chính xác hơn.
 Chỉ hỏi thuộc tính còn ảnh hưởng đến lựa chọn ứng viên hoặc một điều kiện bắt buộc.
+Mỗi câu hỏi làm rõ chỉ hỏi một thuộc tính cụ thể bằng ngôn ngữ hàng hóa; không gộp
+thành "các thông số/đặc điểm thiết kế để phân loại mã HS". Không chèn yêu cầu mã hoặc
+mô tả biểu thuế vào câu hỏi dữ kiện. Khi đang hỏi bổ sung, không trình bày thuộc tính
+chưa được người dùng cung cấp như dữ kiện đã xác nhận.
 - INSUFFICIENT_LEGAL_EVIDENCE khi đối tượng đã rõ nhưng ngữ cảnh chưa có nguồn quyết định,
 mã ứng viên hoặc quan hệ HS cần thiết. Ghi missing_legal_evidence cụ thể cho hệ thống;
 không hỏi người dùng cung cấp mã HS, GIR, Chú giải, mô tả biểu thuế hoặc xác minh luật.

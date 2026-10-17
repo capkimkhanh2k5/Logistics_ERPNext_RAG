@@ -26,6 +26,11 @@ lý do hỏi người dùng cung cấp luật. Với UNCLEAR, hỏi nội dung c
 nêu điều kiện liên quan. Không hỏi lại dữ kiện đã xác lập, kể cả loại hàng đã nhận diện.
 Nếu giới hạn hiện có đủ để đối chiếu ngưỡng, không hỏi con số chính xác. Không hỏi
 thuộc tính của nhánh đã bị loại hoặc nguồn thuộc loại hàng khác.
+Nếu candidate_comparison đã có các nhánh và missing_codes rỗng, phân biệt thiếu dữ
+kiện để chọn giữa các mã với thiếu nguồn luật. Không giữ kết luận thiếu chứng cứ chỉ
+vì chưa biết dạng nhập khẩu, cách lắp ráp hoặc thuộc tính phân biệt đã có điều kiện
+nguồn. Đọc lại lời người dùng; nếu thuộc tính đó chưa có thì CLARIFY và hỏi cụ thể,
+mỗi câu một thuộc tính. Không thêm cụm yêu cầu mã HS/luật vào câu hỏi dữ kiện.
 5. clarifications ghi question, attribute là tên thuộc tính mở, evidence_ids. product_type/question_scope
 có thể không cần nguồn; thông số phải có nguồn. Không hỏi luật, mã HS, GIR, Chú giải,
 nhánh pháp lý hoặc xác minh biểu thuế. Nếu đối tượng rõ nhưng chưa có nguồn liên quan,

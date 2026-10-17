@@ -6,6 +6,7 @@ import re
 from rag.graph.context import GraphContext
 from rag.ingestion.sources import SOURCE_TYPES
 from rag.llm.budget import ContextBudgetError, request_budget
+from rag.llm.disambiguation import comparison_neighbours, comparison_payload
 from rag.llm.evidence import bind_evidence, bind_user_context, model_candidate, model_sources
 from rag.prompts.schemas import MODEL_ANSWER_SCHEMA
 from rag.prompts.system import SYSTEM_PROMPT
@@ -42,7 +43,12 @@ def load_generation_graph(retriever) -> GraphContext:
 
 
 def source_rows(
-    result: dict, task: str, graph=None, candidate_limit: int = 10
+    result: dict,
+    task: str,
+    graph=None,
+    candidate_limit: int = 10,
+    *,
+    comparison_candidates: list[dict] | None = None,
 ) -> tuple[list, list]:
     candidates = result.get("hs_candidates", [])[:candidate_limit] if task in {"hs", "auto"} else []
     advice = result.get("semantic_intent", {})
@@ -53,7 +59,7 @@ def source_rows(
         else []
     )
     notes: list[dict] = []
-    for row in candidates:
+    for row in comparison_candidates if comparison_candidates is not None else candidates:
         rows.append(row)
         if graph is not None:
             view = graph.source_view(row)
@@ -259,10 +265,17 @@ def _serialize(value: dict | list) -> str:
     return json.dumps(value, ensure_ascii=False, default=str, separators=(",", ":"))
 
 
-def _context_payload(base: dict, packed: list[dict], candidates: list[dict], graph) -> dict:
+def _context_payload(
+    base: dict,
+    packed: list[dict],
+    candidates: list[dict],
+    graph,
+    comparison_candidates: list[dict] | None = None,
+    comparison_groups: list[dict] | None = None,
+) -> dict:
     packed = bind_evidence(packed, base.get("snapshot"))
     included = {source["id"] for source in packed}
-    return {
+    payload = {
         **base,
         "sources": model_sources([_model_source(source) for source in packed]),
         "candidate_hs_codes": [
@@ -275,6 +288,25 @@ def _context_payload(base: dict, packed: list[dict], candidates: list[dict], gra
             for item in _model_candidate_evidence(_candidate_evidence(candidates, packed, graph))
         ],
     }
+    if comparison_groups:
+        evidence = _candidate_evidence(comparison_candidates or candidates, packed, graph)
+        seed_codes = {c["code"] for c in candidates}
+        extra_evidence = [
+            model_candidate(
+                {key: item[key] for key in ("code", "wording_label", "context_labels")}
+                | {"hierarchy_status": item["hierarchy"]["status"]},
+                packed,
+            )
+            for item in _model_candidate_evidence(evidence)
+            if item["code"] not in seed_codes
+        ]
+        comparison = comparison_payload(comparison_groups, evidence, packed)
+        if extra_evidence:
+            payload["comparison_candidates"] = extra_evidence
+        # Avoid repeating a complete flat candidate list already present in candidate_evidence.
+        if extra_evidence or any(g["branch_options"] or g["missing_codes"] for g in comparison):
+            payload["candidate_comparison"] = comparison
+    return payload
 
 
 def _messages(user_message: str) -> list[dict]:
@@ -292,7 +324,9 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
     max_context_chars = None if token_mode else config.max_context_chars
     if not question.strip() or (max_input_chars is not None and len(question) > max_input_chars):
         raise ValueError("Question is empty or exceeds GROQ_MAX_INPUT_CHARS")
-    rows, candidates = source_rows(result, task, graph)
+    seeds = result.get("hs_candidates", [])[:10] if task in {"hs", "auto"} else []
+    comparison_candidates, comparison_groups = comparison_neighbours(seeds, graph)
+    rows, candidates = source_rows(result, task, graph, comparison_candidates=comparison_candidates)
     user_context = bind_user_context(question)
     base = {
         "task": task,
@@ -308,7 +342,9 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
     if task == "auto":
         base["intent_advice"] = result.get("semantic_intent", {})
     packed: list[dict] = []
-    payload = _context_payload(base, packed, candidates, graph)
+    payload = _context_payload(
+        base, packed, candidates, graph, comparison_candidates, comparison_groups
+    )
     user_message = _serialize(payload)
     budget = (
         request_budget(_messages(user_message), MODEL_ANSWER_SCHEMA, config.model)
@@ -320,7 +356,7 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
     if max_input_chars is not None and len(user_message) > max_input_chars:
         raise ValueError("Question and source metadata exceed GROQ_MAX_INPUT_CHARS")
     included: set[str] = set()
-    for group in _source_groups(rows, candidates, graph):
+    for group in _source_groups(rows, comparison_candidates, graph):
         additions = [row for row in group if row["id"] not in included]
         if not additions:
             continue
@@ -334,7 +370,12 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
         if max_context_chars is not None and len(_serialize(projected_sources)) > max_context_chars:
             continue
         trial = _context_payload(
-            {**base, "omitted_source_count": len(rows) - len(proposed)}, proposed, candidates, graph
+            {**base, "omitted_source_count": len(rows) - len(proposed)},
+            proposed,
+            candidates,
+            graph,
+            comparison_candidates,
+            comparison_groups,
         )
         message = _serialize(trial)
         trial_budget = (
@@ -362,6 +403,14 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
         "query_plan": result.get("query_plan", {}),
         "query_preprocessing_hash": result.get("query_preprocessing_hash"),
         "candidate_evidence": _candidate_evidence(candidates, packed, graph),
+        "comparison_candidates": [
+            e
+            for e in _candidate_evidence(comparison_candidates, packed, graph)
+            if e["code"] not in {c["code"] for c in candidates}
+        ],
+        "candidate_comparison": comparison_payload(
+            comparison_groups, _candidate_evidence(comparison_candidates, packed, graph), packed
+        ),
         "source_locators": {
             s["label"]: next(r.get("locator", {}) for r in rows if r["id"] == s["id"])
             for s in packed

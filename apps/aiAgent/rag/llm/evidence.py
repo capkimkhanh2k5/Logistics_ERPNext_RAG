@@ -2,11 +2,13 @@
 
 import re
 
+from rag.llm.disambiguation import disambiguation_errors, review_scope
 from rag.llm.quantitative import _proves, _quantities
 from rag.llm.validation import _folded, schema_errors
 from rag.prompts.schemas import (
     MODEL_ANSWER_SCHEMA,
     MODEL_DECISION_REVIEW_SCHEMA,
+    MODEL_DISAMBIGUATION_REVIEW_SCHEMA,
     MODEL_PRODUCT_REVIEW_SCHEMA,
 )
 from rag.utils.files import digest
@@ -170,11 +172,17 @@ def decode_answer(value: dict, context: dict) -> tuple[dict, list[str]]:
     }, errors
 
 
-def decode_product_review(value: dict, context: dict) -> tuple[dict, list[str]]:
-    errors = schema_errors(value, MODEL_PRODUCT_REVIEW_SCHEMA)
+def decode_product_review(
+    value: dict, context: dict, *, candidate_code: str | None = None
+) -> tuple[dict, list[str]]:
+    comparison = bool(review_scope(context, candidate_code))
+    schema = MODEL_DISAMBIGUATION_REVIEW_SCHEMA if comparison else MODEL_PRODUCT_REVIEW_SCHEMA
+    errors = schema_errors(value, schema)
     if errors:
         return {}, errors
     errors = clarification_errors(value["clarifications"], context)
+    if comparison:
+        errors.extend(disambiguation_errors(value, context, candidate_code))
     sources, statements = source_registry(context), user_registry(context)
     facts, checks = [], []
     for check in value["condition_checks"]:

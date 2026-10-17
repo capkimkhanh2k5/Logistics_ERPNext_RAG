@@ -5,7 +5,7 @@ Các chỉ dẫn model do ứng dụng định nghĩa nằm trong thư mục nà
 ## Sửa nội dung ở đâu?
 
 - [system.py](system.py): `SYSTEM_PROMPT`, vai trò trợ lý, quyền sở hữu dữ kiện/chứng cứ, chọn trạng thái, điều kiện đề xuất và dẫn nguồn.
-- [product_review.py](product_review.py): `PRODUCT_REVIEW_PROMPT`, kiểm tra độc lập dữ kiện hàng hóa với điều kiện của nhánh được đề xuất.
+- [product_review.py](product_review.py): `PRODUCT_REVIEW_PROMPT`, đối chiếu dữ kiện với nhánh đề xuất và các mã đối chứng cùng phân nhóm; hỏi thuộc tính chưa biết còn ảnh hưởng lựa chọn.
 - [decision_review.py](decision_review.py): `DECISION_REVIEW_PROMPT` và template repair, kiểm tra nhận diện hàng hóa/phạm vi câu hỏi trước khi chấp nhận quyết định thiếu chứng cứ hoặc cần thẩm định.
 - [tasks.py](tasks.py): `TASK_INSTRUCTIONS` cho HS/QA/Auto; `USER_SUPPLEMENT_TEMPLATE` đánh dấu dữ kiện người dùng bổ sung. `SOURCE_COMPARISON_CLARIFICATION` giữ lời nhắc của API so sánh nguồn cũ, không phải câu hỏi do luồng Auto hiện tại tự sinh.
 - [repair.py](repair.py): `REPAIR_PROMPT`/`format_repair_prompt()` sửa câu trả lời; `PRODUCT_REVIEW_REPAIR_PROMPT`/`format_product_review_repair_prompt()` sửa Product Review theo danh sách lỗi validation.
@@ -13,12 +13,13 @@ Các chỉ dẫn model do ứng dụng định nghĩa nằm trong thư mục nà
 - [reranking.py](reranking.py): instruction truy xuất nguồn, instruction mặc định của Qwen, template chat/scoring và version dùng trong cache reranker.
 - [query_planning.py](query_planning.py): `QUERY_PLANNING_PROMPT`/`QUERY_PLAN_SCHEMA` cho truy vấn stateless; `TURN_PLANNING_PROMPT`/`TURN_PLAN_SCHEMA` ghép nhận diện hội thoại và từ khóa trong một request trước retrieval. Không chứa danh mục hãng hoặc mã HS. Từ khóa là giả thuyết truy xuất, không thuộc registry dữ kiện; câu hỏi mới chỉ lấy anchor từ tin nhắn mới.
 - [conversation.py](conversation.py): chỉ dẫn/schema nhận diện được ghép vào prompt/schema của QueryPlanner; không còn request router riêng. Không viết lại lời người dùng hoặc suy ra thông số; câu hỏi làm rõ đang chờ chỉ là ngữ cảnh nhận diện, không ép nối lượt mới.
-- [schemas.py](schemas.py): `MODEL_*_SCHEMA` là contract model dùng ID của registry. `ANSWER_SCHEMA` giữ contract kết quả công khai; các schema review cũ dùng cho chuẩn hóa nội bộ và replay context cũ.
+- [schemas.py](schemas.py): `MODEL_*_SCHEMA` là contract model dùng ID của registry. `MODEL_DISAMBIGUATION_REVIEW_SCHEMA` thêm `candidate_assessments`/`branch_checks` khi có phạm vi so sánh. `ANSWER_SCHEMA` giữ contract kết quả công khai; các schema review cũ dùng cho chuẩn hóa nội bộ và replay context cũ.
 
 ## Các nơi sử dụng
 
 - `rag/llm/context.py` ghép câu hỏi, dữ kiện bổ sung, nguồn và chỉ dẫn tác vụ với system prompt.
 - `rag/llm/answering.py` sử dụng prompt kiểm tra sản phẩm và prompt sửa lỗi.
+- `rag/llm/disambiguation.py` kiểm tra độ phủ mã/điều kiện nhánh, trạng thái thuộc tính và tham chiếu bằng chứng; không gọi LLM hay tự suy ra thuộc tính theo tên hàng. Dữ liệu so sánh được ghép vào Product Review hiện có.
 - `rag/llm/decision_review.py` kiểm tra độc lập quyết định chưa kết luận; không phát hành mã HS và không coi câu trả lời trước là dữ kiện người dùng.
 - `rag/llm/cliproxy_client.py` bổ sung chỉ dẫn định dạng theo khả năng của provider.
 - `rag/retrieval/rerankers.py` dựng đầu vào Qwen bằng template trong `reranking.py`.

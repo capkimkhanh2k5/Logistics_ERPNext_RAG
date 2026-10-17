@@ -6,6 +6,7 @@ from time import perf_counter
 from rag.llm.budget import ContextBudgetError
 from rag.llm.client import RAGClient
 from rag.llm.decision_review import review_decision
+from rag.llm.disambiguation import review_scope
 from rag.llm.errors import LLMError
 from rag.llm.evidence import (
     decode_answer,
@@ -27,6 +28,7 @@ from rag.prompts.repair import format_product_review_repair_prompt, format_repai
 from rag.prompts.schemas import (
     ANSWER_SCHEMA,
     MODEL_ANSWER_SCHEMA,
+    MODEL_DISAMBIGUATION_REVIEW_SCHEMA,
     MODEL_PRODUCT_REVIEW_SCHEMA,
     PRODUCT_REVIEW_SCHEMA,
 )
@@ -190,6 +192,23 @@ def _review_recommendation(
     }
     registry_protocol = context.get("response_protocol") == "registry-v2"
     review_schema = MODEL_PRODUCT_REVIEW_SCHEMA if registry_protocol else PRODUCT_REVIEW_SCHEMA
+    comparison = review_scope(context, candidate["code"]) if registry_protocol else []
+    if comparison:
+        codes = {code for group in comparison for code in group["codes"]}
+        peers = [
+            e
+            for e in [*context["candidate_evidence"], *context.get("comparison_candidates", [])]
+            if e["code"] in codes
+        ]
+        for peer in peers:
+            labels.update(peer["required_citation_labels"])
+            labels.update(peer["related_note_labels"])
+        payload.update(
+            candidate_comparison=comparison,
+            comparison_candidates=[model_candidate(peer, context["sources"]) for peer in peers],
+            sources=[s for s in context["sources"] if s["label"] in labels],
+        )
+        review_schema = MODEL_DISAMBIGUATION_REVIEW_SCHEMA
     if registry_protocol:
         payload = {
             **payload,
@@ -241,9 +260,10 @@ def _review_recommendation(
         review = json.loads(generation["content"])
     except json.JSONDecodeError:
         review = {}
+    raw_review = review
     errors: list[str] = []
     if registry_protocol:
-        review, errors = decode_product_review(review, context)
+        review, errors = decode_product_review(review, context, candidate_code=candidate["code"])
     errors.extend(schema_errors(review, PRODUCT_REVIEW_SCHEMA))
     if generation["finish_reason"] != "stop":
         errors.append("Lượt kiểm tra dữ kiện hàng hóa chưa hoàn tất bình thường")
@@ -358,6 +378,11 @@ def _review_recommendation(
         "prompt_hash": digest(PRODUCT_REVIEW_PROMPT),
         "schema_hash": digest(review_schema),
     }
+    if comparison:
+        details["candidate_disambiguation"] = {
+            key: raw_review.get(key, []) if isinstance(raw_review, dict) else []
+            for key in ("candidate_assessments", "branch_checks")
+        }
     timings["validation_ms"] += (perf_counter() - validation_started) * 1000
     if errors:
         if repair_of is None:

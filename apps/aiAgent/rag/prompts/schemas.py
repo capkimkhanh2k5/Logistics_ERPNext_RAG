@@ -275,6 +275,53 @@ MODEL_PRODUCT_REVIEW_SCHEMA: dict = {
     ],
 }
 
+_COMPARISON_PROOF = {
+    "evidence_ids": _IDS,
+    "fact_ids": _IDS,
+    "user_quotes": {"type": "array", "items": {"type": "string", "minLength": 1}},
+}
+MODEL_DISAMBIGUATION_REVIEW_SCHEMA: dict = {
+    **MODEL_PRODUCT_REVIEW_SCHEMA,
+    "properties": {
+        **MODEL_PRODUCT_REVIEW_SCHEMA["properties"],
+        "candidate_assessments": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "code": {"type": "string", "pattern": "^[0-9]{8}$"},
+                    "assessment": {
+                        "type": "string",
+                        "enum": ["POSSIBLE", "RULED_OUT", "INSUFFICIENT_LEGAL_EVIDENCE"],
+                    },
+                    **_COMPARISON_PROOF,
+                },
+                "required": ["code", "assessment", *_COMPARISON_PROOF],
+            },
+        },
+        "branch_checks": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "parent_code": {"type": "string", "pattern": "^[0-9]{6}$"},
+                    "attribute": {"type": "string", "minLength": 1},
+                    "assessment": {"type": "string", "enum": ["KNOWN", "MISSING"]},
+                    **_COMPARISON_PROOF,
+                },
+                "required": ["parent_code", "attribute", "assessment", *_COMPARISON_PROOF],
+            },
+        },
+    },
+    "required": [
+        *MODEL_PRODUCT_REVIEW_SCHEMA["required"],
+        "candidate_assessments",
+        "branch_checks",
+    ],
+}
+
 MODEL_DECISION_REVIEW_SCHEMA: dict = {
     "type": "object",
     "additionalProperties": False,

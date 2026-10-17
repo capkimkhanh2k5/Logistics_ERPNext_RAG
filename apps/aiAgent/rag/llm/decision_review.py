@@ -180,6 +180,8 @@ def review_decision(
             user_context=context["user_context"],
             sources=model_sources(context["sources"]),
         )
+        if context.get("candidate_comparison"):
+            payload["candidate_comparison"] = context["candidate_comparison"]
     messages = [
         {"role": "system", "content": DECISION_REVIEW_PROMPT},
         {
