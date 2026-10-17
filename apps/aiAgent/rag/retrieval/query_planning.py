@@ -15,12 +15,14 @@ from rag.prompts.query_planning import (
     QUERY_PLAN_SCHEMA,
     QUERY_PLANNING_PROMPT,
     SEARCH_HINT_TEMPLATE,
+    SEARCH_TERMS_SCHEMA,
     TURN_PLAN_SCHEMA,
     TURN_PLANNING_PROMPT,
 )
+from rag.retrieval.request_plan import canonical_anchor, validate_request
 from rag.utils.files import digest
 
-QUERY_FLOW_VERSION = "conversation-and-search-hints-v2"
+QUERY_FLOW_VERSION = "conversation-goals-and-search-hints-v5"
 
 
 def raw_query_plan(query: str) -> dict:
@@ -32,6 +34,7 @@ def raw_query_plan(query: str) -> dict:
         "used_as_product_facts": False,
         "cache_hit": False,
         "query_hash": digest(query),
+        "request": None,
     }
 
 
@@ -95,15 +98,15 @@ class QueryPlanner:
             if generation.get("finish_reason") not in (None, "stop"):
                 raise ValueError("incomplete_query_plan")
             payload = json.loads(generation["content"])
-            terms = self._terms(query, payload)
-            result.update(self._expanded_plan(query, terms))
+            result.update(self._planned_payload(query, payload))
         except LLMError as exc:
             result.update(
                 status="FALLBACK_RAW",
                 error={"http_status": exc.status, "error_code": exc.error_code},
             )
         except (ValueError, ValidationError, KeyError, TypeError):
-            result.update(status="FALLBACK_RAW", error={"error_code": "invalid_query_plan"})
+            result.update(**raw_query_plan(query), error={"error_code": "invalid_query_plan"})
+            result["status"] = "FALLBACK_RAW"
         return self._finish_plan(query, result, tick)
 
     def plan_turn(
@@ -159,7 +162,9 @@ class QueryPlanner:
             payload = json.loads(generation["content"])
             if not isinstance(payload, dict):
                 raise ValueError("invalid_turn_response")
-            decision = {key: value for key, value in payload.items() if key != "terms"}
+            decision = {
+                key: value for key, value in payload.items() if key not in {"terms", "request"}
+            }
             validate_turn(decision, question, supplements, message, pending_questions)
             routing.update(decision)
         except LLMError as exc:
@@ -183,16 +188,27 @@ class QueryPlanner:
             "generation": routing["generation"],
         }
         try:
-            terms = self._terms(query, {"terms": payload["terms"]})
+            content_plan = {key: payload[key] for key in ("terms", "request") if key in payload}
+            planned = self._planned_payload(query, content_plan)
+            terms = planned["terms"]
             # System-added turn labels and pending questions cannot anchor search hints.
             if any(
                 not any(row["anchor"] in text for text in [next_question, *next_supplements])
                 for row in terms
             ):
                 raise ValueError("invalid_search_hint_anchor")
-            result.update(self._expanded_plan(query, terms))
+            result.update(planned)
+            if planned.get("request") is not None:
+                request = planned["request"]
+                if any(
+                    not any(row["anchor"] in text for text in [next_question, *next_supplements])
+                    for row in [*request["items"], *request["objectives"]]
+                ):
+                    raise ValueError("invalid_request_anchor")
+                result["request"] = request
         except (ValueError, ValidationError, KeyError, TypeError):
-            result.update(status="FALLBACK_RAW", error={"error_code": "invalid_query_plan"})
+            result.update(**raw_query_plan(query), error={"error_code": "invalid_query_plan"})
+            result["status"] = "FALLBACK_RAW"
         # The single shared request is accounted for under query planning, inside retrieval.
         routing["elapsed_ms"] = 0.0
         return routing, self._finish_plan(query, result, tick)
@@ -205,6 +221,9 @@ class QueryPlanner:
         if status not in {"RAW_ONLY", "NO_EXPANSION", "EXPANDED", "FALLBACK_RAW"}:
             raise ValueError("Invalid precomputed plan status")
         terms = self._terms(query, {"terms": plan.get("terms")})
+        if plan.get("request") is not None:
+            if validate_request(query, plan["request"]) != plan["request"]:
+                raise ValueError("Precomputed request plan is not canonical")
         expected = (
             self._expanded_plan(query, terms) if status == "EXPANDED" else raw_query_plan(query)
         )
@@ -214,6 +233,25 @@ class QueryPlanner:
             or (status == "EXPANDED" and not terms)
         ):
             raise ValueError("Invalid precomputed search hints")
+
+    @classmethod
+    def _planned_payload(cls, query: str, payload: dict) -> dict:
+        if not isinstance(payload, dict):
+            raise ValueError("invalid_query_plan")
+        if "request" not in payload:
+            return cls._expanded_plan(query, cls._terms(query, payload))
+        if set(payload) - {"terms", "request"}:
+            raise ValueError("unexpected_query_plan_field")
+        request = validate_request(query, payload["request"])
+        try:
+            terms = cls._terms(query, {"terms": payload.get("terms")})
+        except (ValueError, ValidationError, KeyError, TypeError):
+            return {
+                **cls._expanded_plan(query, []),
+                "request": request,
+                "hint_error": {"error_code": "invalid_search_hints_request_preserved"},
+            }
+        return {**cls._expanded_plan(query, terms), "request": request}
 
     def _finish_plan(self, query: str, result: dict, tick: float) -> dict:
         result["elapsed_ms"] = (time.perf_counter() - tick) * 1000
@@ -246,9 +284,10 @@ class QueryPlanner:
 
     @staticmethod
     def _terms(query: str, payload: dict) -> list[dict]:
-        validate(payload, QUERY_PLAN_SCHEMA)
+        validate(payload, QUERY_PLAN_SCHEMA if "request" in payload else SEARCH_TERMS_SCHEMA)
         result, seen = [], set()
         for row in payload["terms"]:
+            row = {**row, "anchor": canonical_anchor(query, row["anchor"])}
             term = " ".join(row["term"].split())
             # Keep numeric conditions, codes and citation/control markup out of hints.
             if row["anchor"] not in query or not re.fullmatch(r"[^\d\[\]{}<>:;\n]+", term):

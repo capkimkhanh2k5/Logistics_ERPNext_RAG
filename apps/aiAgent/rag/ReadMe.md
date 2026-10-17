@@ -1,5 +1,7 @@
 # Package RAG
 
+Luồng theo mục tiêu dùng thêm `retrieval/request_plan.py`, `retrieval/evidence_recovery.py` và các module `llm/task_context.py`, `llm/task_validation.py`, `llm/task_generation.py`, `llm/recovery.py`. Prompt/schema nằm tại `prompts/task_answering.py`. [Contract và giới hạn](../docs/GenerationFlow/Goals_And_Recovery.md) mô tả quan hệ với `registry-v2` và đường fallback.
+
 Code được nhóm theo chức năng. Các thư mục ở đây là Python package; import từ module cụ thể để thấy rõ phụ thuộc. Cấu hình nằm ngoài runtime package tại `config/`; dữ liệu và kết quả thực nghiệm giữ nguyên vị trí.
 
 ```text

@@ -108,8 +108,23 @@ def _corpus_scope_errors(answer: dict) -> list[str]:
     return []
 
 
-def _requests_legal_information(sentence: str) -> bool:
-    for request in USER_REQUEST.finditer(sentence):
+def _user_requests(text: str):
+    text = unicodedata.normalize("NFC", text)
+    folded, offsets = "", []
+    for index, char in enumerate(text):
+        part = _folded(char)
+        folded += part
+        offsets.extend([index] * len(part))
+    for match in USER_REQUEST.finditer(folded):
+        original = text[offsets[match.start()] : offsets[match.end() - 1] + 1]
+        if match[0].startswith("ban ") and original.split()[0].lower() not in {"ban", "bạn"}:
+            continue
+        yield match
+
+
+def _requests_legal_information(text: str) -> bool:
+    sentence = _folded(unicodedata.normalize("NFC", text))
+    for request in _user_requests(text):
         requested = re.split(
             r"\b(?:de|nham|in order to|so as to|so that|for (?=(?:hs|ahtn|tariff|classification)\b))\b",
             sentence[request.end() :],
@@ -146,19 +161,19 @@ def _ownership_errors(answer: dict) -> list[str]:
     elif legal:
         errors.append("Thiếu chứng cứ pháp lý phải dùng INSUFFICIENT_LEGAL_EVIDENCE")
     if any(
-        USER_REQUEST.search(_folded(item).strip()) or "?" in item or "？" in item for item in legal
+        next(_user_requests(item.strip()), None) or "?" in item or "？" in item for item in legal
     ):
         errors.append(
             "Khoảng trống chứng cứ pháp lý là chẩn đoán hệ thống, không được hỏi người dùng"
         )
     for sentence in re.split(r"(?<=[.!?])\s+|\n", answer["answer"]):
         folded = _folded(sentence)
-        request = USER_REQUEST.search(folded)
+        request = next(_user_requests(sentence), None)
         # A corpus diagnostic may describe work for the system without asking the user.
         diagnostic = re.match(r"(?:corpus|retrieval|he thong|nguon truy xuat)\b", folded.strip())
         if re.search(r"\b(?:ban|nguoi dung|vui long|please|you)\b", folded):
             diagnostic = None
-        if request and not diagnostic and _requests_legal_information(folded):
+        if request and not diagnostic and _requests_legal_information(sentence):
             errors.append(
                 "Không yêu cầu người dùng cung cấp chứng cứ pháp lý; hãy báo khoảng trống truy xuất/kho dữ liệu"
             )
@@ -190,8 +205,24 @@ def validate_answer(answer: dict, context: dict) -> dict:
     if answer["status"] in {"ANSWERED", "RECOMMENDATION"} and not cited:
         errors.append("Câu trả lời có kết luận phải có trích dẫn nguồn")
     codes = [c for c in [answer["suggested_hs_code"], *answer["alternatives"]] if c]
-    if any(not re.fullmatch(r"[0-9]{8}", c) for c in codes):
-        errors.append("Mã HS được đề xuất phải có đúng 8 chữ số ASCII")
+    mentioned = {
+        c.replace(".", "")
+        for c in re.findall(r"(?<!\d)(?:\d{4}\.\d{2}\.\d{2}|\d{8})(?!\d)", answer["answer"])
+    }
+    if mentioned - set(codes):
+        from rag.retrieval.request_plan import referenced_codes
+
+        references = referenced_codes(context.get("question", ""))
+        applying = re.search(
+            r"(?:đề xuất|thuộc\s+mã|phân loại\s+(?:vào|theo)\s+mã)", answer["answer"], re.I
+        )
+        if applying or mentioned - set(codes) - references:
+            errors.append(
+                "Mã HS8 trong diễn giải chưa qua kiểm tra đề xuất; đăng ký mã trong kết quả có cấu trúc."
+            )
+    level = context.get("classification_level", 8)
+    if any(not re.fullmatch(rf"[0-9]{{{level}}}", c) for c in codes):
+        errors.append(f"Mã HS được đề xuất phải có đúng {level} chữ số ASCII")
     if any(c not in context["allowed_hs_codes"] for c in codes):
         errors.append("Mã HS không thuộc danh sách ứng viên được cung cấp")
     if context["task"] == "qa" and (codes or answer["status"] == "RECOMMENDATION"):

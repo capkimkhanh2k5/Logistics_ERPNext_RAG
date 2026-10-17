@@ -290,7 +290,7 @@ MODEL_DISAMBIGUATION_REVIEW_SCHEMA: dict = {
                 "type": "object",
                 "additionalProperties": False,
                 "properties": {
-                    "code": {"type": "string", "pattern": "^[0-9]{8}$"},
+                    "code": {"type": "string", "pattern": "^(?:[0-9]{4}|[0-9]{6}|[0-9]{8})$"},
                     "assessment": {
                         "type": "string",
                         "enum": ["POSSIBLE", "RULED_OUT", "INSUFFICIENT_LEGAL_EVIDENCE"],
@@ -306,7 +306,7 @@ MODEL_DISAMBIGUATION_REVIEW_SCHEMA: dict = {
                 "type": "object",
                 "additionalProperties": False,
                 "properties": {
-                    "parent_code": {"type": "string", "pattern": "^[0-9]{6}$"},
+                    "parent_code": {"type": "string", "pattern": "^(?:[0-9]{4}|[0-9]{6})$"},
                     "attribute": {"type": "string", "minLength": 1},
                     "assessment": {"type": "string", "enum": ["KNOWN", "MISSING"]},
                     **_COMPARISON_PROOF,

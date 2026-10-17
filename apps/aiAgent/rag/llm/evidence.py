@@ -65,14 +65,29 @@ def bind_user_context(question: str) -> dict:
     statements = []
     for index, text in enumerate(turns, 1):
         spans = {(0, len(text))}
-        for match in re.finditer(r"[^,;\n!?]+", text):
-            start = match.start() + len(match[0]) - len(match[0].lstrip())
-            end = match.end() - len(match[0]) + len(match[0].rstrip())
-            if start < end:
-                spans.add((start, end))
+        if len(text) <= 4000:
+            for pattern in (
+                r"(?:\.(?=\s|$)|[;\n!?])+",
+                r"(?:\.(?=\s|$)|(?<!\d),|,(?!\d)|[;\n!?])+",
+            ):
+                pos = 0
+                for match in re.finditer(pattern, text):
+                    chunk = text[pos : match.start()]
+                    start = pos + len(chunk) - len(chunk.lstrip())
+                    end = pos + len(chunk.rstrip())
+                    if start < end:
+                        spans.add((start, end))
+                    pos = match.end()
+                tail = text[pos:]
+                start = pos + len(tail) - len(tail.lstrip())
+                end = pos + len(tail.rstrip())
+                if start < end:
+                    spans.add((start, end))
+        seen: set[str] = set()
         for start, end in sorted(spans):
             quote = text[start:end]
-            if quote.strip():
+            if quote.strip() and quote not in seen:
+                seen.add(quote)
                 statements.append(
                     {
                         "id": "U" + digest([index, text, start, end])[:20],
@@ -98,6 +113,10 @@ def render_claims(claims: list[dict], context: dict) -> tuple[str, list[dict], l
         text = claim["text"].strip()
         if re.search(r"\[S\d+(?:\]|:)", text):
             errors.append("Model chỉ trả evidence_ids; nhãn [S#] do backend dựng.")
+        if re.search(r"\[(?:E|U)[0-9a-f]{16,}[^\]]*\]", text):
+            errors.append(
+                "Không viết registry ID trong text; backend dựng citation từ evidence_ids."
+            )
         selected = []
         for eid in dict.fromkeys(claim["evidence_ids"]):
             if eid not in sources:
@@ -181,6 +200,8 @@ def decode_product_review(
     if errors:
         return {}, errors
     errors = clarification_errors(value["clarifications"], context)
+    if value["status"] != "MISSING_PRODUCT_INFO" and value["clarifications"]:
+        errors.append("Chỉ MISSING_PRODUCT_INFO được yêu cầu người dùng bổ sung dữ kiện")
     if comparison:
         errors.extend(disambiguation_errors(value, context, candidate_code))
     sources, statements = source_registry(context), user_registry(context)
@@ -196,10 +217,20 @@ def decode_product_review(
             continue
         indices = []
         for quote in check["user_quotes"]:
-            if not quote.strip() or not any(quote in statements[sid]["text"] for sid in refs):
+            clean_quote = quote.strip().rstrip(".,;!? ").strip()
+            matched = (
+                quote
+                if quote.strip() and any(quote in statements[sid]["text"] for sid in refs)
+                else (
+                    clean_quote
+                    if clean_quote and any(clean_quote in statements[sid]["text"] for sid in refs)
+                    else ""
+                )
+            )
+            if not matched:
                 errors.append("Trích đoạn kiểm tra không thuộc lời người dùng được tham chiếu.")
                 continue
-            fact = {"fact": quote, "user_quote": quote}
+            fact = {"fact": matched, "user_quote": matched}
             if fact not in facts:
                 facts.append(fact)
             indices.append(facts.index(fact))

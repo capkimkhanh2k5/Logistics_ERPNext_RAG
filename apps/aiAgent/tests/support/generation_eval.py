@@ -9,6 +9,7 @@ from config.settings import ROOT
 from rag.llm.answering import generate_answer
 from rag.llm.context import load_generation_graph, prepare_context
 from rag.llm.errors import LLMError
+from rag.llm.recovery import recover_answer
 from rag.utils.files import digest, read, write_json
 from tests.support.evaluation import discover_qa
 
@@ -140,6 +141,18 @@ def run_evaluation(
             }
             try:
                 generated = generate_answer(context, client, model=model, allow_fallback=False)
+                context, generated = recover_answer(
+                    context,
+                    generated,
+                    retrieved,
+                    client,
+                    retriever,
+                    graph,
+                    task=case["task"],
+                    model=model,
+                    allow_fallback=False,
+                )
+                row["context"] = context
                 row.update(generated)
                 row["metrics"] = score_case(case, context, generated)
                 row["run_status"] = (

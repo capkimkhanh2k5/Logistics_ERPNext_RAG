@@ -255,29 +255,29 @@ class GraphContext:
             return []
         return [{**citation, "wording_origin": CONSOLIDATED_ROW}]
 
-    def hs_hierarchy(self, row: dict) -> dict:
+    def hs_hierarchy(self, row: dict, *, target_level: int = 8) -> dict:
         """Verify codes against CONTAINS paths; prefixes alone never establish ancestry."""
         code = row.get("code") or ""
         errors: list[str] = []
         legal_errors: list[str] = []
         chain: list[dict] = []
-        if not re.fullmatch(r"[0-9]{8}", code):
+        if target_level not in (4, 6, 8) or not re.fullmatch(rf"[0-9]{{{target_level}}}", code):
             return {
                 "status": "INVALID",
                 "structure_status": "INVALID",
                 "legal_evidence_status": "INSUFFICIENT",
                 "chain": [],
-                "errors": ["HS leaf must have eight ASCII digits"],
+                "errors": [f"HS target must have {target_level} ASCII digits"],
             }
         ancestors = self.ancestors(row["id"])
 
         if self.node_code(row["id"]) != code:
             errors.append("Candidate code differs from its source graph node")
-        for level in (4, 6, 8):
+        for level in (n for n in (4, 6, 8) if n <= target_level):
             expected = code[:level]
             ids = (
                 [row["id"]]
-                if level == 8
+                if level == target_level
                 else [sid for sid in ancestors if self.node_code(sid) == expected]
             )
             if len(ids) != 1:
@@ -298,7 +298,10 @@ class GraphContext:
             citation = self.citation(sid)
             evidence = self.legal_evidence(sid)
             if not evidence and (
-                level != 6 or not navigation_only or metadata.get("legal_evidence_binding")
+                level == target_level
+                or level != 6
+                or not navigation_only
+                or metadata.get("legal_evidence_binding")
             ):
                 legal_errors.append(f"Missing legal wording for HS{level} {expected}")
             chain.append(

@@ -100,7 +100,11 @@ def _candidate_evidence(candidates: list[dict], sources: list[dict], graph) -> l
             continue
         view = graph.source_view(row) if graph is not None else {}
         hierarchy: dict = (
-            graph.hs_hierarchy(row)
+            (
+                graph.hs_hierarchy(row, target_level=len(row["code"]))
+                if len(row.get("code") or "") in (4, 6)
+                else graph.hs_hierarchy(row)
+            )
             if graph is not None and hasattr(graph, "hs_hierarchy")
             else {"status": "INVALID", "chain": [], "errors": ["HS source graph is unavailable"]}
         )
@@ -293,7 +297,15 @@ def _context_payload(
         seed_codes = {c["code"] for c in candidates}
         extra_evidence = [
             model_candidate(
-                {key: item[key] for key in ("code", "wording_label", "context_labels")}
+                {
+                    key: item[key]
+                    for key in (
+                        "code",
+                        "wording_label",
+                        "context_labels",
+                        "required_citation_labels",
+                    )
+                }
                 | {"hierarchy_status": item["hierarchy"]["status"]},
                 packed,
             )
@@ -309,14 +321,27 @@ def _context_payload(
     return payload
 
 
-def _messages(user_message: str) -> list[dict]:
+def _messages(user_message: str, system_prompt: str = SYSTEM_PROMPT) -> list[dict]:
     return [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_message},
     ]
 
 
 def prepare_context(question: str, result: dict, task: str, config, graph=None) -> dict:
+    from rag.retrieval.request_plan import request_from_plan
+
+    request = request_from_plan(question, result.get("query_plan", {}))
+    if request is not None:
+        from rag.llm.task_context import prepare_task_context
+
+        return prepare_task_context(question, result, task, config, graph, request)
+    planned = result.get("_task_request")
+    schema, system_prompt = MODEL_ANSWER_SCHEMA, SYSTEM_PROMPT
+    if planned is not None:
+        from rag.prompts.task_answering import TASK_ANSWER_SCHEMA, TASK_SYSTEM_PROMPT
+
+        schema, system_prompt = TASK_ANSWER_SCHEMA, TASK_SYSTEM_PROMPT
     if task not in {"hs", "qa", "auto"}:
         raise ValueError("Task must be hs, qa or auto")
     token_mode = getattr(config, "use_model_token_limits", False)
@@ -324,9 +349,12 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
     max_context_chars = None if token_mode else config.max_context_chars
     if not question.strip() or (max_input_chars is not None and len(question) > max_input_chars):
         raise ValueError("Question is empty or exceeds GROQ_MAX_INPUT_CHARS")
-    seeds = result.get("hs_candidates", [])[:10] if task in {"hs", "auto"} else []
+    limit = min(result.get("_candidate_limit", 10), 48)
+    seeds = result.get("hs_candidates", [])[:limit] if task in {"hs", "auto"} else []
     comparison_candidates, comparison_groups = comparison_neighbours(seeds, graph)
-    rows, candidates = source_rows(result, task, graph, comparison_candidates=comparison_candidates)
+    rows, candidates = source_rows(
+        result, task, graph, candidate_limit=limit, comparison_candidates=comparison_candidates
+    )
     user_context = bind_user_context(question)
     base = {
         "task": task,
@@ -341,13 +369,18 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
     }
     if task == "auto":
         base["intent_advice"] = result.get("semantic_intent", {})
+    if planned is not None:
+        base.update(
+            request=planned,
+            task_instruction="Thực hiện từng objective theo cấp mã và item đã chỉ định.",
+        )
     packed: list[dict] = []
     payload = _context_payload(
         base, packed, candidates, graph, comparison_candidates, comparison_groups
     )
     user_message = _serialize(payload)
     budget = (
-        request_budget(_messages(user_message), MODEL_ANSWER_SCHEMA, config.model)
+        request_budget(_messages(user_message, system_prompt), schema, config.model)
         if token_mode
         else None
     )
@@ -379,7 +412,7 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
         )
         message = _serialize(trial)
         trial_budget = (
-            request_budget(_messages(message), MODEL_ANSWER_SCHEMA, config.model)
+            request_budget(_messages(message, system_prompt), schema, config.model)
             if token_mode
             else None
         )
@@ -390,10 +423,15 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
             budget = trial_budget
             included.update(row["id"] for row in additions)
     omitted = [row["id"] for row in rows if row["id"] not in included]
-    messages = _messages(user_message)
+    messages = _messages(user_message, system_prompt)
     packed = bind_evidence(packed, result.get("snapshot"))
     return {
-        "response_protocol": "registry-v2",
+        "response_protocol": "goals-v1" if planned is not None else "registry-v2",
+        **(
+            {"request": planned, "candidate_provenance": result.get("_candidate_provenance", {})}
+            if planned is not None
+            else {}
+        ),
         "user_context": user_context,
         "task": task,
         "question": question,
@@ -419,17 +457,17 @@ def prepare_context(question: str, result: dict, task: str, config, graph=None) 
         "packing": {
             "input_chars": len(user_message),
             "max_input_chars": max_input_chars,
-            "system_chars": len(SYSTEM_PROMPT),
+            "system_chars": len(system_prompt),
             "user_chars": len(user_message),
-            "schema_chars": len(_serialize(MODEL_ANSWER_SCHEMA)),
+            "schema_chars": len(_serialize(schema)),
             "source_chars": len(_serialize(payload["sources"])),
             "max_context_chars": max_context_chars,
             "request_budget": budget,
             "omitted_candidate_codes": [c["code"] for c in candidates if c["id"] not in included],
         },
         "context_hash": digest(payload),
-        "prompt_hash": digest(SYSTEM_PROMPT),
-        "schema_hash": digest(MODEL_ANSWER_SCHEMA),
+        "prompt_hash": digest(system_prompt),
+        "schema_hash": digest(schema),
         "messages": messages,
         "snapshot": result.get("snapshot"),
         "profile": result.get("profile"),

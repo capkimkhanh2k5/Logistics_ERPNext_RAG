@@ -137,6 +137,10 @@ _TARGET_STOPWORDS = {
     "nominal",
     "danh",
     "dinh",
+    "chinh",
+    "xac",
+    "thuc",
+    "te",
 }
 
 
@@ -192,7 +196,7 @@ def _number(text: str) -> Decimal | None:
         if not re.fullmatch(r"[+-]?\d{1,3}(?: \d{3})+", text):
             return None
         text = text.replace(" ", "")
-    if re.fullmatch(r"[+-]?[1-9]\d{0,2}[.,]\d{3}", text):
+    if re.fullmatch(r"[+-]?[1-9]\d{0,2}\.\d{3}", text):
         return None
     try:
         value = Decimal(text.replace(",", "."))

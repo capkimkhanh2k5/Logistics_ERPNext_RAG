@@ -105,19 +105,28 @@ def disambiguation_errors(value: dict, context: dict, code: str | None = None) -
     expected = {c for group in groups for c in group["codes"]}
     rows = value["candidate_assessments"]
     if {r["code"] for r in rows} != expected or len(rows) != len(expected):
+        actual = {r["code"] for r in rows}
         errors.append(
             "Phải đánh giá đúng một lần mỗi mã trong phạm vi so sánh, không bỏ nhánh đối chứng."
+            + f" Thiếu: {sorted(expected - actual)}; thừa: {sorted(actual - expected)}; lặp: {sorted(c for c in actual if sum(r['code'] == c for r in rows) > 1)}."
         )
 
     def grounded(item, required):
         if any(eid not in sources for eid in item["evidence_ids"]):
             errors.append("So sánh ứng viên tham chiếu chứng cứ không có trong ngữ cảnh.")
         refs, quotes = item["fact_ids"], item["user_quotes"]
-        if any(fid not in statements for fid in refs) or any(
-            not quote.strip()
-            or not any(quote in statements[fid]["text"] for fid in refs if fid in statements)
-            for quote in quotes
-        ):
+
+        def _quote_ok(quote: str) -> bool:
+            q = quote.strip()
+            clean = q.rstrip(".,;!? ").strip()
+            return bool(q) and any(
+                quote in statements[fid]["text"]
+                or (bool(clean) and clean in statements[fid]["text"])
+                for fid in refs
+                if fid in statements
+            )
+
+        if any(fid not in statements for fid in refs) or any(not _quote_ok(q) for q in quotes):
             errors.append("So sánh ứng viên phải dùng trích đoạn thật từ đúng lời người dùng.")
         if required and (not refs or not quotes or not item["evidence_ids"]):
             errors.append(
@@ -138,7 +147,9 @@ def disambiguation_errors(value: dict, context: dict, code: str | None = None) -
                 if label in source_ids
             }
             if not relevant & set(row["evidence_ids"]):
-                errors.append("Loại ứng viên phải tham chiếu điều kiện thuộc chính nhánh đó.")
+                errors.append(
+                    f"Loại ứng viên {row['code']} phải tham chiếu điều kiện thuộc chính nhánh đó: {sorted(relevant)}."
+                )
     branches = value["branch_checks"]
     required_groups = {g["parent_code"]: g for g in groups if g["branch_options"]}
     if {b["parent_code"] for b in branches} != set(required_groups) or len(
@@ -151,9 +162,17 @@ def disambiguation_errors(value: dict, context: dict, code: str | None = None) -
         referenced = {
             eid for b in branches if b["parent_code"] == parent_code for eid in b["evidence_ids"]
         }
-        if not all(set(o["evidence_ids"]) <= referenced for o in group["branch_options"]):
+        missing_eids = sorted(
+            {
+                eid
+                for o in group["branch_options"]
+                for eid in o["evidence_ids"]
+                if eid not in referenced
+            }
+        )
+        if missing_eids:
             errors.append(
-                "Kiểm tra thuộc tính phân biệt phải bao phủ các điều kiện nhánh đối chứng."
+                f"Kiểm tra thuộc tính phân biệt phải bao phủ các điều kiện nhánh đối chứng (nhóm {parent_code} thiếu {missing_eids})."
             )
     for branch in branches:
         grounded(branch, branch["assessment"] == "KNOWN")

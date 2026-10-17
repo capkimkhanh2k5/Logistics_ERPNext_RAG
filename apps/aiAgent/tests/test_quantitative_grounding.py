@@ -185,6 +185,8 @@ def test_negated_or_explicitly_different_measurements_cannot_prove_a_condition(s
         ("Engine power at most 100 W.", "Engine power 50 W."),
         ("Khối lượng không quá 10 kg.", "Khối lượng không quá 2 kg."),
         ("Khối lượng không dưới 1 kg.", "Khối lượng không dưới 2 kg."),
+        ("Khối lượng không quá 10 kg.", "Máy A có khối lượng chính xác 10,000 kg."),
+        ("Khối lượng trên 10 kg.", "Máy B có khối lượng thực tế 10,100 kg."),
     ],
 )
 def test_consistent_measurement_subject_and_valid_non_negative_bounds_remain_accepted(
@@ -192,3 +194,4 @@ def test_consistent_measurement_subject_and_valid_non_negative_bounds_remain_acc
 ):
     review, sources = supported(source, quote)
     assert not quantitative_grounding_errors(review, sources, {"S1"})
+

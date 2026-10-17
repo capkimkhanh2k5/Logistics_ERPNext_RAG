@@ -1,5 +1,7 @@
 # Luồng từ câu hỏi đến câu trả lời
 
+Luồng mới `goals-v1` được dùng khi planner trả request hợp lệ: mục tiêu và mặt hàng → retrieval/context theo cấp yêu cầu → results theo từng mục tiêu → validation và Product Review gộp → recovery có giới hạn nếu còn gap nguồn. [Mô tả hiện hành](Goals_And_Recovery.md) ghi contract, chọn lại ứng viên và ngân sách chung. Phần sơ đồ/trạng thái đơn mã dưới đây mô tả `registry-v2`, được giữ cho fallback/replay context cũ.
+
 Sơ đồ mô tả **RAG Demo đang dùng Auto** và contract `registry-v2`. Auto để model nhận biết câu hỏi cần phân loại HS, hỏi đáp kiến thức (QA) hay kết hợp cả hai; không có nghĩa luôn xử lý cả hai nội dung. Retrieval được gom thành một khối vì đã có sơ đồ riêng.
 
 Điểm rẽ nhánh là **trạng thái có cấu trúc mà model trả về sau validation**, không phải hệ thống đọc các câu như “chưa đủ thông tin” rồi tự đoán luồng. “Thiếu dữ kiện người dùng” và “thiếu chứng cứ pháp lý của hệ thống” dẫn đến các bước khác nhau.

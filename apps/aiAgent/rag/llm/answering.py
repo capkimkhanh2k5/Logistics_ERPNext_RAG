@@ -166,6 +166,136 @@ def _decision_diagnostics(context: dict, generation: dict, answer: dict) -> dict
     }
 
 
+def check_product_review(
+    raw_review: dict,
+    context: dict,
+    candidate: dict,
+    answer: dict,
+    labels: set[str],
+    finish_reason: str = "stop",
+) -> tuple[dict, dict, list[str]]:
+    review = raw_review
+    registry_protocol = context.get("response_protocol") == "registry-v2"
+    errors: list[str] = []
+    if registry_protocol:
+        review, errors = decode_product_review(review, context, candidate_code=candidate["code"])
+    schema_errs = schema_errors(review, PRODUCT_REVIEW_SCHEMA)
+    errors.extend(schema_errs)
+    if finish_reason != "stop":
+        errors.append("Lượt kiểm tra dữ kiện hàng hóa chưa hoàn tất bình thường")
+    if not schema_errs and finish_reason == "stop":
+        if not review["reason"].strip():
+            errors.append("Kết quả kiểm tra phải giải thích lý do cụ thể")
+        sources = {
+            source["label"]: source for source in context["sources"] if source["label"] in labels
+        }
+        for fact in review["product_facts"]:
+            quote = _normalized(fact["user_quote"])
+            if not quote or quote not in _normalized(context["question"]):
+                errors.append(
+                    "Trích đoạn dữ kiện hàng hóa không khớp nguyên văn câu hỏi người dùng"
+                )
+            if LEGAL_INFORMATION.search(_folded(quote)) or LEGAL_INFORMATION.search(
+                _folded(fact["fact"])
+            ):
+                errors.append(
+                    "Nội dung pháp lý do người dùng nêu không được coi là dữ kiện hàng hóa. "
+                    "user_quotes chỉ lấy phần mô tả hàng hóa liên quan; không chép cả yêu cầu "
+                    "hỏi mã hoặc đoạn pháp lý. Sửa trích đoạn, không coi lỗi này là thiếu dữ kiện."
+                )
+        checked = set()
+        for check in review["condition_checks"]:
+            label, quote = check["source_label"], _normalized(check["source_quote"])
+            if (
+                not quote
+                or label not in sources
+                or quote not in _normalized(sources[label]["text"])
+            ):
+                errors.append("Trích đoạn điều kiện không khớp nguồn pháp lý được cấp")
+            indices = check["product_fact_indices"]
+            if any(index >= len(review["product_facts"]) for index in indices):
+                errors.append("Điều kiện tham chiếu dữ kiện hàng hóa không tồn tại")
+            if check["assessment"] == "SATISFIED":
+                if not indices:
+                    errors.append("Điều kiện đã đáp ứng phải có dữ kiện người dùng xác nhận")
+                checked.add(label)
+            elif review["status"] == "SUPPORTED" and (
+                check["assessment"] != "NOT_APPLICABLE"
+                or label in candidate["required_citation_labels"]
+            ):
+                errors.append(
+                    "SUPPORTED không được bỏ qua điều kiện chưa được đáp ứng: "
+                    + check["source_quote"]
+                    + " ("
+                    + check["assessment"]
+                    + ")."
+                )
+        if review["status"] == "SUPPORTED":
+            errors.extend(
+                quantitative_grounding_errors(
+                    review,
+                    sources,
+                    set(candidate["required_citation_labels"]),
+                )
+            )
+            if not set(candidate["required_citation_labels"]) <= checked:
+                missing = set(candidate["required_citation_labels"]) - checked
+                source_refs = [
+                    f"{sources[label].get('evidence_id', label)}: {sources[label]['text'][:200]}"
+                    for label in sorted(missing)
+                    if label in sources
+                ]
+                errors.append(
+                    "SUPPORTED phải đối chiếu SATISFIED cho từng điều kiện bắt buộc còn thiếu ở mã/cấp cha/nhánh: "
+                    + " | ".join(source_refs)
+                )
+            if (
+                not review["product_facts"]
+                or review["missing_information"]
+                or review["missing_legal_evidence"]
+            ):
+                errors.append(
+                    "SUPPORTED yêu cầu có dữ kiện người dùng và không còn khoảng trống thông tin"
+                )
+            proposed = answer
+        else:
+            proposed = {
+                **_legal_abstention(review["missing_legal_evidence"]),
+                "status": review["status"],
+                "missing_information": review["missing_information"],
+            }
+            if review["status"] == "MISSING_PRODUCT_INFO":
+                proposed["answer"] = (
+                    review["reason"]
+                    + " Cần làm rõ dữ kiện hàng hóa: "
+                    + " ".join(review["missing_information"])
+                )
+            else:
+                proposed["answer"] = review["reason"]
+            if review["status"] == "REQUIRES_REVIEW" and not any(
+                check["assessment"] in {"CONTRADICTED", "UNRESOLVED_APPLICATION"}
+                for check in review["condition_checks"]
+            ):
+                errors.append(
+                    "REQUIRES_REVIEW phải nêu điều kiện bị bác bỏ hoặc cách áp dụng chưa phân định; "
+                    "nếu chỉ thiếu dữ kiện, dùng MISSING_PRODUCT_INFO với câu hỏi cụ thể; "
+                    "nếu chỉ thiếu nguồn, dùng INSUFFICIENT_LEGAL_EVIDENCE"
+                )
+            cited_checks: dict[str, str] = {}
+            for check in sorted(
+                review["condition_checks"],
+                key=lambda item: item["assessment"] in {"SATISFIED", "NOT_APPLICABLE"},
+            ):
+                cited_checks.setdefault(check["source_label"], check["source_quote"])
+            proposed["citations"] = [
+                {"label": label, "quote": quote} for label, quote in cited_checks.items()
+            ]
+            if cited_checks:
+                proposed["answer"] += " " + " ".join(f"[{label}]" for label in cited_checks)
+            errors.extend(validate_answer(proposed, context)["errors"])
+    return (proposed if not errors else _review_abstention()), review, errors
+
+
 def _review_recommendation(
     context: dict,
     answer: dict,
@@ -261,115 +391,9 @@ def _review_recommendation(
     except json.JSONDecodeError:
         review = {}
     raw_review = review
-    errors: list[str] = []
-    if registry_protocol:
-        review, errors = decode_product_review(review, context, candidate_code=candidate["code"])
-    errors.extend(schema_errors(review, PRODUCT_REVIEW_SCHEMA))
-    if generation["finish_reason"] != "stop":
-        errors.append("Lượt kiểm tra dữ kiện hàng hóa chưa hoàn tất bình thường")
-    if not errors:
-        if not review["reason"].strip():
-            errors.append("Kết quả kiểm tra phải giải thích lý do cụ thể")
-        sources = {
-            source["label"]: source for source in context["sources"] if source["label"] in labels
-        }
-        for fact in review["product_facts"]:
-            quote = _normalized(fact["user_quote"])
-            if not quote or quote not in _normalized(context["question"]):
-                errors.append(
-                    "Trích đoạn dữ kiện hàng hóa không khớp nguyên văn câu hỏi người dùng"
-                )
-            if LEGAL_INFORMATION.search(_folded(quote)) or LEGAL_INFORMATION.search(
-                _folded(fact["fact"])
-            ):
-                errors.append(
-                    "Nội dung pháp lý do người dùng nêu không được coi là dữ kiện hàng hóa. "
-                    "user_quotes chỉ lấy phần mô tả hàng hóa liên quan; không chép cả yêu cầu "
-                    "hỏi mã hoặc đoạn pháp lý. Sửa trích đoạn, không coi lỗi này là thiếu dữ kiện."
-                )
-        checked = set()
-        for check in review["condition_checks"]:
-            label, quote = check["source_label"], _normalized(check["source_quote"])
-            if (
-                not quote
-                or label not in sources
-                or quote not in _normalized(sources[label]["text"])
-            ):
-                errors.append("Trích đoạn điều kiện không khớp nguồn pháp lý được cấp")
-            indices = check["product_fact_indices"]
-            if any(index >= len(review["product_facts"]) for index in indices):
-                errors.append("Điều kiện tham chiếu dữ kiện hàng hóa không tồn tại")
-            if check["assessment"] == "SATISFIED":
-                if not indices:
-                    errors.append("Điều kiện đã đáp ứng phải có dữ kiện người dùng xác nhận")
-                checked.add(label)
-            elif review["status"] == "SUPPORTED" and (
-                check["assessment"] != "NOT_APPLICABLE"
-                or label in candidate["required_citation_labels"]
-            ):
-                errors.append(
-                    "SUPPORTED không được bỏ qua điều kiện chưa được đáp ứng: "
-                    + check["source_quote"]
-                    + " ("
-                    + check["assessment"]
-                    + ")."
-                )
-        if review["status"] == "SUPPORTED":
-            errors.extend(
-                quantitative_grounding_errors(
-                    review,
-                    sources,
-                    set(candidate["required_citation_labels"]),
-                )
-            )
-            if not set(candidate["required_citation_labels"]) <= checked:
-                errors.append(
-                    "SUPPORTED phải đối chiếu điều kiện ở mã chi tiết, cấp cha và nhánh nguồn"
-                )
-            if (
-                not review["product_facts"]
-                or review["missing_information"]
-                or review["missing_legal_evidence"]
-            ):
-                errors.append(
-                    "SUPPORTED yêu cầu có dữ kiện người dùng và không còn khoảng trống thông tin"
-                )
-            proposed = answer
-        else:
-            proposed = {
-                **_legal_abstention(review["missing_legal_evidence"]),
-                "status": review["status"],
-                "missing_information": review["missing_information"],
-            }
-            if review["status"] == "MISSING_PRODUCT_INFO":
-                proposed["answer"] = (
-                    review["reason"]
-                    + " Cần làm rõ dữ kiện hàng hóa: "
-                    + " ".join(review["missing_information"])
-                )
-            else:
-                proposed["answer"] = review["reason"]
-            if review["status"] == "REQUIRES_REVIEW" and not any(
-                check["assessment"] in {"CONTRADICTED", "UNRESOLVED_APPLICATION"}
-                for check in review["condition_checks"]
-            ):
-                errors.append(
-                    "REQUIRES_REVIEW phải nêu điều kiện bị bác bỏ hoặc cách áp dụng chưa phân định; "
-                    "nếu chỉ thiếu dữ kiện, dùng MISSING_PRODUCT_INFO với câu hỏi cụ thể; "
-                    "nếu chỉ thiếu nguồn, dùng INSUFFICIENT_LEGAL_EVIDENCE"
-                )
-            cited_checks: dict[str, str] = {}
-            for check in sorted(
-                review["condition_checks"],
-                key=lambda item: item["assessment"] in {"SATISFIED", "NOT_APPLICABLE"},
-            ):
-                cited_checks.setdefault(check["source_label"], check["source_quote"])
-            proposed["citations"] = [
-                {"label": label, "quote": quote} for label, quote in cited_checks.items()
-            ]
-            if cited_checks:
-                proposed["answer"] += " " + " ".join(f"[{label}]" for label in cited_checks)
-            errors.extend(validate_answer(proposed, context)["errors"])
+    proposed, review, errors = check_product_review(
+        raw_review, context, candidate, answer, labels, generation["finish_reason"]
+    )
     details = {
         **generation,
         "review": review,
@@ -410,6 +434,10 @@ def generate_answer(
     model: str | None = None,
     allow_fallback: bool = True,
 ) -> dict:
+    if context.get("response_protocol") == "goals-v1":
+        from rag.llm.task_generation import generate_task_answer
+
+        return generate_task_answer(context, client, model=model, allow_fallback=allow_fallback)
     if context.get("response_protocol") not in (None, "registry-v2"):
         raise ValueError("Ngữ cảnh registry cũ cần được dựng lại từ câu hỏi và retrieval.")
     started = perf_counter()

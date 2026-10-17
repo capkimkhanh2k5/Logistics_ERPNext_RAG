@@ -4,6 +4,8 @@ Các chỉ dẫn model do ứng dụng định nghĩa nằm trong thư mục nà
 
 ## Sửa nội dung ở đâu?
 
+Luồng `goals-v1` dùng `request` hợp lệ của planner để truyền mục tiêu/cấp HS và từng mặt hàng xuyên context, generation và validation. `task_answering.py` giữ prompt/schema cho kết quả theo mục tiêu và batch Product Review. Các mô tả luồng đơn mã/Decision Review dưới đây áp dụng cho `registry-v2` fallback/replay. [Contract và recovery](../../docs/GenerationFlow/Goals_And_Recovery.md) ghi các giới hạn và ngân sách.
+
 - [system.py](system.py): `SYSTEM_PROMPT`, vai trò trợ lý, quyền sở hữu dữ kiện/chứng cứ, chọn trạng thái, điều kiện đề xuất và dẫn nguồn.
 - [product_review.py](product_review.py): `PRODUCT_REVIEW_PROMPT`, đối chiếu dữ kiện với nhánh đề xuất và các mã đối chứng cùng phân nhóm; hỏi thuộc tính chưa biết còn ảnh hưởng lựa chọn.
 - [decision_review.py](decision_review.py): `DECISION_REVIEW_PROMPT` và template repair, kiểm tra nhận diện hàng hóa/phạm vi câu hỏi trước khi chấp nhận quyết định thiếu chứng cứ hoặc cần thẩm định.

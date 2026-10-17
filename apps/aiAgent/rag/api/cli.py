@@ -21,6 +21,7 @@ from rag.llm.client import RAGClient
 from rag.llm.context import compose_query, load_generation_graph, prepare_context
 from rag.llm.conversation import turn_context
 from rag.llm.errors import LLMError
+from rag.llm.recovery import recover_answer
 from rag.retrieval.query_planning import QueryPlanner
 from rag.retrieval.retriever import Retriever  # noqa: E402
 from rag.vectordb.postgres import connect  # noqa: E402
@@ -302,6 +303,16 @@ def show_details(
                 + "; ".join(row["term"] for row in plan["terms"]),
                 write,
             )
+        if context.get("request"):
+            request = context["request"]
+            _write_text(
+                f"Mục tiêu: {len(request['objectives'])} · Mặt hàng: {len(request['items'])}", write
+            )
+            for goal in request["objectives"]:
+                _write_text(
+                    f"{goal['id']}: {goal['kind']} · cấp {goal['level'] or 'không chốt mã'} · {', '.join(goal['item_ids']) or 'hỏi đáp'}",
+                    write,
+                )
         if plan.get("error"):
             _write_text("Diễn giải không thành công; đã tìm bằng câu hỏi gốc.", write)
         if plan.get("generation"):
@@ -406,6 +417,25 @@ def show_details(
         review = generation["product_review"]
         write("Kiểm tra dữ kiện HS: " + ("Hợp lệ" if review["valid"] else "Cần thẩm định"))
         _write_errors(review.get("errors", []), write)
+    if generation.get("task_review"):
+        review = generation["task_review"]
+        _write_text(
+            "Kiểm tra các kết quả phân loại: "
+            + ("Hợp lệ" if review.get("valid") else "Chưa hoàn tất"),
+            write,
+        )
+        _write_errors(review.get("errors", []), write)
+    if generation.get("recovery"):
+        recovery = generation["recovery"]
+        _write_text(
+            f"Evidence recovery: {recovery.get('rounds', 0)} vòng · {len(recovery.get('new_source_ids', []))} nguồn mới · {recovery.get('reason', 'đã đánh giá lại')}",
+            write,
+        )
+    if "application_calls" in generation:
+        _write_text(
+            f"Lượt gọi answer/review (gồm recovery): {generation['application_calls']} · còn {generation.get('remaining_calls', 0)} trong ngân sách",
+            write,
+        )
     if generation.get("decision_review"):
         _show_decision_review(generation["decision_review"], write)
     _write_text(
@@ -624,6 +654,9 @@ def run_console(retriever, client, graph, *, read=input, write=print, debug: boo
                 context["packing_ms"] = (time.perf_counter() - packing_started) * 1000
                 context["retrieval_timings"] = dict(result.get("timings") or {})
                 generated = generate_answer(context, client)
+                context, generated = recover_answer(
+                    context, generated, result, client, retriever, graph
+                )
             elapsed = time.perf_counter() - started
             last_result = context, generated, elapsed
             needs_product_info = (
