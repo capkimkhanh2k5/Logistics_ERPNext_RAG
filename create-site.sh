@@ -43,6 +43,7 @@ try:
         ('page', 'trade_case_overview', 'trade_case_overview.json'),
         ('page', 'logistics_ai_chatbot', 'logistics_ai_chatbot.json'),
         ('page', 'trade_cost_dashboard', 'trade_cost_dashboard.json'),
+        ('page', 'rag_admin_center', 'rag_admin_center.json'),
         ('workspace', 'logistics_wizard', 'logistics_wizard.json')
     ]
     for sub in items_to_sync:

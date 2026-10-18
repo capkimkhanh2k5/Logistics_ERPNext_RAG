@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Admin Center - Giao Diện Quản Trị Tri Thức & Dashboard Hiệu Năng</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="../page/rag_admin_center/rag_admin_center.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Embedded RAG Admin Center Container -->
+    <div id="rag-admin-mount-point"></div>
+
+    <script>
+        // Mock Frappe UI environment for Standalone Preview
+        window.frappe = window.frappe || {};
+        window.frappe.pages = window.frappe.pages || {};
+        window.frappe.msgprint = function(msg) {
+            alert(msg.replace(/<[^>]*>?/gm, ''));
+        };
+        window.__ = function(str) { return str; };
+
+        $(document).ready(function() {
+            // Load HTML Template
+            fetch('../page/rag_admin_center/rag_admin_center.html')
+                .then(response => response.text())
+                .then(html => {
+                    $('#rag-admin-mount-point').html(html);
+
+                    // Load Script dynamically
+                    $.getScript('../page/rag_admin_center/rag_admin_center.js', function() {
+                        const controller = new RagAdminCenterController('#rag-admin-root');
+                        window.ragAdminController = controller;
+                        window.frappe.pages['rag-admin-center'] = { controller: controller };
+                    });
+                })
+                .catch(err => {
+                    console.error('Error loading template:', err);
+                });
+        });
+    </script>
+</body>
+</html>

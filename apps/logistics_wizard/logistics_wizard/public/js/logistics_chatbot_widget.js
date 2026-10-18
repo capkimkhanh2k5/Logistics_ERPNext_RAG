@@ -47,6 +47,13 @@
                         </div>
                     </div>
                     <div class="drawer-header-actions">
+                        <button id="btn-drawer-rag-admin" class="drawer-action-btn" title="Trung tâm Quản trị RAG Center">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                            </svg>
+                        </button>
                         <button id="btn-drawer-fullscreen" class="drawer-action-btn" title="Mở trang đầy đủ">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="15 3 21 3 21 9"></polyline>
@@ -71,6 +78,9 @@
                             Xin chào! Tôi có thể giải đáp nhanh thông tin Trade Case, giá vốn Landed Cost và hành trình tàu.
                         </div>
                         <div class="drawer-quick-prompts">
+                            <button class="drawer-prompt-btn btn-open-rag-admin-center" style="border-left: 3px solid #0284c7; background: #f0f9ff; font-weight: 600; color: #0369a1; text-align: left;">
+                                ⚙️ Quản trị RAG & Kho tri thức HS/Legal &rarr;
+                            </button>
                             <button class="drawer-prompt-btn" data-q="Tra cứu hồ sơ Trade Case IMP-2026-001">
                                 📦 Tra cứu hồ sơ IMP-2026-001
                             </button>
@@ -124,6 +134,17 @@
         // Close Drawer
         $('#btn-drawer-close').on('click', function () {
             $drawer.fadeOut(150);
+        });
+
+        // Navigate to RAG Admin Center
+        $(document).on('click', '#btn-drawer-rag-admin, .btn-open-rag-admin-center', function (e) {
+            e.preventDefault();
+            $drawer.fadeOut(150);
+            if (typeof frappe !== 'undefined' && frappe.set_route) {
+                frappe.set_route('rag-admin-center');
+            } else {
+                window.location.href = '/app/rag-admin-center';
+            }
         });
 
         // Fullscreen action -> Navigate to Page
