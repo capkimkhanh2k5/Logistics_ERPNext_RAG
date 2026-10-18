@@ -1,0 +1,29 @@
+{
+ "creation": "2026-10-18 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "octicon octicon-database",
+ "idx": 1,
+ "modified": "2026-10-18 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "rag-admin-center",
+ "owner": "Administrator",
+ "page_name": "rag-admin-center",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Stock User"
+  },
+  {
+   "role": "Purchase User"
+  },
+  {
+   "role": "All"
+  }
+ ],
+ "standard": "Yes",
+ "title": "RAG Admin Center"
+}

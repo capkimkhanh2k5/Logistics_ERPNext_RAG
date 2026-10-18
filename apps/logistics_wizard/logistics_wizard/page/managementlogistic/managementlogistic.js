@@ -449,6 +449,14 @@ function setup_logistics_hub_tabs(wrapper) {
     $page.off('click', '.logistics-nav-tab').on('click', '.logistics-nav-tab', function (e) {
         e.preventDefault();
         const tab = $(this).data('tab');
+        if (tab === 'rag-admin' || tab === 'rag-admin-center') {
+            if (typeof frappe !== 'undefined' && frappe.set_route) {
+                frappe.set_route('rag-admin-center');
+            } else {
+                window.location.href = '/app/rag-admin-center';
+            }
+            return;
+        }
         if (tab && wrapper.unifiedHub) {
             wrapper.unifiedHub.switch_tab(tab);
         }

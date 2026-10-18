@@ -54,6 +54,17 @@
    "type": "Link"
   },
   {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "RAG Admin Center",
+   "link_count": 0,
+   "link_to": "rag-admin-center",
+   "link_type": "Page",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
    "hidden": 0,
    "is_query_report": 0,
    "label": "Costing & Landed Cost",
@@ -140,6 +151,11 @@
   {
    "label": "Management Logistic Hub",
    "link_to": "managementLogistic",
+   "type": "Page"
+  },
+  {
+   "label": "RAG Admin Center",
+   "link_to": "rag-admin-center",
    "type": "Page"
   },
   {

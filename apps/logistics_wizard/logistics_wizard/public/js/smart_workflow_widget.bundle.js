@@ -214,6 +214,8 @@ function initSmartWorkflowWidget() {
                     #lw-fab-menu.show .lw-sub-fab:nth-child(1) { transition-delay: 0.04s; opacity: 1 !important; transform: translateY(0) scale(1) !important; }
                     #lw-fab-menu.show .lw-sub-fab:nth-child(2) { transition-delay: 0.08s; opacity: 1 !important; transform: translateY(0) scale(1) !important; }
                     #lw-fab-menu.show .lw-sub-fab:nth-child(3) { transition-delay: 0.12s; opacity: 1 !important; transform: translateY(0) scale(1) !important; }
+                    #lw-fab-menu.show .lw-sub-fab:nth-child(4) { transition-delay: 0.16s; opacity: 1 !important; transform: translateY(0) scale(1) !important; }
+                    #lw-fab-menu.show .lw-sub-fab:nth-child(5) { transition-delay: 0.20s; opacity: 1 !important; transform: translateY(0) scale(1) !important; }
                     .lw-sub-fab:hover {
                         background: #ffffff !important;
                         transform: scale(1.1) !important;
@@ -359,6 +361,23 @@ function initSmartWorkflowWidget() {
                                 <line x1="16" y1="16" x2="16" y2="16"/>
                             </svg>
                         </button>
+                        <!-- Nút riêng biệt dẫn thẳng đến Logistics Hub (Trung tâm Điều hành) -->
+                        <button class="lw-fab lw-sub-fab" id="lw-fab-logistics-hub" data-tooltip="Logistics Hub">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                                <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                                <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                                <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                            </svg>
+                        </button>
+                        <!-- Nút riêng biệt dẫn thẳng đến Trang Quản trị RAG Center -->
+                        <button class="lw-fab lw-sub-fab" id="lw-fab-rag-admin" data-tooltip="Quản trị RAG Center">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
@@ -457,6 +476,32 @@ function initSmartWorkflowWidget() {
 
             $('.lw-sub-fab').on('click', function (e) {
                 let fabId = $(this).attr('id');
+                if (fabId === 'lw-fab-rag-admin') {
+                    // Chuyển thẳng đến trang Quản trị RAG Center
+                    $('.lw-popup').hide();
+                    $('#lw-fab-menu').removeClass('show');
+                    $('#lw-fab-main').removeClass('active');
+                    if (typeof frappe !== 'undefined' && frappe.set_route) {
+                        frappe.set_route('rag-admin-center');
+                    } else {
+                        window.location.href = '/app/rag-admin-center';
+                    }
+                    return;
+                }
+
+                if (fabId === 'lw-fab-logistics-hub') {
+                    // Chuyển thẳng đến Trung tâm Logistics Hub
+                    $('.lw-popup').hide();
+                    $('#lw-fab-menu').removeClass('show');
+                    $('#lw-fab-main').removeClass('active');
+                    if (typeof frappe !== 'undefined' && frappe.set_route) {
+                        frappe.set_route('managementLogistic');
+                    } else {
+                        window.location.href = '/app/managementlogistic';
+                    }
+                    return;
+                }
+
                 let target = fabId.replace('lw-fab-', 'lw-popup-');
                 $('.lw-popup').hide();
                 $('#' + target).show();
