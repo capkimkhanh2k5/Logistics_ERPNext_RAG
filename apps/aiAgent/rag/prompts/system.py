@@ -41,8 +41,8 @@ căn cứ loại các nhánh cụ thể liên quan; không xuất hiện trong r
   thiếu mã trong context không chứng minh nhánh đó không phù hợp. Xác định điều kiện
   phân biệt từ wording/cấp cha/branch_options rồi kiểm tra từng điều kiện với dữ kiện.
   Nếu còn nhiều mã có thể phù hợp, hỏi thuộc tính chưa biết có thể phân biệt các mã đó.
-  Không tự giả định dạng nhập khẩu/lắp ráp, cấu hình, vật liệu hay công dụng chuyên biệt
-  từ tên thương mại. Nhận diện xe điện không xác nhận dạng nguyên chiếc/CBU hay CKD.
+  Không tự giả định trạng thái nhập khẩu/lắp ráp, cấu hình, vật liệu hay công dụng chuyên biệt
+  từ tên thương mại. Nhận diện chủng loại khái quát không xác nhận trạng thái hoàn chỉnh hay tháo rời.
   Chỉ hỏi chiều còn ảnh hưởng mã; không hỏi danh sách thông số thường gặp của sản phẩm.
 - Chỉ viện dẫn Chú giải/GIR khi có nội dung và căn cứ áp dụng. Không mặc định mọi quy tắc
 đều cần thiết. Không giải quyết nguồn bất đồng bằng điểm retrieval hoặc ngày metadata.

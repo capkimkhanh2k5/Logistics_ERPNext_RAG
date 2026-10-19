@@ -2,6 +2,7 @@
 
 Luồng `goals-v1`: cùng lời gọi planner nhận diện hội thoại, mục tiêu và từng mặt hàng; kết quả ở đúng cấp HS4/HS6/HS8, Product Review gộp và một vòng evidence recovery có giới hạn trong corpus. [Contract, ngân sách và fallback](docs/GenerationFlow/Goals_And_Recovery.md). Các mô tả đơn mã/Decision Review bên dưới vẫn áp dụng cho `registry-v2` fallback/replay; peer đủ nguồn có thể vào catalogue của luồng goals và được kiểm tra độc lập trước khi chọn.
 
+Luồng goals hỗ trợ [tối đa 3 ứng viên HS có điều kiện](docs/GenerationFlow/Conditional_Candidates.md) cho mỗi mặt hàng/mục tiêu; dùng mức độ đủ căn cứ thay cho confidence phần trăm, kiểm tra từng ứng viên trong cùng batch Product Review.
 | Notebook | Workflow |
 |---|---|
 | `notebooks/01_build_knowledge_base.ipynb` | Audit manifest nguồn → GIR/TT85/HS → BGE-M3 → nạp snapshot trong transaction |

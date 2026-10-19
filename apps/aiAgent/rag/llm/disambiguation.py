@@ -2,9 +2,10 @@
 
 import re
 
-from rag.llm.validation import LEGAL_INFORMATION, _folded
+from rag.llm.grounding import discriminating_fact_errors, presentation_scope_errors
+from rag.llm.validation import LEGAL_INFORMATION, _folded, match_user_quote
 
-MAX_COMPARISON_EXTRAS = 128
+MAX_COMPARISON_EXTRAS = 160
 
 
 def comparison_neighbours(candidates: list[dict], graph) -> tuple[list[dict], list[dict]]:
@@ -117,13 +118,10 @@ def disambiguation_errors(value: dict, context: dict, code: str | None = None) -
         refs, quotes = item["fact_ids"], item["user_quotes"]
 
         def _quote_ok(quote: str) -> bool:
-            q = quote.strip()
-            clean = q.rstrip(".,;!? ").strip()
-            return bool(q) and any(
-                quote in statements[fid]["text"]
-                or (bool(clean) and clean in statements[fid]["text"])
-                for fid in refs
-                if fid in statements
+            return bool(
+                match_user_quote(
+                    quote, [statements[fid]["text"] for fid in refs if fid in statements]
+                )
             )
 
         if any(fid not in statements for fid in refs) or any(not _quote_ok(q) for q in quotes):
@@ -131,6 +129,20 @@ def disambiguation_errors(value: dict, context: dict, code: str | None = None) -
         if required and (not refs or not quotes or not item["evidence_ids"]):
             errors.append(
                 "Không được loại nhánh hoặc xác nhận thuộc tính phân biệt chỉ từ tên hàng/thứ hạng; cần dữ kiện và nguồn."
+            )
+        if required:
+            errors.extend(
+                discriminating_fact_errors(
+                    [sources[eid]["text"] for eid in item["evidence_ids"] if eid in sources],
+                    quotes,
+                    context=context,
+                )
+            )
+            errors.extend(
+                presentation_scope_errors(
+                    [sources[eid]["text"] for eid in item["evidence_ids"] if eid in sources],
+                    quotes,
+                )
             )
         if any(LEGAL_INFORMATION.search(_folded(quote)) for quote in quotes):
             errors.append(
@@ -150,8 +162,31 @@ def disambiguation_errors(value: dict, context: dict, code: str | None = None) -
                 errors.append(
                     f"Loại ứng viên {row['code']} phải tham chiếu điều kiện thuộc chính nhánh đó: {sorted(relevant)}."
                 )
-    branches = value["branch_checks"]
     required_groups = {g["parent_code"]: g for g in groups if g["branch_options"]}
+    if value["status"] == "SUPPORTED" and not value["clarifications"]:
+        consolidated = []
+        by_parent: dict[str, list[dict]] = {}
+        for b in value["branch_checks"]:
+            by_parent.setdefault(b["parent_code"], []).append(b)
+        for pbranches in by_parent.values():
+            known = [
+                b
+                for b in pbranches
+                if b["assessment"] == "KNOWN" and b["fact_ids"] and b["user_quotes"]
+            ]
+            if (
+                len(pbranches) > 1
+                and known
+                and any(b["assessment"] == "MISSING" for b in pbranches)
+            ):
+                merged_eids = list(
+                    dict.fromkeys(eid for b in pbranches for eid in b["evidence_ids"])
+                )
+                consolidated.append({**known[0], "evidence_ids": merged_eids})
+            else:
+                consolidated.extend(pbranches)
+        value["branch_checks"] = consolidated
+    branches = value["branch_checks"]
     if {b["parent_code"] for b in branches} != set(required_groups) or len(
         {(b["parent_code"], _folded(b["attribute"])) for b in branches}
     ) != len(branches):
@@ -185,12 +220,20 @@ def disambiguation_errors(value: dict, context: dict, code: str | None = None) -
             if branch["fact_ids"] or branch["user_quotes"]:
                 errors.append("Thuộc tính chưa biết không được có dữ kiện xác nhận giả định.")
             if value["status"] == "MISSING_PRODUCT_INFO" and not any(
-                _folded(q["attribute"]) == _folded(branch["attribute"])
+                (
+                    _folded(q["attribute"]) == _folded(branch["attribute"])
+                    or (
+                        len(branch["attribute"].strip()) >= 8
+                        and _folded(branch["attribute"]) in _folded(q["question"])
+                        and set(q["evidence_ids"]) == set(branch["evidence_ids"])
+                    )
+                )
                 and set(q["evidence_ids"]) & set(branch["evidence_ids"])
                 for q in value["clarifications"]
             ):
                 errors.append(
-                    "Thuộc tính phân biệt chưa biết phải có câu hỏi làm rõ gắn đúng điều kiện nguồn."
+                    "Thuộc tính phân biệt chưa biết phải có câu hỏi làm rõ gắn đúng điều kiện nguồn. "
+                    f"Dùng attribute={branch['attribute']!r} và evidence_ids liên quan {branch['evidence_ids']!r}."
                 )
     if value["status"] == "SUPPORTED":
         possible = [r["code"] for r in rows if r["assessment"] != "RULED_OUT"]

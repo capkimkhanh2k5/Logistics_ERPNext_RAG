@@ -4,7 +4,7 @@ import re
 
 from rag.llm.disambiguation import disambiguation_errors, review_scope
 from rag.llm.quantitative import _proves, _quantities
-from rag.llm.validation import _folded, schema_errors
+from rag.llm.validation import _folded, match_user_quote, schema_errors
 from rag.prompts.schemas import (
     MODEL_ANSWER_SCHEMA,
     MODEL_DECISION_REVIEW_SCHEMA,
@@ -137,6 +137,21 @@ def render_claims(claims: list[dict], context: dict) -> tuple[str, list[dict], l
     return " ".join(parts), list(cited.values()), list(dict.fromkeys(errors))
 
 
+def unique_clarifications(items: list[dict]) -> list[dict]:
+    """One question per declared attribute and source set, within the same item."""
+    seen = set()
+    result = []
+    for item in items:
+        key = (
+            _folded(item["attribute"]).strip(),
+            tuple(sorted(item.get("source_ids", item.get("evidence_ids", [])))),
+        )
+        if key not in seen:
+            result.append(item)
+            seen.add(key)
+    return result
+
+
 def clarification_errors(items: list[dict], context: dict) -> list[str]:
     sources, errors = source_registry(context), []
     statements = user_registry(context).values()
@@ -148,6 +163,14 @@ def clarification_errors(items: list[dict], context: dict) -> list[str]:
         if item["attribute"] not in {"product_type", "question_scope"} and not refs:
             errors.append("Câu hỏi thuộc tính phải tham chiếu điều kiện quyết định từ nguồn.")
         attribute = _folded(item["attribute"]).strip()
+        if (
+            attribute.replace("_", " ") == "primary function"
+            or "chuc nang chinh" in attribute
+            or "chuc nang chinh" in _folded(item["question"])
+        ) and not any("chuc nang chinh" in _folded(sources[eid]["text"]) for eid in refs):
+            errors.append(
+                "Câu hỏi chức năng chính phải dẫn nguồn quy định phân loại theo chức năng chính; định nghĩa riêng của từng loại máy không chứng minh tiêu chí này. Dùng chú giải phù hợp trong sources, không hỏi người dùng cung cấp luật."
+            )
         thresholds = [
             q
             for eid in refs
@@ -186,7 +209,9 @@ def decode_answer(value: dict, context: dict) -> tuple[dict, list[str]]:
         "suggested_hs_code": value["suggested_hs_code"],
         "alternatives": [],
         "citations": citations,
-        "missing_information": [item["question"] for item in value["clarifications"]],
+        "missing_information": [
+            item["question"] for item in unique_clarifications(value["clarifications"])
+        ],
         "missing_legal_evidence": value["missing_legal_evidence"],
     }, errors
 
@@ -217,16 +242,7 @@ def decode_product_review(
             continue
         indices = []
         for quote in check["user_quotes"]:
-            clean_quote = quote.strip().rstrip(".,;!? ").strip()
-            matched = (
-                quote
-                if quote.strip() and any(quote in statements[sid]["text"] for sid in refs)
-                else (
-                    clean_quote
-                    if clean_quote and any(clean_quote in statements[sid]["text"] for sid in refs)
-                    else ""
-                )
-            )
+            matched = match_user_quote(quote, [statements[sid]["text"] for sid in refs])
             if not matched:
                 errors.append("Trích đoạn kiểm tra không thuộc lời người dùng được tham chiếu.")
                 continue
@@ -247,7 +263,9 @@ def decode_product_review(
         "reason": value["reason"],
         "product_facts": facts,
         "condition_checks": checks,
-        "missing_information": [item["question"] for item in value["clarifications"]],
+        "missing_information": [
+            item["question"] for item in unique_clarifications(value["clarifications"])
+        ],
         "missing_legal_evidence": value["missing_legal_evidence"],
     }, errors
 

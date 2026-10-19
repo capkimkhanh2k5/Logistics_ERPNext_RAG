@@ -101,25 +101,27 @@ Trong cùng JSON, thêm request mô tả nhiệm vụ, không giải bài toán 
   required=true cho yêu cầu bắt buộc. Có thể có nhiều mục tiêu trong một câu hỏi.
   CLASSIFY cần kết quả riêng cho từng item. COMPARE giải thích sự khác nhau, không
   thay thế CLASSIFY nếu cũng được yêu cầu phân loại từng sản phẩm.
-  Một mặt hàng hỏi "thuộc nhóm/phân nhóm/mã X hay Y" là CLASSIFY ở cấp được hỏi, không chỉ COMPARE.
-  Khi có nhiều mặt hàng và câu hỏi vừa hỏi chung liệu cả hai/tất cả có cùng thuộc một nhóm/phân nhóm/mã
-  hay không, vừa yêu cầu phân loại từng mặt hàng, thì vế hỏi chung là COMPARE ở cấp tương ứng và vế
+  Một mặt hàng cần xác định thuộc nhánh nào giữa các mã/nhóm ứng viên là CLASSIFY ở cấp tương ứng, không chỉ COMPARE.
+  Khi có nhiều mặt hàng và câu hỏi vừa yêu cầu đối chiếu xem các mặt hàng có cùng thuộc một mã/phân nhóm/nhóm
+  hay không, vừa yêu cầu phân loại từng mặt hàng, thì phần đối chiếu chung là COMPARE ở cấp tương ứng và phần
   phân loại từng mặt hàng là CLASSIFY (không tạo hai mục tiêu CLASSIFY trùng lặp cho cùng tập mặt hàng).
-  Vế hỏi về bản chất kỹ thuật, cơ chế hoạt động, định nghĩa hoặc nguyên tắc/quy tắc áp dụng
-  (dạng hỏi khái niệm "là loại A hay loại B?", "áp dụng quy tắc nào?" không yêu cầu xuất mã số)
-  đi kèm câu hỏi phân loại của cùng mặt hàng là EXPLAIN level=0, không lặp thêm CLASSIFY.
+  Phần yêu cầu giải thích bản chất kỹ thuật, cơ chế hoạt động, định nghĩa khái niệm hoặc nguyên tắc/quy tắc pháp lý
+  áp dụng (không yêu cầu xuất mã số) đi kèm câu hỏi phân loại của cùng mặt hàng là EXPLAIN level=0, không lặp thêm CLASSIFY.
   Yêu cầu phân loại từng mặt hàng trong câu đang chỉ định cấp 4 hoặc 6 số phải giữ nguyên cấp đó;
   chỉ đặt level=8 khi người dùng yêu cầu mã HS chung hoặc mã chi tiết 8 số. Chọn anchor nhận diện ngắn,
   không chép cả thông số sản phẩm.
   Hỏi nhóm HS -> CLASSIFY level=4; hỏi phân nhóm 6 số -> 6; hỏi mã HS -> 8 trừ khi
-  chỉ định cấp khác. EXPLAIN dùng cho bản chất/GIR/căn cứ pháp lý; REQUIREMENTS cho thông số cần biết
+  chỉ định cấp khác. EXPLAIN dùng cho bản chất/quy tắc/căn cứ pháp lý; REQUIREMENTS cho thông số cần biết
   để phân loại, không đồng nghĩa yêu cầu chốt mã. QA thuần túy có thể items rỗng.
-  "Mã chi tiết nếu đủ thông tin" là mục tiêu CLASSIFY bổ sung required=false;
+  Yêu cầu mã chi tiết có điều kiện (chỉ khi đủ thông tin) là mục tiêu CLASSIFY bổ sung required=false;
   không làm mất mục tiêu nhóm/giải thích bắt buộc. Không đổi cấp yêu cầu khi khó tìm nguồn.
   Đính chính cập nhật cùng mặt hàng, giữ nguyên yêu cầu ban đầu chưa bị thay đổi;
   NEW_QUESTION chỉ lập nhiệm vụ từ message mới.
 Không suy ra thuộc tính bắt buộc pháp lý trước retrieval. Tất cả anchor phải nằm
 trong lời người dùng thuộc đúng phạm vi hội thoại, không lấy từ pending_questions.
+Mỗi anchor phải là MỘT trích đoạn liên tục, không nối các đoạn bằng dấu ba chấm (...) hoặc (…).
+Với đính chính, chọn một cụm nhận diện ngắn nguyên văn từ lượt cũ hoặc lượt mới, không ghép
+tên hàng của lượt cũ với thông số mới thành một anchor tổng hợp.
 """
 QUERY_PLANNING_PROMPT += REQUEST_PLANNING_PROMPT
 

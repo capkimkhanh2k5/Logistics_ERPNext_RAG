@@ -193,7 +193,35 @@ def model_reviews(ctx, main):
                 },
             }
         )
-    return {"reviews": reviews}
+    from rag.llm.analysis_review import analysis_jobs
+
+    analyses = analysis_jobs(rows, ctx)
+    return {
+        "reviews": reviews,
+        **(
+            {
+                "analysis_reviews": [
+                    {
+                        "result_id": job["result_id"],
+                        "checks": [
+                            {
+                                "claim_index": c["claim_index"],
+                                "assessment": "REFERENCE",
+                                "evidence_ids": c["evidence_ids"],
+                                "fact_ids": [],
+                                "user_quotes": [],
+                                "reason": "Giải thích điều kiện nguồn, không tự áp mã cho hàng hóa.",
+                            }
+                            for c in job["claims"]
+                        ],
+                    }
+                    for job in analyses
+                ]
+            }
+            if analyses
+            else {}
+        ),
+    }
 
 
 def run(ctx, outputs):
@@ -736,3 +764,40 @@ def test_required_detail_missing_product_info_is_preserved_when_heading_also_nee
     assert resolved[1]["status"] == "MISSING_PRODUCT_INFO"
     assert "Tiêu chí điện thoại thông minh" in resolved[1]["answer"]
 
+
+def test_threshold_violation_and_explain_exclusion_with_registered_codes_are_allowed():
+    from rag.llm.task_validation import code_claim_errors
+    from rag.llm.validation import validate_answer
+
+    ctx = context(explain=True)
+    ctx["question"] += (
+        " Có thuộc phân nhóm 7113.11 hay nhóm 8708 không? Có đủ điều kiện mã 71131190 không?"
+    )
+    threshold_claim = [
+        {
+            "kind": "CONCLUSION",
+            "text": (
+                "Hàng vượt quá giới hạn của phân nhóm 7113.11 nên bị loại trừ khỏi 7113.11, "
+                "thuộc nhóm 7117."
+            ),
+        }
+    ]
+    assert not code_claim_errors(threshold_claim, "7117", ctx)
+    explain_claim = [
+        {
+            "kind": "CONCLUSION",
+            "text": "Hàng phải phân loại theo nhóm 7113 thay vì nhóm 7117.",
+        }
+    ]
+    assert not code_claim_errors(explain_claim, "", ctx, {"7113"})
+    scoped = item_context(ctx, "I1", 8)
+    eval_answer = {
+        "status": "MISSING_PRODUCT_INFO",
+        "answer": "Để đánh giá điều kiện phân loại vào mã 71131190 [S1], chưa đủ thông tin để kết luận.",
+        "suggested_hs_code": "",
+        "alternatives": [],
+        "citations": [{"label": "S1", "quote": ctx["sources"][0]["text"]}],
+        "missing_information": ["Trạng thái cụ thể của sản phẩm là gì?"],
+        "missing_legal_evidence": [],
+    }
+    assert validate_answer(eval_answer, scoped)["valid"]

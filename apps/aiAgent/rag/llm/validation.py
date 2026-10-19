@@ -21,7 +21,7 @@ def schema_errors(value: object, schema: dict) -> list[str]:
         elif error.validator == "type":
             detail = f"Sai kiểu dữ liệu; kiểu JSON yêu cầu: {error.validator_value}"
         elif error.validator == "enum":
-            detail = "Giá trị phải thuộc danh sách: " + ", ".join(error.validator_value)
+            detail = "Giá trị phải thuộc danh sách: " + ", ".join(map(str, error.validator_value))
         elif error.validator == "minLength":
             detail = f"Chuỗi phải có ít nhất {error.validator_value} ký tự"
         else:
@@ -40,6 +40,46 @@ def _folded(text: str) -> str:
         for c in unicodedata.normalize("NFD", text.lower().replace("đ", "d"))
         if not unicodedata.combining(c)
     )
+
+
+def _folded_index(text: str) -> tuple[str, list[int]]:
+    """Fold text and keep, for every folded char, the index of its original char."""
+    chars, origin = [], []
+    previous_space = False
+    for index, char in enumerate(text):
+        for folded in _folded(char):
+            if folded.isspace():
+                if previous_space:
+                    continue
+                folded, previous_space = " ", True
+            else:
+                previous_space = False
+            chars.append(folded)
+            origin.append(index)
+    return "".join(chars), origin
+
+
+def match_user_quote(quote: str, texts: list[str]) -> str:
+    """Return the authentic slice of a user statement that a model quote refers to.
+
+    Exact matches are preferred. Otherwise case, diacritic and whitespace differences are
+    tolerated, but the returned value is always copied from the original user text.
+    """
+    raw = quote.strip()
+    clean = raw.rstrip(".,;!? ").strip()
+    for candidate in dict.fromkeys([quote, raw, clean]):
+        if candidate and any(candidate in text for text in texts):
+            return candidate
+    needle = " ".join(_folded(clean).split())
+    if not needle:
+        return ""
+    for text in texts:
+        folded, origin = _folded_index(text)
+        start = folded.find(needle)
+        if start >= 0:
+            end = origin[start + len(needle) - 1] + 1
+            return text[origin[start] : end]
+    return ""
 
 
 LEGAL_INFORMATION = re.compile(
@@ -216,13 +256,30 @@ def validate_answer(answer: dict, context: dict) -> dict:
         c.replace(".", "")
         for c in re.findall(r"(?<!\d)(?:\d{4}\.\d{2}\.\d{2}|\d{8})(?!\d)", answer["answer"])
     }
-    if mentioned - registered:
+    if "structured_code_claims" in context:
+        from rag.llm.task_validation import code_claim_errors
+
+        errors.extend(
+            code_claim_errors(
+                context["structured_code_claims"],
+                answer["suggested_hs_code"],
+                context,
+                set(context.get("registered_hs_codes", ())),
+                allow_comparison_refs=True,
+            )
+        )
+    if mentioned - registered and "structured_code_claims" not in context:
         from rag.retrieval.request_plan import referenced_codes
 
         references = referenced_codes(context.get("question", ""))
+        unresolved_eval = re.search(
+            r"(?:chưa\s+(?:đủ|thể|có\s+cơ\s+sở)|để\s+(?:đánh\s+giá|xem\s+xét|kiểm\s+tra|xác\s+định|được\s+phân\s+loại)|điều\s+kiện\s+phân\s+loại)",
+            answer["answer"],
+            re.I,
+        )
         applying = re.search(
             r"(?:đề xuất|thuộc\s+mã|phân loại\s+(?:vào|theo)\s+mã)", answer["answer"], re.I
-        )
+        ) and not (answer["status"] != "RECOMMENDATION" and unresolved_eval)
         if applying or mentioned - registered - references:
             errors.append(
                 "Mã HS8 trong diễn giải chưa qua kiểm tra đề xuất; đăng ký mã trong kết quả có cấu trúc."
@@ -256,8 +313,17 @@ def validate_answer(answer: dict, context: dict) -> dict:
             elif code == answer["suggested_hs_code"]:
                 required = set(evidence[code]["required_citation_labels"])
                 if not required <= cited:
+                    missing_labels = sorted(required - cited)
+                    if context.get("response_protocol") == "registry-v2":
+                        missing_refs = [
+                            sources[label]["evidence_id"]
+                            for label in missing_labels
+                            if label in sources and "evidence_id" in sources[label]
+                        ] or missing_labels
+                    else:
+                        missing_refs = missing_labels
                     boundary_errors.append(
-                        f"Đề xuất HS thiếu trích dẫn của mã chi tiết, cấp cha có mô tả pháp lý hoặc điều kiện nhánh: {sorted(required - cited)}. Dùng đúng các nhãn này trong answer và citations."
+                        f"Đề xuất HS thiếu trích dẫn của mã chi tiết, cấp cha có mô tả pháp lý hoặc điều kiện nhánh: {missing_refs}. Dùng đúng các nhãn này trong answer và citations."
                     )
     errors.extend(boundary_errors)
     return {

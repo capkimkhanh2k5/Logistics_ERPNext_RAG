@@ -74,7 +74,34 @@ def item_context(context: dict, item_id: str, level: int, selected_code: str | N
         for c in context.get("comparison_candidates", [])
         if len(c["code"]) == level and selected_code and c["code"][:6] == selected_code[:6]
     ]
+    branch_groups = [
+        g
+        for g in context.get("candidate_comparison", [])
+        if g["parent_code"]
+        and (selected_code in g["codes"] if selected_code else bool(set(g["codes"]) & set(codes)))
+    ]
+    if level == 8 and selected_code and branch_groups:
+        candidates = [c for c in candidates if c["code"][:6] == selected_code[:6]]
+        codes = [c["code"] for c in candidates]
     candidates = list({c["code"]: c for c in [*candidates, *peers]}.values())
+    from rag.llm.application_rules import assembly_hypothesis
+
+    rules = context.get("application_rule_labels", [])
+    # Preserve turn boundaries: an earlier request must not hide a later correction.
+    presentation = context["question"]
+    for other, start, stop in reversed(scope["item_regions"]):
+        if other != item_id:
+            presentation = presentation[:start] + " " * (stop - start) + presentation[stop:]
+    if rules and assembly_hypothesis(presentation):
+        candidates = [
+            {
+                **candidate,
+                "required_citation_labels": list(
+                    dict.fromkeys([*candidate["required_citation_labels"], *rules])
+                ),
+            }
+            for candidate in candidates
+        ]
     eligible = codes + [c["code"] for c in peers if c["hierarchy"]["status"] == "VERIFIED"]
     return {
         **scope,
@@ -87,16 +114,7 @@ def item_context(context: dict, item_id: str, level: int, selected_code: str | N
         "allowed_hs_codes": list(dict.fromkeys(eligible)),
         "candidate_comparison": [
             {"parent_code": "", "codes": codes, "missing_codes": [], "branch_options": []},
-            *[
-                g
-                for g in context.get("candidate_comparison", [])
-                if g["parent_code"]
-                and (
-                    selected_code in g["codes"]
-                    if selected_code
-                    else bool(set(g["codes"]) & set(codes))
-                )
-            ],
+            *branch_groups,
         ]
         if codes
         else [],
@@ -104,10 +122,18 @@ def item_context(context: dict, item_id: str, level: int, selected_code: str | N
 
 
 _NEGATED_CODE_SPAN = re.compile(
-    r"(?:không\s+(?:được\s+|bị\s+|thể\s+)?(?:thuộc|phân\s*loại|xếp\s*vào|áp\s*(?:dụng|mã)|phải(?:\s+là)?|coi\s+là|xem\s+là)"
-    r"|(?:bị\s+)?loại\s*trừ(?:\s+khỏi)?|thay\s+vì(?:\s+(?:thuộc|nhóm|phân\s*nhóm|mã))?|bác\s+bỏ(?:\s+(?:hướng|nhóm|phân\s*nhóm|mã))?)"
-    r"[^.;!\n]{0,120}?\b(?:như\s+)?(?:nhóm|phân\s*nhóm|mã(?:\s*hs)?|heading|subheading)?\s*"
-    r"(?:\d{4}(?:\.\d{2}(?:\.\d{2})?)?|\d{6}|\d{8})\b\)?",
+    r"(?:không\s+(?:được\s+|bị\s+|thể\s+|còn\s+)?(?:thuộc|phân\s*loại|xếp\s*vào|áp\s*(?:dụng|mã)|phải(?:\s+là)?|coi\s+là|xem\s+là|đáp\s*ứng|thỏa\s*mãn|đạt)"
+    r"|không\s+(?:xếp|vào|thuộc)\b|(?:bị\s+)?loại(?:\s*trừ(?:\s+khỏi)?|\s+khỏi)|thay\s+vì(?:\s+(?:thuộc|nhóm|phân\s*nhóm|mã))?|bác\s+bỏ(?:\s+(?:hướng|nhóm|phân\s*nhóm|mã))?"
+    r"|vượt\s+(?:quá\s+)?(?:giới\s*hạn|ngưỡng|mức))"
+    r"(?:(?![.;!?](?:\s|$)|\b(?:nhưng|mà|but|however)\b)[^\n]){0,120}?\b(?:như\s+)?(?:nhóm|phân\s*nhóm|mã(?:\s*hs)?|heading|subheading)?\s*"
+    r"(?:\d{4}(?:\.\d{2}(?:\.\d{2})?)?|\d{2}\.\d{2}|\d{6}|\d{8})\b\)?",
+    re.I,
+)
+
+_REJECTED_CODE_SPAN = re.compile(
+    r"\b(?:mã(?:\s+HS)?|nhóm|phân\s*nhóm)\s*"
+    r"(?:\d{4}(?:\.\d{2}(?:\.\d{2})?)?|\d{2}\.\d{2}|\d{6}|\d{8})\b\s*"
+    r"(?:không\s+phù\s+hợp|không\s+áp\s+dụng|bị\s+loại\s+trừ)",
     re.I,
 )
 
@@ -135,14 +161,16 @@ def code_claim_errors(
             registered.add(candidate["code"])
     for claim in claims:
         text = claim["text"]
-        check_text = _NEGATED_CODE_SPAN.sub(" ", text) if selected else text
+        check_text = _REJECTED_CODE_SPAN.sub(" ", _NEGATED_CODE_SPAN.sub(" ", text))
         found = set(re.findall(r"(?<!\d)(?:\d{4}\.\d{2}\.\d{2}|\d{8})(?!\d)", check_text))
         found = {s.replace(".", "") for s in found}
         applied = re.search(
             r"(?:thuộc|áp\s*(?:dụng|mã)|đề xuất|phân loại|xếp vào|mã phù hợp)", check_text, re.I
         )
-        if found - registered - (
-            reference_codes if claim["kind"] != "CONCLUSION" or not applied else set()
+        if (
+            found
+            - registered
+            - (reference_codes if claim["kind"] != "CONCLUSION" or not applied else set())
         ):
             errors.append(
                 "Mã HS8 trong diễn giải chưa được đăng ký để kiểm tra; dùng trường code của kết quả phân loại. "
@@ -251,7 +279,43 @@ def decode_task_answer(value: dict, context: dict) -> tuple[list[dict], list[str
         )
         if registered:
             scoped = {**scoped, "registered_hs_codes": sorted(registered)}
+        clarifications = row["clarifications"]
+        inherited = False
+        if (
+            goal["kind"] == "CLASSIFY"
+            and row["status"] == "MISSING_PRODUCT_INFO"
+            and not clarifications
+        ):
+            parents = [
+                parent
+                for parent in value["results"]
+                if parent["item_id"] == item_id
+                and goals.get(parent["objective_id"], {}).get("kind") == "CLASSIFY"
+                and 0 < goals[parent["objective_id"]]["level"] < goal["level"]
+                and parent["status"] == "MISSING_PRODUCT_INFO"
+                and parent["clarifications"]
+            ]
+            if parents:
+                nearest = max(parents, key=lambda parent: goals[parent["objective_id"]]["level"])
+                clarifications = nearest["clarifications"]
+                inherited = True
+        raw_shortlist = [] if inherited else row.get("candidate_codes", [])
         text, citations, row_errors = render_claims(row["claims"], scoped)
+        catalogue = {
+            c["code"]: c
+            for c in [*context["candidate_evidence"], *context.get("comparison_candidates", [])]
+        }
+        eligible = {
+            code
+            for code, candidate in catalogue.items()
+            if goal["kind"] == "CLASSIFY"
+            and len(code) == goal["level"]
+            and candidate["hierarchy"]["status"] == "VERIFIED"
+        }
+        shortlist = [code for code in raw_shortlist if code in eligible]
+        if raw_shortlist and row["code"] in eligible:
+            shortlist = [row["code"], *[code for code in shortlist if code != row["code"]]][:3]
+        discarded = [code for code in raw_shortlist if code not in shortlist]
         if actual.count((row["objective_id"], item_id)) != 1:
             row_errors.append("Kết quả objective/item bị lặp, chưa thể chọn kết luận nào.")
         answer = {
@@ -260,11 +324,13 @@ def decode_task_answer(value: dict, context: dict) -> tuple[list[dict], list[str
             "suggested_hs_code": row["code"],
             "alternatives": [],
             "citations": citations,
-            "missing_information": [q["question"] for q in row["clarifications"]],
+            "missing_information": [q["question"] for q in clarifications],
             "missing_legal_evidence": row["missing_legal_evidence"],
         }
-        row_errors.extend(clarification_errors(row["clarifications"], scoped))
-        row_errors.extend(validate_answer(answer, scoped)["errors"])
+        row_errors.extend(clarification_errors(clarifications, scoped))
+        row_errors.extend(
+            validate_answer(answer, {**scoped, "structured_code_claims": row["claims"]})["errors"]
+        )
         allowed_facts = {s["id"] for s in scoped["user_context"]["statements"]}
         if any(set(c["fact_ids"]) - allowed_facts for c in row["claims"]):
             row_errors.append(
@@ -288,6 +354,10 @@ def decode_task_answer(value: dict, context: dict) -> tuple[list[dict], list[str
                 missing_information=[],
                 missing_legal_evidence=[gap],
             )
+        query_codes = referenced_codes(context["question"])
+        query_family = {
+            c[:size] for c in query_codes for size in (4, 6, 8) if len(c) >= size
+        } | query_codes
         decoded.append(
             {
                 **answer,
@@ -298,13 +368,17 @@ def decode_task_answer(value: dict, context: dict) -> tuple[list[dict], list[str
                 "required": goal["required"],
                 "kind": goal["kind"],
                 "claims": row["claims"],
+                "candidate_codes": shortlist,
+                "discarded_candidate_codes": discarded,
+                "draft_clarifications": clarifications,
+                "clarifications_inherited": inherited,
                 "valid": not row_errors,
                 "depends_on": [
                     list(key)
                     for key, codes in dependencies.items()
                     if goal["kind"] != "CLASSIFY"
                     and any(
-                        codes & referenced_codes(c["text"])
+                        (codes - query_family) & referenced_codes(c["text"])
                         for c in row["claims"]
                         if c["kind"] in {"LEGAL_ANALYSIS", "CONCLUSION"}
                     )
@@ -321,6 +395,8 @@ def decode_task_answer(value: dict, context: dict) -> tuple[list[dict], list[str
 
 
 def render_task_answer(rows: list[dict], context: dict) -> dict:
+    from rag.llm.shortlist import render_candidates
+
     required = [r for r in rows if r["required"]] or rows
     unresolved = [r for r in required if r["status"] not in {"ANSWERED", "RECOMMENDATION"}]
     status = next(
@@ -338,6 +414,14 @@ def render_task_answer(rows: list[dict], context: dict) -> dict:
         text = (f"{title}: " if title else "") + row["answer"]
         if row["status"] == "RECOMMENDATION" and row.get("review_valid"):
             text += f" Mã HS {row['level']} số đề xuất: {row['suggested_hs_code']}."
+        candidates = row.get("hs_candidates", [])
+        if candidates:
+            text += "\n" + render_candidates(
+                candidates, ask_questions=status == "MISSING_PRODUCT_INFO"
+            )
+            for candidate in candidates:
+                for c in candidate["citations"]:
+                    citations[c["label"]] = c
         parts.append(text)
         for c in row["citations"]:
             citations[c["label"]] = c
@@ -366,5 +450,24 @@ def render_task_answer(rows: list[dict], context: dict) -> dict:
         )
         if status == "INSUFFICIENT_LEGAL_EVIDENCE"
         else [],
-        "results": [{k: v for k, v in r.items() if k not in {"claims", "valid"}} for r in rows],
+        "hs_candidates": rows[0].get("hs_candidates", []) if len(rows) == 1 else [],
+        "results": [
+            {
+                k: v
+                for k, v in r.items()
+                if k
+                not in {
+                    "claims",
+                    "valid",
+                    "candidate_codes",
+                    "discarded_candidate_codes",
+                    "candidate_only",
+                    "shortlist_codes",
+                    "draft_clarifications",
+                    "clarifications_inherited",
+                    "review_evidence_labels",
+                }
+            }
+            for r in rows
+        ],
     }

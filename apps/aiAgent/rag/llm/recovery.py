@@ -30,6 +30,26 @@ def _gaps(context: dict, generated: dict) -> list[dict]:
             and r["status"] == "RECOMMENDATION"
             and r.get("review_valid")
         }
+        checked.update(
+            r["reviewed_code"]
+            for r in generated["answer"].get("results", [])
+            if r["kind"] == "CLASSIFY"
+            and r["item_id"] in items
+            and r.get("reviewed_code")
+            and any(s.get("code") == r["reviewed_code"] for s in context["sources"])
+        )
+        analysis_ids = {
+            eid
+            for r in generated["answer"].get("results", [])
+            if set(goals[r["objective_id"]]["item_ids"]) & set(items)
+            for check in r.get("analysis_checks", [])
+            for eid in check["evidence_ids"]
+        }
+        checked.update(
+            s["code"]
+            for s in context["sources"]
+            if s["evidence_id"] in analysis_ids and s.get("code")
+        )
         return sorted(checked or referenced_codes(context["question"]))[:6]
 
     return [
@@ -38,6 +58,7 @@ def _gaps(context: dict, generated: dict) -> list[dict]:
             "codes": related_codes(r),
             "query": " ".join(r["missing_legal_evidence"])[:200],
             "reason": "Khoảng trống nguồn của mục tiêu chưa hoàn tất.",
+            "kind": "APPLICATION" if r.get("application_evidence_gap") else "WORDING",
         }
         for r in unresolved
     ]
@@ -59,7 +80,15 @@ def _retain_completed(old_context: dict, old: dict, context: dict, generated: di
         prior = before.get((row["objective_id"], row["item_id"]))
         if row["status"] in {"ANSWERED", "RECOMMENDATION"} or not prior:
             continue
-        cited = [by_label[c["label"]] for c in prior["citations"]]
+        cited_labels = {c["label"] for c in prior["citations"]}
+        cited_labels.update(
+            c["label"]
+            for candidate in prior.get("hs_candidates", [])
+            for c in candidate["citations"]
+        )
+        if not cited_labels <= by_label.keys():
+            continue
+        cited = [by_label[label] for label in cited_labels]
         if not all(s["id"] in sources and s["text"] == sources[s["id"]]["text"] for s in cited):
             continue
         mapping = {s["label"]: sources[s["id"]]["label"] for s in cited}
@@ -72,6 +101,14 @@ def _retain_completed(old_context: dict, old: dict, context: dict, generated: di
         ]
         for check in retained.get("review", {}).get("condition_checks", []):
             check["source_label"] = mapping.get(check["source_label"], check["source_label"])
+        for candidate in retained.get("hs_candidates", []):
+            for citation in candidate["citations"]:
+                citation["label"] = mapping[citation["label"]]
+            for condition in candidate["conditions"]:
+                condition["source_label"] = mapping[condition["source_label"]]
+            candidate["reason"] = re.sub(
+                r"\[(S\d+)\]", lambda m: f"[{mapping.get(m[1], m[1])}]", candidate["reason"]
+            )
         retained["retained_after_recovery"] = True
         rows[index] = retained
         retained_ids.add(retained.get("result_id") or row.get("result_id") or f"R{index + 1}")
@@ -135,8 +172,11 @@ def recover_answer(
     if not gaps:
         return context, generated
     remaining = generated["generation"]["remaining_calls"]
-    if remaining < 1:
-        generated["generation"]["recovery"] = {"rounds": 0, "reason": "CALL_BUDGET_EXHAUSTED"}
+    if remaining < 2:
+        generated["generation"]["recovery"] = {
+            "rounds": 0,
+            "reason": "CALL_BUDGET_EXHAUSTED" if not remaining else "INSUFFICIENT_REVIEW_BUDGET",
+        }
         return context, generated
     recovered, metadata = recover_evidence(
         context["question"], result, context, gaps, retriever, graph

@@ -50,7 +50,8 @@ def comparison_review(ctx, *, missing=True):
     source_ids = [
         eid for o in ctx["candidate_comparison"][0]["branch_options"] for eid in o["evidence_ids"]
     ]
-    statement = ctx["user_context"]["statements"][0]
+    # Import-form proof must include the explicit form, not only the name before the comma.
+    statement = max(ctx["user_context"]["statements"], key=lambda s: len(s["text"]))
     proof = {"fact_ids": [statement["id"]], "user_quotes": [statement["text"]]}
     selected = ctx["candidate_evidence"][0]
     return {

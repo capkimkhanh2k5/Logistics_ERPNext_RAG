@@ -230,6 +230,82 @@ def check_product_review(
                     + check["assessment"]
                     + ")."
                 )
+
+        from rag.llm.grounding import (
+            defining_note_errors,
+            discriminating_fact_errors,
+            indirect_drive_gap,
+            presentation_scope_errors,
+            unsupported_qualifier_errors,
+        )
+
+        errors.extend(
+            unsupported_qualifier_errors(
+                [
+                    review["reason"],
+                    *[
+                        c["text"]
+                        for c in answer.get("claims", [])
+                        if c["kind"] in {"PRODUCT_FACT", "CONCLUSION"}
+                    ],
+                ],
+                [s["text"] for s in context.get("user_context", {}).get("statements", [])]
+                or [context["question"]],
+            )
+        )
+        for check in review["condition_checks"]:
+            if check["assessment"] == "SATISFIED":
+                errors.extend(
+                    discriminating_fact_errors(
+                        [check["source_quote"]],
+                        [
+                            review["product_facts"][i]["user_quote"]
+                            for i in check["product_fact_indices"]
+                            if 0 <= i < len(review["product_facts"])
+                        ],
+                        satisfied=True,
+                        context=context,
+                    )
+                )
+            if check["assessment"] == "SATISFIED" and indirect_drive_gap(
+                " ".join(s["text"] for s in context.get("user_context", {}).get("statements", [])),
+                [
+                    check["source_quote"],
+                    *[
+                        s["text"]
+                        for s in sources.values()
+                        if s.get("chunk_type")
+                        in {"gir_explanation", "chapter_note", "subheading_note", "section_note"}
+                    ],
+                ],
+            ):
+                errors.append(
+                    "Chỉ có tiêu đề kết hợp động cơ chung, chưa có căn cứ giải thích cơ chế truyền lực gián tiếp đã nêu. Dùng UNRESOLVED_APPLICATION và INSUFFICIENT_LEGAL_EVIDENCE; không hỏi tiếp thuộc tính mã lá."
+                )
+
+        if review["status"] != "SUPPORTED":
+            for check in review["condition_checks"]:
+                if check["assessment"] == "SATISFIED" and check["source_label"] in sources:
+                    errors.extend(
+                        quantitative_grounding_errors(
+                            {**review, "status": "SUPPORTED", "condition_checks": [check]},
+                            {check["source_label"]: {"text": check["source_quote"]}},
+                            {check["source_label"]},
+                        )
+                    )
+        errors.extend(defining_note_errors(review, sources, candidate))
+        for check in review["condition_checks"]:
+            if check["assessment"] == "SATISFIED":
+                errors.extend(
+                    presentation_scope_errors(
+                        [check["source_quote"]],
+                        [
+                            review["product_facts"][i]["user_quote"]
+                            for i in check["product_fact_indices"]
+                            if 0 <= i < len(review["product_facts"])
+                        ],
+                    )
+                )
         if review["status"] == "SUPPORTED":
             errors.extend(
                 quantitative_grounding_errors(
@@ -287,6 +363,13 @@ def check_product_review(
                 key=lambda item: item["assessment"] in {"SATISFIED", "NOT_APPLICABLE"},
             ):
                 cited_checks.setdefault(check["source_label"], check["source_quote"])
+            if registry_protocol:
+                question_ids = {
+                    eid for q in raw_review["clarifications"] for eid in q["evidence_ids"]
+                }
+                for source in context["sources"]:
+                    if source["evidence_id"] in question_ids:
+                        cited_checks.setdefault(source["label"], source["text"])
             proposed["citations"] = [
                 {"label": label, "quote": quote} for label, quote in cited_checks.items()
             ]

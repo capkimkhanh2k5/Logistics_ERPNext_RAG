@@ -8,6 +8,7 @@ from rag.ingestion.sources import SOURCE_TYPES
 from rag.llm.budget import ContextBudgetError, request_budget
 from rag.llm.disambiguation import comparison_neighbours, comparison_payload
 from rag.llm.evidence import bind_evidence, bind_user_context, model_candidate, model_sources
+from rag.llm.validation import _folded
 from rag.prompts.schemas import MODEL_ANSWER_SCHEMA
 from rag.prompts.system import SYSTEM_PROMPT
 from rag.prompts.tasks import TASK_INSTRUCTIONS, USER_SUPPLEMENT_TEMPLATE
@@ -92,6 +93,51 @@ def source_rows(
     return list(unique.values()), candidates
 
 
+def _phrase(text: str) -> str:
+    return " ".join(re.sub(r"[^\w]+", " ", _folded(text or "")).split())
+
+
+def _defining_notes(view: dict, wording_ids: list[str], graph) -> list[str]:
+    """Linked notes whose text defines or restricts the short title of the candidate or an ancestor.
+
+    Such a note defines the very term the candidate is named by, so its conditions cannot
+    be satisfied by matching the title alone.
+    """
+    if graph is None:
+        return []
+    titles = []
+    for sid in wording_ids:
+        citation = graph.citation(sid)
+        if not citation:
+            continue
+        raw_text = citation.get("text", "").strip()
+        raw_clean = re.sub(r"^[-\s]+", "", raw_text).rstrip(":.;, ").strip()
+        phrase = _phrase(raw_clean)
+        words = phrase.split()
+        if 2 <= len(words) <= 8 and phrase != "loai khac":
+            titles.append((phrase, raw_clean))
+    if not titles:
+        return []
+    found = []
+    for nid in view.get("note_ids", []):
+        citation = graph.citation(nid)
+        if not citation:
+            continue
+        raw_note = citation.get("text", "")
+        body = f" {_phrase(raw_note)} "
+        for phrase, raw_clean in titles:
+            if (
+                f'"{raw_clean}"' in raw_note
+                or f"“{raw_clean}”" in raw_note
+                or f"thuat ngu {phrase}" in body
+                or f"{phrase} co nghia la" in body
+                or f"{phrase} duoc hieu la" in body
+            ):
+                found.append(nid)
+                break
+    return found
+
+
 def _candidate_evidence(candidates: list[dict], sources: list[dict], graph) -> list[dict]:
     labels = {s["id"]: s["label"] for s in sources}
     evidence = []
@@ -143,6 +189,16 @@ def _candidate_evidence(candidates: list[dict], sources: list[dict], graph) -> l
         context_labels = [labels[sid] for sid in view.get("context_ids", []) if sid in labels]
         required = {label for node in hierarchy["chain"] for label in node["evidence_labels"]}
         required.update(context_labels)
+        wording_ids = [row["id"], *[node["id"] for node in hierarchy["chain"]]]
+        defining_notes = _defining_notes(view, wording_ids, graph)
+        missing_definitions = [sid for sid in defining_notes if sid not in labels]
+        if missing_definitions:
+            hierarchy["status"] = "INVALID"
+            hierarchy["legal_evidence_status"] = "INSUFFICIENT"
+            hierarchy["errors"].append(
+                "Defining notes omitted from context: " + ", ".join(missing_definitions)
+            )
+        required.update(labels[sid] for sid in defining_notes if sid in labels)
         evidence.append(
             {
                 "code": row["code"],
@@ -152,6 +208,7 @@ def _candidate_evidence(candidates: list[dict], sources: list[dict], graph) -> l
                 ],
                 "context_labels": context_labels,
                 "required_citation_labels": sorted(required, key=lambda label: int(label[1:])),
+                "defining_note_labels": [labels[sid] for sid in defining_notes if sid in labels],
                 "related_note_labels": [
                     labels[sid] for sid in view.get("note_ids", []) if sid in labels
                 ],

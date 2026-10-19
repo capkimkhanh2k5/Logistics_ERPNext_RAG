@@ -1,8 +1,10 @@
 """One bounded corrective retrieval round over the existing immutable source graph."""
 
+import re
 from collections import deque
 from time import perf_counter
 
+from rag.llm.validation import _folded
 from rag.retrieval.request_plan import referenced_codes
 
 MAX_RECOVERY_SOURCES = 96
@@ -28,6 +30,14 @@ def recover_evidence(
     if result.get("snapshot") != context.get("snapshot"):
         return None, {**metadata, "reason": "SNAPSHOT_MISMATCH"}
     codes = {code for gap in gaps for code in gap["codes"]}
+    application_gap = any(
+        gap.get("kind") == "APPLICATION"
+        or re.search(
+            r"co che|tieu chi phan dinh|cach ap dung",
+            _folded(gap.get("query", "") + " " + gap.get("reason", "")),
+        )
+        for gap in gaps
+    )
     recovered: dict[str, dict] = {}
 
     def add(row):
@@ -63,12 +73,12 @@ def recover_evidence(
                     target = graph.records.get(citation["id"])
                     if target:
                         add(target)
-        if depth < 3:
+        if depth < (0 if application_gap else 3):
             frontier.extend((child, depth + 1) for child in sorted(graph.children.get(sid, set())))
 
     extra = None
     queries = [g["query"] for g in gaps if g.get("query")]
-    if not recovered and queries and hasattr(retriever, "unified_search"):
+    if (not recovered or application_gap) and queries and hasattr(retriever, "unified_search"):
         query = question + "\nKhoảng trống nguồn cần tìm (giả thuyết): " + "; ".join(queries)
         try:
             extra = retriever.unified_search(query, intent_hint="auto")
@@ -80,6 +90,7 @@ def recover_evidence(
             add(row)
         for row in (extra or {}).get("hs_candidates", []):
             add(row)
+        metadata["application_search"] = application_gap
     metadata.update(new_source_ids=list(recovered), elapsed_ms=(perf_counter() - tick) * 1000)
     if not recovered:
         return None, {**metadata, "reason": "NO_NEW_SOURCES"}

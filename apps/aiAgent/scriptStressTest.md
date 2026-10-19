@@ -1,3 +1,5 @@
+# ĐỀ XUẤT HS
+
 Mình đề xuất 15 test case độ khó cao đến cực khó để kiểm tra hệ thống RAG phân loại HS của bạn trên cả 3 Phần XIV, XVI và XVII.
 
 ## I. Phần XVII – Phương tiện vận tải
@@ -83,7 +85,7 @@ Doanh nghiệp nhập khẩu riêng bộ pin lithium-ion 123 kWh dành cho xe đ
 
 
 
-Kỳ vọng: Ưu tiên xem xét nhóm `8507`, phân nhóm `8507.60` cho bộ ắc quy lithium-ion. Không được mặc định là `8708` chỉ vì pin được sản xuất riêng cho VF 9. Mã 8 chữ số phải đối chiếu tiếp các nhánh chi tiết.&#x20;
+Kỳ vọng: Ưu tiên xem xét nhóm `8507`, phân nhóm `8507.60` cho bộ ắc quy lithium-ion. Không được mặc định là `8708` chỉ vì pin được sản xuất riêng cho VF 9. Mã 8 chữ số phải đối chiếu tiếp các nhánh chi tiết.
 
 [image](https://www.google.com/s2/favicons?domain=https://vbpl.moj.gov.vn\&sz=32)
 
@@ -127,7 +129,7 @@ Hai viên sapphire màu xanh, mỗi viên 5 carat, đều đã cắt giác hoàn
 
 
 
-Kỳ vọng: Phân biệt nhóm `7103` (đá quý tự nhiên phù hợp mô tả) và `7104` (đá quý tổng hợp). Cần đi tiếp xuống mã 8 chữ số khi dữ liệu và chú giải cho phép.&#x20;
+Kỳ vọng: Phân biệt nhóm `7103` (đá quý tự nhiên phù hợp mô tả) và `7104` (đá quý tổng hợp). Cần đi tiếp xuống mã 8 chữ số khi dữ liệu và chú giải cho phép.
 
 [image](https://www.google.com/s2/favicons?domain=https://vbpl.moj.gov.vn\&sz=32)
 
@@ -147,7 +149,7 @@ Một thiết bị bay không người lái có 4 động cơ điện, tích h�
 
 
 
-Kỳ vọng: Xem xét nhóm `8806` dành cho phương tiện bay không người lái. Không được mặc định phân loại thành camera `8525` vì mục đích sử dụng là quay phim. Phải xem xét các thông số phân nhóm, đặc biệt là trọng lượng cất cánh tối đa và cấu hình thiết bị.&#x20;
+Kỳ vọng: Xem xét nhóm `8806` dành cho phương tiện bay không người lái. Không được mặc định phân loại thành camera `8525` vì mục đích sử dụng là quay phim. Phải xem xét các thông số phân nhóm, đặc biệt là trọng lượng cất cánh tối đa và cấu hình thiết bị.
 
 [image](https://www.google.com/s2/favicons?domain=https://vbpl.moj.gov.vn\&sz=32)
 
@@ -185,10 +187,104 @@ Kỳ vọng:
 - Lượt 2: Phải thay thế dữ kiện CBU bằng CKD, đánh giá lại theo GIR 2(a) và xem xét mã `87038018` nếu đáp ứng điều kiện nhánh CKD.
 - Lượt 3: Tự nhận diện `NEW_QUERY`, xóa dữ kiện phân loại VF 9 khỏi truy vấn hiện tại và đề xuất `85171300` cho smartphone.
 
-## V. Ma trận đánh giá RAG
 
-Tiêu chí Pass: AI phải xác định đúng nhánh pháp lý, hỏi đúng thuộc tính còn thiếu, không tự giả định dữ kiện và chỉ kết luận mã HS 8 chữ số khi có đủ chứng cứ. Với những bài cố tình thiếu dữ kiện hoặc có nhiều khả năng phân loại, hỏi bổ sung hay từ chối kết luận có giải thích hợp lý cũng được tính là Pass.
 
-Nên ưu tiên chạy Test 02, 03, 04, 07, 08 và 15. Sáu bài này sẽ bộc lộ rõ nhất khả năng suy luận pháp lý, phân biệt các nhánh HS cạnh tranh và quản lý ngữ cảnh hội thoại.
+# HỎI LEGAL
 
-Lưu ý: Các nhóm mã trong phần kỳ vọng là mốc đối chiếu kiểm thử, không thay thế việc xác thực mã 8 chữ số và chú giải trong bộ văn bản pháp lý đang áp dụng.
+Dưới đây là 5 câu hỏi LEGAL mức độ khó đến cực khó, được thiết kế riêng để kiểm thử hệ thống RAG pháp luật hải quan của bạn.
+
+Bộ test tập trung vào Thông tư 85/2026/TT-BTC, Thông tư 31/2022/TT-BTC và các văn bản liên quan. Các tình huống bám theo quy định đã đối chiếu, nhưng khả năng hệ thống trả lời đầy đủ vẫn phụ thuộc vào tài liệu thực tế trong Corpus.
+
+Mỗi câu hỏi có thể sao chép trực tiếp vào RAG. Phần kỳ vọng chỉ dùng để đánh giá, không đưa vào prompt.
+
+## Test LEGAL 01 – Hiệu lực và thay thế văn bản
+
+Cực khó · Temporal Legal Reasoning
+
+Một doanh nghiệp nhập khẩu hàng hóa có hai tờ khai đăng ký vào ngày 14/09/2026 và 16/09/2026. Doanh nghiệp cho rằng cả hai tờ khai đều phải áp dụng Thông tư 85/2026/TT-BTC vì văn bản này đã được ban hành từ tháng 6/2026.
+
+Hãy xác định văn bản điều chỉnh hoạt động phân loại hàng hóa tại từng thời điểm, phân biệt ngày ban hành với ngày có hiệu lực, xác định các thông tư bị thay thế và giải thích liệu Thông tư 31/2022/TT-BTC có tự động hết hiệu lực khi Thông tư 85/2026/TT-BTC bắt đầu có hiệu lực hay không.
+
+Yêu cầu viện dẫn cụ thể điều, khoản và văn bản pháp luật làm căn cứ.
+
+
+
+Kỳ vọng: Xử lý đúng hiệu lực theo thời gian, phân biệt văn bản quy định quy trình phân loại và văn bản ban hành Danh mục HS, không suy luận rằng hai thông tư thay thế nhau chỉ vì cùng liên quan đến mã HS.
+
+## Test LEGAL 02 – Mâu thuẫn giữa các nguồn pháp lý
+
+Cực khó · Legal Conflict Resolution
+
+Giả sử khi phân loại một mặt hàng nhập khẩu, doanh nghiệp phát hiện ba vấn đề: mô tả hàng hóa trong Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam khác với mô tả tương ứng trong Danh mục HS hoặc AHTN; mã số tại một Danh mục quản lý chuyên ngành khác với mã xác định theo Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam; và sau khi áp dụng các quy tắc phân loại vẫn chưa xác định được một mã HS duy nhất.
+
+Theo Thông tư 85/2026/TT-BTC, từng tình huống phải được xử lý như thế nào? Những tài liệu bổ trợ nào được sử dụng để phân loại, căn cứ pháp lý nào được ưu tiên trong từng trường hợp, và có được tự ý lựa chọn mã thuận lợi nhất về thuế hay không?
+
+Hãy trình bày riêng từng tình huống, dẫn đúng điều, khoản và giải thích giới hạn áp dụng của mỗi quy định.
+
+
+
+Kỳ vọng: Retrieval đúng Điều 4 và Điều 6 Thông tư 85, xử lý được nhiều tình huống trong cùng một câu hỏi mà không trộn lẫn quy tắc hoặc tự đặt ra thứ bậc pháp lý không có trong nguồn.
+
+[image](https://www.google.com/s2/favicons?domain=https://thuvienphapluat.vn\&sz=32)
+
+THƯ VIỆN PHÁP LUẬT
+
+
+
+## Test LEGAL 03 – Máy móc nhập khẩu nhiều đợt, nhiều cửa khẩu
+
+Cực khó · Multi-hop Legal Retrieval
+
+Công ty A nhập khẩu một dây chuyền sản xuất tự động gồm nhiều máy móc và thiết bị điện thuộc Chương 84 và 85. Các thiết bị được mua từ ba nhà cung cấp, vận chuyển thành bốn chuyến hàng, làm thủ tục tại hai đơn vị hải quan khác nhau trong khoảng thời gian ba tháng. Một số máy được nhập dưới dạng tháo rời để thuận tiện vận chuyển.
+
+Theo Thông tư 85/2026/TT-BTC, doanh nghiệp có thể lựa chọn phân loại từng máy riêng biệt hoặc phân loại theo tổ hợp máy không? Khi nào phải áp dụng GIR 2(a), Chú giải 3, 4, 5 Phần XVI và thủ tục đăng ký Danh mục máy móc, thiết bị?
+
+Hãy xác định thành phần hồ sơ, thời điểm phải đăng ký, cơ quan tiếp nhận, cách thực hiện Phiếu theo dõi trừ lùi và trách nhiệm của cơ quan hải quan khi các chuyến hàng làm thủ tục tại những địa điểm khác nhau. Dẫn đầy đủ điều, khoản và văn bản được viện dẫn.
+
+
+
+Kỳ vọng: Kết nối Điều 7, 8, 9 Thông tư 85 với GIR và Chú giải Phần XVI, giải thích đúng điều kiện áp dụng từng phương án, không mặc định hàng đi nhiều chuyến phải phân loại riêng lẻ.
+
+[image](https://www.google.com/s2/favicons?domain=https://thuvienphapluat.vn\&sz=32)
+
+THƯ VIỆN PHÁP LUẬT
+
+
+
+## Test LEGAL 04 – Tranh chấp kết quả phân tích, phân loại
+
+Cực khó · Procedural Legal Reasoning
+
+Một doanh nghiệp nhập khẩu nguyên liệu sản xuất và bị cơ quan hải quan lấy mẫu phân tích để xác định mã HS. Sau khi nhận Thông báo kết quả phân tích, phân loại, doanh nghiệp không đồng ý với kết luận vì cho rằng kết quả không phản ánh đúng thành phần thực tế của hàng hóa.
+
+Hãy phân tích trình tự pháp lý từ lúc lấy mẫu đến lúc ban hành Thông báo kết quả, bao gồm điều kiện lấy và niêm phong mẫu, thời hạn giải quyết trong trường hợp thông thường và trường hợp phức tạp, thời hạn lưu mẫu, khả năng yêu cầu giám định lại hoặc khiếu nại.
+
+Nếu doanh nghiệp yêu cầu nhận lại mẫu trong thời hạn lưu mẫu, đã công nhận kết quả phân tích rồi sau đó lại muốn khiếu nại kết quả đó, hậu quả pháp lý là gì? Phân biệt rõ quyền khiếu nại thông thường với trường hợp đã nhận lại mẫu và công nhận kết quả. Dẫn căn cứ pháp lý cho từng kết luận.
+
+
+
+Kỳ vọng: Truy xuất và phối hợp đúng Điều 10–12 Thông tư 85, không nhầm thời hạn phân tích với thời hạn lưu mẫu hoặc suy luận mọi trường hợp nhận lại mẫu đều mất quyền khiếu nại.
+
+[image](https://www.google.com/s2/favicons?domain=https://thuvienphapluat.vn\&sz=32)
+
+THƯ VIỆN PHÁP LUẬT
+
+
+
+## Test LEGAL 05 – Phân biệt mã HS, thuế suất và chính sách quản lý
+
+Cực khó · Cross-document Legal Reasoning
+
+Một doanh nghiệp nhập khẩu điện thoại thông minh và đã xác định được mã HS 85171300 theo Danh mục hàng hóa xuất khẩu, nhập khẩu Việt Nam. Doanh nghiệp cho rằng chỉ cần có mã HS này là có thể kết luận ngay mức thuế nhập khẩu, thuế giá trị gia tăng và toàn bộ nghĩa vụ kiểm tra chuyên ngành, không cần đối chiếu thêm bất kỳ văn bản pháp luật nào.
+
+Nhận định trên đúng hay sai? Hãy phân biệt rõ giá trị pháp lý của Danh mục mã HS, Biểu thuế xuất khẩu, nhập khẩu và các Danh mục quản lý chuyên ngành. Giải thích vì sao một mã HS được xác định đúng chưa đủ để kết luận mức thuế phải nộp hoặc nghĩa vụ quản lý chuyên ngành.
+
+Nếu chưa có thông tin về xuất xứ, thời điểm đăng ký tờ khai và điều kiện hưởng thuế suất ưu đãi, hệ thống có được đưa ra một mức thuế chính xác hay không? Hãy dẫn điều, khoản và văn bản pháp luật làm căn cứ; trường hợp Corpus chưa chứa văn bản thuế liên quan, phải chỉ rõ giới hạn của kết luận.
+
+
+
+Kỳ vọng: Phân biệt chính xác chức năng của mã HS với việc áp dụng thuế và chính sách quản lý, truy xuất Điều 5 Thông tư 85 cùng văn bản liên quan. Không tự bịa thuế suất hoặc nghĩa vụ pháp lý khi thiếu căn cứ.
+
+[image](https://www.google.com/s2/favicons?domain=https://thuvienphapluat.vn\&sz=32)
+
+THƯ VIỆN PHÁP LUẬT

@@ -50,6 +50,7 @@ def task_candidates(question: str, result: dict, request: dict, graph) -> list[d
 def prepare_task_context(
     question: str, result: dict, task: str, config, graph, request: dict
 ) -> dict:
+    from rag.llm.application_rules import assembly_rule_rows
     from rag.llm.context import prepare_context
 
     candidates = task_candidates(question, result, request, graph)
@@ -71,9 +72,16 @@ def prepare_task_context(
         direct = [
             r for r in graph.records.values() if r.get("code") in codes and graph.citation(r["id"])
         ]
-        internal["package"] = [*direct, *result.get("package", [])]
+        rules = assembly_rule_rows(question, graph)
+        internal["package"] = [*rules, *direct, *result.get("package", [])]
+        internal["matches"] = [*rules, *result.get("matches", [])]
     context = prepare_context(question, internal, task, config, graph)
     context["query_plan"] = result.get("query_plan", {})
+    context["application_rule_labels"] = [
+        s["label"]
+        for s in context["sources"]
+        if any(s["id"] == rule["id"] for rule in (rules if graph is not None else []))
+    ]
     context["detail_evidence"] = []
     if graph is not None and any(g["kind"] == "REQUIREMENTS" for g in request["objectives"]):
         for source in context["sources"]:

@@ -175,6 +175,33 @@ def test_source_recovery_traverses_contains_and_never_replans_with_llm():
     assert q == ctx["question"]
 
 
+def test_application_recovery_searches_rules_instead_of_filling_budget_with_leaf_codes():
+    q, graph, result, _, ctx, gap = fixture()
+    rule = {
+        "id": "interpretation",
+        "source_text": "Căn cứ phân định cách áp dụng cho cơ chế cụ thể.",
+        "chunk_type": "gir_explanation",
+    }
+    graph.records[rule["id"]] = rule
+    searches = []
+
+    def search(query, **kwargs):
+        searches.append(query)
+        return {"snapshot": result["snapshot"], "package": [rule]}
+
+    recovered, metadata = recover_evidence(
+        q,
+        result,
+        ctx,
+        [{**gap, "kind": "APPLICATION"}],
+        SimpleNamespace(unified_search=search),
+        graph,
+    )
+    assert searches and recovered
+    assert metadata["application_search"] and metadata["llm_planner_calls"] == 0
+    assert metadata["new_source_ids"] == [rule["id"]]
+
+
 def test_single_recovery_round_finishes_remaining_requirement_without_changing_user_facts():
     q, graph, result, config, ctx, gap = fixture()
     retrieved, _ = recover_evidence(q, result, ctx, [gap], SimpleNamespace(), graph)
@@ -253,6 +280,16 @@ def test_shared_budget_prevents_recovery_from_resetting_draft_review_repair_limi
     assert len(calls) == 2
 
 
+def test_recovery_reserves_a_review_call_before_starting_another_draft():
+    _, graph, result, config, ctx, _ = fixture()
+    provider, calls = client([draft(ctx), approved(ctx)], config)
+    initial = generate_answer(ctx, provider)
+    initial["generation"]["remaining_calls"] = 1
+    _, final = recover_answer(ctx, initial, result, provider, SimpleNamespace(), graph)
+    assert final["generation"]["recovery"]["reason"] == "INSUFFICIENT_REVIEW_BUDGET"
+    assert len(calls) == 2
+
+
 def test_product_fact_gap_does_not_trigger_retrieval_even_if_model_suggests_evidence_gap():
     _, graph, result, config, ctx, gap = fixture()
     generated = {
@@ -283,4 +320,3 @@ def test_retained_result_after_recovery_clears_stale_diagnostic_for_that_result(
     assert final["answer"]["results"][0].get("retained_after_recovery")
     assert final["validation"]["task_completion"]
     assert not final["diagnostics"]
-

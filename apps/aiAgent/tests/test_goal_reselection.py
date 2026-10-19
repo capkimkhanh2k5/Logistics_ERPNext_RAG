@@ -229,3 +229,52 @@ def test_comparison_peer_exposes_required_citation_ids_and_accepts_trailing_punc
     assert len(calls) == 2
     assert out["answer"]["suggested_hs_code"] == "87038018"
 
+
+def test_split_branch_checks_with_known_selected_branch_consolidate_cleanly():
+    ctx, main, review = fixture()
+    b0 = review["reviews"][0]["review"]["branch_checks"][0]
+    eids = b0["evidence_ids"]
+    review["reviews"][0]["review"]["branch_checks"] = [
+        {
+            "parent_code": "870380",
+            "attribute": "dạng CKD",
+            "assessment": "KNOWN",
+            "evidence_ids": [eids[0]],
+            "fact_ids": b0["fact_ids"],
+            "user_quotes": b0["user_quotes"],
+        },
+        {
+            "parent_code": "870380",
+            "attribute": "dạng CBU",
+            "assessment": "MISSING",
+            "evidence_ids": eids[1:],
+            "fact_ids": [],
+            "user_quotes": [],
+        },
+    ]
+    out, calls = run(ctx, [main, review])
+    assert len(calls) == 2
+    assert out["answer"]["suggested_hs_code"] == "87038018"
+
+
+def test_non_supported_reselection_keeps_sources_but_drops_unreviewed_application():
+    ctx, main, review = fixture()
+    main["results"][0]["claims"].insert(
+        0,
+        {
+            "kind": "LEGAL_ANALYSIS",
+            "text": "Theo GIR 2(a), bộ linh kiện CKD đầy đủ được phân loại theo nhóm xe hoàn chỉnh.",
+            "evidence_ids": [ctx["sources"][0]["evidence_id"]],
+            "fact_ids": [],
+        },
+    )
+    bad = copy.deepcopy(review)
+    bad["reviews"][0]["review"]["status"] = "REQUIRES_REVIEW"
+    out, calls = run(ctx, [main, bad, bad])
+    assert len(calls) == 3
+    assert out["answer"]["status"] == "REQUIRES_REVIEW"
+    assert not out["answer"]["suggested_hs_code"]
+    # The cited fixture contains no GIR 2(a): retaining this draft claim would
+    # publish an unreviewed legal application after its review failed.
+    assert "GIR 2(a)" not in out["answer"]["answer"]
+    assert "Nguồn tham khảo" in out["answer"]["answer"]
