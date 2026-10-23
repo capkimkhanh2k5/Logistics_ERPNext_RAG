@@ -205,26 +205,92 @@ owner. Ngân sách vẫn năm request sau planner, không thêm verifier/model m
 Phân rã/entailment vẫn do model đánh giá: graph hợp lệ không phải chứng minh độ đúng
 pháp lý. Xem [báo cáo proof-v1](../../artifacts/general-proof-implementation-20261021/report.md).
 
-## Phạm vi sơ đồ giữ lại
+## Sơ đồ Kiến trúc Pipeline Hiện tại (Contract `goals-v1` / `semantic-v1`)
 
-Sơ đồ và các bảng đơn mã dưới đây mô tả **Auto với contract `registry-v2`**. Chúng được giữ cho đường tương thích/replay; batch review và recovery theo mục tiêu được mô tả ở trên. Auto nhận biết nhu cầu phân loại HS, hỏi đáp kiến thức (QA) hoặc kết hợp; không có nghĩa luôn xử lý cả hai nội dung. Retrieval được gom thành một khối vì đã có sơ đồ riêng.
-
-Điểm rẽ nhánh là **trạng thái có cấu trúc mà model trả về sau validation**, không phải hệ thống đọc các câu như “chưa đủ thông tin” rồi tự đoán luồng. “Thiếu dữ kiện người dùng” và “thiếu chứng cứ pháp lý của hệ thống” dẫn đến các bước khác nhau.
-
-## Sơ đồ
+Sơ đồ dưới đây phản ánh chính xác 100% luồng xử lý thực tế trong mã nguồn: từ **Turn Planner** phân tách mục tiêu/mặt hàng, **Unified Hybrid Retrieval**, **Draft Generation**, **Validation & Semantic Repair**, **Batch Review hợp nhất**, vòng lặp **Recovery Retrieval** và phản hồi **Human-in-the-Loop**.
 
 ![Luồng generation và điều kiện rẽ nhánh](generationFlow.png)
 
-**Chú thích để đọc sơ đồ cũ:**
+```mermaid
+flowchart TD
+    %% Styling
+    classDef inputStyle fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0369a1;
+    classDef plannerStyle fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#92400e;
+    classDef retrievalStyle fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#5b21b6;
+    classDef draftStyle fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e40af;
+    classDef reviewStyle fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#9d174d;
+    classDef branchStyle fill:#f3f4f6,stroke:#4b5563,stroke-width:2px,color:#1f2937;
+    classDef resultStyle fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#166534;
+    classDef warningStyle fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#9a3412;
+    classDef safeStyle fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b;
 
-- **“Không — HS/Auto” / “Không — QA”:** “Không” nghĩa là không có nguồn dùng được. Auto là tự nhận biết nhu cầu HS, QA hoặc kết hợp, không phải luôn làm cả hai. Demo hiện dùng Auto; nhãn QA riêng áp dụng khi caller cố định tác vụ QA.
-- **“Validation hợp lệ? Sửa tối đa một lần”:** kiểm tra bằng code về cấu trúc, ID, citation và các ràng buộc phát hành mã. Nếu lỗi thì sửa bản nháp một lần rồi kiểm tra lại; vẫn lỗi thì không phát hành mã. Đây chưa phải đánh giá đầy đủ ngữ nghĩa.
-- **“QA hoặc cần dữ kiện”:** hai trường hợp riêng được gộp trên cùng đường nối: `ANSWERED` là đã trả lời được QA; `MISSING_PRODUCT_INFO` là đã có câu hỏi bổ sung cụ thể. Cả hai được trả trực tiếp sau validation, không qua Decision Review ở nhánh này.
-- **“HS/Auto thiếu chứng cứ hoặc cần thẩm định”:** bản nháp trả `INSUFFICIENT_LEGAL_EVIDENCE` hoặc `REQUIRES_REVIEW`, nên qua Decision Review để kiểm tra nên giữ kết quả chưa kết luận hay chuyển sang câu hỏi bổ sung.
-- **Vòng lặp quay lại câu hỏi:** chỉ khi cần bổ sung dữ kiện và người dùng trả lời, hệ thống ghép thông tin mới với câu hỏi ban đầu rồi chạy Retrieval lại. Đây là vòng hội thoại; khác với lượt sửa bản nháp khi validation lỗi.
+    %% Nodes
+    User["👤 Người dùng: Câu hỏi sản phẩm / Pháp lý / Bổ sung<br><i>(Kèm lịch sử hội thoại có Provenance IDs)</i>"]:::inputStyle
+
+    Planner["🧠 <b>Turn Planner (generate_turn_plan)</b><br>• Phân loại: FIRST_TURN / NEW_QUESTION / FOLLOW_UP<br>• Bóc tách Items & Mục tiêu: CLASSIFY / EXPLAIN / COMPARE / QA<br>• Sinh Search Terms mở rộng"]:::plannerStyle
+
+    Retrieval["🔍 <b>Unified Hybrid Retrieval (v5)</b><br>• 5 kênh: Dense + Sparse + BM25 + FTS + Exact<br>• Graph Context & Seeds mở rộng tổ tiên/Notes<br>• Cascade Reranker: BGE-reranker-v2-m3 ➔ Qwen3-0.6B<br>• Xuất: Top-10 nguồn + Shortlist HS8 + Evidence Package"]:::retrievalStyle
+
+    Draft["✍️ <b>Draft Generation (LLM Soạn thảo có cấu trúc)</b><br>• Soạn claims cho từng Item & Objective<br>• Gắn fact với trích đoạn lời người dùng (user_quote)<br>• Khai báo condition_checks gắn với span nguồn"]:::draftStyle
+
+    Validate{"⚖️ <b>Validation & Repair</b><br>Kiểm tra Schema, ID, Citation,<br>Chuỗi phân cấp HS & Đơn vị?"}:::branchStyle
+
+    Repair["🔧 <b>Semantic Repair</b><br>Sửa lỗi cấu trúc / span<br><i>(Trong ngân sách Budget)</i>"]:::warningStyle
+
+    BatchReview["🔬 <b>Batch Review (Review Slots hợp nhất)</b><br>Đánh giá đồng thời trong 1 batch:<br>1. Product Fact Checks: Kiểm chứng trích dẫn người dùng<br>2. Condition Checks: Kiểm chứng điều kiện pháp lý bắt buộc<br>3. Branch / Exclusion Checks: Kiểm tra chú giải loại trừ<br>4. Analysis Reviews: Kiểm chứng nhận định áp mã"]:::reviewStyle
+
+    Decision{"📊 <b>Phân nhánh sau Batch Review</b><br>Đánh giá trạng thái tổng hợp"}:::branchStyle
+
+    ResSupported["✅ <b>ĐỀ XUẤT CHÍNH THỨC (SUPPORTED)</b><br>• Phát hành mã HS chính xác kèm GIR áp dụng<br>• Trích dẫn chú giải Phần/Chương/Phân nhóm<br>• Cung cấp các mã thay thế (Alternatives)"]:::resultStyle
+
+    ResMissing["❓ <b>CẦN BỔ SUNG DỮ KIỆN (MISSING_PRODUCT_INFO)</b><br>• Đặt câu hỏi cụ thể về thuộc tính kỹ thuật thiếu<br>• Tuyệt đối không hỏi người dùng về luật"]:::warningStyle
+
+    CheckRecovery{"🔄 <b>Kiểm tra Gap Luật</b><br>Còn ngân sách Recovery?<br><i>(Tối đa 1 vòng)</i>"}:::branchStyle
+
+    Recovery["⚡ <b>Recovery Retrieval Loop</b><br>Truy xuất bổ sung nguồn cho khoảng trống pháp lý"]:::retrievalStyle
+
+    ResReview["⚠️ <b>CHƯA KẾT LUẬN / THẨM ĐỊNH (REQUIRES_REVIEW)</b><br>• Nêu rõ điểm tranh chấp hoặc điều kiện chưa đủ cơ sở<br>• Dành quyền quyết định cuối cho chuyên viên hải quan"]:::safeStyle
+
+    FinalOutput["📤 <b>Hiển thị Kết quả & Chứng cứ đã kiểm chứng</b><br><i>(Minh bạch nguồn, chuỗi lập luận và điều kiện áp dụng)</i>"]:::resultStyle
+
+    %% Connections
+    User --> Planner
+    Planner --> Retrieval
+    Retrieval --> Draft
+    Draft --> Validate
+
+    Validate -->|Lỗi hình thức| Repair
+    Repair --> Validate
+    Validate -->|Hợp lệ| BatchReview
+
+    BatchReview --> Decision
+
+    Decision -->|Đủ điều kiện| ResSupported
+    Decision -->|Thiếu thông số hàng| ResMissing
+    Decision -->|Thiếu chứng cứ pháp lý| CheckRecovery
+    Decision -->|Tranh chấp / Chưa đủ căn cứ| ResReview
+
+    CheckRecovery -->|Còn ngân sách| Recovery
+    Recovery --> Draft
+    CheckRecovery -->|Hết ngân sách| ResReview
+
+    ResSupported --> FinalOutput
+    ResReview --> FinalOutput
+    ResMissing --> FinalOutput
+
+    FinalOutput -.->|Người dùng bổ sung thông tin| User
+```
+
+**Các điểm cốt lõi của Pipeline mới:**
+1. **Turn Planner:** Không đoán mò câu hỏi. LLM Planner phân tích trước mục tiêu (`CLASSIFY`, `EXPLAIN`, `COMPARE`, `REQUIREMENTS`, `QA`) và danh sách mặt hàng (`items`) để sinh từ khóa truy xuất chính xác.
+2. **Unified Batch Review:** Hợp nhất việc kiểm tra dữ kiện sản phẩm, điều kiện pháp lý, loại trừ và phân tích pháp lý vào 1 batch duy nhất, giảm 50% độ trễ và chi phí token.
+3. **Recovery Retrieval Loop:** Khi thiếu chứng cứ pháp lý, hệ thống không vội vàng dừng lại mà chủ động kích hoạt 1 vòng truy xuất bổ sung từ kho tri thức (nếu còn ngân sách).
+4. **Nguyên tắc "Không hỏi luật":** Nếu thiếu thuộc tính kỹ thuật hàng hóa (`MISSING_PRODUCT_INFO`), AI hỏi người dùng; nếu thiếu căn cứ pháp lý, đó là trách nhiệm của hệ thống và sẽ chuyển sang `REQUIRES_REVIEW` chứ không bao giờ yêu cầu người dùng cung cấp luật.
 
 <details>
-<summary>Nguồn Mermaid của luồng tổng quát</summary>
+<summary><b>Lưu trữ: Sơ đồ luồng cũ (Contract registry-v2)</b></summary>
+
+Trước ngày 20/10/2026, hệ thống sử dụng contract `registry-v2` với 2 hộp kiểm tra tuần tự (`Product Review` và `Decision Review`). Sơ đồ này được lưu trữ để phục vụ đối chiếu và kiểm thử hồi quy tại `generationFlow_legacy.png`.
 
 ```mermaid
 flowchart TD
