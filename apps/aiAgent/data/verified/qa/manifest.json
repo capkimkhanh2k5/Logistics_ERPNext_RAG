@@ -1,0 +1,158 @@
+{
+  "version": "qa-dev-test-v1",
+  "seed": 20261001,
+  "target_dev_fraction": 0.8,
+  "target_test_fraction": 0.2,
+  "algorithm": "StratifiedGroupKFold_CATEGORY; min_TOTAL_then_CATEGORY_count_error; rare_categories_pooled",
+  "selected_test_fold": 3,
+  "selection_inputs": "CASE_COUNTS_ONLY_NO_RETRIEVAL_SCORES",
+  "grouping_version": "mandatory-family-and-template-v2",
+  "grouping_threshold": 0.7,
+  "sklearn_version": "1.9.1",
+  "evaluation_scope": "PREVIOUSLY_SEEN_REGRESSION_NOT_BLIND",
+  "dev_validation_folds": 5,
+  "total_cases": 650,
+  "total_groups": 643,
+  "counts": {
+    "dev": 520,
+    "test": 130
+  },
+  "groups": {
+    "dev": 514,
+    "test": 129
+  },
+  "category_counts": {
+    "analysis_database_procedure": {
+      "dev": 16,
+      "test": 4
+    },
+    "chapter71_legal_note": {
+      "dev": 16,
+      "test": 4
+    },
+    "classification_principle": {
+      "dev": 16,
+      "test": 4
+    },
+    "combined_machine_procedure": {
+      "dev": 16,
+      "test": 4
+    },
+    "cross_section_exclusion": {
+      "dev": 2,
+      "test": 0
+    },
+    "gir_rule": {
+      "dev": 24,
+      "test": 6
+    },
+    "gir_rule_retrieval": {
+      "dev": 3,
+      "test": 1
+    },
+    "heading_or_subheading_legal_retrieval": {
+      "dev": 23,
+      "test": 6
+    },
+    "heading_plus_legal_note": {
+      "dev": 9,
+      "test": 2
+    },
+    "legal_definition": {
+      "dev": 16,
+      "test": 4
+    },
+    "legal_evidence": {
+      "dev": 212,
+      "test": 53
+    },
+    "legal_note_retrieval": {
+      "dev": 2,
+      "test": 0
+    },
+    "multi_hop": {
+      "dev": 8,
+      "test": 2
+    },
+    "multi_source_legal_retrieval": {
+      "dev": 1,
+      "test": 1
+    },
+    "section_xvi_legal_note": {
+      "dev": 16,
+      "test": 4
+    },
+    "section_xvii_legal_note": {
+      "dev": 16,
+      "test": 4
+    },
+    "source_conflict": {
+      "dev": 16,
+      "test": 4
+    },
+    "tariff_lookup": {
+      "dev": 108,
+      "test": 27
+    }
+  },
+  "case_type_counts": {
+    "cross_section": {
+      "dev": 7,
+      "test": 3
+    },
+    "gir": {
+      "dev": 48,
+      "test": 17
+    },
+    "legal_rule": {
+      "dev": 8,
+      "test": 2
+    },
+    "note_exclusion": {
+      "dev": 15,
+      "test": 5
+    },
+    "note_rule": {
+      "dev": 111,
+      "test": 22
+    },
+    "tariff_direct": {
+      "dev": 204,
+      "test": 50
+    },
+    "tariff_plus_note": {
+      "dev": 28,
+      "test": 6
+    },
+    "tt85": {
+      "dev": 99,
+      "test": 25
+    }
+  },
+  "source_dataset_hash": "3052ac30afa04aca7347adab422537cc33bd321d827c88cdc2ccc2734dd8688b",
+  "source_file_sha256": {
+    "data/verified/qa/train/LEGAL_RETRIEVAL_TRAIN.jsonl": "88d435f79de158e210f0fe749ef2a9d1151ed4f2fca1b4086c92b0b23412d356",
+    "data/verified/qa/test/LEGAL_RETRIEVAL_TEST.jsonl": "c4186c3e004bec47ff18fcab8229144201301582710cd9eeae58dcec3939fa4c",
+    "data/verified/qa/holdout/LEGAL_RETRIEVAL_HOLDOUT.jsonl": "9e23356780f60834a8560c94d2d1f5780dcc842098b666c54de74c5465d5019b"
+  },
+  "original_file_archive": {
+    "data/verified/qa/train/LEGAL_RETRIEVAL_TRAIN.jsonl": "artifacts/experiments/run_shared_dev_v3/legacy_data/data/verified/qa/train/LEGAL_RETRIEVAL_TRAIN.jsonl",
+    "data/verified/qa/test/LEGAL_RETRIEVAL_TEST.jsonl": "artifacts/experiments/run_shared_dev_v3/legacy_data/data/verified/qa/test/LEGAL_RETRIEVAL_TEST.jsonl",
+    "data/verified/qa/holdout/LEGAL_RETRIEVAL_HOLDOUT.jsonl": "artifacts/experiments/run_shared_dev_v3/legacy_data/data/verified/qa/holdout/LEGAL_RETRIEVAL_HOLDOUT.jsonl"
+  },
+  "split_code_sha256": {
+    "scripts/prepare_dev_test.py": "25ba17cc5f4eadfb40fbd7ee8d8642287f5fdef0c59cc284327ae2246d7428ac",
+    "rag/experiments.py": "5f13d52050a8f512b5ed0aa80abb1316ba775dea40ce05bcb7ba6a6b2572ae8a",
+    "rag/evaluation.py": "9d78da737d55325016ac469a8d1e8d60c647673dec412c7cc861e17d1390d0c3"
+  },
+  "files": {
+    "dev": {
+      "path": "LEGAL_RETRIEVAL_DEV.jsonl",
+      "sha256": "6323f5fafed5eb730ce529563e2e0295ff96710c3c8673a9acc38faae4aec9a6"
+    },
+    "test": {
+      "path": "LEGAL_RETRIEVAL_TEST.jsonl",
+      "sha256": "0042e2450247c68250422ca0fa5821f4aeb54dd394bd9b2141ace75e7ac1d101"
+    }
+  }
+}

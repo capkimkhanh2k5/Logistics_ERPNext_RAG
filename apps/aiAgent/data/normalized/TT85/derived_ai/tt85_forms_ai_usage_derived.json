@@ -1,0 +1,42 @@
+[
+  {
+    "provenance": "DERIVED_FOR_AI",
+    "form_no": "01",
+    "code": "01/PYCPT/2026",
+    "ai_relevance": "HIGH",
+    "use": "Schema đầu vào cho hồ sơ phân tích; đặc biệt quan trọng để xác định missing technical evidence.",
+    "derived_notice": "ai_relevance/use are project-design assessments, not TT85 text."
+  },
+  {
+    "provenance": "DERIVED_FOR_AI",
+    "form_no": "02",
+    "code": "02/PTNYCPT/2026",
+    "ai_relevance": "MEDIUM",
+    "use": "Workflow/status tracking cho phân tích.",
+    "derived_notice": "ai_relevance/use are project-design assessments, not TT85 text."
+  },
+  {
+    "provenance": "DERIVED_FOR_AI",
+    "form_no": "03",
+    "code": "03/BBTLMHH/2026",
+    "ai_relevance": "LOW",
+    "use": "Audit trail vòng đời mẫu.",
+    "derived_notice": "ai_relevance/use are project-design assessments, not TT85 text."
+  },
+  {
+    "provenance": "DERIVED_FOR_AI",
+    "form_no": "04",
+    "code": "04/TBKQPTPL/2026",
+    "ai_relevance": "VERY_HIGH",
+    "use": "Schema chuẩn cho classification case; dùng trực tiếp cho Case-Based RAG và evaluation.",
+    "derived_notice": "ai_relevance/use are project-design assessments, not TT85 text."
+  },
+  {
+    "provenance": "DERIVED_FOR_AI",
+    "form_no": "05",
+    "code": "05/PGTL/2026",
+    "ai_relevance": "MEDIUM",
+    "use": "Document manifest/evidence completeness.",
+    "derived_notice": "ai_relevance/use are project-design assessments, not TT85 text."
+  }
+]

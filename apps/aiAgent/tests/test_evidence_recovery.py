@@ -1,0 +1,368 @@
+"""Recovery uses real graph relations, preserves prior results and shares the call cap."""
+
+import copy
+import json
+from types import SimpleNamespace
+
+import pytest
+
+from config.settings import GroqConfig
+from rag.graph.context import GraphContext
+from rag.llm.context.builder import prepare_context
+from rag.llm.generation.answering import generate_answer
+from rag.llm.generation.recovery import recover_answer
+from rag.retrieval.evidence_recovery import MAX_RECOVERY_SOURCES, recover_evidence
+from rag.utils.files import digest
+
+
+def fixture():
+    query = "Drone thuộc 8806 hay 8525? Những thông số nào cần để phân loại HS8?"
+    rows = [
+        {"id": "h", "code": "8806", "level": 4, "source_text": "Phương tiện bay không người lái."},
+        {
+            "id": "p",
+            "code": "880621",
+            "level": 6,
+            "source_text": "Trọng lượng cất cánh tối đa không quá 250 g.",
+        },
+        {
+            "id": "l",
+            "code": "88062100",
+            "level": 8,
+            "source_text": "Trọng lượng cất cánh tối đa không quá 250 g.",
+        },
+    ]
+    edges = [
+        {"source": a, "target": b, "relation": "CONTAINS"} for a, b in [("h", "p"), ("p", "l")]
+    ]
+    graph = GraphContext(rows, [], edges)
+    request = {
+        "items": [{"id": "I1", "anchor": "Drone"}],
+        "objectives": [
+            {
+                "id": "G1",
+                "kind": "CLASSIFY",
+                "level": 4,
+                "item_ids": ["I1"],
+                "anchor": "Drone thuộc 8806 hay 8525?",
+                "required": True,
+            },
+            {
+                "id": "G2",
+                "kind": "REQUIREMENTS",
+                "level": 8,
+                "item_ids": ["I1"],
+                "anchor": "Những thông số nào cần để phân loại HS8?",
+                "required": True,
+            },
+        ],
+    }
+    result = {
+        "snapshot": "s",
+        "matches": [rows[0]],
+        "package": [rows[0]],
+        "query_plan": {"request": request, "query_hash": digest(query)},
+    }
+    config = GroqConfig(keys=("fixture",))
+    # Simulate a previously packed context before detailed source records become available.
+    detail = {sid: graph.records.pop(sid) for sid in ("p", "l")}
+    ctx = prepare_context(query, result, "auto", config, graph)
+    graph.records.update(detail)
+    gap = {
+        "anchor": "Drone",
+        "codes": ["8806"],
+        "query": "ngưỡng trọng lượng cất cánh tối đa",
+        "reason": "Thiếu điều kiện phân nhóm trong context.",
+    }
+    return query, graph, result, config, ctx, gap
+
+
+def draft(ctx, *, complete=False):
+    heading = next(s for s in ctx["sources"] if s.get("code") == "8806")
+    source = next(s for s in ctx["sources"] if s.get("code") == "880621") if complete else heading
+    first = {
+        "objective_id": "G1",
+        "item_id": "I1",
+        "status": "RECOMMENDATION",
+        "code": "8806",
+        "claims": [
+            {
+                "kind": "CONCLUSION",
+                "text": "Thiết bị là phương tiện bay không người lái.",
+                "evidence_ids": [heading["evidence_id"]],
+                "fact_ids": [],
+            }
+        ],
+        "clarifications": [],
+        "missing_legal_evidence": [],
+    }
+    second = {
+        "objective_id": "G2",
+        "item_id": "",
+        "status": "ANSWERED" if complete else "INSUFFICIENT_LEGAL_EVIDENCE",
+        "code": "",
+        "claims": [
+            {
+                "kind": "LEGAL_ANALYSIS",
+                "text": "Cần xác định trọng lượng cất cánh tối đa theo các ngưỡng nguồn."
+                if complete
+                else "Ngữ cảnh chưa có các điều kiện phân nhóm để liệt kê đầy đủ.",
+                "evidence_ids": [source["evidence_id"]],
+                "fact_ids": [],
+            }
+        ],
+        "clarifications": [],
+        "missing_legal_evidence": []
+        if complete
+        else ["Điều kiện phân nhóm theo trọng lượng cất cánh tối đa."],
+    }
+    return {"results": [first, second], "evidence_gaps": [] if complete else [fixture()[-1]]}
+
+
+def approved(ctx):
+    source = next(s for s in ctx["sources"] if s.get("code") == "8806")
+    fact = next(s for s in ctx["user_context"]["statements"] if "Drone" in s["text"])
+    proof = {"fact_ids": [fact["id"]], "user_quotes": ["Drone"]}
+    detail = next((s for s in ctx["sources"] if s.get("code") == "880621"), None)
+    return {
+        "analysis_reviews": [
+            {
+                "result_id": "R2",
+                "checks": [
+                    {
+                        "claim_index": 0,
+                        "assessment": "REFERENCE" if detail else "INSUFFICIENT_LEGAL_EVIDENCE",
+                        "evidence_ids": [(detail or source)["evidence_id"]],
+                        "fact_ids": [],
+                        "user_quotes": [],
+                        "reason": "Điều kiện phân nhóm theo nguồn."
+                        if detail
+                        else "Ngữ cảnh chưa có điều kiện phân nhóm.",
+                    }
+                ],
+                "coverage_checks": [
+                    {"evidence_id": eid, "claim_indices": [0], "assessment": "COVERED"}
+                    for scope in ctx.get("requirements_scopes", [])
+                    for eid in scope["evidence_ids"]
+                ]
+                if detail
+                else [],
+            }
+        ],
+        "reviews": [
+            {
+                "result_id": "R1",
+                "selected_code": "8806",
+                "review": {
+                    "status": "SUPPORTED",
+                    "reason": "Đối tượng là phương tiện bay không người lái.",
+                    "condition_checks": [
+                        {"evidence_id": source["evidence_id"], "assessment": "SATISFIED", **proof}
+                    ],
+                    "clarifications": [],
+                    "missing_legal_evidence": [],
+                    "candidate_assessments": [
+                        {
+                            "code": "8806",
+                            "assessment": "POSSIBLE",
+                            "evidence_ids": [source["evidence_id"]],
+                            **proof,
+                        }
+                    ],
+                    "branch_checks": [],
+                },
+            }
+        ],
+    }
+
+
+def client(outputs, config):
+    calls, pending = [], iter(outputs)
+
+    def complete(messages, schema, **kwargs):
+        calls.append(schema)
+        return {
+            "content": json.dumps(next(pending), ensure_ascii=False),
+            "finish_reason": "stop",
+            "model": "fixture",
+            "usage": {"total_tokens": 7},
+        }
+
+    return SimpleNamespace(config=config, complete=complete), calls
+
+
+def test_source_recovery_traverses_contains_and_never_replans_with_llm():
+    q, graph, result, _, ctx, gap = fixture()
+    retriever = SimpleNamespace(
+        unified_search=lambda *a, **kw: pytest.fail("Graph lookup is enough")
+    )
+    recovered, meta = recover_evidence(q, result, ctx, [gap], retriever, graph)
+    assert recovered and meta["llm_planner_calls"] == 0
+    assert set(meta["new_source_ids"]) == {"p", "l"}
+    assert recovered["query_plan"] == result["query_plan"]
+    assert q == ctx["question"]
+
+
+def test_application_recovery_searches_rules_instead_of_filling_budget_with_leaf_codes():
+    q, graph, result, _, ctx, gap = fixture()
+    rule = {
+        "id": "interpretation",
+        "source_text": "Căn cứ phân định cách áp dụng cho cơ chế cụ thể.",
+        "chunk_type": "gir_explanation",
+    }
+    graph.records[rule["id"]] = rule
+    searches = []
+
+    def search(query, **kwargs):
+        searches.append(query)
+        return {"snapshot": result["snapshot"], "package": [rule]}
+
+    recovered, metadata = recover_evidence(
+        q,
+        result,
+        ctx,
+        [{**gap, "kind": "APPLICATION"}],
+        SimpleNamespace(unified_search=search),
+        graph,
+    )
+    assert searches and recovered
+    assert metadata["application_search"] and metadata["llm_planner_calls"] == 0
+    assert metadata["new_source_ids"] == [rule["id"]]
+
+
+def test_recovery_keeps_branch_wording_attached_to_a_navigation_only_node():
+    q, graph, result, _, ctx, gap = fixture()
+    graph.records["p"].pop("source_text")
+    graph.records["control"] = {
+        "id": "control",
+        "role": "context",
+        "source_text": "Chỉ điều khiển từ xa.",
+    }
+    graph.contexts["p"].add("control")
+    recovered, meta = recover_evidence(
+        q, result, ctx, [{**gap, "codes": ["8806"], "kind": "WORDING"}], SimpleNamespace(), graph
+    )
+    assert recovered and "control" in meta["new_source_ids"]
+    assert meta["new_source_ids"].index("control") < meta["new_source_ids"].index("l")
+    assert meta["llm_planner_calls"] == 0
+
+
+def test_single_recovery_round_finishes_remaining_requirement_without_changing_user_facts():
+    q, graph, result, config, ctx, gap = fixture()
+    retrieved, _ = recover_evidence(q, result, ctx, [gap], SimpleNamespace(), graph)
+    ctx2 = prepare_context(q, retrieved, "auto", config, graph)
+    provider, calls = client(
+        [draft(ctx), approved(ctx), draft(ctx2, complete=True), approved(ctx2)], config
+    )
+    initial = generate_answer(ctx, provider)
+    assert not initial["validation"]["task_completion"]
+    final_ctx, final = recover_answer(ctx, initial, result, provider, SimpleNamespace(), graph)
+    assert len(calls) == 4 and final["generation"]["application_calls"] == 4
+    assert final["validation"]["task_completion"]
+    assert final_ctx["user_context"] == ctx["user_context"]
+    assert final["generation"]["recovery"]["rounds"] == 1
+    _, same = recover_answer(final_ctx, final, result, provider, SimpleNamespace(), graph)
+    assert same is final and len(calls) == 4
+
+
+@pytest.mark.parametrize(
+    "defect", ["invented_anchor", "invented_code", "snapshot", "no_new_sources"]
+)
+def test_invalid_or_unproductive_recovery_stops_without_issuing_codes(defect):
+    q, graph, result, _, ctx, gap = fixture()
+    result, gap = copy.deepcopy(result), copy.deepcopy(gap)
+    if defect == "invented_anchor":
+        gap["anchor"] = "not in the question"
+    elif defect == "invented_code":
+        gap["codes"] = ["99999999"]
+    elif defect == "snapshot":
+        result["snapshot"] = "other"
+    else:
+        ctx["sources"] += [{"id": "p"}, {"id": "l"}]
+    recovered, meta = recover_evidence(q, result, ctx, [gap], SimpleNamespace(), graph)
+    assert recovered is None and meta.get("reason")
+
+
+def test_completed_goals_product_questions_and_system_errors_do_not_trigger_recovery():
+    _, graph, result, config, ctx, _ = fixture()
+    for completed, diagnostic, gaps in [
+        (True, {}, [fixture()[-1]]),
+        (False, {"code": "SYSTEM_VALIDATION_ERROR"}, [fixture()[-1]]),
+        (False, {}, []),
+    ]:
+        generated = {
+            "answer": {"results": []},
+            "validation": {"task_completion": completed},
+            "diagnostics": diagnostic,
+            "generation": {"evidence_gaps": gaps},
+        }
+        provider = SimpleNamespace(
+            config=config, complete=lambda *a, **kw: pytest.fail("Must not call model")
+        )
+        assert (
+            recover_answer(ctx, generated, result, provider, SimpleNamespace(), graph)[1]
+            is generated
+        )
+
+
+def test_recovery_source_budget_does_not_grow_with_whole_chapter():
+    q, graph, result, _, ctx, gap = fixture()
+    for index in range(MAX_RECOVERY_SOURCES * 2):
+        sid = f"extra-{index}"
+        graph.records[sid] = {"id": sid, "source_text": "Nguồn trong nhánh đối chứng."}
+        graph.children["h"].add(sid)
+    recovered, meta = recover_evidence(q, result, ctx, [gap], SimpleNamespace(), graph)
+    assert recovered and len(meta["new_source_ids"]) == MAX_RECOVERY_SOURCES
+
+
+def test_shared_budget_prevents_recovery_from_resetting_draft_review_repair_limit():
+    _, graph, result, config, ctx, _ = fixture()
+    provider, calls = client([draft(ctx), approved(ctx)], config)
+    initial = generate_answer(ctx, provider)
+    initial["generation"]["remaining_calls"] = 0
+    _, final = recover_answer(ctx, initial, result, provider, SimpleNamespace(), graph)
+    assert final["generation"]["recovery"]["reason"] == "CALL_BUDGET_EXHAUSTED"
+    assert len(calls) == 2
+
+
+def test_recovery_reserves_a_review_call_before_starting_another_draft():
+    _, graph, result, config, ctx, _ = fixture()
+    provider, calls = client([draft(ctx), approved(ctx)], config)
+    initial = generate_answer(ctx, provider)
+    initial["generation"]["remaining_calls"] = 1
+    _, final = recover_answer(ctx, initial, result, provider, SimpleNamespace(), graph)
+    assert final["generation"]["recovery"]["reason"] == "INSUFFICIENT_REVIEW_BUDGET"
+    assert len(calls) == 2
+
+
+def test_product_fact_gap_does_not_trigger_retrieval_even_if_model_suggests_evidence_gap():
+    _, graph, result, config, ctx, gap = fixture()
+    generated = {
+        "answer": {"results": [{"required": True, "status": "MISSING_PRODUCT_INFO"}]},
+        "validation": {"task_completion": False},
+        "generation": {"evidence_gaps": [gap]},
+        "diagnostics": {},
+    }
+    provider = SimpleNamespace(
+        config=config, complete=lambda *a, **kw: pytest.fail("No extra decision call")
+    )
+    assert (
+        recover_answer(ctx, generated, result, provider, SimpleNamespace(), graph)[1] is generated
+    )
+
+
+def test_changed_evidence_requires_successful_review_instead_of_restoring_old_code():
+    q, graph, result, config, ctx, gap = fixture()
+    retrieved, _ = recover_evidence(q, result, ctx, [gap], SimpleNamespace(), graph)
+    ctx2 = prepare_context(q, retrieved, "auto", config, graph)
+    bad_review = copy.deepcopy(approved(ctx2))
+    bad_review["reviews"][0]["review"]["reason"] = ""
+    provider, _ = client(
+        [draft(ctx), approved(ctx), draft(ctx2, complete=True), bad_review, bad_review], config
+    )
+    initial = generate_answer(ctx, provider)
+    _, final = recover_answer(ctx, initial, result, provider, SimpleNamespace(), graph)
+    assert not final["answer"]["results"][0].get("retained_after_recovery")
+    assert not final["answer"]["results"][0]["suggested_hs_code"]
+    assert not final["validation"]["task_completion"]
+    assert final["diagnostics"]

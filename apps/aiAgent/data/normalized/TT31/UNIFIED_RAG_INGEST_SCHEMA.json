@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://frappe-bench/aiAgent/schemas/tt31-unified-rag-ingest-schema-v2.json",
+  "title": "TT31 Unified RAG Ingest Document Schema v2.0-final",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "document_id",
+    "id",
+    "source_id",
+    "document_type",
+    "record_type",
+    "language_profile",
+    "text",
+    "sparse_text",
+    "content",
+    "metadata",
+    "provenance",
+    "graph",
+    "retrieval"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "2.0-final"
+    },
+    "document_id": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "source_record_id": {
+      "type": "string"
+    },
+    "source_node_id": {
+      "type": "string"
+    },
+    "document_type": {
+      "type": "string"
+    },
+    "record_type": {
+      "type": "string"
+    },
+    "language_profile": {
+      "const": "vi"
+    },
+    "search_language": {
+      "const": "vi"
+    },
+    "text": {
+      "type": "string"
+    },
+    "sparse_text": {
+      "type": "string"
+    },
+    "content": {
+      "type": "object",
+      "required": [
+        "embedding_text",
+        "sparse_text",
+        "fts_text",
+        "search_text",
+        "exact_keys"
+      ],
+      "properties": {
+        "embedding_text": {
+          "type": "string"
+        },
+        "sparse_text": {
+          "type": "string"
+        },
+        "fts_text": {
+          "type": "string"
+        },
+        "search_text": {
+          "type": "string"
+        },
+        "exact_keys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "section",
+        "chapter"
+      ],
+      "properties": {
+        "section": {
+          "type": "string",
+          "minLength": 1
+        },
+        "chapter": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "code_compact": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hs_code_compact": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "level": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ]
+        },
+        "heading": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hs6": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ahtn8": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "provenance": {
+      "type": "object"
+    },
+    "graph": {
+      "type": "object"
+    },
+    "retrieval": {
+      "type": "object"
+    }
+  }
+}

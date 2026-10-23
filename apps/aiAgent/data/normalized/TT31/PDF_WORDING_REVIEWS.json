@@ -1,0 +1,4977 @@
+{
+  "version": 1,
+  "review_scope": "205 coded-row discrepancies from the complete PDF audit; all original raster cells reviewed, including continuation cells.",
+  "transcription_conventions": [
+    "Join wrapped lines with spaces.",
+    "Represent printed hierarchy dashes as separate hyphens; depth remains independently raster-verified.",
+    "Render superscript SEN, numeric and asterisk notes inline without removing them.",
+    "Render the degree glyph as U+00B0; separate numbers and units with spaces without changing quantities.",
+    "Retain the spelling printed in the authoritative PDF, including apparent typographical errors."
+  ],
+  "records": [
+    {
+      "id": "tt31:SXVI-T-84011000",
+      "code": "84011000",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 23,
+        "bbox": [
+          102.0,
+          172.0,
+          361.0,
+          186.5
+        ]
+      },
+      "native_pdf_text": "",
+      "reviewed_row_text": "- Lò phản ứng hạt nhân",
+      "source_text": "Lò phản ứng hạt nhân",
+      "previous_source_text": "Lò phản ứng hạt nhân",
+      "source_text_changed": false,
+      "reason": "ROTATED_TEXT_ASSIGNED_TO_NEXT_ROW"
+    },
+    {
+      "id": "tt31:SXVI-T-84012000",
+      "code": "84012000",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 23,
+        "bbox": [
+          102.0,
+          186.5,
+          361.0,
+          214.5
+        ]
+      },
+      "native_pdf_text": "hgnứnảhpòL- nâhnạt - Máy và thiêt bị đê tách chât đồng vị, và bộ phận của chúng",
+      "reviewed_row_text": "- Máy và thiết bị để tách chất đồng vị, và bộ phận của chúng",
+      "source_text": "Máy và thiết bị để tách chất đồng vị, và bộ phận của chúng",
+      "previous_source_text": "Máy và thiết bị để tách chất đồng vị, và bộ phận của chúng",
+      "source_text_changed": false,
+      "reason": "PREVIOUS_ROW_ROTATED_TEXT_CONTAMINATION"
+    },
+    {
+      "id": "tt31:SXVI-T-84049021",
+      "code": "84049021",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 25,
+        "bbox": [
+          102.0,
+          174.0,
+          361.0,
+          188.5
+        ]
+      },
+      "native_pdf_text": "pcộuhtaóhgnàhaủC-- móhnn 048 4. .20. 0: ----Thân, vỏ hoặc vỏ bọc nồi hơi",
+      "reviewed_row_text": "- - - Thân, vỏ hoặc vỏ bọc nồi hơi (SEN)",
+      "source_text": "Thân, vỏ hoặc vỏ bọc nồi hơi (SEN)",
+      "previous_source_text": "Thân, vỏ hoặc vỏ bọc nồi hơi",
+      "source_text_changed": true,
+      "reason": "ROTATED_PARENT_CONTAMINATION_AND_MISSING_SEN_IN_CANONICAL"
+    },
+    {
+      "id": "tt31:SXVI-T-84295200",
+      "code": "84295200",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 60,
+        "bbox": [
+          102.0,
+          400.0,
+          361.0,
+          428.5
+        ]
+      },
+      "native_pdf_text": "- - Máy có cơ câu phần trên quay được 360o",
+      "reviewed_row_text": "- - Máy có cơ cấu phần trên quay được 360°",
+      "source_text": "Máy có cơ cấu phần trên quay được 360°",
+      "previous_source_text": "Máy có cơ cấu phần trên quay được 360°",
+      "source_text_changed": false,
+      "reason": "DEGREE_SYMBOL_OCR"
+    },
+    {
+      "id": "tt31:SXVI-T-8431",
+      "code": "8431",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 61,
+        "bbox": [
+          102.0,
+          287.5,
+          361.0,
+          330.5
+        ]
+      },
+      "native_pdf_text": "Các bộ phận chỉ sử dụng hoặc chủ yêu sử dụng cho các loại máy thuộc các nhóm từ 84.25 đên 84.30. ạ ộ",
+      "reviewed_row_text": "Các bộ phận chỉ sử dụng hoặc chủ yếu sử dụng cho các loại máy thuộc các nhóm từ 84.25 đến 84.30.",
+      "source_text": "Các bộ phận chỉ sử dụng hoặc chủ yếu sử dụng cho các loại máy thuộc các nhóm từ 84.25 đến 84.30.",
+      "previous_source_text": "Các bộ phận chỉ sử dụng hoặc chủ yếu sử dụng cho các loại máy thuộc các nhóm từ 84.25 đến 84.30.",
+      "source_text_changed": false,
+      "reason": "STRAY_OCR_CHARACTERS"
+    },
+    {
+      "id": "tt31:SXVI-T-8437",
+      "code": "8437",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 66,
+        "bbox": [
+          102.0,
+          245.0,
+          361.0,
+          328.5
+        ]
+      },
+      "native_pdf_text": "Máy làm sạch, tuyển chọn hoặc phân loại hạt giống, hạt hoặc các loại rau đậu đã được làm khô; máy dùng trong công nghiệp xay sát hoặc dùng cho chế biến ngũ cốc hoặc rau đậu đã được làm khô, trừ các loại máy nông nghiệp.",
+      "reviewed_row_text": "Máy làm sạch, tuyển chọn hoặc phân loại hạt giống, hạt hoặc các loại rau đậu đã được làm khô; máy dùng trong công nghiệp xay sát hoặc dùng cho chế biến ngũ cốc hoặc rau đậu đã được làm khô, trừ các loại máy nông nghiệp.",
+      "source_text": "Máy làm sạch, tuyển chọn hoặc phân loại hạt giống, hạt hoặc các loại rau đậu đã được làm khô; máy dùng trong công nghiệp xay sát hoặc dùng cho chế biến ngũ cốc hoặc rau đậu đã được làm khô, trừ các loại máy nông nghiệp.",
+      "previous_source_text": "Máy làm sạch, tuyển chọn hoặc phân loại hạt giống, hạt hoặc các loại rau đậu đã được làm khô; máy dùng trong công nghiệp xay xát hoặc dùng cho chế biến ngũ cốc hoặc rau đậu đã được làm khô, trừ các loại máy nông nghiệp.",
+      "source_text_changed": true,
+      "reason": "PRINTED_SPELLING_RESTORED_IN_CANONICAL"
+    },
+    {
+      "id": "tt31:SXVI-T-84431200",
+      "code": "84431200",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 70,
+        "bbox": [
+          102.0,
+          368.5,
+          361.0,
+          424.5
+        ]
+      },
+      "native_pdf_text": "- - Máy in offset, in theo tờ, loại sử dụng trong văn phòng (sử dụng giây với kích thước giây ở dạng không gâp một chiều không quá cm và chiều kia 2 2 không quá 36 cm)",
+      "reviewed_row_text": "- - Máy in offset, in theo tờ, loại sử dụng trong văn phòng (sử dụng giấy với kích thước giấy ở dạng không gấp một chiều không quá 22 cm và chiều kia không quá 36 cm)",
+      "source_text": "Máy in offset, in theo tờ, loại sử dụng trong văn phòng (sử dụng giấy với kích thước giấy ở dạng không gấp một chiều không quá 22 cm và chiều kia không quá 36 cm)",
+      "previous_source_text": "Máy in offset, in theo tờ, loại sử dụng trong văn phòng (sử dụng giấy với kích thước giấy ở dạng không gấp một chiều không quá 22 cm và chiều kia không quá 36 cm)",
+      "source_text_changed": false,
+      "reason": "DIGIT_ORDER_22_CM"
+    },
+    {
+      "id": "tt31:SXVI-T-84501110",
+      "code": "84501110",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 76,
+        "bbox": [
+          102.0,
+          201.0,
+          361.0,
+          229.5
+        ]
+      },
+      "native_pdf_text": "---- Loại có sức chứa không quá kg vải khô một 6 lần giặt",
+      "reviewed_row_text": "- - - Loại có sức chứa không quá 6 kg vải khô một lần giặt",
+      "source_text": "Loại có sức chứa không quá 6 kg vải khô một lần giặt",
+      "previous_source_text": "Loại có sức chứa không quá 6 kg vải khô một lần giặt",
+      "source_text_changed": false,
+      "reason": "DIGIT_ORDER_6_KG"
+    },
+    {
+      "id": "tt31:SXVI-T-84501210",
+      "code": "84501210",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 76,
+        "bbox": [
+          102.0,
+          271.5,
+          361.0,
+          300.0
+        ]
+      },
+      "native_pdf_text": "---- Loại có sức chứa không quá kg vải khô một 6 lần giặt",
+      "reviewed_row_text": "- - - Loại có sức chứa không quá 6 kg vải khô một lần giặt",
+      "source_text": "Loại có sức chứa không quá 6 kg vải khô một lần giặt",
+      "previous_source_text": "Loại có sức chứa không quá 6 kg vải khô một lần giặt",
+      "source_text_changed": false,
+      "reason": "DIGIT_ORDER_6_KG"
+    },
+    {
+      "id": "tt31:SXVI-T-84501911",
+      "code": "84501911",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 76,
+        "bbox": [
+          102.0,
+          342.5,
+          361.0,
+          371.0
+        ]
+      },
+      "native_pdf_text": "------Loại có sức chứa không quá kg vải khô một 6 lần giặt",
+      "reviewed_row_text": "- - - - Loại có sức chứa không quá 6 kg vải khô một lần giặt",
+      "source_text": "Loại có sức chứa không quá 6 kg vải khô một lần giặt",
+      "previous_source_text": "Loại có sức chứa không quá 6 kg vải khô một lần giặt",
+      "source_text_changed": false,
+      "reason": "DIGIT_ORDER_6_KG"
+    },
+    {
+      "id": "tt31:SXVI-T-84501991",
+      "code": "84501991",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 76,
+        "bbox": [
+          102.0,
+          399.5,
+          361.0,
+          428.0
+        ]
+      },
+      "native_pdf_text": "------Loại có sức chứa không quá kg vải khô một 6 lần giặt",
+      "reviewed_row_text": "- - - - Loại có sức chứa không quá 6 kg vải khô một lần giặt",
+      "source_text": "Loại có sức chứa không quá 6 kg vải khô một lần giặt",
+      "previous_source_text": "Loại có sức chứa không quá 6 kg vải khô một lần giặt",
+      "source_text_changed": false,
+      "reason": "DIGIT_ORDER_6_KG"
+    },
+    {
+      "id": "tt31:SXVI-T-8475",
+      "code": "8475",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 95,
+        "bbox": [
+          102.0,
+          316.5,
+          361.0,
+          386.5
+        ]
+      },
+      "native_pdf_text": "Máy để lăp ráp đèn điện hoặc đèn điện tử, đèn ống hoặc đèn điện tử chân không hoặc đèn ílash, với vỏ bọc bằng thủy tinh; máy để chế tạo hoặc gia công nóng thủy tinh hoặc đồ thủy tinh.",
+      "reviewed_row_text": "Máy để lắp ráp đèn điện hoặc đèn điện tử, đèn ống hoặc đèn điện tử chân không hoặc đèn flash, với vỏ bọc bằng thủy tinh; máy để chế tạo hoặc gia công nóng thủy tinh hoặc đồ thủy tinh.",
+      "source_text": "Máy để lắp ráp đèn điện hoặc đèn điện tử, đèn ống hoặc đèn điện tử chân không hoặc đèn flash, với vỏ bọc bằng thủy tinh; máy để chế tạo hoặc gia công nóng thủy tinh hoặc đồ thủy tinh.",
+      "previous_source_text": "Máy để lắp ráp đèn điện hoặc đèn điện tử, đèn ống hoặc đèn điện tử chân không hoặc đèn flash, với vỏ bọc bằng thủy tinh; máy để chế tạo hoặc gia công nóng thủy tinh hoặc đồ thủy tinh.",
+      "source_text_changed": false,
+      "reason": "FLASH_OCR"
+    },
+    {
+      "id": "tt31:SXVI-T-84811091",
+      "code": "84811091",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 101,
+        "bbox": [
+          102.0,
+          188.5,
+          361.0,
+          216.0
+        ]
+      },
+      "native_pdf_text": "---- Bằng plastic, có đường kính trong từ 1cm đên 2,5 cm",
+      "reviewed_row_text": "- - - Bằng plastic, có đường kính trong từ 1 cm đến 2,5 cm",
+      "source_text": "Bằng plastic, có đường kính trong từ 1 cm đến 2,5 cm",
+      "previous_source_text": "Bằng plastic, có đường kính trong từ 1 cm đến 2,5 cm",
+      "source_text_changed": false,
+      "reason": "NUMBER_UNIT_SPACING_1_CM"
+    },
+    {
+      "id": "tt31:SXVI-T-84813040",
+      "code": "84813040",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 101,
+        "bbox": [
+          102.0,
+          483.5,
+          361.0,
+          512.5
+        ]
+      },
+      "native_pdf_text": "- - Bằng plastic, có đường kính trong từ 1cm đên 2,5 cm",
+      "reviewed_row_text": "- - Bằng plastic, có đường kính trong từ 1 cm đến 2,5 cm",
+      "source_text": "Bằng plastic, có đường kính trong từ 1 cm đến 2,5 cm",
+      "previous_source_text": "Bằng plastic, có đường kính trong từ 1 cm đến 2,5 cm",
+      "source_text_changed": false,
+      "reason": "NUMBER_UNIT_SPACING_1_CM"
+    },
+    {
+      "id": "tt31:SXVI-T-84814030",
+      "code": "84814030",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 102,
+        "bbox": [
+          102.0,
+          75.0,
+          361.0,
+          103.0
+        ]
+      },
+      "native_pdf_text": "- - Bằng plastic, có đường kính trong từ 1cm đên 2,5 cm",
+      "reviewed_row_text": "- - Bằng plastic, có đường kính trong từ 1 cm đến 2,5 cm",
+      "source_text": "Bằng plastic, có đường kính trong từ 1 cm đến 2,5 cm",
+      "previous_source_text": "Bằng plastic, có đường kính trong từ 1 cm đến 2,5 cm",
+      "source_text_changed": false,
+      "reason": "NUMBER_UNIT_SPACING_1_CM"
+    },
+    {
+      "id": "tt31:SXVI-T-84818041",
+      "code": "84818041",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 102,
+        "bbox": [
+          102.0,
+          372.0,
+          361.0,
+          400.0
+        ]
+      },
+      "native_pdf_text": "---- Bằng plastic, có đường kính trong từ 1cm đên 2,5 cm",
+      "reviewed_row_text": "- - - Bằng plastic, có đường kính trong từ 1 cm đến 2,5 cm",
+      "source_text": "Bằng plastic, có đường kính trong từ 1 cm đến 2,5 cm",
+      "previous_source_text": "Bằng plastic, có đường kính trong từ 1 cm đến 2,5 cm",
+      "source_text_changed": false,
+      "reason": "NUMBER_UNIT_SPACING_1_CM"
+    },
+    {
+      "id": "tt31:SXVI-T-84818051",
+      "code": "84818051",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 102,
+        "bbox": [
+          102.0,
+          428.5,
+          361.0,
+          456.5
+        ]
+      },
+      "native_pdf_text": "---- Bằng plastic, có đường kính trong từ 1cm đên 2,5 cm",
+      "reviewed_row_text": "- - - Bằng plastic, có đường kính trong từ 1 cm đến 2,5 cm",
+      "source_text": "Bằng plastic, có đường kính trong từ 1 cm đến 2,5 cm",
+      "previous_source_text": "Bằng plastic, có đường kính trong từ 1 cm đến 2,5 cm",
+      "source_text_changed": false,
+      "reason": "NUMBER_UNIT_SPACING_1_CM"
+    },
+    {
+      "id": "tt31:SXVI-T-84818083",
+      "code": "84818083",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 103,
+        "bbox": [
+          102.0,
+          528.0,
+          361.0,
+          556.5
+        ],
+        "continuations": [
+          {
+            "physical_page": 104,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "native_pdf_text": "-----Van ngăt nhiên liệu bằng plastic dùng cho xe thuộc nhóm 87.02, 87.03 hoặc 87.04, với đường kính trong cửa nạp dưới 1cm",
+      "reviewed_row_text": "- - - Van ngắt nhiên liệu bằng plastic dùng cho xe thuộc nhóm 87.02, 87.03 hoặc 87.04, với đường kính trong cửa nạp dưới 1 cm",
+      "source_text": "Van ngắt nhiên liệu bằng plastic dùng cho xe thuộc nhóm 87.02, 87.03 hoặc 87.04, với đường kính trong cửa nạp dưới 1 cm",
+      "previous_source_text": "Van ngắt nhiên liệu bằng plastic dùng cho xe thuộc nhóm 87.02, 87.03 hoặc 87.04, với đường kính trong cửa nạp dưới 1 cm",
+      "source_text_changed": false,
+      "reason": "NUMBER_UNIT_SPACING_1_CM"
+    },
+    {
+      "id": "tt31:SXVI-T-84818084",
+      "code": "84818084",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 104,
+        "bbox": [
+          102.0,
+          75.0,
+          361.0,
+          130.5
+        ]
+      },
+      "native_pdf_text": "-----Van ngăt nhiên liệu bằng plastic dùng cho xe thuộc nhóm 87.02, 87.03 hoặc 87.04, với đường kính trong cửa nạp từ 1cm đên 2,5 cm",
+      "reviewed_row_text": "- - - Van ngắt nhiên liệu bằng plastic dùng cho xe thuộc nhóm 87.02, 87.03 hoặc 87.04, với đường kính trong cửa nạp từ 1 cm đến 2,5 cm",
+      "source_text": "Van ngắt nhiên liệu bằng plastic dùng cho xe thuộc nhóm 87.02, 87.03 hoặc 87.04, với đường kính trong cửa nạp từ 1 cm đến 2,5 cm",
+      "previous_source_text": "Van ngắt nhiên liệu bằng plastic dùng cho xe thuộc nhóm 87.02, 87.03 hoặc 87.04, với đường kính trong cửa nạp từ 1 cm đến 2,5 cm",
+      "source_text_changed": false,
+      "reason": "NUMBER_UNIT_SPACING_1_CM"
+    },
+    {
+      "id": "tt31:SXVI-T-8485",
+      "code": "8485",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 107,
+        "bbox": [
+          102.0,
+          512.5,
+          361.0,
+          527.0
+        ]
+      },
+      "native_pdf_text": "i",
+      "reviewed_row_text": "Máy móc sử dụng công nghệ sản xuất bồi đắp.",
+      "source_text": "Máy móc sử dụng công nghệ sản xuất bồi đắp.",
+      "previous_source_text": "Máy móc sử dụng công nghệ sản xuất bồi đắp.",
+      "source_text_changed": false,
+      "reason": "STRAY_OCR_CHARACTER"
+    },
+    {
+      "id": "tt31:SXVI-T-84851000",
+      "code": "84851000",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 107,
+        "bbox": [
+          102.0,
+          527.0,
+          361.0,
+          541.0
+        ]
+      },
+      "native_pdf_text": "yá m ửscó nảsệhgngnôcgnụd btâux ăđôi p. - Bằng lăng đọng kim loại",
+      "reviewed_row_text": "- Bằng lắng đọng kim loại",
+      "source_text": "Bằng lắng đọng kim loại",
+      "previous_source_text": "Bằng lắng đọng kim loại",
+      "source_text_changed": false,
+      "reason": "PREVIOUS_HEADING_ROTATED_TEXT_CONTAMINATION"
+    },
+    {
+      "id": "tt31:SXVI-T-850161",
+      "code": "850161",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 139,
+        "bbox": [
+          102.0,
+          471.5,
+          361.0,
+          486.0
+        ]
+      },
+      "native_pdf_text": "kVA: Côngs ất khôngquá7 --",
+      "reviewed_row_text": "- - Công suất không quá 75 kVA:",
+      "source_text": "Công suất không quá 75 kVA:",
+      "previous_source_text": "Công suất không quá 75 kVA:",
+      "source_text_changed": false,
+      "reason": "ROTATED_TEXT_AND_MISSING_DIGIT_75_KVA"
+    },
+    {
+      "id": "tt31:SXVI-T-85023920",
+      "code": "85023920",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 141,
+        "bbox": [
+          102.0,
+          331.5,
+          361.0,
+          359.5
+        ]
+      },
+      "native_pdf_text": "- - - Công suất trên 10 kVA nhưng không quá kvA 1 0 .0 0 0",
+      "reviewed_row_text": "- - - Công suất trên 10 kVA nhưng không quá 10.000 kVA",
+      "source_text": "Công suất trên 10 kVA nhưng không quá 10.000 kVA",
+      "previous_source_text": "Công suất trên 10 kVA nhưng không quá 10.000 kVA",
+      "source_text_changed": false,
+      "reason": "DIGIT_ORDER_10000_KVA"
+    },
+    {
+      "id": "tt31:SXVI-T-85042111",
+      "code": "85042111",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 142,
+        "bbox": [
+          102.0,
+          173.5,
+          361.0,
+          215.5
+        ]
+      },
+      "native_pdf_text": "------Máy biên đổi đo lường loại công suât danh (1) định không quá 1 kVA và đầu điện áp cao từ 110 kv trở i ê ù ®",
+      "reviewed_row_text": "- - - - Máy biến đổi đo lường (1) loại công suất danh định không quá 1 kVA và đầu điện áp cao từ 110 kV trở lên (SEN)",
+      "source_text": "Máy biến đổi đo lường (1) loại công suất danh định không quá 1 kVA và đầu điện áp cao từ 110 kV trở lên (SEN)",
+      "previous_source_text": "Máy biến đổi đo lường (1) loại công suất danh định không quá 1 kVA và đầu điện áp cao từ 110 kV trở lên (SEN)",
+      "source_text_changed": false,
+      "reason": "SUPERSCRIPT_AND_OCR_WORD_ORDER"
+    },
+    {
+      "id": "tt31:SXVI-T-85043130",
+      "code": "85043130",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 143,
+        "bbox": [
+          102.0,
+          456.5,
+          361.0,
+          485.5
+        ]
+      },
+      "native_pdf_text": "- - - Máy biên áp quét về (biên áp tần số quét ngược) ™",
+      "reviewed_row_text": "- - - Máy biến áp quét về (biến áp tần số quét ngược) (SEN)",
+      "source_text": "Máy biến áp quét về (biến áp tần số quét ngược) (SEN)",
+      "previous_source_text": "Máy biến áp quét về (biến áp tần số quét ngược) (SEN)",
+      "source_text_changed": false,
+      "reason": "SEN_SYMBOL_OCR"
+    },
+    {
+      "id": "tt31:SXVI-T-85079011",
+      "code": "85079011",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 150,
+        "bbox": [
+          102.0,
+          103.5,
+          361.0,
+          145.0
+        ]
+      },
+      "native_pdf_text": "-----Của hàng hóa thuộc phân nhóm 8507.10.92, 8507.10.95, 8507.10.96, .1 0.9 7, 8507.10.98 8 5 0 7 hoặc 8507.10.99",
+      "reviewed_row_text": "- - - Của hàng hóa thuộc phân nhóm 8507.10.92, 8507.10.95, 8507.10.96, 8507.10.97, 8507.10.98 hoặc 8507.10.99",
+      "source_text": "Của hàng hóa thuộc phân nhóm 8507.10.92, 8507.10.95, 8507.10.96, 8507.10.97, 8507.10.98 hoặc 8507.10.99",
+      "previous_source_text": "Của hàng hóa thuộc phân nhóm 8507.10.92, 8507.10.95, 8507.10.96, 8507.10.97, 8507.10.98 hoặc 8507.10.99",
+      "source_text_changed": false,
+      "reason": "SPLIT_REFERENCE_CODE_85071097"
+    },
+    {
+      "id": "tt31:SXVI-T-85079093",
+      "code": "85079093",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 150,
+        "bbox": [
+          102.0,
+          230.5,
+          361.0,
+          272.5
+        ]
+      },
+      "native_pdf_text": "----- Loại khác, của hàng hóa thuộc phân nhóm 8507.10.92, 8507.10.95, 8507.10.96, 8 5 0 7 .1 0.9 7 , 8507.10.98^ hoặc 8507.10.99",
+      "reviewed_row_text": "- - - Loại khác, của hàng hóa thuộc phân nhóm 8507.10.92, 8507.10.95, 8507.10.96, 8507.10.97, 8507.10.98 hoặc 8507.10.99",
+      "source_text": "Loại khác, của hàng hóa thuộc phân nhóm 8507.10.92, 8507.10.95, 8507.10.96, 8507.10.97, 8507.10.98 hoặc 8507.10.99",
+      "previous_source_text": "Loại khác, của hàng hóa thuộc phân nhóm 8507.10.92, 8507.10.95, 8507.10.96, 8507.10.97, 8507.10.98 hoặc 8507.10.99",
+      "source_text_changed": false,
+      "reason": "SPLIT_REFERENCE_CODE_85071097"
+    },
+    {
+      "id": "tt31:SXVI-T-8511",
+      "code": "8511",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 151,
+        "bbox": [
+          102.0,
+          303.0,
+          361.0,
+          428.0
+        ]
+      },
+      "native_pdf_text": "Thiêt bị đánh lửa hoặc khởi động băng điện loại dùng cho động cơ đốt trong đốt cháy băng tia lửa điện hoặc cháy do nén (ví dụ, magneto đánh lửa, dynamo magneto, cuộn dây đánh lửa, bugi đánh lửa và bugi sây, động cơ khởi động); máy phát điện (ví dụ, dynamo, alternator) và thiêt bị ngắt mạch loại đươc sử dụng cùng các động cơ CT • • • • CT CT • CT nêu trên.",
+      "reviewed_row_text": "Thiết bị đánh lửa hoặc khởi động bằng điện loại dùng cho động cơ đốt trong đốt cháy bằng tia lửa điện hoặc cháy do nén (ví dụ, magneto đánh lửa, dynamo magneto, cuộn dây đánh lửa, bugi đánh lửa và bugi sấy, động cơ khởi động); máy phát điện (ví dụ, dynamo, alternator) và thiết bị ngắt mạch loại được sử dụng cùng các động cơ nêu trên.",
+      "source_text": "Thiết bị đánh lửa hoặc khởi động bằng điện loại dùng cho động cơ đốt trong đốt cháy bằng tia lửa điện hoặc cháy do nén (ví dụ, magneto đánh lửa, dynamo magneto, cuộn dây đánh lửa, bugi đánh lửa và bugi sấy, động cơ khởi động); máy phát điện (ví dụ, dynamo, alternator) và thiết bị ngắt mạch loại được sử dụng cùng các động cơ nêu trên.",
+      "previous_source_text": "Thiết bị đánh lửa hoặc khởi động bằng điện loại dùng cho động cơ đốt trong đốt cháy bằng tia lửa điện hoặc cháy do nén (ví dụ, magneto đánh lửa, dynamo magneto, cuộn dây đánh lửa, bugi đánh lửa và bugi sấy, động cơ khởi động); máy phát điện (ví dụ, dynamo, alternator) và thiết bị ngắt mạch loại được sử dụng cùng các động cơ nêu trên.",
+      "source_text_changed": false,
+      "reason": "STRAY_OCR_CHARACTERS"
+    },
+    {
+      "id": "tt31:SXVI-T-851840",
+      "code": "851840",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 162,
+        "bbox": [
+          102.0,
+          442.5,
+          361.0,
+          456.5
+        ]
+      },
+      "native_pdf_text": "- Thiêt bị điện khuyêch đại âm tần:",
+      "reviewed_row_text": "- Thiết bị điện khuyếch đại âm tần:",
+      "source_text": "Thiết bị điện khuyếch đại âm tần:",
+      "previous_source_text": "Thiết bị điện khuếch đại âm tần:",
+      "source_text_changed": true,
+      "reason": "PRINTED_SPELLING_RESTORED_IN_CANONICAL"
+    },
+    {
+      "id": "tt31:SXVI-T-85185020",
+      "code": "85185020",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 163,
+        "bbox": [
+          102.0,
+          103.5,
+          361.0,
+          145.0
+        ]
+      },
+      "native_pdf_text": "- - Loại khác, có loa, loại thích hợp cho phát sóng, có giải điện áp từ 50 V trở lên nhưng không quá 100 V",
+      "reviewed_row_text": "- - Loại khác, có loa, loại thích hợp cho phát sóng, có giải điện áp từ 50 V trở lên nhưng không quá 100 V",
+      "source_text": "Loại khác, có loa, loại thích hợp cho phát sóng, có giải điện áp từ 50 V trở lên nhưng không quá 100 V",
+      "previous_source_text": "Loại khác, có loa, loại thích hợp cho phát sóng, có dải điện áp từ 50 V trở lên nhưng không quá 100 V",
+      "source_text_changed": true,
+      "reason": "PRINTED_WORD_RESTORED_IN_CANONICAL"
+    },
+    {
+      "id": "tt31:SXVI-T-8544",
+      "code": "8544",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT_31-Section-XVI.pdf",
+        "sha256": "812b348badb5d6b57748a56551d0d1bec580cc74b2a7320151d76f089abf643c",
+        "physical_page": 192,
+        "bbox": [
+          102.0,
+          496.0,
+          361.0,
+          552.0
+        ],
+        "continuations": [
+          {
+            "physical_page": 193,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              102.5
+            ]
+          }
+        ]
+      },
+      "native_pdf_text": "Dây điện, cáp điện (kê cả cáp đồng trục) có cách điện (kê cả loại đã tráng men cách điện hoặc mạ lớp cách điện) và các vật dẫn (4) có cách điện khác, đã hoặc chưa gắn với đầu nối; cáp sợi quang, làm băng các bó sợi đơn có vỏ bọc riêng biệt từng sợi, có hoặc không gắn với dây dẫn điện hoặc gắn với đầu nối.",
+      "reviewed_row_text": "Dây điện, cáp điện (kể cả cáp đồng trục) có cách điện (kể cả loại đã tráng men cách điện hoặc mạ lớp cách điện) và các vật dẫn (*) có cách điện khác, đã hoặc chưa gắn với đầu nối; cáp sợi quang, làm bằng các bó sợi đơn có vỏ bọc riêng biệt từng sợi, có hoặc không gắn với dây dẫn điện hoặc gắn với đầu nối.",
+      "source_text": "Dây điện, cáp điện (kể cả cáp đồng trục) có cách điện (kể cả loại đã tráng men cách điện hoặc mạ lớp cách điện) và các vật dẫn (*) có cách điện khác, đã hoặc chưa gắn với đầu nối; cáp sợi quang, làm bằng các bó sợi đơn có vỏ bọc riêng biệt từng sợi, có hoặc không gắn với dây dẫn điện hoặc gắn với đầu nối.",
+      "previous_source_text": "Dây điện, cáp điện (kể cả cáp đồng trục) có cách điện (kể cả loại đã tráng men cách điện hoặc mạ lớp cách điện) và các vật dẫn (*) có cách điện khác, đã hoặc chưa gắn với đầu nối; cáp sợi quang, làm bằng các bó sợi đơn có vỏ bọc riêng biệt từng sợi, có hoặc không gắn với dây dẫn điện hoặc gắn với đầu nối.",
+      "source_text_changed": false,
+      "reason": "ASTERISK_FOOTNOTE_OCR"
+    },
+    {
+      "id": "tt31:SXVII_HEADING4_8704",
+      "code": "8704",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 50,
+        "bbox": [
+          102.0,
+          75.0,
+          361.0,
+          88.5
+        ]
+      },
+      "native_pdf_text": "Xecó độngcơdùng đểchởhàng.",
+      "reviewed_row_text": "Xe có động cơ dùng để chở hàng.",
+      "source_text": "Xe có động cơ dùng để chở hàng.",
+      "previous_source_text": "Xe có động cơ dùng để chở hàng.",
+      "source_text_changed": false,
+      "reason": "JOINED_WORDS_OCR"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87021010",
+      "code": "87021010",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 13,
+        "bbox": [
+          102.0,
+          445.0,
+          361.0,
+          486.5
+        ]
+      },
+      "native_pdf_text": "----0 tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "reviewed_row_text": "- - - ---- Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "source_text": "---- Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "previous_source_text": "---- Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87021060",
+      "code": "87021060",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 14,
+        "bbox": [
+          102.0,
+          117.5,
+          361.0,
+          159.5
+        ]
+      },
+      "native_pdf_text": "----0 tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "reviewed_row_text": "- - - ----Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "source_text": "----Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "previous_source_text": "----Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87022010",
+      "code": "87022010",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 14,
+        "bbox": [
+          102.0,
+          483.5,
+          361.0,
+          526.0
+        ]
+      },
+      "native_pdf_text": "----0 tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "reviewed_row_text": "- - - ----Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "source_text": "----Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "previous_source_text": "----Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87023010",
+      "code": "87023010",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 16,
+        "bbox": [
+          102.0,
+          159.5,
+          361.0,
+          201.0
+        ]
+      },
+      "native_pdf_text": "----0 tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "reviewed_row_text": "- - - ----Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "source_text": "----Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "previous_source_text": "----Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87023050",
+      "code": "87023050",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 16,
+        "bbox": [
+          102.0,
+          413.5,
+          361.0,
+          455.5
+        ]
+      },
+      "native_pdf_text": "----0 tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "reviewed_row_text": "- - - ----Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "source_text": "----Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "previous_source_text": "----Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87024010",
+      "code": "87024010",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 17,
+        "bbox": [
+          102.0,
+          188.5,
+          361.0,
+          230.5
+        ]
+      },
+      "native_pdf_text": "----0 tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "reviewed_row_text": "- - - ---- Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "source_text": "---- Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "previous_source_text": "---- Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87024050",
+      "code": "87024050",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 17,
+        "bbox": [
+          102.0,
+          442.5,
+          361.0,
+          484.5
+        ]
+      },
+      "native_pdf_text": "----0 tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "reviewed_row_text": "- - - ---- Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "source_text": "---- Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "previous_source_text": "---- Ô tô (bao gồm cả ô tô limousine kéo dài nhưng không bao gồm ô tô khách (1) (coaches, buses, minibuses) hoặc ô tô van)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032113",
+      "code": "87032113",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 19,
+        "bbox": [
+          102.0,
+          512.5,
+          361.0,
+          527.0
+        ]
+      },
+      "native_pdf_text": "------0 tô cứu thương",
+      "reviewed_row_text": "- - - - ------Ô tô cứu thương",
+      "source_text": "------Ô tô cứu thương",
+      "previous_source_text": "------Ô tô cứu thương",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032114",
+      "code": "87032114",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 19,
+        "bbox": [
+          102.0,
+          527.0,
+          361.0,
+          555.0
+        ]
+      },
+      "native_pdf_text": "------0 tô nhà ở lưu động (có nội thât được thiêt kê như căn hộ) (Motor-homes)",
+      "reviewed_row_text": "- - - - ------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text": "------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "previous_source_text": "------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032115",
+      "code": "87032115",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 20,
+        "bbox": [
+          102.0,
+          60.5,
+          361.0,
+          75.0
+        ]
+      },
+      "native_pdf_text": "------0 tô kiêu Sedan (SEN)(1)",
+      "reviewed_row_text": "- - - - ------Ô tô kiểu Sedan (SEN)(1)",
+      "source_text": "------Ô tô kiểu Sedan (SEN)(1)",
+      "previous_source_text": "------Ô tô kiểu Sedan (SEN)(1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032143",
+      "code": "87032143",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 20,
+        "bbox": [
+          102.0,
+          231.5,
+          361.0,
+          245.5
+        ]
+      },
+      "native_pdf_text": "------0 tô cứu thương",
+      "reviewed_row_text": "- - - - ------Ô tô cứu thương",
+      "source_text": "------Ô tô cứu thương",
+      "previous_source_text": "------Ô tô cứu thương",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032144",
+      "code": "87032144",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 20,
+        "bbox": [
+          102.0,
+          245.5,
+          361.0,
+          274.0
+        ]
+      },
+      "native_pdf_text": "------0 tô nhà ở lưu động (có nội thât được thiêt kê như căn hộ) (Motor-homes)",
+      "reviewed_row_text": "- - - - ------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text": "------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "previous_source_text": "------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032145",
+      "code": "87032145",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 20,
+        "bbox": [
+          102.0,
+          274.0,
+          361.0,
+          287.5
+        ]
+      },
+      "native_pdf_text": "------0 tô kiêu Sedan (SEN) (1)",
+      "reviewed_row_text": "- - - - ------Ô tô kiểu Sedan (SEN) (1)",
+      "source_text": "------Ô tô kiểu Sedan (SEN) (1)",
+      "previous_source_text": "------Ô tô kiểu Sedan (SEN) (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032213",
+      "code": "87032213",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 20,
+        "bbox": [
+          102.0,
+          472.5,
+          361.0,
+          486.5
+        ]
+      },
+      "native_pdf_text": "------0 tô cứu thương",
+      "reviewed_row_text": "- - - - - Ô tô cứu thương",
+      "source_text": "- Ô tô cứu thương",
+      "previous_source_text": "- Ô tô cứu thương",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032214",
+      "code": "87032214",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 20,
+        "bbox": [
+          102.0,
+          486.5,
+          361.0,
+          501.5
+        ]
+      },
+      "native_pdf_text": "------0 tô tang lễ",
+      "reviewed_row_text": "- - - - - Ô tô tang lễ",
+      "source_text": "- Ô tô tang lễ",
+      "previous_source_text": "- Ô tô tang lễ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032215",
+      "code": "87032215",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 20,
+        "bbox": [
+          102.0,
+          501.5,
+          361.0,
+          515.5
+        ]
+      },
+      "native_pdf_text": "------0 tô chở phạm nhân",
+      "reviewed_row_text": "- - - - - Ô tô chở phạm nhân",
+      "source_text": "- Ô tô chở phạm nhân",
+      "previous_source_text": "- Ô tô chở phạm nhân",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032216",
+      "code": "87032216",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 20,
+        "bbox": [
+          102.0,
+          515.5,
+          361.0,
+          544.0
+        ]
+      },
+      "native_pdf_text": "------0 tô nhà ở lưu động (có nội thât được thiêt kê như căn hộ) (Motor-homes)",
+      "reviewed_row_text": "- - - - ------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text": "------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "previous_source_text": "------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032217",
+      "code": "87032217",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 20,
+        "bbox": [
+          102.0,
+          544.0,
+          361.0,
+          558.5
+        ]
+      },
+      "native_pdf_text": "------0 tô kiêu Sedan (SEN) (1)",
+      "reviewed_row_text": "- - - - ------Ô tô kiểu Sedan (SEN) (1)",
+      "source_text": "------Ô tô kiểu Sedan (SEN) (1)",
+      "previous_source_text": "------Ô tô kiểu Sedan (SEN) (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032351",
+      "code": "87032351",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 22,
+        "bbox": [
+          102.0,
+          468.0,
+          361.0,
+          482.5
+        ]
+      },
+      "native_pdf_text": "------0 tô cứu thương",
+      "reviewed_row_text": "- - - - ------Ô tô cứu thương",
+      "source_text": "------Ô tô cứu thương",
+      "previous_source_text": "------Ô tô cứu thương",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032352",
+      "code": "87032352",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 22,
+        "bbox": [
+          102.0,
+          482.5,
+          361.0,
+          497.0
+        ]
+      },
+      "native_pdf_text": "------0 tô tang lễ",
+      "reviewed_row_text": "- - - - ------Ô tô tang lễ",
+      "source_text": "------Ô tô tang lễ",
+      "previous_source_text": "------Ô tô tang lễ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032353",
+      "code": "87032353",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 22,
+        "bbox": [
+          102.0,
+          497.0,
+          361.0,
+          511.0
+        ]
+      },
+      "native_pdf_text": "------0 tô chở phạm nhân",
+      "reviewed_row_text": "- - - - ------Ô tô chở phạm nhân",
+      "source_text": "------Ô tô chở phạm nhân",
+      "previous_source_text": "------Ô tô chở phạm nhân",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032354",
+      "code": "87032354",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 22,
+        "bbox": [
+          102.0,
+          511.0,
+          361.0,
+          539.0
+        ]
+      },
+      "native_pdf_text": "------0 tô nhà ở lưu động (có nội thât được thiêt kê như căn hộ) (Motor-homes)",
+      "reviewed_row_text": "- - - - ------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text": "------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "previous_source_text": "------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032411",
+      "code": "87032411",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 24,
+        "bbox": [
+          102.0,
+          173.5,
+          361.0,
+          187.5
+        ]
+      },
+      "native_pdf_text": "------0 tô cứu thương",
+      "reviewed_row_text": "- - - - ------Ô tô cứu thương",
+      "source_text": "------Ô tô cứu thương",
+      "previous_source_text": "------Ô tô cứu thương",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032412",
+      "code": "87032412",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 24,
+        "bbox": [
+          102.0,
+          187.5,
+          361.0,
+          202.5
+        ]
+      },
+      "native_pdf_text": "------0 tô tang lễ",
+      "reviewed_row_text": "- - - - ------Ô tô tang lễ",
+      "source_text": "------Ô tô tang lễ",
+      "previous_source_text": "------Ô tô tang lễ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032413",
+      "code": "87032413",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 24,
+        "bbox": [
+          102.0,
+          202.5,
+          361.0,
+          216.0
+        ]
+      },
+      "native_pdf_text": "------0 tô chở phạm nhân",
+      "reviewed_row_text": "- - - - ------Ô tô chở phạm nhân",
+      "source_text": "------Ô tô chở phạm nhân",
+      "previous_source_text": "------Ô tô chở phạm nhân",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032414",
+      "code": "87032414",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 24,
+        "bbox": [
+          102.0,
+          216.0,
+          361.0,
+          244.5
+        ]
+      },
+      "native_pdf_text": "------0 tô nhà ở lưu động (có nội thât được thiêt kê như căn hộ) (Motor-homes)",
+      "reviewed_row_text": "- - - - ------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text": "------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "previous_source_text": "------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032415",
+      "code": "87032415",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 24,
+        "bbox": [
+          102.0,
+          244.5,
+          361.0,
+          258.5
+        ]
+      },
+      "native_pdf_text": "------0 tô kiêu Sedan (SEN) (1)",
+      "reviewed_row_text": "- - - - ------Ô tô kiểu Sedan (SEN) (1)",
+      "source_text": "------Ô tô kiểu Sedan (SEN) (1)",
+      "previous_source_text": "------Ô tô kiểu Sedan (SEN) (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032441",
+      "code": "87032441",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 24,
+        "bbox": [
+          102.0,
+          358.5,
+          361.0,
+          372.5
+        ]
+      },
+      "native_pdf_text": "------0 tô cứu thương",
+      "reviewed_row_text": "- - - - - Ô tô cứu thương",
+      "source_text": "- Ô tô cứu thương",
+      "previous_source_text": "- Ô tô cứu thương",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032442",
+      "code": "87032442",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 24,
+        "bbox": [
+          102.0,
+          372.5,
+          361.0,
+          386.5
+        ]
+      },
+      "native_pdf_text": "------0 tô tang lễ",
+      "reviewed_row_text": "- - - - - Ô tô tang lễ",
+      "source_text": "- Ô tô tang lễ",
+      "previous_source_text": "- Ô tô tang lễ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032443",
+      "code": "87032443",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 24,
+        "bbox": [
+          102.0,
+          386.5,
+          361.0,
+          401.0
+        ]
+      },
+      "native_pdf_text": "------0 tô chở phạm nhân",
+      "reviewed_row_text": "- - - - - Ô tô chở phạm nhân",
+      "source_text": "- Ô tô chở phạm nhân",
+      "previous_source_text": "- Ô tô chở phạm nhân",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87032444",
+      "code": "87032444",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 24,
+        "bbox": [
+          102.0,
+          401.0,
+          361.0,
+          429.5
+        ]
+      },
+      "native_pdf_text": "------0 tô nhà ở lưu động (có nội thât được thiêt kê như căn hộ) (Motor-homes)",
+      "reviewed_row_text": "- - - - ------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text": "------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "previous_source_text": "------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87033211",
+      "code": "87033211",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 26,
+        "bbox": [
+          102.0,
+          188.5,
+          361.0,
+          203.5
+        ]
+      },
+      "native_pdf_text": "------0 tô cứu thương",
+      "reviewed_row_text": "- - - - ------Ô tô cứu thương",
+      "source_text": "------Ô tô cứu thương",
+      "previous_source_text": "------Ô tô cứu thương",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87033212",
+      "code": "87033212",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 26,
+        "bbox": [
+          102.0,
+          203.5,
+          361.0,
+          217.0
+        ]
+      },
+      "native_pdf_text": "------0 tô tang lễ",
+      "reviewed_row_text": "- - - - ------Ô tô tang lễ",
+      "source_text": "------Ô tô tang lễ",
+      "previous_source_text": "------Ô tô tang lễ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87033213",
+      "code": "87033213",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 26,
+        "bbox": [
+          102.0,
+          217.0,
+          361.0,
+          231.5
+        ]
+      },
+      "native_pdf_text": "------0 tô chở phạm nhân",
+      "reviewed_row_text": "- - - - ------Ô tô chở phạm nhân",
+      "source_text": "------Ô tô chở phạm nhân",
+      "previous_source_text": "------Ô tô chở phạm nhân",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87033214",
+      "code": "87033214",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 26,
+        "bbox": [
+          102.0,
+          231.5,
+          361.0,
+          259.5
+        ]
+      },
+      "native_pdf_text": "------0 tô nhà ở lưu động (có nội thât được thiêt kê như căn hộ) (Motor-homes)",
+      "reviewed_row_text": "- - - - ------ Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text": "------ Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "previous_source_text": "------ Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87033251",
+      "code": "87033251",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 27,
+        "bbox": [
+          102.0,
+          257.5,
+          361.0,
+          272.0
+        ]
+      },
+      "native_pdf_text": "------0 tô cứu thương",
+      "reviewed_row_text": "- - - - - Ô tô cứu thương",
+      "source_text": "- Ô tô cứu thương",
+      "previous_source_text": "- Ô tô cứu thương",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87033252",
+      "code": "87033252",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 27,
+        "bbox": [
+          102.0,
+          272.0,
+          361.0,
+          286.5
+        ]
+      },
+      "native_pdf_text": "------0 tô tang lễ",
+      "reviewed_row_text": "- - - - - Ô tô tang lễ",
+      "source_text": "- Ô tô tang lễ",
+      "previous_source_text": "- Ô tô tang lễ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87033253",
+      "code": "87033253",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 27,
+        "bbox": [
+          102.0,
+          286.5,
+          361.0,
+          301.0
+        ]
+      },
+      "native_pdf_text": "------0 tô chở phạm nhân",
+      "reviewed_row_text": "- - - - - Ô tô chở phạm nhân",
+      "source_text": "- Ô tô chở phạm nhân",
+      "previous_source_text": "- Ô tô chở phạm nhân",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87033254",
+      "code": "87033254",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 27,
+        "bbox": [
+          102.0,
+          301.0,
+          361.0,
+          329.5
+        ]
+      },
+      "native_pdf_text": "------0 tô nhà ở lưu động (có nội thât được thiêt kê như căn hộ) (Motor-homes)",
+      "reviewed_row_text": "- - - - ------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text": "------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "previous_source_text": "------Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87033351",
+      "code": "87033351",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 29,
+        "bbox": [
+          102.0,
+          243.5,
+          361.0,
+          257.5
+        ]
+      },
+      "native_pdf_text": "------0 tô cứu thương",
+      "reviewed_row_text": "- - - - ------Ô tô cứu thương",
+      "source_text": "------Ô tô cứu thương",
+      "previous_source_text": "------Ô tô cứu thương",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87033353",
+      "code": "87033353",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 29,
+        "bbox": [
+          102.0,
+          272.0,
+          361.0,
+          286.5
+        ]
+      },
+      "native_pdf_text": "------0 tô chở phạm nhân",
+      "reviewed_row_text": "- - - - ------Ô tô chở phạm nhân",
+      "source_text": "------Ô tô chở phạm nhân",
+      "previous_source_text": "------Ô tô chở phạm nhân",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87033354",
+      "code": "87033354",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 29,
+        "bbox": [
+          102.0,
+          286.5,
+          361.0,
+          314.5
+        ]
+      },
+      "native_pdf_text": "------0 tô nhà ở lưu động (có nội thât được thiêt kê như căn hộ) (Motor-homes)",
+      "reviewed_row_text": "- - - - ------ Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text": "------ Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "previous_source_text": "------ Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87033380",
+      "code": "87033380",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 29,
+        "bbox": [
+          102.0,
+          497.5,
+          361.0,
+          553.5
+        ]
+      },
+      "native_pdf_text": "-------0 tô khác (kê cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thê thao, nhưng không kê ô tô van), không phải loại bốn bánh chủ động",
+      "reviewed_row_text": "- - - - -------Ô tô khác (kể cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thể thao, nhưng không kể ô tô van), không phải loại bốn bánh chủ động",
+      "source_text": "-------Ô tô khác (kể cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thể thao, nhưng không kể ô tô van), không phải loại bốn bánh chủ động",
+      "previous_source_text": "-------Ô tô khác (kể cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thể thao, nhưng không kể ô tô van), không phải loại bốn bánh chủ động",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87034013",
+      "code": "87034013",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 30,
+        "bbox": [
+          102.0,
+          187.5,
+          361.0,
+          202.0
+        ]
+      },
+      "native_pdf_text": "— 0 tô cứu thương",
+      "reviewed_row_text": "- - - — Ô tô cứu thương",
+      "source_text": "— Ô tô cứu thương",
+      "previous_source_text": "— Ô tô cứu thương",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87034014",
+      "code": "87034014",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 30,
+        "bbox": [
+          102.0,
+          202.0,
+          361.0,
+          215.5
+        ]
+      },
+      "native_pdf_text": "— 0 tô tang lễ",
+      "reviewed_row_text": "- - - — Ô tô tang lễ",
+      "source_text": "— Ô tô tang lễ",
+      "previous_source_text": "— Ô tô tang lễ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87034015",
+      "code": "87034015",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 30,
+        "bbox": [
+          102.0,
+          215.5,
+          361.0,
+          230.5
+        ]
+      },
+      "native_pdf_text": "----0 tô chở phạm nhân",
+      "reviewed_row_text": "- - - ---- Ô tô chở phạm nhân",
+      "source_text": "---- Ô tô chở phạm nhân",
+      "previous_source_text": "---- Ô tô chở phạm nhân",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87036013",
+      "code": "87036013",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 39,
+        "bbox": [
+          102.0,
+          285.5,
+          361.0,
+          300.0
+        ]
+      },
+      "native_pdf_text": "— 0 tô cứu thương",
+      "reviewed_row_text": "- - - — Ô tô cứu thương",
+      "source_text": "— Ô tô cứu thương",
+      "previous_source_text": "— Ô tô cứu thương",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87036014",
+      "code": "87036014",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 39,
+        "bbox": [
+          102.0,
+          300.0,
+          361.0,
+          314.5
+        ]
+      },
+      "native_pdf_text": "— 0 tô tang lễ",
+      "reviewed_row_text": "- - - — Ô tô tang lễ",
+      "source_text": "— Ô tô tang lễ",
+      "previous_source_text": "— Ô tô tang lễ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87036015",
+      "code": "87036015",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 39,
+        "bbox": [
+          102.0,
+          314.5,
+          361.0,
+          328.5
+        ]
+      },
+      "native_pdf_text": "----0 tô chở phạm nhân",
+      "reviewed_row_text": "- - - ---- Ô tô chở phạm nhân",
+      "source_text": "---- Ô tô chở phạm nhân",
+      "previous_source_text": "---- Ô tô chở phạm nhân",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87037013",
+      "code": "87037013",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 44,
+        "bbox": [
+          102.0,
+          117.5,
+          361.0,
+          132.5
+        ]
+      },
+      "native_pdf_text": "— 0 tô cứu thương",
+      "reviewed_row_text": "- - - — Ô tô cứu thương",
+      "source_text": "— Ô tô cứu thương",
+      "previous_source_text": "— Ô tô cứu thương",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87037014",
+      "code": "87037014",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 44,
+        "bbox": [
+          102.0,
+          132.5,
+          361.0,
+          146.5
+        ]
+      },
+      "native_pdf_text": "— 0 tô tang lễ",
+      "reviewed_row_text": "- - - — Ô tô tang lễ",
+      "source_text": "— Ô tô tang lễ",
+      "previous_source_text": "— Ô tô tang lễ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87037015",
+      "code": "87037015",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 44,
+        "bbox": [
+          102.0,
+          146.5,
+          361.0,
+          160.5
+        ]
+      },
+      "native_pdf_text": "----0 tô chở phạm nhân",
+      "reviewed_row_text": "- - - ---- Ô tô chở phạm nhân",
+      "source_text": "---- Ô tô chở phạm nhân",
+      "previous_source_text": "---- Ô tô chở phạm nhân",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87038015",
+      "code": "87038015",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 48,
+        "bbox": [
+          102.0,
+          371.5,
+          361.0,
+          385.5
+        ]
+      },
+      "native_pdf_text": "----0 tô chở phạm nhân",
+      "reviewed_row_text": "- - - ---- Ô tô chở phạm nhân",
+      "source_text": "---- Ô tô chở phạm nhân",
+      "previous_source_text": "---- Ô tô chở phạm nhân",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87038095",
+      "code": "87038095",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          60.5,
+          361.0,
+          75.0
+        ]
+      },
+      "native_pdf_text": "----0 tô chở phạm nhân",
+      "reviewed_row_text": "- - - ---- Ô tô chở phạm nhân",
+      "source_text": "---- Ô tô chở phạm nhân",
+      "previous_source_text": "---- Ô tô chở phạm nhân",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87038096",
+      "code": "87038096",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          75.0,
+          361.0,
+          103.0
+        ]
+      },
+      "native_pdf_text": "---- 0 tô nhà ở lưu động (có nội thât được thiêt kê như căn hộ) (Motor-homes)",
+      "reviewed_row_text": "- - - ---- Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text": "---- Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "previous_source_text": "---- Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87038097",
+      "code": "87038097",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          103.0,
+          361.0,
+          117.0
+        ]
+      },
+      "native_pdf_text": "— 0 tô kiêu Sedan (SEN) (1)",
+      "reviewed_row_text": "- - - — Ô tô kiểu Sedan (SEN) (1)",
+      "source_text": "— Ô tô kiểu Sedan (SEN) (1)",
+      "previous_source_text": "— Ô tô kiểu Sedan (SEN) (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87038098",
+      "code": "87038098",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          117.0,
+          361.0,
+          159.5
+        ]
+      },
+      "native_pdf_text": "----0 tô khác (kê cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thê thao, nhưng không kê ô tô van)",
+      "reviewed_row_text": "- - - ----Ô tô khác (kể cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thể thao, nhưng không kể ô tô van)",
+      "source_text": "----Ô tô khác (kể cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thể thao, nhưng không kể ô tô van)",
+      "previous_source_text": "----Ô tô khác (kể cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thể thao, nhưng không kể ô tô van)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87039013",
+      "code": "87039013",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          230.5,
+          361.0,
+          245.0
+        ]
+      },
+      "native_pdf_text": "— 0 tô cứu thương",
+      "reviewed_row_text": "- - - — Ô tô cứu thương",
+      "source_text": "— Ô tô cứu thương",
+      "previous_source_text": "— Ô tô cứu thương",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87039014",
+      "code": "87039014",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          245.0,
+          361.0,
+          259.5
+        ]
+      },
+      "native_pdf_text": "— 0 tô tang lễ",
+      "reviewed_row_text": "- - - — Ô tô tang lễ",
+      "source_text": "— Ô tô tang lễ",
+      "previous_source_text": "— Ô tô tang lễ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87039015",
+      "code": "87039015",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          259.5,
+          361.0,
+          274.0
+        ]
+      },
+      "native_pdf_text": "----0 tô chở phạm nhân",
+      "reviewed_row_text": "- - - ---- Ô tô chở phạm nhân",
+      "source_text": "---- Ô tô chở phạm nhân",
+      "previous_source_text": "---- Ô tô chở phạm nhân",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87039016",
+      "code": "87039016",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          274.0,
+          361.0,
+          302.0
+        ]
+      },
+      "native_pdf_text": "---- 0 tô nhà ở lưu động (có nội thât được thiêt kê như căn hộ) (Motor-homes)",
+      "reviewed_row_text": "- - - ---- Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text": "---- Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "previous_source_text": "---- Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87039017",
+      "code": "87039017",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          302.0,
+          361.0,
+          316.0
+        ]
+      },
+      "native_pdf_text": "— 0 tô kiêu Sedan (SEN) (1)",
+      "reviewed_row_text": "- - - — Ô tô kiểu Sedan (SEN) (1)",
+      "source_text": "— Ô tô kiểu Sedan (SEN) (1)",
+      "previous_source_text": "— Ô tô kiểu Sedan (SEN) (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87039018",
+      "code": "87039018",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          316.0,
+          361.0,
+          358.5
+        ]
+      },
+      "native_pdf_text": "----0 tô khác (kê cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thê thao, nhưng không kê ô tô van)",
+      "reviewed_row_text": "- - - ----Ô tô khác (kể cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thể thao, nhưng không kể ô tô van)",
+      "source_text": "----Ô tô khác (kể cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thể thao, nhưng không kể ô tô van)",
+      "previous_source_text": "----Ô tô khác (kể cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thể thao, nhưng không kể ô tô van)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87039093",
+      "code": "87039093",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          415.0,
+          361.0,
+          429.5
+        ]
+      },
+      "native_pdf_text": "— 0 tô cứu thương",
+      "reviewed_row_text": "- - - — Ô tô cứu thương",
+      "source_text": "— Ô tô cứu thương",
+      "previous_source_text": "— Ô tô cứu thương",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87039094",
+      "code": "87039094",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          429.5,
+          361.0,
+          444.0
+        ]
+      },
+      "native_pdf_text": "— 0 tô tang lễ",
+      "reviewed_row_text": "- - - — Ô tô tang lễ",
+      "source_text": "— Ô tô tang lễ",
+      "previous_source_text": "— Ô tô tang lễ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87039095",
+      "code": "87039095",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          444.0,
+          361.0,
+          458.5
+        ]
+      },
+      "native_pdf_text": "----0 tô chở phạm nhân",
+      "reviewed_row_text": "- - - ---- Ô tô chở phạm nhân",
+      "source_text": "---- Ô tô chở phạm nhân",
+      "previous_source_text": "---- Ô tô chở phạm nhân",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87039096",
+      "code": "87039096",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          458.5,
+          361.0,
+          486.5
+        ]
+      },
+      "native_pdf_text": "---- 0 tô nhà ở lưu động (có nội thât được thiêt kê như căn hộ) (Motor-homes)",
+      "reviewed_row_text": "- - - ---- Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text": "---- Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "previous_source_text": "---- Ô tô nhà ở lưu động (có nội thât được thiết kế như căn hộ) (Motor-homes)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87039097",
+      "code": "87039097",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          486.5,
+          361.0,
+          501.0
+        ]
+      },
+      "native_pdf_text": "— 0 tô kiêu Sedan (SEN) (1)",
+      "reviewed_row_text": "- - - — Ô tô kiểu Sedan (SEN) (1)",
+      "source_text": "— Ô tô kiểu Sedan (SEN) (1)",
+      "previous_source_text": "— Ô tô kiểu Sedan (SEN) (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87039098",
+      "code": "87039098",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 49,
+        "bbox": [
+          102.0,
+          501.0,
+          361.0,
+          542.5
+        ]
+      },
+      "native_pdf_text": "----0 tô khác (kê cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thê thao, nhưng không kê ô tô van)",
+      "reviewed_row_text": "- - - ----Ô tô khác (kể cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thể thao, nhưng không kể ô tô van)",
+      "source_text": "----Ô tô khác (kể cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thể thao, nhưng không kể ô tô van)",
+      "previous_source_text": "----Ô tô khác (kể cả ô tô chở người có khoang chở hành lý chung (station wagons) và ô tô thể thao, nhưng không kể ô tô van)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042112",
+      "code": "87042112",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 51,
+        "bbox": [
+          102.0,
+          117.0,
+          361.0,
+          131.5
+        ]
+      },
+      "native_pdf_text": "------0 tô pick-up (1)",
+      "reviewed_row_text": "- - - - ------Ô tô pick-up (1)",
+      "source_text": "------Ô tô pick-up (1)",
+      "previous_source_text": "------Ô tô pick-up (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042122",
+      "code": "87042122",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 51,
+        "bbox": [
+          102.0,
+          188.5,
+          361.0,
+          216.5
+        ]
+      },
+      "native_pdf_text": "-------0 tô thu gom phế thải có bộ phận nén phế thải",
+      "reviewed_row_text": "- - - - ------- Ô tô thu gom phế thải có bộ phận nén phế thải",
+      "source_text": "------- Ô tô thu gom phế thải có bộ phận nén phế thải",
+      "previous_source_text": "------- Ô tô thu gom phế thải có bộ phận nén phế thải",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042126",
+      "code": "87042126",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 51,
+        "bbox": [
+          102.0,
+          287.5,
+          361.0,
+          302.0
+        ]
+      },
+      "native_pdf_text": "------0 tô pick-up (1)",
+      "reviewed_row_text": "- - - - ------Ô tô pick-up (1)",
+      "source_text": "------Ô tô pick-up (1)",
+      "previous_source_text": "------Ô tô pick-up (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042231",
+      "code": "87042231",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 52,
+        "bbox": [
+          102.0,
+          117.0,
+          361.0,
+          131.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042241",
+      "code": "87042241",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 52,
+        "bbox": [
+          102.0,
+          160.5,
+          361.0,
+          174.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042242",
+      "code": "87042242",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 52,
+        "bbox": [
+          102.0,
+          174.5,
+          361.0,
+          203.0
+        ]
+      },
+      "native_pdf_text": "---------0 tô thu gom phê thải có bộ phận nén phê thải",
+      "reviewed_row_text": "- - - - - ---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "previous_source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042243",
+      "code": "87042243",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 52,
+        "bbox": [
+          102.0,
+          203.0,
+          361.0,
+          230.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô xi téc; ô tô chở xi măng kiêu bồn",
+      "reviewed_row_text": "- - - - - - Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text": "- Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "previous_source_text": "- Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042245",
+      "code": "87042245",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 52,
+        "bbox": [
+          102.0,
+          230.5,
+          361.0,
+          245.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "reviewed_row_text": "- - - - - - Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text": "- Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "previous_source_text": "- Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042246",
+      "code": "87042246",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 52,
+        "bbox": [
+          102.0,
+          245.0,
+          361.0,
+          287.0
+        ]
+      },
+      "native_pdf_text": "---------0 tô bọc thép đê chở hàng hóa có giá trị, khối lượng toàn bộ theo thiêt kê (SEN) trên 6 tân nhưng không quá 10 tân",
+      "reviewed_row_text": "- - - - - ---------Ô tô bọc thép để chở hàng hóa có giá trị, khối lượng toàn bộ theo thiết kế (SEN) trên 6 tấn nhưng không quá 10 tấn",
+      "source_text": "---------Ô tô bọc thép để chở hàng hóa có giá trị, khối lượng toàn bộ theo thiết kế (SEN) trên 6 tấn nhưng không quá 10 tấn",
+      "previous_source_text": "---------Ô tô bọc thép để chở hàng hóa có giá trị, khối lượng toàn bộ theo thiết kế (SEN) trên 6 tấn nhưng không quá 10 tấn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042247",
+      "code": "87042247",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 52,
+        "bbox": [
+          102.0,
+          287.0,
+          361.0,
+          329.5
+        ]
+      },
+      "native_pdf_text": "---------0 tô bọc thép đê chở hàng hóa có giá trị, khối lượng toàn bộ theo thiêt kê ^ EN) trên 10 tân nhưng không quá 20 tân",
+      "reviewed_row_text": "- - - - - ---------Ô tô bọc thép để chở hàng hóa có giá trị, khối lượng toàn bộ theo thiết kế ^ EN) trên 10 tấn nhưng không quá 20 tấn",
+      "source_text": "---------Ô tô bọc thép để chở hàng hóa có giá trị, khối lượng toàn bộ theo thiết kế ^ EN) trên 10 tấn nhưng không quá 20 tấn",
+      "previous_source_text": "---------Ô tô bọc thép để chở hàng hóa có giá trị, khối lượng toàn bộ theo thiết kế ^ EN) trên 10 tấn nhưng không quá 20 tấn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042311",
+      "code": "87042311",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 52,
+        "bbox": [
+          102.0,
+          456.5,
+          361.0,
+          470.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042321",
+      "code": "87042321",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 52,
+        "bbox": [
+          102.0,
+          499.5,
+          361.0,
+          513.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042322",
+      "code": "87042322",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 52,
+        "bbox": [
+          102.0,
+          513.5,
+          361.0,
+          541.5
+        ]
+      },
+      "native_pdf_text": "---------0 tô thu gom phê thải có bộ phận nén phê thải",
+      "reviewed_row_text": "- - - - - ---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "previous_source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042323",
+      "code": "87042323",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 52,
+        "bbox": [
+          102.0,
+          541.5,
+          361.0,
+          556.5
+        ],
+        "continuations": [
+          {
+            "physical_page": 53,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "native_pdf_text": "--------0 tô xi téc; ô tô chở xi măng kiêu bồn ",
+      "reviewed_row_text": "- - - - - --------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "previous_source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042324",
+      "code": "87042324",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 53,
+        "bbox": [
+          102.0,
+          75.0,
+          361.0,
+          103.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô bọc thép đê chở hàng hóa có giá trị",
+      "reviewed_row_text": "- - - - - --------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "previous_source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042325",
+      "code": "87042325",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 53,
+        "bbox": [
+          102.0,
+          103.0,
+          361.0,
+          117.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "reviewed_row_text": "- - - - - --------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "previous_source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042351",
+      "code": "87042351",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 53,
+        "bbox": [
+          102.0,
+          174.0,
+          361.0,
+          188.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042361",
+      "code": "87042361",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 53,
+        "bbox": [
+          102.0,
+          216.5,
+          361.0,
+          231.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042362",
+      "code": "87042362",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 53,
+        "bbox": [
+          102.0,
+          231.5,
+          361.0,
+          259.5
+        ]
+      },
+      "native_pdf_text": "---------0 tô thu gom phê thải có bộ phận nén phê thải",
+      "reviewed_row_text": "- - - - - ---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "previous_source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042363",
+      "code": "87042363",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 53,
+        "bbox": [
+          102.0,
+          259.5,
+          361.0,
+          287.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô xi téc; ô tô chở xi măng kiêu bồn",
+      "reviewed_row_text": "- - - - - --------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "previous_source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042364",
+      "code": "87042364",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 53,
+        "bbox": [
+          102.0,
+          287.5,
+          361.0,
+          315.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô bọc thép đê chở hàng hóa có giá trị",
+      "reviewed_row_text": "- - - - - --------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "previous_source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042365",
+      "code": "87042365",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 53,
+        "bbox": [
+          102.0,
+          315.5,
+          361.0,
+          330.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "reviewed_row_text": "- - - - - - Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text": "- Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "previous_source_text": "- Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042366",
+      "code": "87042366",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 53,
+        "bbox": [
+          102.0,
+          330.5,
+          361.0,
+          344.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô tự đổ",
+      "reviewed_row_text": "- - - - - - Ô tô tự đổ",
+      "source_text": "- Ô tô tự đổ",
+      "previous_source_text": "- Ô tô tự đổ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042371",
+      "code": "87042371",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 53,
+        "bbox": [
+          102.0,
+          401.0,
+          361.0,
+          415.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042381",
+      "code": "87042381",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 53,
+        "bbox": [
+          102.0,
+          444.0,
+          361.0,
+          458.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042382",
+      "code": "87042382",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 53,
+        "bbox": [
+          102.0,
+          458.5,
+          361.0,
+          486.5
+        ]
+      },
+      "native_pdf_text": "---------0 tô thu gom phê thải có bộ phận nén phê thải",
+      "reviewed_row_text": "- - - - - ---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "previous_source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042384",
+      "code": "87042384",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 53,
+        "bbox": [
+          102.0,
+          486.5,
+          361.0,
+          514.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô bọc thép đê chở hàng hóa có giá trị",
+      "reviewed_row_text": "- - - - - --------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "previous_source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042385",
+      "code": "87042385",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 53,
+        "bbox": [
+          102.0,
+          514.5,
+          361.0,
+          529.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "reviewed_row_text": "- - - - - - Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text": "- Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "previous_source_text": "- Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87042386",
+      "code": "87042386",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 53,
+        "bbox": [
+          102.0,
+          529.5,
+          361.0,
+          543.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô tự đổ",
+      "reviewed_row_text": "- - - - - - Ô tô tự đổ",
+      "source_text": "- Ô tô tự đổ",
+      "previous_source_text": "- Ô tô tự đổ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043112",
+      "code": "87043112",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 54,
+        "bbox": [
+          102.0,
+          145.0,
+          361.0,
+          159.5
+        ]
+      },
+      "native_pdf_text": "------0 tô pick-up (1)",
+      "reviewed_row_text": "- - - - ------Ô tô pick-up (1)",
+      "source_text": "------Ô tô pick-up (1)",
+      "previous_source_text": "------Ô tô pick-up (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043126",
+      "code": "87043126",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 54,
+        "bbox": [
+          102.0,
+          315.5,
+          361.0,
+          330.5
+        ]
+      },
+      "native_pdf_text": "------0 tô pick-up (1)",
+      "reviewed_row_text": "- - - - ------Ô tô pick-up (1)",
+      "source_text": "------Ô tô pick-up (1)",
+      "previous_source_text": "------Ô tô pick-up (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043225",
+      "code": "87043225",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 55,
+        "bbox": [
+          102.0,
+          60.5,
+          361.0,
+          75.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "reviewed_row_text": "- - - - - --------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "previous_source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043231",
+      "code": "87043231",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 55,
+        "bbox": [
+          102.0,
+          131.5,
+          361.0,
+          145.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043241",
+      "code": "87043241",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 55,
+        "bbox": [
+          102.0,
+          174.5,
+          361.0,
+          188.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043242",
+      "code": "87043242",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 55,
+        "bbox": [
+          102.0,
+          188.5,
+          361.0,
+          216.5
+        ]
+      },
+      "native_pdf_text": "---------0 tô thu gom phê thải có bộ phận nén phê thải",
+      "reviewed_row_text": "- - - - - ---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "previous_source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043243",
+      "code": "87043243",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 55,
+        "bbox": [
+          102.0,
+          216.5,
+          361.0,
+          245.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô xi téc; ô tô chở xi măng kiêu bồn",
+      "reviewed_row_text": "- - - - - --------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "previous_source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043244",
+      "code": "87043244",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 55,
+        "bbox": [
+          102.0,
+          245.0,
+          361.0,
+          273.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô bọc thép đê chở hàng hóa có giá trị",
+      "reviewed_row_text": "- - - - - --------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "previous_source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043245",
+      "code": "87043245",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 55,
+        "bbox": [
+          102.0,
+          273.0,
+          361.0,
+          287.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "reviewed_row_text": "- - - - - --------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "previous_source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043251",
+      "code": "87043251",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 55,
+        "bbox": [
+          102.0,
+          372.5,
+          361.0,
+          386.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043261",
+      "code": "87043261",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 55,
+        "bbox": [
+          102.0,
+          415.0,
+          361.0,
+          429.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043262",
+      "code": "87043262",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 55,
+        "bbox": [
+          102.0,
+          429.5,
+          361.0,
+          457.5
+        ]
+      },
+      "native_pdf_text": "---------0 tô thu gom phê thải có bộ phận nén phê thải",
+      "reviewed_row_text": "- - - - - ---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "previous_source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043263",
+      "code": "87043263",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 55,
+        "bbox": [
+          102.0,
+          457.5,
+          361.0,
+          486.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô xi téc; ô tô chở xi măng kiêu bồn",
+      "reviewed_row_text": "- - - - - --------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "previous_source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043264",
+      "code": "87043264",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 55,
+        "bbox": [
+          102.0,
+          486.0,
+          361.0,
+          514.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô bọc thép đê chở hàng hóa có giá trị",
+      "reviewed_row_text": "- - - - - --------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "previous_source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043265",
+      "code": "87043265",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 55,
+        "bbox": [
+          102.0,
+          514.0,
+          361.0,
+          529.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "reviewed_row_text": "- - - - - --------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "previous_source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043272",
+      "code": "87043272",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 56,
+        "bbox": [
+          102.0,
+          88.5,
+          361.0,
+          103.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043281",
+      "code": "87043281",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 56,
+        "bbox": [
+          102.0,
+          132.5,
+          361.0,
+          146.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043282",
+      "code": "87043282",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 56,
+        "bbox": [
+          102.0,
+          146.5,
+          361.0,
+          174.5
+        ]
+      },
+      "native_pdf_text": "---------0 tô thu gom phê thải có bộ phận nén phê thải",
+      "reviewed_row_text": "- - - - - ---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "previous_source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043283",
+      "code": "87043283",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 56,
+        "bbox": [
+          102.0,
+          174.5,
+          361.0,
+          203.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô xi téc; ô tô chở xi măng kiêu bồn",
+      "reviewed_row_text": "- - - - - --------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "previous_source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043284",
+      "code": "87043284",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 56,
+        "bbox": [
+          102.0,
+          203.0,
+          361.0,
+          230.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô bọc thép đê chở hàng hóa có giá trị",
+      "reviewed_row_text": "- - - - - --------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "previous_source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043285",
+      "code": "87043285",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 56,
+        "bbox": [
+          102.0,
+          230.5,
+          361.0,
+          245.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "reviewed_row_text": "- - - - - - Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text": "- Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "previous_source_text": "- Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043286",
+      "code": "87043286",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 56,
+        "bbox": [
+          102.0,
+          245.0,
+          361.0,
+          259.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tự đổ",
+      "reviewed_row_text": "- - - - - - Ô tô tự đổ",
+      "source_text": "- Ô tô tự đổ",
+      "previous_source_text": "- Ô tô tự đổ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043291",
+      "code": "87043291",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 56,
+        "bbox": [
+          102.0,
+          316.0,
+          361.0,
+          330.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043293",
+      "code": "87043293",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 56,
+        "bbox": [
+          102.0,
+          359.5,
+          361.0,
+          373.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043294",
+      "code": "87043294",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 56,
+        "bbox": [
+          102.0,
+          373.5,
+          361.0,
+          402.0
+        ]
+      },
+      "native_pdf_text": "---------0 tô thu gom phê thải có bộ phận nén phê thải",
+      "reviewed_row_text": "- - - - - ---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "previous_source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043295",
+      "code": "87043295",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 56,
+        "bbox": [
+          102.0,
+          402.0,
+          361.0,
+          429.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô xi téc; ô tô chở xi măng kiêu bồn",
+      "reviewed_row_text": "- - - - - --------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "previous_source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043296",
+      "code": "87043296",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 56,
+        "bbox": [
+          102.0,
+          429.5,
+          361.0,
+          457.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô bọc thép đê chở hàng hóa có giá trị",
+      "reviewed_row_text": "- - - - - --------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "previous_source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043297",
+      "code": "87043297",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 56,
+        "bbox": [
+          102.0,
+          457.5,
+          361.0,
+          472.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "reviewed_row_text": "- - - - - - Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text": "- Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "previous_source_text": "- Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87043298",
+      "code": "87043298",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 56,
+        "bbox": [
+          102.0,
+          472.0,
+          361.0,
+          486.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tự đổ",
+      "reviewed_row_text": "- - - - - - Ô tô tự đổ",
+      "source_text": "- Ô tô tự đổ",
+      "previous_source_text": "- Ô tô tự đổ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044122",
+      "code": "87044122",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 57,
+        "bbox": [
+          102.0,
+          160.5,
+          361.0,
+          188.5
+        ]
+      },
+      "native_pdf_text": "-------0 tô thu gom phế thải có bộ phận nén phế thải",
+      "reviewed_row_text": "- - - - ------- Ô tô thu gom phế thải có bộ phận nén phế thải",
+      "source_text": "------- Ô tô thu gom phế thải có bộ phận nén phế thải",
+      "previous_source_text": "------- Ô tô thu gom phế thải có bộ phận nén phế thải",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044126",
+      "code": "87044126",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 57,
+        "bbox": [
+          102.0,
+          258.5,
+          361.0,
+          273.0
+        ]
+      },
+      "native_pdf_text": "------0 tô pick-up (1)",
+      "reviewed_row_text": "- - - - ------Ô tô pick-up (1)",
+      "source_text": "------Ô tô pick-up (1)",
+      "previous_source_text": "------Ô tô pick-up (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044231",
+      "code": "87044231",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 58,
+        "bbox": [
+          102.0,
+          88.5,
+          361.0,
+          103.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044241",
+      "code": "87044241",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 58,
+        "bbox": [
+          102.0,
+          132.5,
+          361.0,
+          146.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044242",
+      "code": "87044242",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 58,
+        "bbox": [
+          102.0,
+          146.5,
+          361.0,
+          174.5
+        ]
+      },
+      "native_pdf_text": "---------0 tô thu gom phê thải có bộ phận nén phê thải",
+      "reviewed_row_text": "- - - - - ---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "previous_source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044243",
+      "code": "87044243",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 58,
+        "bbox": [
+          102.0,
+          174.5,
+          361.0,
+          203.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô xi téc; ô tô chở xi măng kiêu bồn",
+      "reviewed_row_text": "- - - - - --------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "previous_source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044245",
+      "code": "87044245",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 58,
+        "bbox": [
+          102.0,
+          203.0,
+          361.0,
+          216.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "reviewed_row_text": "- - - - - --------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "previous_source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044246",
+      "code": "87044246",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 58,
+        "bbox": [
+          102.0,
+          216.5,
+          361.0,
+          258.5
+        ]
+      },
+      "native_pdf_text": "---------0 tô bọc thép đê chở hàng hóa có giá trị, khối lượng toàn bộ theo thiêt kê (SEN) trên 6 tân nhưng không quá 10 tân",
+      "reviewed_row_text": "- - - - - ---------Ô tô bọc thép để chở hàng hóa có giá trị, khối lượng toàn bộ theo thiết kế (SEN) trên 6 tấn nhưng không quá 10 tấn",
+      "source_text": "---------Ô tô bọc thép để chở hàng hóa có giá trị, khối lượng toàn bộ theo thiết kế (SEN) trên 6 tấn nhưng không quá 10 tấn",
+      "previous_source_text": "---------Ô tô bọc thép để chở hàng hóa có giá trị, khối lượng toàn bộ theo thiết kế (SEN) trên 6 tấn nhưng không quá 10 tấn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044247",
+      "code": "87044247",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 58,
+        "bbox": [
+          102.0,
+          258.5,
+          361.0,
+          301.0
+        ]
+      },
+      "native_pdf_text": "---------0 tô bọc thép đê chở hàng hóa có giá trị, khối lượng toàn bộ theo thiêt kê (SEN) trên 10 tân nhưng không quá 20 tân",
+      "reviewed_row_text": "- - - - - ---------Ô tô bọc thép để chở hàng hóa có giá trị, khối lượng toàn bộ theo thiết kế (SEN) trên 10 tấn nhưng không quá 20 tấn",
+      "source_text": "---------Ô tô bọc thép để chở hàng hóa có giá trị, khối lượng toàn bộ theo thiết kế (SEN) trên 10 tấn nhưng không quá 20 tấn",
+      "previous_source_text": "---------Ô tô bọc thép để chở hàng hóa có giá trị, khối lượng toàn bộ theo thiết kế (SEN) trên 10 tấn nhưng không quá 20 tấn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044311",
+      "code": "87044311",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 58,
+        "bbox": [
+          102.0,
+          428.5,
+          361.0,
+          442.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044321",
+      "code": "87044321",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 58,
+        "bbox": [
+          102.0,
+          471.0,
+          361.0,
+          485.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044322",
+      "code": "87044322",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 58,
+        "bbox": [
+          102.0,
+          485.5,
+          361.0,
+          513.5
+        ]
+      },
+      "native_pdf_text": "---------0 tô thu gom phê thải có bộ phận nén phê thải",
+      "reviewed_row_text": "- - - - - ---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "previous_source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044323",
+      "code": "87044323",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 58,
+        "bbox": [
+          102.0,
+          513.5,
+          361.0,
+          541.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô xi téc; ô tô chở xi măng kiêu bồn",
+      "reviewed_row_text": "- - - - - --------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "previous_source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044324",
+      "code": "87044324",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 58,
+        "bbox": [
+          102.0,
+          541.5,
+          361.0,
+          556.5
+        ],
+        "continuations": [
+          {
+            "physical_page": 59,
+            "bbox": [
+              102.0,
+              60.5,
+              361.0,
+              75.0
+            ]
+          }
+        ]
+      },
+      "native_pdf_text": "--------0 tô bọc thép đê chở hàng hóa có giá trị ",
+      "reviewed_row_text": "- - - - - --------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "previous_source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044325",
+      "code": "87044325",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 59,
+        "bbox": [
+          102.0,
+          75.0,
+          361.0,
+          88.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "reviewed_row_text": "- - - - - --------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "previous_source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044351",
+      "code": "87044351",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 59,
+        "bbox": [
+          102.0,
+          145.5,
+          361.0,
+          160.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044361",
+      "code": "87044361",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 59,
+        "bbox": [
+          102.0,
+          188.5,
+          361.0,
+          203.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044362",
+      "code": "87044362",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 59,
+        "bbox": [
+          102.0,
+          203.5,
+          361.0,
+          231.5
+        ]
+      },
+      "native_pdf_text": "---------0 tô thu gom phê thải có bộ phận nén phê thải",
+      "reviewed_row_text": "- - - - - ---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "previous_source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044363",
+      "code": "87044363",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 59,
+        "bbox": [
+          102.0,
+          231.5,
+          361.0,
+          259.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô xi téc; ô tô chở xi măng kiêu bồn",
+      "reviewed_row_text": "- - - - - --------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "previous_source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044364",
+      "code": "87044364",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 59,
+        "bbox": [
+          102.0,
+          259.5,
+          361.0,
+          287.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô bọc thép đê chở hàng hóa có giá trị",
+      "reviewed_row_text": "- - - - - --------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "previous_source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044365",
+      "code": "87044365",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 59,
+        "bbox": [
+          102.0,
+          287.5,
+          361.0,
+          302.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "reviewed_row_text": "- - - - - --------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "previous_source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044371",
+      "code": "87044371",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 59,
+        "bbox": [
+          102.0,
+          358.5,
+          361.0,
+          373.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044381",
+      "code": "87044381",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 59,
+        "bbox": [
+          102.0,
+          402.0,
+          361.0,
+          415.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87044386",
+      "code": "87044386",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 59,
+        "bbox": [
+          102.0,
+          415.5,
+          361.0,
+          430.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tự đổ",
+      "reviewed_row_text": "- - - - - --------Ô tô tự đổ",
+      "source_text": "--------Ô tô tự đổ",
+      "previous_source_text": "--------Ô tô tự đổ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045111",
+      "code": "87045111",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 59,
+        "bbox": [
+          102.0,
+          529.5,
+          361.0,
+          543.0
+        ]
+      },
+      "native_pdf_text": "------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - ------Ô tô tải đông lạnh (1)",
+      "source_text": "------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045121",
+      "code": "87045121",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 60,
+        "bbox": [
+          102.0,
+          75.0,
+          361.0,
+          88.5
+        ]
+      },
+      "native_pdf_text": "------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - ------Ô tô tải đông lạnh (1)",
+      "source_text": "------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045122",
+      "code": "87045122",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 60,
+        "bbox": [
+          102.0,
+          88.5,
+          361.0,
+          117.0
+        ]
+      },
+      "native_pdf_text": "-------0 tô thu gom phê thải có bộ phận nén phê thải",
+      "reviewed_row_text": "- - - - -------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text": "-------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "previous_source_text": "-------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045123",
+      "code": "87045123",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 60,
+        "bbox": [
+          102.0,
+          117.0,
+          361.0,
+          145.0
+        ]
+      },
+      "native_pdf_text": "------0 tô xi téc; ô tô chở xi măng kiêu bồn",
+      "reviewed_row_text": "- - - - - Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text": "- Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "previous_source_text": "- Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045124",
+      "code": "87045124",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 60,
+        "bbox": [
+          102.0,
+          145.0,
+          361.0,
+          173.5
+        ]
+      },
+      "native_pdf_text": "------0 tô bọc thép đê chở hàng hóa có giá trị",
+      "reviewed_row_text": "- - - - - Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text": "- Ô tô bọc thép để chở hàng hóa có giá trị",
+      "previous_source_text": "- Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045125",
+      "code": "87045125",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 60,
+        "bbox": [
+          102.0,
+          173.5,
+          361.0,
+          187.5
+        ]
+      },
+      "native_pdf_text": "------0 tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "reviewed_row_text": "- - - - - Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text": "- Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "previous_source_text": "- Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045211",
+      "code": "87045211",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 60,
+        "bbox": [
+          102.0,
+          287.5,
+          361.0,
+          302.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045221",
+      "code": "87045221",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 60,
+        "bbox": [
+          102.0,
+          330.5,
+          361.0,
+          344.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045222",
+      "code": "87045222",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 60,
+        "bbox": [
+          102.0,
+          344.5,
+          361.0,
+          373.0
+        ]
+      },
+      "native_pdf_text": "---------0 tô thu gom phê thải có bộ phận nén phê thải",
+      "reviewed_row_text": "- - - - - ---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "previous_source_text": "---------Ô tô thu gom phê thải có bộ phận nén phê thải",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045223",
+      "code": "87045223",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 60,
+        "bbox": [
+          102.0,
+          373.0,
+          361.0,
+          401.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô xi téc; ô tô chở xi măng kiêu bồn",
+      "reviewed_row_text": "- - - - - --------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "previous_source_text": "--------Ô tô xi téc; ô tô chở xi măng kiểu bồn",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045224",
+      "code": "87045224",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 60,
+        "bbox": [
+          102.0,
+          401.0,
+          361.0,
+          429.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô bọc thép đê chở hàng hóa có giá trị",
+      "reviewed_row_text": "- - - - - --------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "previous_source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045225",
+      "code": "87045225",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 60,
+        "bbox": [
+          102.0,
+          429.5,
+          361.0,
+          443.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "reviewed_row_text": "- - - - - --------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "previous_source_text": "--------Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045231",
+      "code": "87045231",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 60,
+        "bbox": [
+          102.0,
+          500.5,
+          361.0,
+          514.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045241",
+      "code": "87045241",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 60,
+        "bbox": [
+          102.0,
+          543.0,
+          361.0,
+          557.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045284",
+      "code": "87045284",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 62,
+        "bbox": [
+          102.0,
+          75.0,
+          361.0,
+          103.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô bọc thép đê chở hàng hóa có giá trị",
+      "reviewed_row_text": "- - - - - --------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "previous_source_text": "--------Ô tô bọc thép để chở hàng hóa có giá trị",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045285",
+      "code": "87045285",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 62,
+        "bbox": [
+          102.0,
+          103.0,
+          361.0,
+          117.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "reviewed_row_text": "- - - - - - Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text": "- Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "previous_source_text": "- Ô tô chở bùn có thùng rời nâng hạ được(SEN)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045286",
+      "code": "87045286",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 62,
+        "bbox": [
+          102.0,
+          117.0,
+          361.0,
+          131.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tự đổ",
+      "reviewed_row_text": "- - - - - - Ô tô tự đổ",
+      "source_text": "- Ô tô tự đổ",
+      "previous_source_text": "- Ô tô tự đổ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045291",
+      "code": "87045291",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 62,
+        "bbox": [
+          102.0,
+          188.5,
+          361.0,
+          203.0
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045293",
+      "code": "87045293",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 62,
+        "bbox": [
+          102.0,
+          231.5,
+          361.0,
+          245.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tải đông lạnh (1)",
+      "reviewed_row_text": "- - - - - --------Ô tô tải đông lạnh (1)",
+      "source_text": "--------Ô tô tải đông lạnh (1)",
+      "previous_source_text": "--------Ô tô tải đông lạnh (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87045294",
+      "code": "87045294",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 62,
+        "bbox": [
+          102.0,
+          245.5,
+          361.0,
+          259.5
+        ]
+      },
+      "native_pdf_text": "--------0 tô tự đổ",
+      "reviewed_row_text": "- - - - - --------Ô tô tự đổ",
+      "source_text": "--------Ô tô tự đổ",
+      "previous_source_text": "--------Ô tô tự đổ",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87046011",
+      "code": "87046011",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 62,
+        "bbox": [
+          102.0,
+          316.5,
+          361.0,
+          331.5
+        ]
+      },
+      "native_pdf_text": "----0 tô pick-up (1)",
+      "reviewed_row_text": "- - - ---- Ô tô pick-up (1)",
+      "source_text": "---- Ô tô pick-up (1)",
+      "previous_source_text": "---- Ô tô pick-up (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    },
+    {
+      "id": "tt31:SXVII_HS8_87046021",
+      "code": "87046021",
+      "status": "VISUALLY_VERIFIED",
+      "reviewed_on": "2026-10-13",
+      "basis": "ORIGINAL_PDF_RASTER_VISUAL_COMPARISON",
+      "locator": {
+        "document": "TT31-Section-XVII.pdf",
+        "sha256": "00a24df2696660b5f6ad06f37d01f28d2e64b8d57439929913d5df14275c7ecf",
+        "physical_page": 62,
+        "bbox": [
+          102.0,
+          387.5,
+          361.0,
+          402.5
+        ]
+      },
+      "native_pdf_text": "----0 tô pick-up (1)",
+      "reviewed_row_text": "- - - ---- Ô tô pick-up (1)",
+      "source_text": "---- Ô tô pick-up (1)",
+      "previous_source_text": "---- Ô tô pick-up (1)",
+      "source_text_changed": false,
+      "reason": "ZERO_INSTEAD_OF_CAPITAL_O_CIRCUMFLEX"
+    }
+  ]
+}

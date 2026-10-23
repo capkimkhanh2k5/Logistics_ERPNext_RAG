@@ -1,0 +1,242 @@
+[
+  {
+    "document_no": "54/2014/QH13",
+    "document_type": "Luật",
+    "name": "Luật Hải quan",
+    "relation": "LEGAL_BASIS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "54/2014/QH13",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "107/2016/QH13",
+    "document_type": "Luật",
+    "name": "Luật Thuế xuất khẩu, thuế nhập khẩu",
+    "relation": "LEGAL_BASIS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "107/2016/QH13",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "90/2025/QH15",
+    "document_type": "Luật",
+    "name": "Luật sửa đổi, bổ sung nhiều luật, gồm Luật Hải quan và Luật Thuế xuất nhập khẩu",
+    "relation": "AMENDS_REFERENCED_LAWS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "90/2025/QH15",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "36/2005/QH11",
+    "document_type": "Luật",
+    "name": "Luật Thương mại",
+    "relation": "LEGAL_BASIS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "36/2005/QH11",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "55/2007/QH12",
+    "document_type": "Luật",
+    "name": "Luật Chất lượng sản phẩm, hàng hóa",
+    "relation": "LEGAL_BASIS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "55/2007/QH12",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "35/2018/QH14",
+    "document_type": "Luật",
+    "name": "Văn bản sửa đổi Luật Chất lượng sản phẩm, hàng hóa",
+    "relation": "AMENDS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "35/2018/QH14",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "78/2025/QH15",
+    "document_type": "Luật",
+    "name": "Văn bản sửa đổi Luật Chất lượng sản phẩm, hàng hóa",
+    "relation": "AMENDS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "78/2025/QH15",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "08/2015/NĐ-CP",
+    "document_type": "Nghị định",
+    "name": "Quy định chi tiết và biện pháp thi hành Luật Hải quan",
+    "relation": "LEGAL_BASIS_AND_PROCEDURE",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "08/2015/NĐ-CP",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "167/2025/NĐ-CP",
+    "document_type": "Nghị định",
+    "name": "Sửa đổi, bổ sung Nghị định 08/2015/NĐ-CP",
+    "relation": "AMENDS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "167/2025/NĐ-CP",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "134/2016/NĐ-CP",
+    "document_type": "Nghị định",
+    "name": "Quy định chi tiết Luật Thuế xuất khẩu, thuế nhập khẩu",
+    "relation": "LEGAL_BASIS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "134/2016/NĐ-CP",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "18/2021/NĐ-CP",
+    "document_type": "Nghị định",
+    "name": "Sửa đổi Nghị định 134/2016/NĐ-CP",
+    "relation": "AMENDS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "18/2021/NĐ-CP",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "182/2025/NĐ-CP",
+    "document_type": "Nghị định",
+    "name": "Sửa đổi Nghị định 134/2016/NĐ-CP",
+    "relation": "AMENDS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "182/2025/NĐ-CP",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "20/2006/NĐ-CP",
+    "document_type": "Nghị định",
+    "name": "Kinh doanh dịch vụ giám định thương mại",
+    "relation": "LEGAL_BASIS_FOR_INSPECTION",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "20/2006/NĐ-CP",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "125/2014/NĐ-CP",
+    "document_type": "Nghị định",
+    "name": "Sửa đổi Nghị định 20/2006/NĐ-CP",
+    "relation": "AMENDS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "125/2014/NĐ-CP",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "69/2018/NĐ-CP",
+    "document_type": "Nghị định",
+    "name": "Quy định chi tiết một số điều của Luật Quản lý ngoại thương",
+    "relation": "TRADE_CONTROL_REFERENCE",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "69/2018/NĐ-CP",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "29/2025/NĐ-CP",
+    "document_type": "Nghị định",
+    "name": "Chức năng, nhiệm vụ, quyền hạn và cơ cấu tổ chức của Bộ Tài chính",
+    "relation": "AUTHORITY_BASIS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "29/2025/NĐ-CP",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "166/2025/NĐ-CP",
+    "document_type": "Nghị định",
+    "name": "Sửa đổi Nghị định 29/2025/NĐ-CP",
+    "relation": "AMENDS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "166/2025/NĐ-CP",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "121/2025/TT-BTC",
+    "document_type": "Thông tư",
+    "name": "Sửa đổi các Thông tư về thủ tục hải quan, thuế XNK và quản lý thuế",
+    "relation": "PROCEDURE_AND_FORM_REFERENCE",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "121/2025/TT-BTC",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "38/2015/TT-BTC",
+    "document_type": "Thông tư",
+    "name": "Thủ tục hải quan; kiểm tra, giám sát; thuế XNK và quản lý thuế",
+    "relation": "TECHNICAL_ASSESSMENT_REFERENCE",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "38/2015/TT-BTC",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "39/2018/TT-BTC",
+    "document_type": "Thông tư",
+    "name": "Sửa đổi Thông tư 38/2015/TT-BTC",
+    "relation": "AMENDS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "39/2018/TT-BTC",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "02/2011/QH13",
+    "document_type": "Luật",
+    "name": "Luật Khiếu nại",
+    "relation": "APPEAL_REFERENCE",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "02/2011/QH13",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "14/2015/TT-BTC",
+    "document_type": "Thông tư",
+    "name": "Thông tư cũ về phân loại/phân tích hàng hóa",
+    "relation": "REPLACED_BY_TT85",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "14/2015/TT-BTC",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "17/2021/TT-BTC",
+    "document_type": "Thông tư",
+    "name": "Sửa đổi TT14/2015/TT-BTC",
+    "relation": "REPLACED_BY_TT85",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "17/2021/TT-BTC",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  },
+  {
+    "document_no": "AHTN_PROTOCOL",
+    "document_type": "Điều ước/Nghị định thư",
+    "name": "Nghị định thư quy định việc thực hiện Danh mục thuế quan hài hòa ASEAN",
+    "relation": "INTERNATIONAL_BASIS",
+    "provenance": "DERIVED_FOR_AI",
+    "source_backed_identifier": true,
+    "exact_source_identifier": "Nghị định thư quy định việc thực hiện Danh mục thuế quan hài hòa ASEAN",
+    "derived_notice": "name/relation are normalization labels; the cited document identifier is checked against TT85."
+  }
+]

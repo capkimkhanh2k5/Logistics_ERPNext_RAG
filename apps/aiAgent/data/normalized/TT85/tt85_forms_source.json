@@ -1,0 +1,102 @@
+[
+  {
+    "provenance": "SOURCE_EXTRACTED",
+    "form_no": "01",
+    "code": "01/PYCPT/2026",
+    "title": "Phiếu yêu cầu phân tích hàng hóa xuất khẩu, nhập khẩu kiêm Biên bản lấy mẫu",
+    "source": "Phụ lục TT85/2026",
+    "fields": [
+      "Tên hàng theo khai báo",
+      "Mã số hàng hóa theo khai báo",
+      "Số/ngày tờ khai hải quan",
+      "Số/ngày C/O (nếu có)",
+      "Đơn vị XK/NK",
+      "Ngày và địa điểm lấy mẫu",
+      "Người lấy mẫu",
+      "Đặc điểm và quy cách đóng gói mẫu",
+      "Số lượng mẫu/chi tiết mẫu",
+      "Hình thức kiểm tra thực tế",
+      "Số niêm phong hải quan",
+      "Hồ sơ kèm theo",
+      "Nội dung yêu cầu phân tích",
+      "Yêu cầu lấy lại mẫu và người được ủy quyền"
+    ]
+  },
+  {
+    "provenance": "SOURCE_EXTRACTED",
+    "form_no": "02",
+    "code": "02/PTNYCPT/2026",
+    "title": "Phiếu tiếp nhận yêu cầu phân tích hàng hóa xuất khẩu, nhập khẩu",
+    "source": "Phụ lục TT85/2026",
+    "fields": [
+      "Thời gian tiếp nhận",
+      "Số/ngày phiếu yêu cầu",
+      "Đơn vị yêu cầu",
+      "Tên mẫu theo khai báo",
+      "Số/ngày tờ khai",
+      "Số/ngày C/O",
+      "Đơn vị XK/NK hoặc tổ chức/cá nhân",
+      "Số lượng mẫu",
+      "Phân công thực hiện phân tích và lưu ý"
+    ]
+  },
+  {
+    "provenance": "SOURCE_EXTRACTED",
+    "form_no": "03",
+    "code": "03/BBTLMHH/2026",
+    "title": "Biên bản trả lại mẫu đã tiếp nhận yêu cầu phân tích",
+    "source": "Phụ lục TT85/2026",
+    "fields": [
+      "Thời gian trả mẫu",
+      "Tên mẫu",
+      "Số tờ khai",
+      "Số thông báo kết quả phân tích",
+      "Số lượng mẫu",
+      "Đơn vị đề nghị trả mẫu",
+      "Số/ngày công văn",
+      "Người nhận lại mẫu",
+      "Giấy ủy quyền",
+      "Người trả mẫu",
+      "Lưu ý"
+    ]
+  },
+  {
+    "provenance": "SOURCE_EXTRACTED",
+    "form_no": "04",
+    "code": "04/TBKQPTPL/2026",
+    "title": "Thông báo về kết quả phân tích, phân loại đối với hàng hóa xuất khẩu, nhập khẩu",
+    "source": "Phụ lục TT85/2026",
+    "fields": [
+      "Tên hàng theo khai báo",
+      "Hình ảnh hàng hóa",
+      "Tóm tắt mô tả và đặc tính hàng hóa",
+      "Kết quả phân tích và thuộc tính ảnh hưởng tới bản chất hàng hóa",
+      "Mô tả hàng hóa theo Danh mục hàng hóa XNK Việt Nam",
+      "Nhóm",
+      "Phân nhóm",
+      "Mã số phân loại",
+      "Ngày hiệu lực",
+      "Đơn vị XK/NK",
+      "Địa chỉ",
+      "Mã số thuế",
+      "Số/ngày tờ khai",
+      "Ký hiệu sản phẩm",
+      "Quy trình sản xuất (nếu có)"
+    ]
+  },
+  {
+    "provenance": "SOURCE_EXTRACTED",
+    "form_no": "05",
+    "code": "05/PGTL/2026",
+    "title": "Phiếu ghi số, ngày văn bản, chứng từ thuộc hồ sơ hải quan liên quan đến mẫu hàng hoá",
+    "source": "Phụ lục TT85/2026",
+    "fields": [
+      "Phiếu yêu cầu phân tích/kiểm tra đánh giá tiêu chí kỹ thuật",
+      "Phiếu ghi kết quả kiểm tra thực tế hàng hóa",
+      "Các tài liệu liên quan khác",
+      "Tổng số tờ tài liệu",
+      "Công chức bàn giao",
+      "Công chức nhận hồ sơ"
+    ]
+  }
+]
