@@ -16,6 +16,9 @@ services:
       DB_PORT: "3306"
       MYSQL_ROOT_PASSWORD: admin
       MARIADB_ROOT_PASSWORD: admin
+      RAG_DB_HOST: postgres
+      RAG_DB_PORT: "5432"
+      CLIPROXYAPI_BASE_URL: http://cliproxyapi:8317/v1
     depends_on:
       create-site:
         condition: service_completed_successfully
@@ -245,11 +248,73 @@ services:
       create-site:
         condition: service_completed_successfully
 
+  # ── AI RAG Services ────────────────────────────────────────────────────────
+  postgres:
+    image: pgvector/pgvector:0.8.0-pg17
+    networks:
+      - frappe_network
+    env_file:
+      - ./apps/aiAgent/.env
+    ports:
+      - "127.0.0.1:${RAG_DB_PORT:-55432}:5432"
+    volumes:
+      - rag-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  cliproxyapi:
+    image: aiagent-cliproxyapi:8.0.29
+    build:
+      context: ./apps/aiAgent/config/cliproxyapi
+    command: ["./CLIProxyAPI", "-config", "/CLIProxyAPI/config/config.yaml"]
+    env_file:
+      - ./apps/aiAgent/config/cliproxyapi/local/credentials.env
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+      MANAGEMENT_STATIC_PATH: /CLIProxyAPI/static
+    ports:
+      - "127.0.0.1:${CLIPROXYAPI_PORT:-8317}:8317"
+      - "127.0.0.1:51121:51121"
+    networks:
+      - frappe_network
+    volumes:
+      - type: bind
+        source: ./apps/aiAgent/config/cliproxyapi/local
+        target: /CLIProxyAPI/config
+        bind:
+          create_host_path: false
+      - cliproxyapi-auth:/root/.cli-proxy-api
+      - cliproxyapi-logs:/CLIProxyAPI/logs
+      - cliproxyapi-static:/CLIProxyAPI/static
+      - cliproxyapi-plugins:/CLIProxyAPI/plugins
+    restart: unless-stopped
+
 volumes:
   db-data:
   redis-queue-data:
   sites:
   logs:
+  rag-postgres-data:
+    name: aiagent-rag_rag-postgres-data
+    external: true
+  cliproxyapi-auth:
+    name: aiagent-rag_cliproxyapi-auth
+    external: true
+  cliproxyapi-logs:
+    name: aiagent-rag_cliproxyapi-logs
+    external: true
+  cliproxyapi-static:
+    name: aiagent-rag_cliproxyapi-static
+    external: true
+  cliproxyapi-plugins:
+    name: aiagent-rag_cliproxyapi-plugins
+    external: true
 
 networks:
   frappe_network:

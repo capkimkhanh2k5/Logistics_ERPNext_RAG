@@ -1,3 +1,6 @@
+# NOTE: Toàn bộ service AI RAG (postgres pgvector, cliproxyapi) đã được hợp nhất 
+# vào file docker-compose chính tại `frappe-bench/docker-compose.yml`.
+# Khuyến nghị khởi động chung bằng lệnh: cd frappe-bench && docker compose up -d
 name: aiagent-rag
 services:
   postgres:
