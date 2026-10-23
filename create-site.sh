@@ -26,6 +26,35 @@ echo ">>> Checking if site '$SITE_NAME' already exists..."
 
 if bench --site "$SITE_NAME" list-apps > /dev/null 2>&1; then
     echo ">>> Site '$SITE_NAME' already exists. Skipping site creation."
+    echo ">>> Running bench migrate to sync DocTypes and Pages..."
+    bench --site "$SITE_NAME" migrate || true
+    $BENCH_DIR/env/bin/python3 -c "
+import frappe, os
+sites_dir = '$BENCH_DIR/sites'
+if os.path.exists(sites_dir): os.chdir(sites_dir)
+try:
+    frappe.init(site='$SITE_NAME')
+    frappe.connect()
+    from frappe.modules.import_file import import_file_by_path
+    app_path = frappe.get_app_path('logistics_wizard')
+    items_to_sync = [
+        ('page', 'shipment_tracking_hub', 'shipment_tracking_hub.json'),
+        ('page', 'managementlogistic', 'managementlogistic.json'),
+        ('page', 'trade_case_overview', 'trade_case_overview.json'),
+        ('page', 'logistics_ai_chatbot', 'logistics_ai_chatbot.json'),
+        ('page', 'trade_cost_dashboard', 'trade_cost_dashboard.json'),
+        ('page', 'rag_admin_center', 'rag_admin_center.json'),
+        ('workspace', 'logistics_wizard', 'logistics_wizard.json')
+    ]
+    for sub in items_to_sync:
+        f_path = os.path.join(app_path, *sub)
+        if os.path.exists(f_path):
+            import_file_by_path(f_path, force=True)
+            print(f'>>> Registered {sub[-1]} successfully.')
+    frappe.db.commit()
+except Exception as e:
+    print('>>> Page/Workspace sync error:', e)
+" || true
 else
     echo ">>> Creating site '$SITE_NAME'..."
     bench new-site "$SITE_NAME" \

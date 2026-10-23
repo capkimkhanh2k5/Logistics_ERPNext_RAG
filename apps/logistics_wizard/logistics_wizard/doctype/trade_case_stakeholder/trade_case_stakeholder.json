@@ -1,0 +1,73 @@
+{
+ "actions": [],
+ "creation": "2026-10-02 21:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "domain",
+  "user",
+  "full_name",
+  "contact_email",
+  "hand_off_status",
+  "is_primary"
+ ],
+ "fields": [
+  {
+   "default": "Procurement",
+   "fieldname": "domain",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Phân hệ nghiệp vụ (Domain)",
+   "options": "Procurement\nLogistics\nCustoms\nWarehousing\nAccounting",
+   "reqd": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Nhân sự phụ trách (User)",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "user.full_name",
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Họ và tên (Full Name)"
+  },
+  {
+   "fetch_from": "user.email",
+   "fieldname": "contact_email",
+   "fieldtype": "Data",
+   "label": "Email liên hệ (Contact Email)"
+  },
+  {
+   "default": "Active Handled",
+   "fieldname": "hand_off_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Trạng thái tiếp nhận (Hand-off Status)",
+   "options": "Active Handled\nWaiting for Input\nCompleted Hand-off"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_primary",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Chịu trách nhiệm chính (Is Primary)"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-02 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Trade Case Stakeholder",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

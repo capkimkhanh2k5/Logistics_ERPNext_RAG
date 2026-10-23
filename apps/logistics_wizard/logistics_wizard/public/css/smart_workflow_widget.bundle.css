@@ -689,7 +689,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     position: fixed;
     bottom: 32px;
     left: 32px;
-    z-index: 1050;
+    z-index: 9999 !important;
     display: flex;
     flex-direction: column-reverse;
     align-items: center;
@@ -829,6 +829,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
 #lw-fab-menu.show .lw-sub-fab:nth-child(1) { transition-delay: 0.05s; opacity: 1; transform: translateY(0) scale(1); }
 #lw-fab-menu.show .lw-sub-fab:nth-child(2) { transition-delay: 0.1s; opacity: 1; transform: translateY(0) scale(1); }
 #lw-fab-menu.show .lw-sub-fab:nth-child(3) { transition-delay: 0.15s; opacity: 1; transform: translateY(0) scale(1); }
+#lw-fab-menu.show .lw-sub-fab:nth-child(4) { transition-delay: 0.2s; opacity: 1; transform: translateY(0) scale(1); }
+#lw-fab-menu.show .lw-sub-fab:nth-child(5) { transition-delay: 0.25s; opacity: 1; transform: translateY(0) scale(1); }
 
 .lw-sub-fab:hover {
     background: var(--glass-bg-hover);

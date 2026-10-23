@@ -1,0 +1,290 @@
+{
+ "actions": [],
+ "autoname": "Prompt",
+ "creation": "2026-10-01 16:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_details",
+  "flow_type",
+  "purchase_order",
+  "purchase_receipt",
+  "sales_order",
+  "delivery_note",
+  "customer",
+  "shipping_method",
+  "carrier",
+  "tracking_number",
+  "container_id",
+  "bill_of_lading",
+  "air_waybill",
+  "col_break_1",
+  "status",
+  "delay_days",
+  "is_delayed",
+  "is_stale",
+  "last_synced_at",
+  "vessel_name",
+  "flight_number",
+  "section_schedule",
+  "etd",
+  "atd",
+  "col_break_2",
+  "initial_eta",
+  "eta",
+  "ata",
+  "section_geo",
+  "current_lat",
+  "current_lon",
+  "origin_port",
+  "destination_port",
+  "section_route",
+  "transit_route"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_details",
+   "fieldtype": "Section Break",
+   "label": "Thông tin Vận đơn (Shipment Details)"
+  },
+  {
+   "default": "Import",
+   "fieldname": "flow_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Loại hình Logistics (Flow Type)",
+   "options": "Import\nExport"
+  },
+  {
+   "fieldname": "purchase_order",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Purchase Order / Đơn mua hàng",
+   "options": "Purchase Order",
+   "depends_on": "eval:doc.flow_type!='Export'"
+  },
+  {
+   "fieldname": "purchase_receipt",
+   "fieldtype": "Link",
+   "label": "Purchase Receipt / Phiếu nhận hàng",
+   "options": "Purchase Receipt",
+   "depends_on": "eval:doc.flow_type!='Export'"
+  },
+  {
+   "depends_on": "eval:doc.flow_type=='Export'",
+   "fieldname": "sales_order",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Sales Order / Đơn bán hàng xuất khẩu",
+   "options": "Sales Order"
+  },
+  {
+   "depends_on": "eval:doc.flow_type=='Export'",
+   "fieldname": "delivery_note",
+   "fieldtype": "Link",
+   "label": "Delivery Note / Phiếu xuất kho giao hàng",
+   "options": "Delivery Note"
+  },
+  {
+   "depends_on": "eval:doc.flow_type=='Export'",
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Khách hàng quốc tế (Customer)",
+   "options": "Customer"
+  },
+  {
+   "default": "Ocean",
+   "fieldname": "shipping_method",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Phương thức vận chuyển (Method)",
+   "options": "Air\nOcean\nRoad",
+   "reqd": 1
+  },
+  {
+   "fieldname": "carrier",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Hãng vận chuyển (Carrier)"
+  },
+  {
+   "fieldname": "tracking_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Mã vận đơn (Tracking Number)"
+  },
+  {
+   "fieldname": "container_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Mã Container (Container ID)"
+  },
+  {
+   "fieldname": "bill_of_lading",
+   "fieldtype": "Data",
+   "label": "Vận đơn đường biển (Bill of Lading - B/L)"
+  },
+  {
+   "fieldname": "air_waybill",
+   "fieldtype": "Data",
+   "label": "Vận đơn hàng không (Air Waybill - AWB)"
+  },
+  {
+   "fieldname": "col_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Trạng thái vận đơn",
+   "options": "Draft\nIn Transit\nCustoms Clearance\nCompleted\nCancelled\nDelayed\nStale"
+  },
+  {
+   "default": "0",
+   "fieldname": "delay_days",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Số ngày trễ (Delay Days)"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_delayed",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Cảnh báo trễ (Is Delayed)"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_stale",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Mất tín hiệu >48h (Is Stale)"
+  },
+  {
+   "fieldname": "last_synced_at",
+   "fieldtype": "Datetime",
+   "label": "Thời điểm đồng bộ cuối (Last Synced At)"
+  },
+  {
+   "fieldname": "vessel_name",
+   "fieldtype": "Data",
+   "label": "Tên tàu (Vessel Name)"
+  },
+  {
+   "fieldname": "flight_number",
+   "fieldtype": "Data",
+   "label": "Số hiệu chuyến bay (Flight Number)"
+  },
+  {
+   "fieldname": "section_schedule",
+   "fieldtype": "Section Break",
+   "label": "Lịch trình vận chuyển (Schedule & Milestone Dates)"
+  },
+  {
+   "fieldname": "etd",
+   "fieldtype": "Date",
+   "label": "Ngày khởi hành dự kiến (ETD)"
+  },
+  {
+   "fieldname": "atd",
+   "fieldtype": "Date",
+   "label": "Ngày khởi hành thực tế (ATD)"
+  },
+  {
+   "fieldname": "col_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "initial_eta",
+   "fieldtype": "Date",
+   "label": "Ngày đến dự kiến ban đầu (Initial ETA)"
+  },
+  {
+   "fieldname": "eta",
+   "fieldtype": "Date",
+   "label": "Ngày đến dự kiến hiện tại (ETA)"
+  },
+  {
+   "fieldname": "ata",
+   "fieldtype": "Date",
+   "label": "Ngày đến thực tế (ATA)"
+  },
+  {
+   "fieldname": "section_geo",
+   "fieldtype": "Section Break",
+   "label": "Vị trí địa lý & Trạm cảng (Geo & Coordinates)"
+  },
+  {
+   "fieldname": "current_lat",
+   "fieldtype": "Float",
+   "label": "Vĩ độ hiện tại (Current Latitude)",
+   "precision": "6"
+  },
+  {
+   "fieldname": "current_lon",
+   "fieldtype": "Float",
+   "label": "Kinh độ hiện tại (Current Longitude)",
+   "precision": "6"
+  },
+  {
+   "fieldname": "origin_port",
+   "fieldtype": "Data",
+   "label": "Cảng/Sân bay xuất phát (Origin)"
+  },
+  {
+   "fieldname": "destination_port",
+   "fieldtype": "Data",
+   "label": "Cảng/Sân bay đến (Destination)"
+  },
+  {
+   "fieldname": "section_route",
+   "fieldtype": "Section Break",
+   "label": "Lộ trình chi tiết & 9 Mốc DCSA (Transit Route Checkpoints)"
+  },
+  {
+   "fieldname": "transit_route",
+   "fieldtype": "Table",
+   "label": "Lộ trình chi tiết (Transit Route)",
+   "options": "Transit Route"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-01 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Shipment Tracking",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Stock User",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Purchase User",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

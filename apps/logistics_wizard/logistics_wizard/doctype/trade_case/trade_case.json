@@ -1,0 +1,451 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2026-10-02 20:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_overview",
+  "naming_series",
+  "case_title",
+  "trade_type",
+  "status",
+  "current_stage",
+  "overall_health",
+  "priority",
+  "col_break_1",
+  "purchase_order",
+  "sales_order",
+  "supplier",
+  "customer",
+  "company",
+  "currency",
+  "order_amount",
+  "section_logistics",
+  "shipping_mode",
+  "mode",
+  "incoterm",
+  "origin_country",
+  "origin_port",
+  "destination_country",
+  "destination_port",
+  "col_break_2",
+  "case_owner",
+  "department",
+  "start_date",
+  "target_completion_date",
+  "actual_completion_date",
+  "opened_date",
+  "expected_close_date",
+  "closed_date",
+  "section_metrics",
+  "shipment_status_summary",
+  "document_readiness_pct",
+  "missing_critical_docs",
+  "col_break_3",
+  "customs_declaration_no",
+  "customs_lane",
+  "customs_cleared",
+  "estimated_landed_cost",
+  "actual_landed_cost",
+  "cost_variance_pct",
+  "costs_finalized",
+  "open_exceptions_count",
+  "critical_exceptions_count",
+  "section_shipments",
+  "shipments",
+  "shipment_tracking",
+  "section_stakeholders",
+  "stakeholders",
+  "section_stage_gate",
+  "stage_gate_status",
+  "stage_gate_verified_at",
+  "stage_gate_verified_by",
+  "closing_notes",
+  "stage_gate_checklist"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_overview",
+   "fieldtype": "Section Break",
+   "label": "Định danh & Tổng quan Hồ sơ (Identification)"
+  },
+  {
+   "default": "TC-.YYYY.-.",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Mã Series",
+   "options": "TC-.YYYY.-.",
+   "reqd": 1
+  },
+  {
+   "fieldname": "case_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tiêu đề hồ sơ (Case Title)",
+   "reqd": 1
+  },
+  {
+   "default": "Import",
+   "fieldname": "trade_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Loại hình (Trade Type)",
+   "options": "Import\nExport",
+   "reqd": 1
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Trạng thái Case (Status)",
+   "options": "Draft\nActive\nIn Transit\nCustoms Clearance\nWarehouse Receiving\nCost Finalization\nCompleted\nClosed\nCancelled"
+  },
+  {
+   "default": "PO",
+   "fieldname": "current_stage",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Chặng vòng đời (Current Stage)",
+   "options": "PO\nBooking\nExport Port\nIn Transit\nImport Port\nCustoms\nWarehouse\nCost Finalization\nClosed"
+  },
+  {
+   "default": "Healthy",
+   "fieldname": "overall_health",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Sức khỏe Vận hành (Overall Health)",
+   "options": "Healthy\nAttention\nCritical"
+  },
+  {
+   "default": "Normal",
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "label": "Mức độ ưu tiên (Priority)",
+   "options": "Low\nNormal\nHigh\nUrgent"
+  },
+  {
+   "fieldname": "col_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "purchase_order",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Đơn mua hàng (Purchase Order)",
+   "options": "Purchase Order"
+  },
+  {
+   "fieldname": "sales_order",
+   "fieldtype": "Link",
+   "label": "Đơn bán hàng (Sales Order)",
+   "options": "Sales Order"
+  },
+  {
+   "fetch_from": "purchase_order.supplier",
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Nhà cung cấp (Supplier)",
+   "options": "Supplier"
+  },
+  {
+   "fetch_from": "sales_order.customer",
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Khách hàng (Customer)",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Công ty (Company)",
+   "options": "Company"
+  },
+  {
+   "fetch_from": "purchase_order.currency",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Tiền tệ (Currency)",
+   "options": "Currency"
+  },
+  {
+   "fetch_from": "purchase_order.grand_total",
+   "fieldname": "order_amount",
+   "fieldtype": "Currency",
+   "label": "Giá trị hợp đồng (Order Amount)",
+   "options": "currency"
+  },
+  {
+   "fieldname": "section_logistics",
+   "fieldtype": "Section Break",
+   "label": "Vận chuyển & Tuyến đường (Logistics & Route)"
+  },
+  {
+   "default": "Ocean",
+   "fieldname": "shipping_mode",
+   "fieldtype": "Select",
+   "label": "Phương thức vận tải (Shipping Mode)",
+   "options": "Ocean\nAir\nRoad\nRail\nMultimodal"
+  },
+  {
+   "default": "Ocean",
+   "fieldname": "mode",
+   "fieldtype": "Select",
+   "label": "Phương thức (Mode Alias)",
+   "options": "Ocean\nAir\nRoad\nRail\nMultimodal"
+  },
+  {
+   "default": "FOB",
+   "fieldname": "incoterm",
+   "fieldtype": "Select",
+   "label": "Điều kiện Incoterm",
+   "options": "FOB\nCIF\nEXW\nCFR\nDAP\nDDP\nFCA\nCPT\nCIP"
+  },
+  {
+   "fieldname": "origin_country",
+   "fieldtype": "Link",
+   "label": "Quốc gia xuất phát",
+   "options": "Country"
+  },
+  {
+   "fieldname": "origin_port",
+   "fieldtype": "Data",
+   "label": "Cảng xuất / Nơi đi (POL)"
+  },
+  {
+   "fieldname": "destination_country",
+   "fieldtype": "Link",
+   "label": "Quốc gia đến",
+   "options": "Country"
+  },
+  {
+   "fieldname": "destination_port",
+   "fieldtype": "Data",
+   "label": "Cảng nhập / Nơi đến (POD)"
+  },
+  {
+   "fieldname": "col_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "case_owner",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Người phụ trách (Case Owner)",
+   "options": "User"
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Data",
+   "label": "Phòng ban (Department)"
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Ngày bắt đầu (Start Date)"
+  },
+  {
+   "fieldname": "target_completion_date",
+   "fieldtype": "Date",
+   "label": "Hạn chót dự kiến (Target Date)"
+  },
+  {
+   "fieldname": "actual_completion_date",
+   "fieldtype": "Date",
+   "label": "Ngày đóng thực tế (Actual Date)"
+  },
+  {
+   "fieldname": "opened_date",
+   "fieldtype": "Date",
+   "label": "Ngày tạo hồ sơ (Legacy Date)"
+  },
+  {
+   "fieldname": "expected_close_date",
+   "fieldtype": "Date",
+   "label": "Ngày dự kiến đóng (Legacy Target)"
+  },
+  {
+   "fieldname": "closed_date",
+   "fieldtype": "Date",
+   "label": "Ngày kết thúc (Legacy Closed Date)"
+  },
+  {
+   "fieldname": "section_metrics",
+   "fieldtype": "Section Break",
+   "label": "Snapshot Vận hành & Sức khỏe (Operational Metrics)"
+  },
+  {
+   "fieldname": "shipment_status_summary",
+   "fieldtype": "Data",
+   "label": "Tóm tắt Vận chuyển (Shipment Summary)"
+  },
+  {
+   "default": "0",
+   "fieldname": "document_readiness_pct",
+   "fieldtype": "Percent",
+   "label": "Tỷ lệ Sẵn sàng Chứng từ (%)"
+  },
+  {
+   "fieldname": "missing_critical_docs",
+   "fieldtype": "Small Text",
+   "label": "Chứng từ khẩn thiếu"
+  },
+  {
+   "fieldname": "col_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "customs_declaration_no",
+   "fieldtype": "Data",
+   "label": "Số tờ khai Hải quan"
+  },
+  {
+   "default": "Not Declared",
+   "fieldname": "customs_lane",
+   "fieldtype": "Select",
+   "label": "Phân luồng Hải quan",
+   "options": "Not Declared\nGreen\nYellow\nRed"
+  },
+  {
+   "default": "0",
+   "fieldname": "customs_cleared",
+   "fieldtype": "Check",
+   "label": "Đã thông quan Hải quan"
+  },
+  {
+   "fieldname": "estimated_landed_cost",
+   "fieldtype": "Currency",
+   "label": "Dự toán Landed Cost",
+   "options": "currency"
+  },
+  {
+   "fieldname": "actual_landed_cost",
+   "fieldtype": "Currency",
+   "label": "Thực tế Landed Cost",
+   "options": "currency"
+  },
+  {
+   "default": "0",
+   "fieldname": "cost_variance_pct",
+   "fieldtype": "Percent",
+   "label": "Tỷ lệ chênh lệch chi phí (%)"
+  },
+  {
+   "default": "0",
+   "fieldname": "costs_finalized",
+   "fieldtype": "Check",
+   "label": "Đã hoàn tất phân bổ LCV"
+  },
+  {
+   "default": "0",
+   "fieldname": "open_exceptions_count",
+   "fieldtype": "Int",
+   "label": "Số sự cố đang mở"
+  },
+  {
+   "default": "0",
+   "fieldname": "critical_exceptions_count",
+   "fieldtype": "Int",
+   "label": "Số sự cố Critical"
+  },
+  {
+   "fieldname": "section_shipments",
+   "fieldtype": "Section Break",
+   "label": "Danh sách Vận đơn Container (Shipments)"
+  },
+  {
+   "fieldname": "shipments",
+   "fieldtype": "Table",
+   "label": "Vận đơn liên kết",
+   "options": "Trade Case Shipment Reference"
+  },
+  {
+   "fieldname": "shipment_tracking",
+   "fieldtype": "Link",
+   "label": "Vận đơn chính (Primary Shipment)",
+   "options": "Shipment Tracking"
+  },
+  {
+   "fieldname": "section_stakeholders",
+   "fieldtype": "Section Break",
+   "label": "Ma trận Phân công Trách nhiệm RACI"
+  },
+  {
+   "fieldname": "stakeholders",
+   "fieldtype": "Table",
+   "label": "Nhân sự phụ trách",
+   "options": "Trade Case Stakeholder"
+  },
+  {
+   "fieldname": "section_stage_gate",
+   "fieldtype": "Section Break",
+   "label": "Kiểm soát Chốt chặn Đóng Hồ sơ (Stage Gate & Closure)"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "stage_gate_status",
+   "fieldtype": "Select",
+   "label": "Trạng thái Stage Gate",
+   "options": "Pending\nPassed\nWaived"
+  },
+  {
+   "fieldname": "stage_gate_verified_at",
+   "fieldtype": "Datetime",
+   "label": "Thời điểm kiểm duyệt"
+  },
+  {
+   "fieldname": "stage_gate_verified_by",
+   "fieldtype": "Link",
+   "label": "Người kiểm duyệt",
+   "options": "User"
+  },
+  {
+   "fieldname": "closing_notes",
+   "fieldtype": "Small Text",
+   "label": "Ghi chú hoàn thành / Đóng hồ sơ"
+  },
+  {
+   "fieldname": "stage_gate_checklist",
+   "fieldtype": "Table",
+   "label": "Danh mục 8 tiêu chí kiểm duyệt",
+   "options": "Trade Case Stage Gate Item"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-02 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Trade Case",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Stock User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

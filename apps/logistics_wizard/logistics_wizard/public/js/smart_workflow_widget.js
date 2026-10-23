@@ -1,17 +1,34 @@
 console.log("SMART WORKFLOW WIDGET SCRIPT LOADED");
 
-$(document).ready(function () {
-    // 6-step workflow configuration
-    const WORKFLOW_STEPS = [
+function initSmartWorkflowWidget() {
+    // 7-step workflow configurations: Import & Export
+    const IMPORT_WORKFLOW_STEPS = [
         { doctype: "Material Request", id: "wiz-Material-Request", slug: "material-request", label: "1. Yêu cầu mua hàng (Material Request)" },
         { doctype: "Purchase Order", id: "wiz-Purchase-Order", slug: "purchase-order", label: "2. Đơn đặt hàng (Purchase Order)" },
-        { doctype: "Shipment Tracking", id: "wiz-Shipment-Tracking", slug: "shipment-tracking", label: "3. Theo dõi hành trình (Shipment Tracking)" },
-        { doctype: "Purchase Receipt", id: "wiz-Purchase-Receipt", slug: "purchase-receipt", label: "4. Nhận hàng (Purchase Receipt)" },
-        { doctype: "Landed Cost Voucher", id: "wiz-Landed-Cost-Voucher", slug: "landed-cost-voucher", label: "5. Phân bổ giá vốn (Landed Cost)" },
-        { doctype: "Stock Entry", id: "wiz-Stock-Entry", slug: "stock-entry", label: "6. Nhập kho (Stock Entry)" }
+        { doctype: "Payment Entry", id: "wiz-Payment-Entry", slug: "payment-entry", label: "3. Đặt cọc / Tạm ứng (Payment Entry)" },
+        { doctype: "Shipment Tracking", id: "wiz-Shipment-Tracking", slug: "managementLogistic", label: "4. Theo dõi hành trình (Shipment Tracking)" },
+        { doctype: "Purchase Receipt", id: "wiz-Purchase-Receipt", slug: "purchase-receipt", label: "5. Nhận hàng (Purchase Receipt)" },
+        { doctype: "Landed Cost Voucher", id: "wiz-Landed-Cost-Voucher", slug: "landed-cost-voucher", label: "6. Phân bổ giá vốn (Landed Cost)" },
+        { doctype: "Stock Entry", id: "wiz-Stock-Entry", slug: "stock-entry", label: "7. Nhập kho (Stock Entry)" }
     ];
 
-    const WORKFLOW_DOCTYPES = WORKFLOW_STEPS.map(s => s.doctype);
+    const EXPORT_WORKFLOW_STEPS = [
+        { doctype: "Sales Order", id: "wiz-exp-Sales-Order", slug: "sales-order", label: "1. Đơn bán hàng (Sales Order)" },
+        { doctype: "Payment Entry", id: "wiz-exp-Payment-Entry-Deposit", slug: "payment-entry", label: "2. Thu tiền cọc (Payment Entry)" },
+        { doctype: "Stock Entry", id: "wiz-exp-Stock-Entry", slug: "stock-entry", label: "3. Chuyển kho cảng (Stock Entry)" },
+        { doctype: "Delivery Note", id: "wiz-exp-Delivery-Note", slug: "delivery-note", label: "4. Xuất kho giao hàng (Delivery Note)" },
+        { doctype: "Shipment Tracking", id: "wiz-exp-Shipment-Tracking", slug: "managementLogistic", label: "5. Theo dõi hành trình (Shipment Tracking)" },
+        { doctype: "Sales Invoice", id: "wiz-exp-Sales-Invoice", slug: "sales-invoice", label: "6. Hóa đơn thương mại (Sales Invoice)" },
+        { doctype: "Payment Entry", id: "wiz-exp-Payment-Entry-Final", slug: "payment-entry", label: "7. Tất toán ngoại tệ (Payment Entry)" }
+    ];
+
+    const WORKFLOW_STEPS = IMPORT_WORKFLOW_STEPS;
+    const IMPORT_DOCTYPES = ["Material Request", "Purchase Order", "Purchase Receipt", "Landed Cost Voucher"];
+    const EXPORT_DOCTYPES = ["Sales Order", "Delivery Note", "Sales Invoice"];
+    const SHARED_DOCTYPES = ["Payment Entry", "Shipment Tracking", "Stock Entry"];
+    const ALL_WORKFLOW_DOCTYPES = Array.from(new Set([...IMPORT_DOCTYPES, ...EXPORT_DOCTYPES, ...SHARED_DOCTYPES]));
+    const WORKFLOW_DOCTYPES = ALL_WORKFLOW_DOCTYPES;
+    let currentFlowType = 'import';
     let shipmentMap = null;
     let mapPolyline = null;
     let mapMarkers = [];
@@ -85,11 +102,214 @@ $(document).ready(function () {
         }
     }
 
+    function ensure_widget_styles() {
+        if ($('#lw-smart-widget-styles').length === 0) {
+            $('head').append(`
+                <style id="lw-smart-widget-styles">
+                    #lw-fab-container {
+                        position: fixed !important;
+                        bottom: 32px !important;
+                        left: 32px !important;
+                        z-index: 9999 !important;
+                        display: flex !important;
+                        flex-direction: column-reverse !important;
+                        align-items: center !important;
+                        gap: 14px !important;
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+                    }
+                    .lw-fab {
+                        width: 58px !important;
+                        height: 58px !important;
+                        border-radius: 50% !important;
+                        background: rgba(255, 255, 255, 0.94) !important;
+                        backdrop-filter: blur(25px) !important;
+                        -webkit-backdrop-filter: blur(25px) !important;
+                        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06), inset 0 1px 1px #ffffff !important;
+                        border: 1px solid rgba(226, 232, 240, 0.9) !important;
+                        display: flex !important;
+                        justify-content: center !important;
+                        align-items: center !important;
+                        cursor: pointer !important;
+                        position: relative !important;
+                        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                        outline: none !important;
+                    }
+                    .lw-fab:hover {
+                        transform: scale(1.08) translateY(-2px) !important;
+                        background: #ffffff !important;
+                        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.16), inset 0 1px 1px #ffffff !important;
+                    }
+                    .lw-fab:active {
+                        transform: scale(0.95) !important;
+                    }
+                    .lw-fab.active {
+                        background: #f1f5f9 !important;
+                        border-color: #cbd5e1 !important;
+                    }
+                    .lw-fab .fab-icon {
+                        position: absolute !important;
+                        width: 32px !important;
+                        height: 32px !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        pointer-events: none !important;
+                        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+                    }
+                    .lw-fab:hover .fab-icon svg {
+                        transform: scale(1.08) rotate(12deg) !important;
+                    }
+                    .lw-fab.active .fab-icon {
+                        opacity: 0 !important;
+                        transform: scale(0.3) rotate(-90deg) !important;
+                    }
+                    .lw-fab .fab-close-icon {
+                        position: absolute !important;
+                        color: #475569 !important;
+                        font-size: 22px !important;
+                        font-weight: 400 !important;
+                        line-height: 1 !important;
+                        opacity: 0 !important;
+                        transform: scale(0.3) rotate(-90deg) !important;
+                        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+                        pointer-events: none !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                    }
+                    .lw-fab.active .fab-close-icon {
+                        opacity: 1 !important;
+                        transform: scale(1) rotate(0deg) !important;
+                    }
+                    #lw-fab-menu {
+                        display: flex !important;
+                        flex-direction: column-reverse !important;
+                        gap: 12px !important;
+                        pointer-events: none !important;
+                    }
+                    #lw-fab-menu.show {
+                        pointer-events: auto !important;
+                    }
+                    .lw-sub-fab {
+                        width: 48px !important;
+                        height: 48px !important;
+                        border-radius: 50% !important;
+                        background: rgba(255, 255, 255, 0.95) !important;
+                        backdrop-filter: blur(20px) !important;
+                        -webkit-backdrop-filter: blur(20px) !important;
+                        border: 1px solid rgba(226, 232, 240, 0.9) !important;
+                        color: #0f172a !important;
+                        display: flex !important;
+                        justify-content: center !important;
+                        align-items: center !important;
+                        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+                        cursor: pointer !important;
+                        position: relative !important;
+                        opacity: 0 !important;
+                        transform: translateY(16px) scale(0.8) !important;
+                        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+                    }
+                    #lw-fab-menu.show .lw-sub-fab:nth-child(1) { transition-delay: 0.04s; opacity: 1 !important; transform: translateY(0) scale(1) !important; }
+                    #lw-fab-menu.show .lw-sub-fab:nth-child(2) { transition-delay: 0.08s; opacity: 1 !important; transform: translateY(0) scale(1) !important; }
+                    #lw-fab-menu.show .lw-sub-fab:nth-child(3) { transition-delay: 0.12s; opacity: 1 !important; transform: translateY(0) scale(1) !important; }
+                    #lw-fab-menu.show .lw-sub-fab:nth-child(4) { transition-delay: 0.16s; opacity: 1 !important; transform: translateY(0) scale(1) !important; }
+                    #lw-fab-menu.show .lw-sub-fab:nth-child(5) { transition-delay: 0.20s; opacity: 1 !important; transform: translateY(0) scale(1) !important; }
+                    .lw-sub-fab:hover {
+                        background: #ffffff !important;
+                        transform: scale(1.1) !important;
+                        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12) !important;
+                    }
+                    .lw-sub-fab::after {
+                        content: attr(data-tooltip);
+                        position: absolute;
+                        left: 100%;
+                        margin-left: 12px;
+                        background: rgba(15, 23, 42, 0.88);
+                        backdrop-filter: blur(15px);
+                        -webkit-backdrop-filter: blur(15px);
+                        color: #ffffff;
+                        padding: 6px 12px;
+                        border-radius: 6px;
+                        font-size: 12px;
+                        font-weight: 500;
+                        white-space: nowrap;
+                        pointer-events: none;
+                        opacity: 0;
+                        transform: translateX(-6px) scale(0.95);
+                        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                    }
+                    .lw-sub-fab:hover::after {
+                        opacity: 1;
+                        transform: translateX(0) scale(1);
+                    }
+                    .lw-popup {
+                        position: fixed !important;
+                        bottom: 32px !important;
+                        left: 104px !important;
+                        width: 360px !important;
+                        max-width: calc(100vw - 120px) !important;
+                        background: rgba(255, 255, 255, 0.98) !important;
+                        backdrop-filter: blur(25px) !important;
+                        -webkit-backdrop-filter: blur(25px) !important;
+                        border-radius: 18px !important;
+                        border: 1px solid rgba(226, 232, 240, 0.9) !important;
+                        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+                        z-index: 1040 !important;
+                        display: none;
+                        overflow: hidden !important;
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+                        animation: lwPopupFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+                    }
+                    @keyframes lwPopupFadeIn {
+                        from { opacity: 0; transform: scale(0.96) translateY(8px); }
+                        to { opacity: 1; transform: scale(1) translateY(0); }
+                    }
+                    .lw-popup-large {
+                        width: 680px !important;
+                        max-width: calc(100vw - 120px) !important;
+                    }
+                    .lw-popup-header {
+                        padding: 12px 16px !important;
+                        background: #f8fafc !important;
+                        border-bottom: 1px solid #e2e8f0 !important;
+                        font-weight: 700 !important;
+                        font-size: 13.5px !important;
+                        color: #0f172a !important;
+                        display: flex !important;
+                        justify-content: space-between !important;
+                        align-items: center !important;
+                    }
+                    .lw-popup-close {
+                        color: #94a3b8 !important;
+                        cursor: pointer !important;
+                        font-size: 14px !important;
+                        padding: 4px 6px !important;
+                        border-radius: 4px !important;
+                        transition: all 0.15s ease !important;
+                    }
+                    .lw-popup-close:hover {
+                        color: #0f172a !important;
+                        background: #e2e8f0 !important;
+                    }
+                    .lw-popup-body {
+                        padding: 16px !important;
+                        max-height: 72vh !important;
+                        overflow-y: auto !important;
+                    }
+                </style>
+            `);
+        }
+    }
+
     // Inject FAB and Modals
     function inject_fab() {
+        ensure_widget_styles();
         if ($('#lw-fab-container').length === 0) {
             let fab_html = `
-                <div id="lw-fab-container">
+                <div id="lw-fab-container" style="position: fixed !important; bottom: 32px !important; left: 32px !important; z-index: 9999 !important;">
                     <button class="lw-fab" id="lw-fab-main" title="Trợ lý Logistics & Hỗ trợ">
                         <span class="fab-icon">
                             <svg class="lw-lifebuoy-svg" viewBox="0 0 24 24" width="30" height="30" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -116,21 +336,79 @@ $(document).ready(function () {
                         <span class="fab-close-icon">✕</span>
                     </button>
                     <div id="lw-fab-menu">
-                        <button class="lw-fab lw-sub-fab" id="lw-fab-workflow" data-tooltip="Tiến trình (Workflow)">📋</button>
-                        <button class="lw-fab lw-sub-fab" id="lw-fab-shipment" data-tooltip="Hành trình (Shipment)">🚚</button>
-                        <button class="lw-fab lw-sub-fab" id="lw-fab-ai" data-tooltip="AI Chat">🤖</button>
+                        <button class="lw-fab lw-sub-fab" id="lw-fab-workflow" data-tooltip="Tiến trình (Workflow)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                                <path d="M9 12h6"/>
+                                <path d="M9 16h6"/>
+                            </svg>
+                        </button>
+                        <button class="lw-fab lw-sub-fab" id="lw-fab-shipment" data-tooltip="Hành trình (Shipment)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="3" width="15" height="13" rx="2" ry="2"/>
+                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                                <circle cx="5.5" cy="18.5" r="2.5"/>
+                                <circle cx="18.5" cy="18.5" r="2.5"/>
+                            </svg>
+                        </button>
+                        <button class="lw-fab lw-sub-fab" id="lw-fab-ai" data-tooltip="AI Chat">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="10" rx="2"/>
+                                <circle cx="12" cy="5" r="2"/>
+                                <path d="M12 7v4"/>
+                                <line x1="8" y1="16" x2="8" y2="16"/>
+                                <line x1="16" y1="16" x2="16" y2="16"/>
+                            </svg>
+                        </button>
+                        <!-- Nút riêng biệt dẫn thẳng đến Logistics Hub (Trung tâm Điều hành) -->
+                        <button class="lw-fab lw-sub-fab" id="lw-fab-logistics-hub" data-tooltip="Logistics Hub">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                                <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                                <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                                <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                            </svg>
+                        </button>
+                        <!-- Nút riêng biệt dẫn thẳng đến Trang Quản trị RAG Center -->
+                        <button class="lw-fab lw-sub-fab" id="lw-fab-rag-admin" data-tooltip="Quản trị RAG Center">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Popup: Workflow -->
+                <!-- Popup: Workflow (Nhập khẩu / Xuất khẩu) -->
                 <div class="lw-popup" id="lw-popup-workflow">
-                    <div class="lw-popup-header">
-                        Tiến trình chứng từ XNK
-                        <span class="lw-popup-close" data-target="#lw-popup-workflow">✖</span>
+                    <div class="lw-popup-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
+                        <span>Tiến trình chứng từ XNK</span>
+                        <span class="lw-popup-close" data-target="#lw-popup-workflow" style="cursor: pointer;">✖</span>
                     </div>
-                    <div class="lw-popup-body">
-                        <ul class="lw-step-list">
-                            ${WORKFLOW_STEPS.map(s => `
+                    <!-- Tab Switcher: Nhập Khẩu | Xuất Khẩu (Apple Clean Style - No Purple) -->
+                    <div class="lw-workflow-tab-bar" style="display: flex; background: #eef2f6; padding: 4px; margin: 8px 14px 4px 14px; border-radius: 8px; gap: 4px;">
+                        <button type="button" class="lw-tab-btn active" id="lw-tab-import" data-flow="import" style="flex: 1; border: none; outline: none; background: #ffffff; color: #0071E3; font-weight: 600; font-size: 12px; padding: 6px 10px; border-radius: 6px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.2s;">
+                            Nhập Khẩu
+                        </button>
+                        <button type="button" class="lw-tab-btn" id="lw-tab-export" data-flow="export" style="flex: 1; border: none; outline: none; background: transparent; color: #495057; font-weight: 500; font-size: 12px; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+                            Xuất Khẩu
+                        </button>
+                    </div>
+                    <div class="lw-popup-body" style="padding: 10px 14px 14px 14px;">
+                        <!-- Danh sách Nhập khẩu -->
+                        <ul class="lw-step-list" id="lw-import-step-list">
+                            ${IMPORT_WORKFLOW_STEPS.map(s => `
+                                <li class="lw-step-item" id="${s.id}">
+                                    <span class="wiz-check-badge"></span>
+                                    <a href="/app/${s.slug}">${s.label}</a>
+                                </li>
+                            `).join('')}
+                        </ul>
+                        <!-- Danh sách Xuất khẩu -->
+                        <ul class="lw-step-list" id="lw-export-step-list" style="display: none;">
+                            ${EXPORT_WORKFLOW_STEPS.map(s => `
                                 <li class="lw-step-item" id="${s.id}">
                                     <span class="wiz-check-badge"></span>
                                     <a href="/app/${s.slug}">${s.label}</a>
@@ -142,9 +420,16 @@ $(document).ready(function () {
 
                 <!-- Popup: Shipment (Map & Timeline) -->
                 <div class="lw-popup lw-popup-large" id="lw-popup-shipment">
-                    <div class="lw-popup-header">
-                        <span>🗺️ Bản đồ & Hành trình Vận chuyển Toàn cầu</span>
-                        <span class="lw-popup-close" data-target="#lw-popup-shipment">✖</span>
+                    <div class="lw-popup-header" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; gap: 8px;">
+                        <span style="font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="2" y1="12" x2="22" y2="12"/>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                            Bản đồ & Hành trình Vận chuyển Toàn cầu
+                        </span>
+                        <span class="lw-popup-close" data-target="#lw-popup-shipment" style="cursor: pointer; font-size: 13px; padding: 2px 4px; margin-left: auto;">✖</span>
                     </div>
                     <div class="lw-popup-body" id="lw-shipment-content">
                         <div style="text-align: center; color: #8d99a6; padding: 25px 0;">
@@ -160,7 +445,15 @@ $(document).ready(function () {
                         <span class="lw-popup-close" data-target="#lw-popup-ai">✖</span>
                     </div>
                     <div class="lw-popup-body" style="text-align: center; padding: 30px 15px;">
-                        <div style="font-size: 44px; margin-bottom: 12px;">🤖</div>
+                        <div style="margin-bottom: 12px;">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="10" rx="2"/>
+                                <circle cx="12" cy="5" r="2"/>
+                                <path d="M12 7v4"/>
+                                <line x1="8" y1="16" x2="8" y2="16"/>
+                                <line x1="16" y1="16" x2="16" y2="16"/>
+                            </svg>
+                        </div>
                         <h4 style="margin:0 0 10px 0; color: #1f272e;">Trợ lý RAG Hải quan</h4>
                         <p style="color: #6c757d; font-size: 13px; line-height: 1.5; margin: 0;">
                             Hệ thống AI RAG hỗ trợ tra cứu văn bản pháp luật Hải quan và đề xuất mã HS Code đang kết nối!
@@ -181,14 +474,81 @@ $(document).ready(function () {
                 }
             });
 
-            $('.lw-sub-fab').on('click', function () {
-                let target = $(this).attr('id').replace('lw-fab-', 'lw-popup-');
+            $('.lw-sub-fab').on('click', function (e) {
+                let fabId = $(this).attr('id');
+                if (fabId === 'lw-fab-rag-admin') {
+                    // Chuyển thẳng đến trang Quản trị RAG Center
+                    $('.lw-popup').hide();
+                    $('#lw-fab-menu').removeClass('show');
+                    $('#lw-fab-main').removeClass('active');
+                    if (typeof frappe !== 'undefined' && frappe.set_route) {
+                        frappe.set_route('rag-admin-center');
+                    } else {
+                        window.location.href = '/app/rag-admin-center';
+                    }
+                    return;
+                }
+
+                if (fabId === 'lw-fab-logistics-hub') {
+                    // Chuyển thẳng đến Trung tâm Logistics Hub
+                    $('.lw-popup').hide();
+                    $('#lw-fab-menu').removeClass('show');
+                    $('#lw-fab-main').removeClass('active');
+                    if (typeof frappe !== 'undefined' && frappe.set_route) {
+                        frappe.set_route('managementLogistic');
+                    } else {
+                        window.location.href = '/app/managementlogistic';
+                    }
+                    return;
+                }
+
+                let target = fabId.replace('lw-fab-', 'lw-popup-');
                 $('.lw-popup').hide();
                 $('#' + target).show();
 
-                if (target === 'lw-popup-shipment') {
+                if (fabId === 'lw-fab-shipment') {
                     open_shipment_view();
                 }
+            });
+
+            // Click "Mở toàn trang Quản trị Hub" button inside shipment popup header
+            $(document).on('click', '#lw-btn-open-full-hub', function (e) {
+                e.preventDefault();
+                $('.lw-popup').hide();
+                $('#lw-fab-menu').removeClass('show');
+                $('#lw-fab-main').removeClass('active');
+
+                let route = (typeof frappe !== 'undefined' && frappe.get_route) ? frappe.get_route() : [];
+                let routeOpts = { tab: 'tracking' };
+                if (route && route[0] === 'Form' && ['Purchase Order', 'Shipment Tracking', 'Purchase Receipt'].includes(route[1]) && route[2]) {
+                    routeOpts.shipment = route[2];
+                    routeOpts.doctype = route[1];
+                }
+                if (typeof frappe !== 'undefined' && frappe.set_route) {
+                    frappe.route_options = routeOpts;
+                    frappe.set_route('managementLogistic');
+                } else {
+                    window.location.href = '/app/managementLogistic' + (routeOpts.shipment ? '?shipment=' + encodeURIComponent(routeOpts.shipment) : '');
+                }
+            });
+
+            // Click Shipment Tracking step -> Navigate to Management Logistic page
+            $(document).on('click', '#wiz-Shipment-Tracking a, #wiz-exp-Shipment-Tracking a', function (e) {
+                if (typeof frappe !== 'undefined' && frappe.set_route) {
+                    e.preventDefault();
+                    $('.lw-popup').hide();
+                    $('#lw-fab-menu').removeClass('show');
+                    $('#lw-fab-main').removeClass('active');
+                    frappe.route_options = { tab: 'tracking' };
+                    frappe.set_route('managementLogistic');
+                }
+            });
+
+            // Click Tab Switcher (Nhập Khẩu | Xuất Khẩu)
+            $(document).on('click', '.lw-tab-btn', function (e) {
+                e.preventDefault();
+                let selectedFlow = $(this).data('flow');
+                switch_workflow_flow(selectedFlow, true);
             });
 
             $('.lw-popup-close').on('click', function () {
@@ -208,12 +568,7 @@ $(document).ready(function () {
 
     // Determine what to show in the Shipment Popup
     function open_shipment_view() {
-        let route = (typeof frappe !== 'undefined' && frappe.get_route) ? frappe.get_route() : [];
-        if (route && route[0] === 'Form' && route[1] && ['Purchase Order', 'Shipment Tracking', 'Purchase Receipt'].includes(route[1]) && route[2]) {
-            load_shipment_map(route[2], route[1]);
-        } else {
-            show_active_shipments_list();
-        }
+        show_active_shipments_list();
     }
 
     // List shipments with interactive Status Filter Combobox
@@ -228,10 +583,10 @@ $(document).ready(function () {
                 </div>
                 <div style="flex-shrink: 0;">
                     <select id="lw-filter-status" class="form-control" style="font-size: 11.5px; height: 28px; border-radius: 6px; border: 1px solid #ced4da; background-color: #ffffff; padding: 1px 6px; cursor: pointer; min-width: 145px; font-weight: 500; color: #1f272e; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                        <option value="active" ${selectedFilter === 'active' ? 'selected' : ''}>🚚 Đang vận chuyển</option>
-                        <option value="completed" ${selectedFilter === 'completed' ? 'selected' : ''}>✅ Đã hoàn thành</option>
-                        <option value="customs" ${selectedFilter === 'customs' ? 'selected' : ''}>🏛️ Đang thông quan</option>
-                        <option value="all" ${selectedFilter === 'all' ? 'selected' : ''}>🌐 Tất cả đơn hàng</option>
+                        <option value="active" ${selectedFilter === 'active' ? 'selected' : ''}>Đang vận chuyển</option>
+                        <option value="completed" ${selectedFilter === 'completed' ? 'selected' : ''}>Đã hoàn thành</option>
+                        <option value="customs" ${selectedFilter === 'customs' ? 'selected' : ''}>Đang thông quan</option>
+                        <option value="all" ${selectedFilter === 'all' ? 'selected' : ''}>Tất cả đơn hàng</option>
                     </select>
                 </div>
             </div>
@@ -272,9 +627,15 @@ $(document).ready(function () {
                         let filterLabel = (filterVal === 'active') ? 'đang vận chuyển' : ((filterVal === 'completed') ? 'đã hoàn thành' : ((filterVal === 'customs') ? 'đang làm thủ tục thông quan' : ''));
                         $itemsContainer.html(`
                             <div style="text-align: center; padding: 35px 20px; color: #8d99a6;">
-                                <div style="font-size: 32px; margin-bottom: 8px;">📦</div>
-                                <strong>Không có đơn hàng nào ${filterLabel}.</strong>
-                                <p style="font-size: 12px; margin-top: 6px;">Hãy thử chọn bộ lọc khác (ví dụ "Toàn bộ đơn hàng") để xem tất cả.</p>
+                                <div style="margin-bottom: 8px;">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                                        <line x1="12" y1="22.08" x2="12" y2="12"/>
+                                    </svg>
+                                </div>
+                                <strong style="color: #475569;">Không có đơn hàng nào ${filterLabel}.</strong>
+                                <p style="font-size: 12px; margin-top: 6px;">Hãy thử chọn bộ lọc khác (ví dụ "Tất cả đơn hàng") để xem tất cả.</p>
                             </div>
                         `);
                         return;
@@ -284,40 +645,38 @@ $(document).ready(function () {
 
                     pos.forEach(p => {
                         let badgeBg = '#e7f1ff';
-                        let badgeColor = '#007AFF';
-                        let badgeIcon = '🚚';
+                        let badgeColor = '#0071E3';
 
                         if (p.is_completed || p.status === 'Completed') {
                             badgeBg = '#e6f4ea';
                             badgeColor = '#137333';
-                            badgeIcon = '✅';
                         } else if (p.is_customs || p.status === 'Customs Clearance') {
                             badgeBg = '#fef7e0';
                             badgeColor = '#b06000';
-                            badgeIcon = '🏛️';
                         } else if (p.status === 'Draft') {
                             badgeBg = '#f1f3f4';
                             badgeColor = '#5f6368';
-                            badgeIcon = '📝';
                         }
 
-                        let methodIcon = (p.shipping_method === 'Air') ? '✈️' : ((p.shipping_method === 'Ocean') ? '🚢' : '🚚');
+                        let methodText = (p.shipping_method === 'Air') ? 'Hàng không' : ((p.shipping_method === 'Ocean') ? 'Đường biển' : 'Đường bộ');
                         let routeHint = (p.origin_port && p.destination_port) ? ` &bull; ${p.origin_port} → ${p.destination_port}` : '';
 
                         html += `
-                            <div class="lw-shipment-item" data-name="${p.name}" style="padding: 12px 14px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                            <div class="lw-shipment-item" data-name="${p.name}" data-shipment="${p.shipment_tracking || p.name}" style="padding: 12px 14px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <div>
-                                        <strong style="color: #007AFF; font-size: 13px;">${p.name}</strong>
-                                        <span style="font-size: 11px; color: #6c757d; margin-left: 6px;">${methodIcon}${routeHint}</span>
+                                        <strong style="color: #0071E3; font-size: 13px;">${p.name}</strong>
+                                        <span style="font-size: 11px; color: #6c757d; margin-left: 6px;">[${methodText}]${routeHint}</span>
                                     </div>
-                                    <span class="badge" style="background: ${badgeBg}; color: ${badgeColor}; font-weight: 500; font-size: 11px; padding: 4px 8px; border-radius: 4px;">
-                                        ${badgeIcon} ${p.status}
+                                    <span class="badge" style="background: ${badgeBg}; color: ${badgeColor}; font-weight: 600; font-size: 11px; padding: 4px 8px; border-radius: 4px;">
+                                        ${p.status}
                                     </span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #495057; margin-top: 5px;">
                                     <div><strong>Nhà cung cấp:</strong> ${p.supplier_name || 'N/A'}</div>
-                                    ${p.shipment_tracking ? `<span style="color: #6c757d; font-size: 11px;">Vận đơn: <strong>${p.shipment_tracking}</strong></span>` : ''}
+                                    <div>
+                                        ${p.shipment_tracking ? `<span style="color: #6c757d; font-size: 11px;">Vận đơn: <strong style="color: #0071E3;">${p.shipment_tracking}</strong></span>` : ''}
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -327,11 +686,31 @@ $(document).ready(function () {
                     $itemsContainer.html(html);
 
                     $('.lw-shipment-item').hover(
-                        function () { $(this).css({ 'background': '#eef5ff', 'border-color': '#b8d5fd' }); },
+                        function () { $(this).css({ 'background': '#eef5ff', 'border-color': '#0071E3' }); },
                         function () { $(this).css({ 'background': '#f8f9fa', 'border-color': '#e9ecef' }); }
                     ).on('click', function () {
-                        let name = $(this).data('name');
-                        load_shipment_map(name, 'Purchase Order');
+                        let targetShipment = $(this).data('shipment') || $(this).data('name');
+                        // Close popup and FAB menu
+                        $('.lw-popup').hide();
+                        $('#lw-fab-menu').removeClass('show');
+                        $('#lw-fab-main').removeClass('active');
+
+                        // Navigate directly to Management Logistic page and focus that shipment in Tracking tab
+                        if (typeof frappe !== 'undefined' && frappe.set_route) {
+                            let currentRoute = frappe.get_route_str ? frappe.get_route_str() : '';
+                            if ((currentRoute === 'managementLogistic' || currentRoute === 'manageLogistic') && frappe.pages['managementLogistic'] && frappe.pages['managementLogistic'].shipment_tracking_hub) {
+                                if (frappe.pages['managementLogistic'].switch_to_tab) {
+                                    frappe.pages['managementLogistic'].switch_to_tab('tracking', targetShipment);
+                                } else {
+                                    frappe.pages['managementLogistic'].shipment_tracking_hub.select_shipment(targetShipment);
+                                }
+                            } else {
+                                frappe.route_options = { shipment: targetShipment, tab: 'tracking' };
+                                frappe.set_route('managementLogistic');
+                            }
+                        } else {
+                            window.location.href = '/app/managementLogistic?shipment=' + encodeURIComponent(targetShipment);
+                        }
                     });
                 } else {
                     $itemsContainer.html('<div style="text-align: center; color: red; padding: 20px;">Lỗi tải danh sách vận chuyển.</div>');
@@ -1092,9 +1471,63 @@ $(document).ready(function () {
         $container.html(html);
     }
 
-    // Reset workflow step UI
+    // Switch between Import and Export workflows
+    function switch_workflow_flow(flow, userTriggered = false) {
+        if (!flow || (flow !== 'import' && flow !== 'export')) flow = 'import';
+        currentFlowType = flow;
+
+        if (flow === 'export') {
+            $('#lw-tab-export').addClass('active').css({
+                'background': '#ffffff',
+                'color': '#0071E3',
+                'font-weight': '600',
+                'box-shadow': '0 1px 3px rgba(0,0,0,0.08)'
+            });
+            $('#lw-tab-import').removeClass('active').css({
+                'background': 'transparent',
+                'color': '#495057',
+                'font-weight': '500',
+                'box-shadow': 'none'
+            });
+            $('#lw-import-step-list').hide();
+            $('#lw-export-step-list').show();
+        } else {
+            $('#lw-tab-import').addClass('active').css({
+                'background': '#ffffff',
+                'color': '#0071E3',
+                'font-weight': '600',
+                'box-shadow': '0 1px 3px rgba(0,0,0,0.08)'
+            });
+            $('#lw-tab-export').removeClass('active').css({
+                'background': 'transparent',
+                'color': '#495057',
+                'font-weight': '500',
+                'box-shadow': 'none'
+            });
+            $('#lw-export-step-list').hide();
+            $('#lw-import-step-list').show();
+        }
+
+        if (userTriggered) {
+            let route = (typeof frappe !== 'undefined' && frappe.get_route) ? frappe.get_route() : [];
+            if (route && route[0] === 'Form' && route[1] && route[2]) {
+                frappe.call({
+                    method: "logistics_wizard.api.get_workflow_chain_status",
+                    args: { doctype: route[1], docname: route[2], flow_type: currentFlowType },
+                    callback: function (r) {
+                        if (r && r.message && r.message.success) {
+                            render_chain_status(r.message.steps, currentFlowType);
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    // Reset workflow step UI for both Import and Export
     function reset_workflow_ui() {
-        WORKFLOW_STEPS.forEach(step => {
+        const all_steps = [...IMPORT_WORKFLOW_STEPS, ...EXPORT_WORKFLOW_STEPS];
+        all_steps.forEach(step => {
             let $li = $('#' + step.id);
             if ($li.length) {
                 $li.removeClass('wiz-step-completed wiz-step-current wiz-step-pending');
@@ -1107,11 +1540,13 @@ $(document).ready(function () {
     }
 
     // Update state based on API response
-    function render_chain_status(steps) {
+    function render_chain_status(steps, flow) {
         if (!steps || !steps.length) return;
+        let targetFlow = flow || currentFlowType;
+        let step_definitions = (targetFlow === 'export') ? EXPORT_WORKFLOW_STEPS : IMPORT_WORKFLOW_STEPS;
 
-        steps.forEach(step_data => {
-            let step_cfg = WORKFLOW_STEPS.find(s => s.doctype === step_data.doctype);
+        steps.forEach((step_data, idx) => {
+            let step_cfg = step_definitions[idx];
             if (!step_cfg) return;
 
             let $li = $('#' + step_cfg.id);
@@ -1146,23 +1581,36 @@ $(document).ready(function () {
         let route = frappe.get_route();
         if (!route || !route.length) return;
 
-        if (route[0] === "Form" && route[1] && WORKFLOW_DOCTYPES.includes(route[1]) && route[2]) {
+        if (route[0] === "Form" && route[1] && ALL_WORKFLOW_DOCTYPES.includes(route[1]) && route[2]) {
             let doctype = route[1];
             let docname = route[2];
 
+            // Tự động nhận diện flow từ DocType nếu có
+            let preferredFlow = null;
+            if (EXPORT_DOCTYPES.includes(doctype)) {
+                preferredFlow = 'export';
+            } else if (IMPORT_DOCTYPES.includes(doctype)) {
+                preferredFlow = 'import';
+            }
+
             frappe.call({
                 method: "logistics_wizard.api.get_workflow_chain_status",
-                args: { doctype: doctype, docname: docname },
+                args: { doctype: doctype, docname: docname, flow_type: preferredFlow },
                 callback: function (r) {
                     reset_workflow_ui();
                     if (r && r.message && r.message.success) {
-                        render_chain_status(r.message.steps);
+                        let activeFlow = r.message.flow_type || preferredFlow || 'import';
+                        switch_workflow_flow(activeFlow, false);
+                        render_chain_status(r.message.steps, activeFlow);
                     }
                 }
             });
-        } else if (route[0] === "List" && route[1] && WORKFLOW_DOCTYPES.includes(route[1])) {
+        } else if (route[0] === "List" && route[1] && ALL_WORKFLOW_DOCTYPES.includes(route[1])) {
             reset_workflow_ui();
-            let doctype_id = "wiz-" + route[1].replace(/\s+/g, '-');
+            let doctype = route[1];
+            let activeFlow = EXPORT_DOCTYPES.includes(doctype) ? 'export' : 'import';
+            switch_workflow_flow(activeFlow, false);
+            let doctype_id = (activeFlow === 'export' ? "wiz-exp-" : "wiz-") + doctype.replace(/\s+/g, '-');
             $('#' + doctype_id).addClass('wiz-step-current');
         } else {
             reset_workflow_ui();
@@ -1171,7 +1619,20 @@ $(document).ready(function () {
 
     // Bind route change event
     if (typeof frappe !== 'undefined' && frappe.router) {
-        frappe.router.on("change", update_widget_state);
+        frappe.router.on("change", function () {
+            let r = (typeof frappe.get_route === 'function') ? frappe.get_route() : [];
+            if (r && r[0] === 'shipment-tracking-hub') {
+                frappe.route_options = Object.assign({}, frappe.route_options, { tab: 'tracking' });
+                frappe.set_route('managementLogistic');
+                return;
+            } else if (r && r[0] === 'trade-case-overview') {
+                frappe.route_options = Object.assign({}, frappe.route_options, { tab: 'overview' });
+                frappe.set_route('managementLogistic');
+                return;
+            }
+            inject_fab();
+            update_widget_state();
+        });
     }
 
     // Expose Map API for automated verification & programmatic control
@@ -1189,6 +1650,15 @@ $(document).ready(function () {
         getMapMarkers: function () { return mapMarkers; }
     };
 
+    inject_fab();
     setTimeout(update_widget_state, 300);
-});
+    setTimeout(inject_fab, 1000);
+}
+
+if (document.readyState === "loading") {
+    $(document).ready(initSmartWorkflowWidget);
+} else {
+    initSmartWorkflowWidget();
+}
+
 

@@ -1,0 +1,178 @@
+{
+ "actions": [],
+ "autoname": "format:EXC-.YYYY.-.#####",
+ "creation": "2026-10-01 16:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_exception",
+  "shipment_tracking",
+  "purchase_order",
+  "carrier",
+  "container_id",
+  "col_break_1",
+  "exception_type",
+  "severity",
+  "status",
+  "raised_at",
+  "section_impact",
+  "delay_days",
+  "old_eta",
+  "new_eta",
+  "col_break_2",
+  "description",
+  "section_resolution",
+  "resolved_at",
+  "resolution_notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_exception",
+   "fieldtype": "Section Break",
+   "label": "Thông tin Ngoại lệ (Exception Overview)"
+  },
+  {
+   "fieldname": "shipment_tracking",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Lô hàng vận chuyển (Shipment Tracking)",
+   "options": "Shipment Tracking",
+   "reqd": 1
+  },
+  {
+   "fieldname": "purchase_order",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Đơn mua hàng liên kết (Purchase Order)",
+   "options": "Purchase Order"
+  },
+  {
+   "fieldname": "carrier",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Hãng vận chuyển (Carrier)"
+  },
+  {
+   "fieldname": "container_id",
+   "fieldtype": "Data",
+   "label": "Mã Container (Container ID)"
+  },
+  {
+   "fieldname": "col_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "exception_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Loại ngoại lệ (Exception Type)",
+   "options": "ETA Delay\nCarrier Rolled Cargo\nRoute Deviation\nCustoms Hold\nStale Tracking\nNetwork Failure",
+   "reqd": 1
+  },
+  {
+   "default": "Warning",
+   "fieldname": "severity",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Mức độ nghiêm trọng (Severity)",
+   "options": "Info\nWarning\nCritical",
+   "reqd": 1
+  },
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Trạng thái xử lý (Status)",
+   "options": "Open\nInvestigating\nAcknowledged\nResolved\nClosed",
+   "reqd": 1
+  },
+  {
+   "fieldname": "raised_at",
+   "fieldtype": "Datetime",
+   "label": "Thời điểm phát hiện (Raised At)"
+  },
+  {
+   "fieldname": "section_impact",
+   "fieldtype": "Section Break",
+   "label": "Mức độ ảnh hưởng lịch trình (Schedule Drift)"
+  },
+  {
+   "default": "0",
+   "fieldname": "delay_days",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Số ngày trễ (Delay Days)"
+  },
+  {
+   "fieldname": "old_eta",
+   "fieldtype": "Date",
+   "label": "ETA cũ (Old ETA)"
+  },
+  {
+   "fieldname": "new_eta",
+   "fieldtype": "Date",
+   "label": "ETA mới (New ETA)"
+  },
+  {
+   "fieldname": "col_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Mô tả chi tiết sự cố (Description)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_resolution",
+   "fieldtype": "Section Break",
+   "label": "Biện pháp khắc phục (Resolution)"
+  },
+  {
+   "fieldname": "resolved_at",
+   "fieldtype": "Datetime",
+   "label": "Thời điểm giải quyết (Resolved At)"
+  },
+  {
+   "fieldname": "resolution_notes",
+   "fieldtype": "Small Text",
+   "label": "Ghi chú xử lý (Resolution Notes)"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-01 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Shipment Exception",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Stock Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Purchase User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

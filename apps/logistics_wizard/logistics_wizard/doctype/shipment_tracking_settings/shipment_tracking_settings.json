@@ -1,0 +1,118 @@
+{
+ "actions": [],
+ "creation": "2026-10-01 16:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_provider",
+  "active_provider",
+  "aftership_api_key",
+  "webhook_secret_key",
+  "col_break_1",
+  "enable_auto_polling",
+  "auto_create_exceptions",
+  "section_thresholds",
+  "polling_interval_minutes",
+  "stale_threshold_hours",
+  "col_break_2",
+  "max_retries",
+  "backoff_base_seconds"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_provider",
+   "fieldtype": "Section Break",
+   "label": "Cấu hình Nhà cung cấp (Tracking Provider Settings)"
+  },
+  {
+   "default": "Mock Provider",
+   "fieldname": "active_provider",
+   "fieldtype": "Select",
+   "label": "Nhà cung cấp kích hoạt (Active Provider)",
+   "options": "Mock Provider\nAfterShip\nOcean Insights"
+  },
+  {
+   "fieldname": "aftership_api_key",
+   "fieldtype": "Password",
+   "label": "AfterShip API Key"
+  },
+  {
+   "fieldname": "webhook_secret_key",
+   "fieldtype": "Password",
+   "label": "Webhook Secret (HMAC SHA-256)"
+  },
+  {
+   "fieldname": "col_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_auto_polling",
+   "fieldtype": "Check",
+   "label": "Bật tự động Polling (Enable Auto Polling)"
+  },
+  {
+   "default": "1",
+   "fieldname": "auto_create_exceptions",
+   "fieldtype": "Check",
+   "label": "Tự động sinh Exception khi trễ/mất tín hiệu"
+  },
+  {
+   "fieldname": "section_thresholds",
+   "fieldtype": "Section Break",
+   "label": "Ngưỡng giám sát & Thử lại (Thresholds & Backoff)"
+  },
+  {
+   "default": "60",
+   "fieldname": "polling_interval_minutes",
+   "fieldtype": "Int",
+   "label": "Chu kỳ Polling (phút)"
+  },
+  {
+   "default": "48",
+   "fieldname": "stale_threshold_hours",
+   "fieldtype": "Int",
+   "label": "Ngưỡng cảnh báo mất tín hiệu (giờ)"
+  },
+  {
+   "fieldname": "col_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "5",
+   "fieldname": "max_retries",
+   "fieldtype": "Int",
+   "label": "Số lần thử lại tối đa (Max Retries)"
+  },
+  {
+   "default": "60",
+   "fieldname": "backoff_base_seconds",
+   "fieldtype": "Int",
+   "label": "Khoảng trễ thử lại ban đầu (giây)"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-01 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Logistics Wizard",
+ "name": "Shipment Tracking Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 0,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

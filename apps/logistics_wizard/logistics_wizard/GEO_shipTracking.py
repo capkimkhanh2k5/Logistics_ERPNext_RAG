@@ -281,18 +281,23 @@ def geocode_location(city, country):
 
     # 3) Fallback online (Nominatim) khi không có trong offline DB
     url = f"https://nominatim.openstreetmap.org/search?q={urllib.parse.quote(query)}&format=json&limit=1"
-    headers = {"User-Agent": "ERPNext-LogisticsWizard-App"}
+    headers = {"User-Agent": "ERPNext-LogisticsWizard-App/1.0"}
     try:
         import requests
-        r = requests.get(url, headers=headers, timeout=5)
+        r = requests.get(url, headers=headers, timeout=3)
         if r.status_code == 200 and r.json():
             data = r.json()[0]
             result = [float(data["lat"]), float(data["lon"])]
             _cache_coords(cache_key, result)
             return result
     except Exception as e:
-        frappe.log_error(title="Geocoding Error", message=f"Query: {query}, Error: {str(e)}")
+        try:
+            if frappe and hasattr(frappe, "db") and frappe.db:
+                frappe.log_error(title="Geocoding Error", message=f"Query: {query}, Error: {str(e)}")
+        except Exception:
+            pass
     return None
+
 
 
 def _cache_coords(cache_key, coords):
