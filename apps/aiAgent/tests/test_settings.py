@@ -8,7 +8,7 @@ import pytest
 
 from config.settings import ROOT, CLIProxyConfig, DatabaseConfig, GroqConfig, load_environment
 from config.testing import GenerationTestConfig
-from rag.llm.groq_client import GroqClient
+from rag.llm.providers.groq_client import GroqClient
 from rag.vectordb.postgres import connect
 
 
@@ -91,7 +91,7 @@ def test_env_settings_reach_model_payload_timeout_and_key_rotation(monkeypatch):
             ).encode()
         )
 
-    monkeypatch.setattr("rag.llm.groq_client.urlopen", send)
+    monkeypatch.setattr("rag.llm.providers.groq_client.urlopen", send)
     client = GroqClient()
     client.complete([], {})
     client.complete([], {})
@@ -263,7 +263,7 @@ def test_notebook_controls_are_loaded_from_env(monkeypatch):
 
 
 def test_rag_runtime_never_imports_test_runners():
-    for path in (ROOT / "rag").glob("*.py"):
+    for path in (ROOT / "rag").rglob("*.py"):
         for node in ast.walk(ast.parse(path.read_text())):
             if isinstance(node, ast.ImportFrom):
                 assert not (node.module or "").startswith(("tests", "pytest", "unittest")), path

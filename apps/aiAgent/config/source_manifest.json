@@ -22,7 +22,10 @@
     "tt31_pdf_graph": "TT31/PDF_SOURCE_GRAPH.json",
     "pdf_provenance": "PDF_SOURCE_PROVENANCE.json",
     "tt31_pdf_text_corrections": "TT31/PDF_SOURCE_TEXT_CORRECTIONS.json",
-    "tt31_pdf_wording_reviews": "TT31/PDF_WORDING_REVIEWS.json"
+    "tt31_pdf_wording_reviews": "TT31/PDF_WORDING_REVIEWS.json",
+    "nd26": "ND26_CP/nd26_cp_rag_chunks_source.jsonl",
+    "vbhn05": "VBHN05_BGTVT/vbhn05_bgtvt_rag_chunks_source.jsonl",
+    "tt02": "TT02_BTTTT/tt02_btttt_rag_chunks_source.jsonl"
   },
   "tariffs": [
     {
@@ -48,6 +51,65 @@
       "edges": "tt31_section_xvii_edges",
       "source_pdf": "data/raw/TT31-Section-XVII.pdf",
       "pdf_graph": "tt31_pdf_graph"
+    }
+  ],
+  "legal_documents": [
+    {
+      "key": "nd26",
+      "dataset": "nd26_cp",
+      "document_no": "26/2023/NĐ-CP",
+      "file": "data/raw/docx/26_2023_ND-CP_548616.docx",
+      "effective_from": "2023-07-15",
+      "effective_to": null,
+      "legal_status": "PARTIALLY_AMENDED",
+      "official_url": "https://vanban.chinhphu.vn/?docid=208020&pageid=27160",
+      "validity_review": {
+        "checked_at": "2026-10-22",
+        "status": "ORIGINAL_TEXT_AMENDMENTS_NOT_CONSOLIDATED",
+        "amendment_evidence": [
+          "https://xaydungchinhsach.chinhphu.vn/nghi-dinh-so-26-2023-nd-cp-sua-doi-quy-dinh-ve-thue-nhap-khau-uu-dai-san-xuat-lap-rap-o-to-119250211235633069.htm"
+        ],
+        "note": "Original 2023 text; not a current consolidated tariff or tax-rate service."
+      },
+      "sha256": "0568c12c02ac717412c6f95f4c071a4d7115168e53f30fd001daaf716ab2c91c"
+    },
+    {
+      "key": "vbhn05",
+      "dataset": "vbhn05_bgtvt",
+      "document_no": "05/VBHN-BGTVT (2025)",
+      "file": "data/raw/docx/05_VBHN-BGTVT_m_640747.docx",
+      "effective_from": null,
+      "effective_to": null,
+      "legal_status": "UNVERIFIED",
+      "official_url": "https://chinhphu.vn/?classid=2629&docid=212544&pageid=27160",
+      "validity_review": {
+        "checked_at": "2026-10-22",
+        "issued_date": "2025-01-16",
+        "status": "CONSOLIDATION_COMPONENT_DATES_REQUIRE_REVIEW",
+        "note": "Date of consolidation does not establish a single effective date for all constituent rules."
+      },
+      "sha256": "745d631b8c997c16138c839cc81bf89aabad10b536032c49cca447ba66e8be52"
+    },
+    {
+      "key": "tt02",
+      "dataset": "tt02_btttt",
+      "document_no": "02/2024/TT-BTTTT",
+      "file": "data/raw/docx/02_2024_TT-BTTTT_m_605048.docx",
+      "effective_from": "2024-05-15",
+      "effective_to": "2025-12-31",
+      "legal_status": "EXPIRED",
+      "official_url": "https://vbpl.vn/TW/Pages/vbpq-thuoctinh.aspx?ItemID=166291",
+      "validity_review": {
+        "checked_at": "2026-10-22",
+        "status": "REPLACED_HISTORICAL_TEXT",
+        "successor": "29/2025/TT-BKHCN",
+        "successor_in_corpus": false,
+        "evidence": [
+          "https://mst.gov.vn/danh-muc-san-pham-hang-hoa-co-kha-nang-gay-mat-an-toan-trong-linh-vuc-cong-nghe-thong-tin-va-vien-thong-197251115212002848.htm"
+        ],
+        "note": "Exclusive effective_to; historical use only, transitional certificates need their own evidence."
+      },
+      "sha256": "0e74d64a5260fbf14808815c92047e0db2ea36963e09844536dc27807d7d6696"
     }
   ]
 }

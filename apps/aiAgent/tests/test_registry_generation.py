@@ -9,10 +9,15 @@ import pytest
 
 from config.settings import GroqConfig
 from rag.graph.context import GraphContext
-from rag.llm.answering import generate_answer
-from rag.llm.context import compose_query, prepare_context
-from rag.llm.evidence import bind_user_context, decode_answer, decode_product_review, user_registry
-from rag.prompts.schemas import (
+from rag.llm.context.builder import compose_query, prepare_context
+from rag.llm.evidence.evidence import (
+    bind_user_context,
+    decode_answer,
+    decode_product_review,
+    user_registry,
+)
+from rag.llm.generation.answering import generate_answer
+from rag.prompts.schemas.answer import (
     MODEL_ANSWER_SCHEMA,
     MODEL_DECISION_REVIEW_SCHEMA,
     MODEL_PRODUCT_REVIEW_SCHEMA,
@@ -300,7 +305,7 @@ def test_numeric_guard_does_not_treat_uncertainty_or_insufficient_bounds_as_know
 
 def test_review_receives_actual_sources_used_in_the_draft_beyond_candidate_ancestry():
     ctx = context("Loại hàng theo mô tả.")
-    from rag.llm.evidence import bind_evidence
+    from rag.llm.evidence.evidence import bind_evidence
 
     extra = bind_evidence(
         [

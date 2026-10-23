@@ -6,14 +6,14 @@ import json
 import pytest
 
 from config.model_limits import MODEL_LIMITS, ModelLimits, get_model_limits
-from rag.llm.budget import (
+from rag.llm.contracts.errors import LLMError
+from rag.llm.providers.budget import (
     ContextBudgetError,
     build_request_messages,
     check_request_budget,
     request_budget,
 )
-from rag.llm.errors import LLMError
-from rag.prompts.provider_format import format_json_schema_prompt
+from rag.prompts.core.provider_format import format_json_schema_prompt
 
 MESSAGES = [
     {"role": "system", "content": "A complete instruction"},

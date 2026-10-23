@@ -118,7 +118,8 @@ class CLIProxyConfig:
     fallback_reasoning_effort: str = "medium"
     max_output_tokens: int | None = None
     reasoning_effort: str = "high"
-    timeout_seconds: float = 60
+    timeout_seconds: float = 90.0
+    transport_retries: int = 2
     temperature: float = 0.2
 
     def __post_init__(self):
@@ -149,6 +150,12 @@ class CLIProxyConfig:
             raise ValueError("CLIPROXYAPI_REASONING_EFFORT must be low, medium or high")
         if not math.isfinite(self.timeout_seconds) or self.timeout_seconds <= 0:
             raise ValueError("CLIPROXYAPI_TIMEOUT_SECONDS must be finite and positive")
+        if (
+            isinstance(self.transport_retries, bool)
+            or not isinstance(self.transport_retries, int)
+            or not 0 <= self.transport_retries <= 2
+        ):
+            raise ValueError("CLIPROXYAPI_TRANSPORT_RETRIES must be 0, 1 or 2")
         if not math.isfinite(self.temperature) or not 0 <= self.temperature <= 2:
             raise ValueError("CLIPROXYAPI_TEMPERATURE must be between 0 and 2")
 
@@ -186,6 +193,9 @@ class CLIProxyConfig:
             timeout_seconds=float(
                 os.getenv("CLIPROXYAPI_TIMEOUT_SECONDS", str(cls.timeout_seconds))
             ),
+            transport_retries=int(
+                os.getenv("CLIPROXYAPI_TRANSPORT_RETRIES", str(cls.transport_retries))
+            ),
             temperature=float(os.getenv("CLIPROXYAPI_TEMPERATURE", str(cls.temperature))),
         )
         if model_preset is not None:
@@ -201,6 +211,7 @@ class RAGGenerationConfig:
     max_context_chars: int | None
     fallback_models: tuple[str, ...] = ()
     use_model_token_limits: bool = False
+    allow_fallback: bool = False
 
 
 @dataclass(frozen=True)

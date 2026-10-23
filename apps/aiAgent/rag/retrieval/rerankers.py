@@ -6,7 +6,7 @@ import numpy as np
 
 from config.settings import ROOT
 from rag.embedding.bge_m3 import Embedder, multivectors
-from rag.prompts.reranking import RERANK_PROMPT_VERSION, format_qwen_prompt
+from rag.prompts.retrieval.reranking import RERANK_PROMPT_VERSION, format_qwen_prompt
 from rag.utils.files import digest, write_json
 
 

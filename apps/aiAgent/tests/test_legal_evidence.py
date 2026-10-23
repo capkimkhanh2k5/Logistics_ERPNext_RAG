@@ -11,8 +11,8 @@ from rag.chunking.corpus import load_corpus
 from rag.graph.context import GraphContext
 from rag.graph.legal_evidence import attach_bindings, consolidated_bindings, evidence_digest
 from rag.ingestion.pdf_graph import extractor_identity, validate_extraction
-from rag.llm.context import prepare_context
-from rag.llm.validation import validate_answer
+from rag.llm.context.builder import prepare_context
+from rag.llm.validation.answer import validate_answer
 from rag.utils.files import read
 from rag.vectordb.postgres import ingest
 from tests.test_generation_boundaries import recommendation

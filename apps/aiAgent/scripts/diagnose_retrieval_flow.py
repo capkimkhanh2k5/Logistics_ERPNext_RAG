@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from config.settings import DEFAULT_MODEL_PRESET, MODEL_PRESETS  # noqa: E402
 from rag.embedding.bge_m3 import Embedder  # noqa: E402
-from rag.llm.client import RAGClient  # noqa: E402
+from rag.llm.providers.client import RAGClient  # noqa: E402
 from rag.retrieval.query_planning import QueryPlanner  # noqa: E402
 from rag.retrieval.retriever import Retriever  # noqa: E402
 from rag.utils.files import digest, read, write_json  # noqa: E402

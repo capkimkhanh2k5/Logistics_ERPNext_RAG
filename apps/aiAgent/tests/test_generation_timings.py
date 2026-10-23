@@ -8,9 +8,9 @@ import pytest
 
 from config.settings import GroqConfig
 from rag.graph.context import GraphContext
-from rag.llm import answering
-from rag.llm.groq_client import GroqClient, GroqError
-from rag.prompts.schemas import ANSWER_SCHEMA, PRODUCT_REVIEW_SCHEMA
+from rag.llm.generation import answering
+from rag.llm.providers.groq_client import GroqClient, GroqError
+from rag.prompts.schemas.answer import ANSWER_SCHEMA, PRODUCT_REVIEW_SCHEMA
 from tests.support.legacy_generation import prepare_legacy_context as prepare_context
 
 
@@ -239,7 +239,7 @@ def test_failed_main_request_exposes_measurement_on_safe_provider_error(monkeypa
 
 
 def test_unavailable_decision_review_is_included_in_total_llm_wall_time(monkeypatch):
-    from rag.llm import decision_review
+    from rag.llm.review import decision_review
 
     ctx, clock = context(), Clock()
     calls: list[tuple[dict, dict]] = []
@@ -259,7 +259,7 @@ def test_unavailable_decision_review_is_included_in_total_llm_wall_time(monkeypa
 
 
 def test_empty_hs_context_skips_main_but_measures_independent_decision_review(monkeypatch):
-    from rag.llm import decision_review
+    from rag.llm.review import decision_review
 
     ctx = prepare_context(
         "A product described by its trade name", {}, "auto", GroqConfig(keys=("fixture",))
@@ -280,7 +280,7 @@ def test_empty_hs_context_skips_main_but_measures_independent_decision_review(mo
 
 
 def test_decision_review_repair_separates_both_model_calls_from_local_validation(monkeypatch):
-    from rag.llm import decision_review
+    from rag.llm.review import decision_review
 
     ctx, clock = context(), Clock()
     calls: list[tuple[dict, dict]] = []

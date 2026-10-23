@@ -6,7 +6,7 @@ compatibility for saved contexts; registry-v2 has its own end-to-end regressions
 
 import json
 
-from rag.llm.context import _model_candidate_evidence, _model_source, prepare_context
+from rag.llm.context.builder import _model_candidate_evidence, _model_source, prepare_context
 
 
 def prepare_legacy_context(*args, **kwargs):

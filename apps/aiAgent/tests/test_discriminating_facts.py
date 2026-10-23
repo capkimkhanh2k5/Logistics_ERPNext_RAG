@@ -2,8 +2,8 @@ import copy
 
 import pytest
 
-from rag.llm.evidence import bind_user_context
-from rag.llm.grounding import discriminating_fact_errors
+from rag.llm.evidence.evidence import bind_user_context
+from tests.support.legacy_grounding import discriminating_fact_errors
 from tests.test_conditional_candidates import conditional_fixture
 from tests.test_goal_workflow import run
 

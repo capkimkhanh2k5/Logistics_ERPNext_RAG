@@ -4,11 +4,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from rag.llm.answering import generate_answer
-from rag.llm.errors import LLMError
-from rag.llm.shortlist import expand_rows
-from rag.llm.task_generation import _review_payload, review_jobs
-from rag.llm.task_validation import decode_task_answer
+from rag.llm.contracts.errors import LLMError
+from rag.llm.generation.answering import generate_answer
+from rag.llm.generation.shortlist import expand_rows
+from rag.llm.generation.task_generation import _review_payload, review_jobs
+from rag.llm.validation.task_validation import decode_task_answer
 from tests.test_conditional_candidates import conditional_fixture
 from tests.test_goal_workflow import context, model_answer, model_reviews, run
 
@@ -67,8 +67,35 @@ def test_legal_gap_does_not_create_leaf_review_jobs_from_auxiliary_codes():
         missing_legal_evidence=["Thiếu chú giải áp dụng."],
     )
     row["claims"][0]["text"] = "Ngữ cảnh chưa có đủ căn cứ giải thích cách áp dụng."
-    out, calls = run(ctx, [draft])
-    assert len(calls) == 1
+    from rag.llm.review.analysis_review import analysis_jobs
+
+    rows, errors = decode_task_answer(draft, ctx)
+    assert not errors
+    jobs, _ = review_jobs(rows, ctx)
+    assert not jobs
+    analyses = analysis_jobs(rows, ctx)
+    review = {
+        "reviews": [],
+        "analysis_reviews": [
+            {
+                "result_id": job["result_id"],
+                "checks": [
+                    {
+                        "claim_index": claim["claim_index"],
+                        "assessment": "INSUFFICIENT_LEGAL_EVIDENCE",
+                        "evidence_ids": [],
+                        "fact_ids": [],
+                        "user_quotes": [],
+                        "reason": "Nguồn hiện tại chưa đủ căn cứ giải thích cách áp dụng.",
+                    }
+                    for claim in job["claims"]
+                ],
+            }
+            for job in analyses
+        ],
+    }
+    out, calls = run(ctx, [draft, review])
+    assert len(calls) == 2
     assert out["answer"]["status"] == "INSUFFICIENT_LEGAL_EVIDENCE"
     assert not out["answer"]["hs_candidates"]
 

@@ -4,11 +4,11 @@ import copy
 
 import pytest
 
-from rag.llm.answering import check_product_review
-from rag.llm.evidence import bind_user_context
-from rag.llm.grounding import defining_note_errors
-from rag.llm.task_generation import _unreviewed_fallback
-from rag.llm.task_validation import code_claim_errors, decode_task_answer
+from rag.llm.evidence.evidence import bind_user_context
+from rag.llm.generation.answering import check_product_review
+from rag.llm.generation.task_generation import _unreviewed_fallback
+from rag.llm.validation.task_validation import code_claim_errors, decode_task_answer
+from tests.support.legacy_grounding import defining_note_errors
 from tests.test_goal_reselection import fixture
 from tests.test_goal_workflow import run
 
@@ -185,7 +185,7 @@ def test_failed_review_cannot_release_applied_claim_under_legal_analysis_label()
 
 def test_partial_review_cannot_mark_payload_as_gross_weight_satisfied():
     ctx, draft, review = fixture()
-    from rag.llm.task_generation import review_jobs
+    from rag.llm.generation.task_generation import review_jobs
 
     rows, _ = decode_task_answer(draft, ctx)
     _, scopes = review_jobs(rows, ctx)
@@ -233,8 +233,8 @@ def test_name_alone_does_not_prove_defining_note_even_in_partial_review():
 
 
 def test_conflicting_candidate_reviews_never_promote_one_supported_over_another_possible():
-    from rag.llm.shortlist import collapse_rows, expand_rows
-    from rag.llm.task_generation import _review_payload, review_jobs
+    from rag.llm.generation.shortlist import collapse_rows, expand_rows
+    from rag.llm.generation.task_generation import _review_payload, review_jobs
 
     ctx, draft, review = conditional_fixture()
     original, errors = decode_task_answer(draft, ctx)
@@ -254,7 +254,7 @@ def test_conflicting_candidate_reviews_never_promote_one_supported_over_another_
 
 
 def test_three_candidates_expand_into_one_batch_with_distinct_job_ids():
-    from rag.llm.shortlist import expand_rows
+    from rag.llm.generation.shortlist import expand_rows
 
     ctx, draft, _ = conditional_fixture()
     rows, errors = decode_task_answer(draft, ctx)
@@ -277,9 +277,10 @@ def test_negation_in_previous_clause_cannot_hide_a_positive_code_application():
 
 
 def test_source_bound_question_with_verbatim_branch_label_accepts_attribute_alias():
-    from rag.llm.disambiguation import disambiguation_errors
-    from rag.llm.shortlist import expand_rows
-    from rag.llm.task_generation import review_jobs
+    from rag.llm.evidence.conditions import bind_condition_refs
+    from rag.llm.generation.shortlist import expand_rows
+    from rag.llm.generation.task_generation import review_jobs
+    from rag.llm.review.disambiguation import disambiguation_errors
 
     ctx, draft, review = conditional_fixture()
     rows, errors = decode_task_answer(draft, ctx)
@@ -293,13 +294,13 @@ def test_source_bound_question_with_verbatim_branch_label_accepts_attribute_alia
     raw["clarifications"][0]["question"] = (
         "Xe nhập khẩu dưới dạng linh kiện rời (CKD) hay xe nguyên chiếc?"
     )
-    assert not disambiguation_errors(raw, scoped, "87038018")
+    assert not disambiguation_errors(bind_condition_refs(raw, scoped), scoped, "87038018")
     raw["clarifications"][0]["evidence_ids"] = ["Eforeign"]
-    assert disambiguation_errors(raw, scoped, "87038018")
+    assert disambiguation_errors(bind_condition_refs(raw, scoped), scoped, "87038018")
 
 
 def test_recovery_rebinds_nested_candidate_citations_and_conditions():
-    from rag.llm.recovery import _retain_completed
+    from rag.llm.generation.recovery import _retain_completed
 
     ctx, draft, review = fixture()
     old, _ = run(ctx, [draft, review])
@@ -315,6 +316,7 @@ def test_recovery_rebinds_nested_candidate_citations_and_conditions():
         citations=[],
         hs_candidates=[],
         review_valid=False,
+        failure_kind="TECHNICAL",
     )
     result = _retain_completed(ctx, old, updated, generated)
     by_label = {source["label"]: source for source in updated["sources"]}
@@ -353,7 +355,7 @@ def test_conditional_review_can_name_its_own_code_without_publishing_a_recommend
     ],
 )
 def test_separately_presented_exclusion_needs_explicit_presentation_fact(quote, valid):
-    from rag.llm.grounding import presentation_scope_errors
+    from tests.support.legacy_grounding import presentation_scope_errors
 
     source = "Nhóm này không bao gồm các hàng hóa sau đây khi nó được trình bày riêng rẽ: thiết bị truyền nhận dữ liệu."
     assert bool(presentation_scope_errors([source], [quote])) is not valid
@@ -372,8 +374,8 @@ def test_defining_note_guard_accepts_explicit_material_and_absence_clause():
 
 
 def test_candidate_review_keeps_cited_principle_and_pending_question_as_hypotheses():
-    from rag.llm.shortlist import expand_rows
-    from rag.llm.task_generation import review_jobs
+    from rag.llm.generation.shortlist import expand_rows
+    from rag.llm.generation.task_generation import review_jobs
 
     ctx, draft, _ = conditional_fixture()
     rows, errors = decode_task_answer(draft, ctx)

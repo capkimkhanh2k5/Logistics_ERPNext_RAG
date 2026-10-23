@@ -9,13 +9,13 @@ import pytest
 
 from config.model_limits import MODEL_LIMITS, ModelLimits
 from config.settings import CLIProxyConfig, GroqConfig
-from rag.llm.answering import generate_answer
-from rag.llm.budget import request_budget
-from rag.llm.client import RAGClient
-from rag.llm.cliproxy_client import CLIProxyClient
-from rag.llm.errors import LLMError
-from rag.llm.groq_client import GroqError
-from rag.prompts.schemas import ANSWER_SCHEMA
+from rag.llm.contracts.errors import LLMError
+from rag.llm.generation.answering import generate_answer
+from rag.llm.providers.budget import request_budget
+from rag.llm.providers.client import RAGClient
+from rag.llm.providers.cliproxy_client import CLIProxyClient
+from rag.llm.providers.groq_client import GroqError
+from rag.prompts.schemas.answer import ANSWER_SCHEMA
 from tests.support.generation_scenarios import _generate
 from tests.support.legacy_generation import prepare_legacy_context as prepare_context
 
@@ -52,7 +52,57 @@ def api_response(content=None):
 
 @pytest.fixture
 def client():
-    return RAGClient(CLIProxyConfig(api_key="gateway-secret"), GroqConfig(keys=("groq-secret",)))
+    return RAGClient(
+        CLIProxyConfig(api_key="gateway-secret"),
+        GroqConfig(keys=("groq-secret",)),
+        allow_fallback=True,
+    )
+
+
+@pytest.mark.parametrize("status", [400, 401, 429, 503])
+def test_primary_only_session_cannot_be_reopened_by_call_flag(monkeypatch, status):
+    client = RAGClient(CLIProxyConfig(api_key="fixture"), GroqConfig(keys=("fixture",)))
+    calls = []
+
+    def fail(path, payload):
+        calls.append(payload["model"])
+        raise LLMError(status, payload["model"], retry_after=60, provider="cliproxyapi")
+
+    monkeypatch.setattr(client.primary, "_request", fail)
+    monkeypatch.setattr(
+        client.fallback, "complete", lambda *a, **kw: pytest.fail("Unexpected Groq")
+    )
+    with pytest.raises(LLMError) as error:
+        client.complete([], {}, allow_fallback=True)
+    assert error.value.status == status
+    assert calls == [client.config.model]
+    assert not client.config.allow_fallback
+    assert client.config.fallback_models == ()
+
+
+def test_primary_only_session_rejects_other_model_aliases_before_transport(monkeypatch):
+    client = RAGClient(CLIProxyConfig(api_key="fixture"), GroqConfig(keys=("fixture",)))
+    monkeypatch.setattr(
+        client.primary, "complete", lambda *a, **kw: pytest.fail("Unexpected request")
+    )
+    monkeypatch.setattr(
+        client.fallback, "complete", lambda *a, **kw: pytest.fail("Unexpected Groq")
+    )
+    for alias in [client.config.fallback_model, client.fallback.config.model, "unregistered-model"]:
+        with pytest.raises(ValueError, match="configured primary model"):
+            client.complete([], {}, model=alias, allow_fallback=True)
+
+
+def test_explicit_model_switch_preserves_primary_only_policy(monkeypatch):
+    client = RAGClient(CLIProxyConfig(api_key="fixture"), GroqConfig(keys=("fixture",)))
+    for preset in ["3.8-high", "120b", "3.5-lite-high"]:
+        client.select_model(preset)
+        assert not client.allow_fallback and not client.config.allow_fallback
+        assert client.config.fallback_models == ()
+        monkeypatch.setattr(client.primary, "_request", lambda *a: api_response())
+        result = client.complete([], {}, allow_fallback=True)
+        assert result["model"] == client.config.model
+        assert not result["fallback_used"]
 
 
 def test_primary_sends_strict_schema_and_high_reasoning_without_groq_options(monkeypatch):
@@ -76,7 +126,7 @@ def test_primary_sends_strict_schema_and_high_reasoning_without_groq_options(mon
         assert "reasoning_format" not in payload and "include_reasoning" not in payload
         return io.BytesIO(json.dumps(api_response()).encode())
 
-    monkeypatch.setattr("rag.llm.cliproxy_client.urlopen", send)
+    monkeypatch.setattr("rag.llm.providers.cliproxy_client.urlopen", send)
     result = client.complete(messages, schema)
     assert result["model"] == "gemini-3.5-flash-lite"
     assert result["response_model"] == "gemini-3.8-flash-n"
@@ -138,7 +188,7 @@ def test_transport_failure_is_secret_free_and_recovers(client, monkeypatch, fail
     def failed(*args, **kwargs):
         raise failure
 
-    monkeypatch.setattr("rag.llm.cliproxy_client.urlopen", failed)
+    monkeypatch.setattr("rag.llm.providers.cliproxy_client.urlopen", failed)
     monkeypatch.setattr(client.fallback, "_request", lambda *args: (api_response(), 1))
     result = client.complete([], {})
     assert result["failures"][0]["http_status"] == 503
@@ -147,7 +197,7 @@ def test_transport_failure_is_secret_free_and_recovers(client, monkeypatch, fail
 
 def test_failed_provider_duration_is_separate_from_successful_fallback(client, monkeypatch):
     clock = [0.0]
-    monkeypatch.setattr("rag.llm.client.time.perf_counter", lambda: clock[0])
+    monkeypatch.setattr("rag.llm.providers.client.time.perf_counter", lambda: clock[0])
 
     def complete(messages, schema, *, model):
         if model == client.config.model:
@@ -165,7 +215,7 @@ def test_failed_provider_duration_is_separate_from_successful_fallback(client, m
 def test_quota_cooldown_uses_groq_without_retrying_primary_until_retry_after(client, monkeypatch):
     calls = []
     clock = [100.0]
-    monkeypatch.setattr("rag.llm.client.time.monotonic", lambda: clock[0])
+    monkeypatch.setattr("rag.llm.providers.client.time.monotonic", lambda: clock[0])
 
     def limited(path, payload):
         calls.append(payload["model"])
@@ -263,7 +313,7 @@ def test_http_failure_keeps_only_allowlisted_error_details(monkeypatch):
         headers["retry-after"] = "120"
         raise HTTPError(request.full_url, 429, "gateway-secret", headers, body)
 
-    monkeypatch.setattr("rag.llm.cliproxy_client.urlopen", failed)
+    monkeypatch.setattr("rag.llm.providers.cliproxy_client.urlopen", failed)
     with pytest.raises(LLMError) as error:
         CLIProxyClient(CLIProxyConfig(api_key="gateway-secret")).complete([], {})
     assert error.value.retry_after == 120
@@ -401,7 +451,8 @@ def test_selected_model_sends_bound_alias_and_effort_without_duplicate_fallback(
     assert rag_client.primary.config.base_url == config.base_url
     assert rag_client.primary.config.api_key == config.api_key
     assert rag_client.config.fallback_model == fallback
-    assert rag_client.config.fallback_models[0] == fallback
+    assert rag_client.config.fallback_models == ()
+    assert not rag_client.config.allow_fallback
     assert rag_client._cli_models == (model, fallback)
     assert result["model"] == result["requested_model"] == model
     assert not result["fallback_used"]
@@ -456,7 +507,7 @@ def test_model_selection_rejects_groq_alias_collision_without_mutation():
 def test_pinned_quota_cooldown_survives_switching_away_and_back(client, monkeypatch):
     calls = []
     lite = "gemini-3.5-flash-lite"
-    monkeypatch.setattr("rag.llm.client.time.monotonic", lambda: 100)
+    monkeypatch.setattr("rag.llm.providers.client.time.monotonic", lambda: 100)
 
     def send(_self, path, payload):
         calls.append(payload["model"])

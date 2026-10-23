@@ -8,11 +8,11 @@ import pytest
 
 from config.settings import GroqConfig
 from rag.graph.context import GraphContext
-from rag.llm.answering import generate_answer
-from rag.llm.context import compose_query, prepare_context
-from rag.llm.decision_review import review_decision
-from rag.llm.evidence import decode_product_review
-from rag.prompts.schemas import MODEL_DISAMBIGUATION_REVIEW_SCHEMA
+from rag.llm.context.builder import compose_query, prepare_context
+from rag.llm.evidence.evidence import decode_product_review
+from rag.llm.generation.answering import generate_answer
+from rag.llm.review.decision_review import review_decision
+from rag.prompts.schemas.answer import MODEL_DISAMBIGUATION_REVIEW_SCHEMA
 from tests.test_registry_generation import main_answer, run
 
 

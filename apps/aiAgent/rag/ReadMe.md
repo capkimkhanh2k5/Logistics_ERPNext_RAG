@@ -1,6 +1,6 @@
 # Package RAG
 
-Luồng theo mục tiêu dùng thêm `retrieval/request_plan.py`, `retrieval/evidence_recovery.py` và các module `llm/task_context.py`, `llm/task_validation.py`, `llm/task_generation.py`, `llm/recovery.py`. Prompt/schema nằm tại `prompts/task_answering.py`. [Contract và giới hạn](../docs/GenerationFlow/Goals_And_Recovery.md) mô tả quan hệ với `registry-v2` và đường fallback.
+Luồng theo mục tiêu dùng thêm `retrieval/request_plan.py`, `retrieval/evidence_recovery.py` và các module `llm/context/task_context.py`, `llm/validation/task_validation.py`, `llm/generation/task_generation.py`, `llm/generation/recovery.py`. Prompt/schema nằm tại `prompts/generation/task_answering.py`. [Contract và giới hạn](../docs/GenerationFlow/GenerationFlow.md) mô tả quan hệ với `registry-v2` và đường tương thích giao thức.
 
 Code được nhóm theo chức năng. Các thư mục ở đây là Python package; import từ module cụ thể để thấy rõ phụ thuộc. Cấu hình nằm ngoài runtime package tại `config/`; dữ liệu và kết quả thực nghiệm giữ nguyên vị trí.
 
@@ -29,29 +29,21 @@ rag/
 ├── graph/
 │   ├── context.py              # Hierarchy, Notes và graph context có nguồn
 │   └── legal_evidence.py       # Binding wording pháp lý và các cấp HS
-├── prompts/
-│   ├── system.py               # SYSTEM_PROMPT chính, dùng chung HS/QA
-│   ├── product_review.py       # PRODUCT_REVIEW_PROMPT kiểm tra dữ kiện hàng hóa
-│   ├── decision_review.py      # Nhận diện hàng hóa và kiểm tra quyết định chưa kết luận
-│   ├── conversation.py         # Nhận diện câu hỏi mới, bổ sung hoặc cần làm rõ lượt nhập
-│   ├── tasks.py                # Chỉ dẫn HS/QA/Auto và nhãn dữ kiện bổ sung
-│   ├── repair.py               # Prompt sửa phản hồi theo lỗi validation
-│   ├── provider_format.py      # Chỉ dẫn JSON theo khả năng của provider
-│   ├── reranking.py            # Instruction và template Qwen, version cache
-│   └── schemas.py              # ANSWER_SCHEMA và PRODUCT_REVIEW_SCHEMA
-├── llm/
-│   ├── context.py              # Ghép câu hỏi, nguồn, citation và ứng viên HS vào messages
-│   ├── conversation.py         # Định tuyến hội thoại trước retrieval, không viết lại dữ kiện
-│   ├── budget.py               # Guard toàn request theo model; ước lượng UTF-8 và output còn lại
-│   ├── answering.py            # Sinh câu trả lời, sửa lỗi và kiểm tra đề xuất HS
-│   ├── decision_review.py      # Rà soát thiếu dữ kiện trước khi chấp nhận thiếu nguồn
-│   ├── evidence.py             # ID lời người dùng/chứng cứ, dựng citation và giải mã contract
-│   ├── quantitative.py         # Guard số đo/ngưỡng từ trích đoạn người dùng và nguồn
-│   ├── validation.py           # Schema, trích nguyên văn, ancestry và quyền sở hữu dữ kiện
-│   ├── client.py               # CLIProxyAPI chính → Groq fallback
-│   ├── cliproxy_client.py      # Structured JSON qua gateway local
-│   ├── errors.py               # Lỗi provider, không lộ key/body
-│   └── groq_client.py          # Groq dự phòng, giới hạn và xoay key
+├── prompts/                   # Xem prompts/README.md
+│   ├── core/                  # Policy, system, wire, repair và provider format
+│   ├── generation/            # Chỉ dẫn sinh kết quả theo tác vụ/mục tiêu
+│   ├── review/                # Product và decision review
+│   ├── schemas/               # Contract, trạng thái và slot động
+│   ├── planning/              # Query/turn planning và hội thoại
+│   └── retrieval/             # Instruction/template reranking
+├── llm/                       # Xem llm/README.md
+│   ├── providers/             # Client, gateway, Groq, budget và schema trace
+│   ├── context/               # Đóng gói nguồn, mục tiêu và hội thoại
+│   ├── generation/            # Generation, shortlist và recovery
+│   ├── review/                # Ma trận, slot, tổ tiên, đối chứng và claims
+│   ├── evidence/              # Registry, spans, citation và proof binding
+│   ├── validation/            # Guard đầu ra, scope, grounding và định lượng
+│   └── contracts/             # Lỗi và metadata diagnostic
 ├── api/
 │   └── cli.py                  # Giao diện terminal HS/QA; chưa có HTTP API
 └── utils/
@@ -61,13 +53,15 @@ rag/
 
 `chunking/corpus.py` giữ chiến lược ghép các đơn vị nguồn hiện tại, gồm GIR, điều/khoản TT85 và biểu thuế. Nó không bổ sung một thuật toán cắt văn bản mới.
 
+Bản đồ module: [LLM](llm/README.md) và [prompt/schema](prompts/README.md).
+
 ## Luồng và ranh giới
 
 Build knowledge base: `ingestion` → `chunking` → `embedding` → `vectordb`.
 
-Phục vụ câu hỏi: `api/cli.py` → `QueryPlanner.plan_turn` (nhận diện + từ khóa trong cùng request) → `retrieval` + `graph` → `llm/context.py` + `prompts` → `llm/answering.py` → `llm/validation.py`.
+Phục vụ câu hỏi: `api/cli.py` → `QueryPlanner.plan_turn` (nhận diện + từ khóa trong cùng request) → `retrieval` + `graph` → `llm/context/builder.py` + `prompts` → `llm/generation/answering.py` → `llm/validation/answer.py`.
 
-Terminal dùng `QueryPlanner.plan_turn(...)`: lệnh `/new <câu hỏi>`/`/add <dữ kiện>` và tiền tố chỉ định được backend ưu tiên; lượt đầu không cần model nhận diện. Các lượt cần suy luận dùng `TURN_PLANNING_PROMPT`/`TURN_PLAN_SCHEMA` để trả `NEW_QUESTION`, `FOLLOW_UP` hoặc `CLARIFY` cùng `terms` trong một request, giữ nguyên client/model/fallback. Input chỉ gồm câu hỏi đang hoạt động, bổ sung nguyên văn, câu hỏi làm rõ đã qua validation và tin nhắn mới; không nhận câu trả lời, mã ứng viên hay nguồn cũ làm dữ kiện. `llm/conversation.py` chỉ xử lý chỉ định rõ ràng, kiểm tra schema/anchor và chọn lời người dùng theo action; không gọi LLM. Anchor chỉ kiểm tra nguồn gốc trích đoạn, chưa chứng minh ngữ nghĩa đúng.
+Terminal dùng `QueryPlanner.plan_turn(...)`: lệnh `/new <câu hỏi>`/`/add <dữ kiện>` và tiền tố chỉ định được backend ưu tiên; lượt đầu không cần model nhận diện. Các lượt cần suy luận dùng `TURN_PLANNING_PROMPT`/`TURN_PLAN_SCHEMA` để trả `NEW_QUESTION`, `FOLLOW_UP` hoặc `CLARIFY` cùng `terms` trong một request, giữ nguyên client và chính sách model của phiên. Input chỉ gồm câu hỏi đang hoạt động, bổ sung nguyên văn, câu hỏi làm rõ đã qua validation và tin nhắn mới; không nhận câu trả lời, mã ứng viên hay nguồn cũ làm dữ kiện. `llm/context/conversation.py` chỉ xử lý chỉ định rõ ràng, kiểm tra schema/anchor và chọn lời người dùng theo action; không gọi LLM. Anchor chỉ kiểm tra nguồn gốc trích đoạn, chưa chứng minh ngữ nghĩa đúng.
 
 `NEW_QUESTION` xóa dữ kiện và kết quả cũ trước retrieval; từ khóa phải neo vào tin nhắn mới. Lỗi xử lý câu hỏi mới không khôi phục câu hỏi cũ; `/retry` dùng câu hỏi mới. `FOLLOW_UP` ghép thêm lời người dùng qua `compose_query`, giữ các lượt đính chính để model đọc theo thứ tự. `CLARIFY`, lỗi provider/JSON/quyết định/anchor hoặc JSON đầu vào định tuyến vượt 16.000 ký tự giữ nguyên câu hỏi/kết quả đang hoạt động và yêu cầu chỉ định bằng lệnh; không cắt ngữ cảnh để suy đoán. Quyết định hợp lệ nhưng `terms` lỗi/thiếu thì dùng câu hỏi gốc đã chọn đúng phạm vi, không gọi model lần hai. `/retry` không nhận diện lại, dùng cache plan khi cùng câu hỏi và cấu hình; `/sources`, `/details` và `/model` không gọi LLM. Chẩn đoán `conversation_routing` không đi vào registry dữ kiện hoặc gói nguồn. Ngữ cảnh chỉ lưu trong phiên terminal; chưa có HTTP API, lưu hội thoại qua restart hoặc bộ nhớ liên phiên. Notebook kịch bản có bổ sung khai báo sẵn giữ đường replay xác định.
 
@@ -79,21 +73,21 @@ Model đã có trong [registry giới hạn](../config/model_limits.py) dùng to
 
 Luồng v5 vẫn dùng một policy chung: hybrid toàn nguồn → graph context → pool theo ID → M3 → Qwen. `intent="auto"`, `"product"`, `"qa"` chỉ là hint; không thay candidate pool/ranking. `matches` trả Top-10 nguồn, `hs_candidates` chiếu tối đa 10 mã HS8 từ ranked pool; `package` giữ các nguồn sơ cấp có citation. Retrieval không tự chốt mã HS.
 
-Terminal và notebook generation dùng `QueryPlanner(client)` để diễn giải từ khóa tìm nguồn từ toàn bộ câu hỏi và các lượt bổ sung. Prompt/schema nằm ở [prompts/query_planning.py](prompts/query_planning.py), không tra danh sách hãng, loại hàng hoặc thuộc tính viết sẵn. Mỗi từ khóa phải có anchor nguyên văn trong câu hỏi; schema và code chặn mã số, điều kiện số học, nhãn citation hoặc đầu ra lỗi. Loại hàng diễn giải vẫn là giả thuyết của model, chưa phải dữ kiện được xác minh.
+Terminal và notebook generation dùng `QueryPlanner(client)` để diễn giải từ khóa tìm nguồn từ toàn bộ câu hỏi và các lượt bổ sung. Prompt/schema nằm ở [prompts/planning/query_planning.py](prompts/planning/query_planning.py), không tra danh sách hãng, loại hàng hoặc thuộc tính viết sẵn. Mỗi từ khóa phải có anchor nguyên văn trong câu hỏi; schema và code chặn mã số, điều kiện số học, nhãn citation hoặc đầu ra lỗi. Loại hàng diễn giải vẫn là giả thuyết của model, chưa phải dữ kiện được xác minh.
 
 Luồng mới: câu hỏi gốc + một truy vấn có từ khóa bổ sung → chạy cả hai trên cùng các kênh retrieval → hợp nhất theo source ID, chia cơ hội giữa truy vấn gốc và truy vấn mở rộng trong từng kênh → pool chung → M3 → Qwen. Xếp hạng dùng câu hỏi gốc kèm các từ khóa; semantic intent vẫn chỉ là advisory dựa trên câu hỏi gốc. Trọng số, ngân sách nguồn, model và instruction reranker trong policy đã khóa giữ nguyên. Đây là thay đổi luồng truy vấn, không phải kết quả đánh giá lại policy cũ. Câu hỏi/phủ định/mã do người dùng cung cấp không bị thay bằng bản diễn giải.
 
-Từ khóa tìm kiếm chỉ nằm trong chẩn đoán `query_plan`; không đi vào `user_context`, messages trả lời, citation hoặc bằng chứng pháp lý. Model diễn giải dùng chung lựa chọn model và chuỗi fallback của client. Với `plan(query)` stateless hoặc lượt đã được backend chỉ định, lỗi provider/schema/anchor/đầu ra bị cắt vẫn tìm bằng câu hỏi gốc; với lượt chưa rõ quan hệ, lỗi quyết định phải dừng trước retrieval. Không cache lỗi tạm thời. `/retry` dùng lại plan hợp lệ trong bộ nhớ; thêm dữ kiện, đổi model hoặc sửa prompt/schema làm đổi khóa cache. Quyết định hội thoại không lấy từ cache theo riêng tin nhắn mới: luôn xét cả ngữ cảnh và câu hỏi làm rõ hiện tại. `/details` hiển thị từ khóa, model, usage và thời gian request chung **nằm trong Retrieval**; LLM ở dòng đo các bước là các cuộc gọi tạo/kiểm tra câu trả lời. Nhánh đề xuất HS thông thường còn 3 request (chuẩn bị, trả lời, Product Review), trước repair/fallback.
+Từ khóa tìm kiếm chỉ nằm trong chẩn đoán `query_plan`; không đi vào `user_context`, messages trả lời, citation hoặc bằng chứng pháp lý. Model diễn giải dùng chung chính sách model của client; mặc định chỉ gọi model đang chọn. Với `plan(query)` stateless hoặc lượt đã được backend chỉ định, lỗi provider/schema/anchor/đầu ra bị cắt vẫn tìm bằng câu hỏi gốc; với lượt chưa rõ quan hệ, lỗi quyết định phải dừng trước retrieval. Không cache lỗi tạm thời. `/retry` dùng lại plan hợp lệ trong bộ nhớ; thêm dữ kiện, đổi model hoặc sửa prompt/schema làm đổi khóa cache. Quyết định hội thoại không lấy từ cache theo riêng tin nhắn mới: luôn xét cả ngữ cảnh và câu hỏi làm rõ hiện tại. `/details` hiển thị từ khóa, model, usage và thời gian request chung **nằm trong Retrieval**; LLM ở dòng đo các bước là các cuộc gọi tạo/kiểm tra câu trả lời. Nhánh đề xuất HS thông thường còn 3 request (chuẩn bị, trả lời, Product Review), trước repair/fallback.
 
 API cấp thấp `Retriever(conn, embedder)` và `unified_search(query)` giữ tìm kiếm gốc để chạy offline/replay policy. Notebook/script tiếp tục khởi tạo `Retriever(conn, embedder, query_planner=QueryPlanner(client))` và gọi `routed_search(query)` để tự lập plan stateless. Terminal gọi `plan_turn` trước rồi truyền `routed_search(query, query_plan=plan)`; retrieval kiểm tra hash câu hỏi, fingerprint cấu hình và nội dung truy vấn/từ khóa trước khi dùng, không lập plan lần hai. Plan khác câu hỏi hoặc cấu hình bị từ chối trước retrieval. Cache generation đánh dấu riêng hash prompt/schema/cấu hình model của planner, gồm prompt/schema hội thoại mới. Chạy đối chiếu retrieval trên corpus chỉ đọc bằng `python scripts/diagnose_retrieval_flow.py --queries <queries.json> --out <report.json>`; file truy vấn là danh sách `{id, query}`. Đây là chẩn đoán ứng viên/nguồn, không tự chốt tính đúng pháp lý hoặc đo chất lượng trên holdout.
 
 LLM chỉ hỏi người dùng về dữ kiện hàng hóa/hồ sơ còn thiếu qua `MISSING_PRODUCT_INFO`. Thiếu wording, GIR, Notes hoặc quan hệ HS phải trả `INSUFFICIENT_LEGAL_EVIDENCE`; không yêu cầu người dùng bổ sung luật. Đề xuất HS vẫn cần hierarchy `CONTAINS` đã xác minh và đủ nhãn citation bắt buộc. Các kiểm tra này nằm trong code, ngoài system prompt.
 
-`llm/disambiguation.py` lấy các mã đối chứng HS8 từ subtree HS6 đã được graph xác minh, tối đa thêm 128 mã. `context.py` đóng gói nguồn/điều kiện nhánh và ghi `candidate_comparison` cùng `missing_codes`. `comparison_candidates` giữ mã đối chứng ngoài Top-10; chúng không được thêm vào `allowed_hs_codes`. Phần model xem chỉ giữ code/wording/điều kiện nhánh của mã đối chứng để giảm metadata lặp; backend vẫn giữ hierarchy đầy đủ. Độ đầy đủ là trong subtree được kiểm tra, không đại diện toàn database hay các quy tắc pháp lý khác.
+`llm/review/disambiguation.py` lấy các mã đối chứng HS8 từ subtree HS6 đã được graph xác minh, tối đa thêm 160 mã. `context.py` đóng gói nguồn/điều kiện nhánh và ghi `candidate_comparison` cùng `missing_codes`. `comparison_candidates` giữ mã đối chứng ngoài Top-10; chúng không được thêm vào `allowed_hs_codes`. Phần model xem chỉ giữ code/wording/điều kiện nhánh của mã đối chứng để giảm metadata lặp; backend vẫn giữ hierarchy đầy đủ. Độ đầy đủ là trong subtree được kiểm tra, không đại diện toàn database hay các quy tắc pháp lý khác.
 
 Khi có phạm vi so sánh, Product Review dùng `MODEL_DISAMBIGUATION_REVIEW_SCHEMA` trong cùng request hiện có. Bảng đánh giá phải phủ đủ shortlist retrieval (kể cả khác phân nhóm) và mã cùng cấp của ứng viên đề xuất, loại mã bằng dữ kiện có trích đoạn và điều kiện của nhánh đó. Nhóm `parent_code=""` ghi shortlist chung; nhóm HS6 ghi đối chứng từ graph. Các kiểm tra thuộc tính mở phải bao phủ điều kiện nhánh đối chứng; `MISSING` không được giả có dữ kiện xác nhận, và phải gắn câu hỏi đúng thuộc tính/nguồn. `SUPPORTED` chỉ được giữ khi còn duy nhất mã đề xuất, các chiều phân nhánh đã biết và coverage đầy đủ. Phản hồi bỏ sót hoặc sai tham chiếu được repair một lần rồi chặn an toàn nếu vẫn sai. Decision Review cũng nhận phạm vi so sánh để phân biệt thiếu thuộc tính với thiếu nguồn.
 
-Không có bước LLM riêng cho Missing Attribute Detection/Candidate Disambiguation. Context có thể lớn hơn và phát sinh thêm token hoặc repair; các kiểm tra cấu trúc/provenance không thay thế đánh giá ngữ nghĩa. Ca kiểm chứng và giới hạn nằm ở [candidate-disambiguation.md](../candidate-disambiguation.md).
+Không có bước LLM riêng cho Missing Attribute Detection/Candidate Disambiguation. Context có thể lớn hơn và phát sinh thêm token hoặc repair; các kiểm tra cấu trúc/provenance không thay thế đánh giá ngữ nghĩa. Ca kiểm chứng và giới hạn nằm ở [docs/GenerationFlow/GenerationFlow.md](../docs/GenerationFlow/GenerationFlow.md).
 
 Context mới dùng `registry-v2`: `user_context.statements` lưu lời người dùng theo thứ tự lượt và các trích đoạn nguyên văn có ID. Không tự gán loại hàng, thuộc tính, trạng thái đúng/sai hoặc tài liệu nhà sản xuất. Main, Product Review và Decision Review dùng chung ngữ cảnh này. Model chịu trách nhiệm đọc ý nghĩa, chủ thể, phủ định, mức độ chắc chắn, mâu thuẫn và đính chính; ID chỉ xác nhận nguồn gốc lời nói.
 
@@ -124,9 +118,9 @@ Import theo vị trí mới:
 from rag.chunking.corpus import build_corpus, load_corpus
 from rag.embedding.bge_m3 import Embedder
 from rag.ingestion.audit import audit
-from rag.llm.answering import generate_answer
-from rag.llm.context import prepare_context
-from rag.prompts.system import SYSTEM_PROMPT
+from rag.llm.generation.answering import generate_answer
+from rag.llm.context.builder import prepare_context
+from rag.prompts.core.system import SYSTEM_PROMPT
 from rag.retrieval.retriever import Retriever
 from rag.vectordb.postgres import connect
 ```

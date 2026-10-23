@@ -2,7 +2,7 @@
 
 import pytest
 
-from rag.llm.validation import validate_answer
+from rag.llm.validation.answer import validate_answer
 
 
 def response(**changes):

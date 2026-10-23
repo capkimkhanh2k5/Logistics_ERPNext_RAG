@@ -6,9 +6,9 @@ import pytest
 
 from config.settings import GroqConfig
 from rag.graph.context import GraphContext
-from rag.llm.context import prepare_context
-from rag.llm.task_generation import review_jobs
-from rag.llm.task_validation import decode_task_answer
+from rag.llm.context.builder import prepare_context
+from rag.llm.generation.task_generation import review_jobs
+from rag.llm.validation.task_validation import decode_task_answer
 from rag.utils.files import digest
 from tests.test_goal_workflow import run
 
@@ -230,7 +230,7 @@ def test_comparison_peer_exposes_required_citation_ids_and_accepts_trailing_punc
     assert out["answer"]["suggested_hs_code"] == "87038018"
 
 
-def test_split_branch_checks_with_known_selected_branch_consolidate_cleanly():
+def test_split_branch_checks_do_not_silently_promote_missing_to_known():
     ctx, main, review = fixture()
     b0 = review["reviews"][0]["review"]["branch_checks"][0]
     eids = b0["evidence_ids"]
@@ -252,8 +252,12 @@ def test_split_branch_checks_with_known_selected_branch_consolidate_cleanly():
             "user_quotes": [],
         },
     ]
-    out, calls = run(ctx, [main, review])
-    assert len(calls) == 2
+    repaired = copy.deepcopy(review)
+    repaired["reviews"][0]["review"]["branch_checks"][1].update(
+        assessment="KNOWN", fact_ids=b0["fact_ids"], user_quotes=b0["user_quotes"]
+    )
+    out, calls = run(ctx, [main, review, repaired])
+    assert len(calls) == 3
     assert out["answer"]["suggested_hs_code"] == "87038018"
 
 

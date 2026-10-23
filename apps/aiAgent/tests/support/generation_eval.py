@@ -6,10 +6,10 @@ from collections import defaultdict
 from datetime import date, datetime
 
 from config.settings import ROOT
-from rag.llm.answering import generate_answer
-from rag.llm.context import load_generation_graph, prepare_context
-from rag.llm.errors import LLMError
-from rag.llm.recovery import recover_answer
+from rag.llm.context.builder import load_generation_graph, prepare_context
+from rag.llm.contracts.errors import LLMError
+from rag.llm.generation.answering import generate_answer
+from rag.llm.generation.recovery import recover_answer
 from rag.utils.files import digest, read, write_json
 from tests.support.evaluation import discover_qa
 

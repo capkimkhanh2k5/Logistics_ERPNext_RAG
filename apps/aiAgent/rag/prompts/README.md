@@ -1,49 +1,111 @@
-# Quản lý prompt RAG
+# Quản lý prompt và schema
 
-Các chỉ dẫn model do ứng dụng định nghĩa nằm trong thư mục này. Module xử lý chỉ import và lắp dữ liệu vào template; sửa nội dung tại đây rồi khởi động lại phiên RAG để nạp bản mới.
+Các chỉ dẫn tác vụ và schema do ứng dụng định nghĩa nằm trong package này.
+Module LLM chỉ ghép payload, gọi provider và thực thi kiểm chứng.
 
-## Sửa nội dung ở đâu?
+## Sửa nội dung ở đâu
 
-Luồng `goals-v1` dùng `request` hợp lệ của planner để truyền mục tiêu/cấp HS và từng mặt hàng xuyên context, generation và validation. `task_answering.py` giữ prompt/schema cho kết quả theo mục tiêu và batch Product Review. Các mô tả luồng đơn mã/Decision Review dưới đây áp dụng cho `registry-v2` fallback/replay. [Contract và recovery](../../docs/GenerationFlow/Goals_And_Recovery.md) ghi các giới hạn và ngân sách.
+- `core/`: [policy.py](core/policy.py) giữ EVIDENCE_POLICY/DECISION_POLICY dùng chung;
+  [system.py](core/system.py) thêm contract đơn kết quả;
+  [wire.py](core/wire.py) chọn biểu diễn theo protocol/phase/job;
+  [repair.py](core/repair.py) ghép chỉ dẫn sửa đúng quyền hạn;
+  [provider_format.py](core/provider_format.py) tạo JSON wrapper cho provider cần nó;
+  [proof.py](core/proof.py) giữ hướng dẫn ledger và proof graph chung.
+- `generation/`: [task_answering.py](generation/task_answering.py) giữ prompt/schema
+  goals-v1, builder schema động và batch review;
+  [tasks.py](generation/tasks.py) giữ chỉ dẫn HS/QA/Auto và template dữ kiện bổ sung.
+- `review/`: [product_review.py](review/product_review.py) giữ REVIEW_POLICY và prompt
+  kiểm tra sản phẩm dùng chung/đơn; [decision_review.py](review/decision_review.py)
+  kiểm tra quyết định chưa kết luận trong đường tương thích.
+- `schemas/`: [answer.py](schemas/answer.py) giữ contract công khai, contract nội bộ và
+  MODEL_*_SCHEMA; [review_slots.py](schemas/review_slots.py) dựng slot/miền evidence theo
+  từng job; [statuses.py](schemas/statuses.py) mô tả thống nhất trạng thái và outcome;
+  [proof.py](schemas/proof.py) dựng ledger, graph và catalogue wire.
+- `planning/`: [query_planning.py](planning/query_planning.py) giữ query/turn planner;
+  [conversation.py](planning/conversation.py) giữ fragment nhận diện lượt hội thoại.
+- `retrieval/`: [reranking.py](retrieval/reranking.py) giữ instruction/template Qwen
+  và version cache. Nội dung reranking không đổi trong lần tổ chức package này.
 
-- [system.py](system.py): `SYSTEM_PROMPT`, vai trò trợ lý, quyền sở hữu dữ kiện/chứng cứ, chọn trạng thái, điều kiện đề xuất và dẫn nguồn.
-- [product_review.py](product_review.py): `PRODUCT_REVIEW_PROMPT`, đối chiếu dữ kiện với nhánh đề xuất và các mã đối chứng cùng phân nhóm; hỏi thuộc tính chưa biết còn ảnh hưởng lựa chọn.
-- [decision_review.py](decision_review.py): `DECISION_REVIEW_PROMPT` và template repair, kiểm tra nhận diện hàng hóa/phạm vi câu hỏi trước khi chấp nhận quyết định thiếu chứng cứ hoặc cần thẩm định.
-- [tasks.py](tasks.py): `TASK_INSTRUCTIONS` cho HS/QA/Auto; `USER_SUPPLEMENT_TEMPLATE` đánh dấu dữ kiện người dùng bổ sung. `SOURCE_COMPARISON_CLARIFICATION` giữ lời nhắc của API so sánh nguồn cũ, không phải câu hỏi do luồng Auto hiện tại tự sinh.
-- [repair.py](repair.py): `REPAIR_PROMPT`/`format_repair_prompt()` sửa câu trả lời; `PRODUCT_REVIEW_REPAIR_PROMPT`/`format_product_review_repair_prompt()` sửa Product Review theo danh sách lỗi validation.
-- [provider_format.py](provider_format.py): `JSON_SCHEMA_PROMPT` và `format_json_schema_prompt()`, chỉ dẫn JSON cho nhánh GPT-OSS qua CLIProxyAPI khi gateway không hỗ trợ native schema.
-- [reranking.py](reranking.py): instruction truy xuất nguồn, instruction mặc định của Qwen, template chat/scoring và version dùng trong cache reranker.
-- [query_planning.py](query_planning.py): `QUERY_PLANNING_PROMPT`/`QUERY_PLAN_SCHEMA` cho truy vấn stateless; `TURN_PLANNING_PROMPT`/`TURN_PLAN_SCHEMA` ghép nhận diện hội thoại và từ khóa trong một request trước retrieval. Không chứa danh mục hãng hoặc mã HS. Từ khóa là giả thuyết truy xuất, không thuộc registry dữ kiện; câu hỏi mới chỉ lấy anchor từ tin nhắn mới.
-- [conversation.py](conversation.py): chỉ dẫn/schema nhận diện được ghép vào prompt/schema của QueryPlanner; không còn request router riêng. Không viết lại lời người dùng hoặc suy ra thông số; câu hỏi làm rõ đang chờ chỉ là ngữ cảnh nhận diện, không ép nối lượt mới.
-- [schemas.py](schemas.py): `MODEL_*_SCHEMA` là contract model dùng ID của registry. `MODEL_DISAMBIGUATION_REVIEW_SCHEMA` thêm `candidate_assessments`/`branch_checks` khi có phạm vi so sánh. `ANSWER_SCHEMA` giữ contract kết quả công khai; các schema review cũ dùng cho chuẩn hóa nội bộ và replay context cũ.
+## Luồng goals hiện hành: semantic-v1 (22/10/2026)
 
-## Các nơi sử dụng
+`goals-v1` dùng `reasoning_contract=semantic-v1`: Draft chỉ chọn claim/fact/source/span,
+không phát sinh ledger hay proof graph bắt buộc. Backend cấp objective/item, review slots,
+claim_index và `review_obligations`; ID không chứng minh entailment. Mọi claim trong
+CLASSIFY đề xuất cũng được semantic review trong batch, ngoài review quyết định mã.
+Backend chỉ phát hành phần đã qua review và các chốt source/scope/ancestry/định lượng.
 
-- `rag/llm/context.py` ghép câu hỏi, dữ kiện bổ sung, nguồn và chỉ dẫn tác vụ với system prompt.
-- `rag/llm/answering.py` sử dụng prompt kiểm tra sản phẩm và prompt sửa lỗi.
-- `rag/llm/disambiguation.py` kiểm tra độ phủ mã/điều kiện nhánh, trạng thái thuộc tính và tham chiếu bằng chứng; không gọi LLM hay tự suy ra thuộc tính theo tên hàng. Dữ liệu so sánh được ghép vào Product Review hiện có.
-- `rag/llm/decision_review.py` kiểm tra độc lập quyết định chưa kết luận; không phát hành mã HS và không coi câu trả lời trước là dữ kiện người dùng.
-- `rag/llm/cliproxy_client.py` bổ sung chỉ dẫn định dạng theo khả năng của provider.
-- `rag/retrieval/rerankers.py` dựng đầu vào Qwen bằng template trong `reranking.py`.
-- `rag/retrieval/query_planning.py` gọi client chung một lần qua `plan_turn` để nhận diện và tạo từ khóa; `plan(query)` giữ đường stateless. Quyết định không hợp lệ dừng trước retrieval; quyết định hợp lệ nhưng từ khóa lỗi dùng câu hỏi gốc đã chọn đúng phạm vi. Plan có sẵn được truyền cho retrieval, không gọi planner lại.
-- `rag/llm/conversation.py` chỉ ưu tiên chỉ định rõ ràng, kiểm tra schema/anchor và chọn lời người dùng theo action; không gọi client. Lượt chưa rõ yêu cầu chỉ định cách xử lý, không tự ghép ngữ cảnh. Chẩn đoán định tuyến không thuộc bằng chứng sản phẩm/pháp lý.
-- `config/retrieval.py` giữ tên import tương thích `INSTRUCTION`, tham chiếu trực tiếp `SOURCE_RELEVANCE_INSTRUCTION`; runtime và các script benchmark dùng cùng nội dung này.
-- `rag/retrieval/retriever.py` lấy lời nhắc cho API so sánh nguồn từ `tasks.py`.
+Prompt Task dùng SEMANTIC_INSTRUCTION. Graph contract dưới đây tiếp tục dành cho
+`registry-v2`, các primitive evaluator và canonical proof đã lưu; không phải chốt Draft
+giữa goals-v1 và Review. Không thêm call verifier hoặc đổi model/fallback.
 
-## Phân biệt prompt và dữ liệu
+Review kiểm tra câu hỏi/giả định/đính chính và toàn bộ điều kiện, phủ định, ngoại lệ;
+backend từ chối non-assertion làm fact và nguồn được đánh dấu hết hiệu lực/UNVERIFIED
+cho áp dụng hiện tại. SOURCE_SNAPSHOT mô tả wording lịch sử, có cảnh báo công khai về hiệu lực;
+REFERENCE không chứng nhận luật hiện hành. Ngày áp dụng
+có cấu trúc `as_of`, nếu được cung cấp, phải do caller có provenance xác định; không suy
+hiệu lực hiện hành từ một trích dẫn. Metadata rỗng vẫn là chưa biết, không phải chứng nhận hiệu lực.
 
-Câu hỏi, dữ kiện người dùng, nguồn pháp lý, schema và danh sách lỗi được truyền dưới dạng dữ liệu vào các template. Giá trị được chèn không tiếp tục được xử lý như một template khác, kể cả khi chứa dấu ngoặc nhọn.
+Repair goals cho phép chọn lại ID/slot trong registry với tối đa một lần sửa, không đoán
+ID ngoài nguồn. Lỗi hiện hành thay bằng kết quả validate lần mới, lịch sử vẫn trong attempts.
+Recovery chỉ vượt lỗi kỹ thuật của sibling khi gap độc lập đã review; không biến graph/ID
+hỏng thành thiếu luật. COMPARE/EXPLAIN áp mã phải thỏa các phụ thuộc phân loại từng item;
+giữ riêng phần REFERENCE/CONDITIONAL_APPLICATION đã được review.
 
-Các điều kiện chặn mã HS, kiểm tra nguồn, schema và quyền sở hữu dữ kiện vẫn được thực thi trong code. Sửa văn bản prompt không thay thế việc sửa validator khi contract thay đổi. Thông báo giao diện terminal thuộc `rag/api/cli.py`; các thông báo lỗi validation là phản hồi kiểm tra, không phải nơi định nghĩa chỉ dẫn tác vụ.
+Draft packet giữ mọi mã đối chứng và nguồn, bỏ phần metadata phân cấp lặp của danh mục
+đối chứng; review packet giữ điều kiện/nguồn đầy đủ theo job. Không loại nhánh bằng Top-K.
 
-Product Review bắt buộc có `reason`, chỉ hỏi thuộc tính còn thiếu trong `MISSING_PRODUCT_INFO` và dùng `UNRESOLVED_APPLICATION` khi có dữ kiện nhưng chưa đối chiếu được với điều kiện. `REQUIRES_REVIEW` không được thay thế câu hỏi bổ sung nếu chỉ thiếu thuộc tính. Runtime sửa review tối đa một lần; nếu vẫn lỗi, chỉ hiển thị chẩn đoán an toàn và nguồn lấy từ context. Model tham chiếu `fact_ids` (ID lời người dùng) và `evidence_id`; `user_quotes` phải có thật trong các ID được chọn, không tự viết lại trích đoạn để tạo bằng chứng. Lời người dùng và trích đoạn dùng cho validator lấy từ registry nguồn gốc; chúng chưa tự động trở thành sự thật đã xác minh.
+## Contract proof và đường tương thích
 
-Decision Review chạy cho phản hồi thiếu chứng cứ/cần thẩm định hợp lệ chưa được Product Review kiểm tra, và khi ngữ cảnh HS/Auto không có nguồn. Nó tách nhu cầu hỏi đáp/phân loại khỏi việc đã nhận diện sản phẩm; `identity_fact_ids` phải tham chiếu lời người dùng làm căn cứ nhận diện; model diễn giải loại hàng từ ngữ cảnh, không tra registry dòng sản phẩm. Không yêu cầu tên loại hàng nằm nguyên văn trong tên thương mại. Câu hỏi nhận diện không cần nguồn luật; câu hỏi thông số cần ID điều kiện liên quan. QA rõ ràng không bị hỏi nhận diện hàng hóa. Kết quả kỹ thuật không hợp lệ hoặc lỗi provider không được chuyển thành câu hỏi sản phẩm. `/details` ghi riêng thời gian, usage, budget và lý do của bước kiểm tra này.
+Phần graph/ledger bên dưới chỉ áp dụng khi `proof_required=true` (registry/replay),
+không phải hợp đồng Draft của goals semantic-v1. Cơ chế repair goals nằm ở mục trên.
 
-Luồng goals có `candidate_codes` tối đa 3 mã để review từng ứng viên trong cùng batch; xem [contract ứng viên có điều kiện](../../docs/GenerationFlow/Conditional_Candidates.md). `hs_candidates` công khai chỉ chứa kết quả đã được review có nguồn và điều kiện rõ ràng, không phải điểm xác suất.
+`goals-v1` giữ mục tiêu/mặt hàng từ planner; `registry-v2` phục vụ đường đơn.
+Context legacy không khai báo protocol được chuẩn hóa trước generation; model luôn
+nhận MODEL_* hoặc task wire. ANSWER_SCHEMA chỉ còn là contract renderer/validator.
+Decoder còn đọc định dạng canonical cũ để replay, không gửi schema công khai cho model.
 
-`rag/llm/quantitative.py` bổ sung guard cho điều kiện định lượng rõ ràng trong nguồn bắt buộc của Product Review `SUPPORTED`, đồng thời kiểm tra các điều kiện đánh dấu `SATISFIED` trong review còn thiếu thông tin. Số đo phải được chứng minh từ `user_quote` của dữ kiện được tham chiếu, không lấy từ lời diễn giải `fact` hoặc tên model sản phẩm. Guard đọc toàn nguồn bắt buộc để tránh bỏ qua điều kiện trong trích đoạn ngắn. Nếu chưa chứng minh được, runtime yêu cầu sửa review một lần; guard không tự chọn mã hoặc tự sinh câu hỏi. Bộ phân tích chỉ hỗ trợ các đơn vị và so sánh đã định nghĩa, không thay thế việc đánh giá ngoại lệ, nhánh lựa chọn hoặc toàn bộ ngữ nghĩa pháp lý.
+Draft trả `fact_ledger`: chọn `fact_id` cùng `source_mode=STATEMENT`, subject/item, modality, polarity,
+nguồn lời khai và supersedes. Backend gán L ID và trạng thái ACTIVE/UNKNOWN/CONFLICT/
+SUPERSEDED. Draft dùng ledger key cục bộ trong proof; backend đổi sang L ID trước
+kiểm tra. Review nhận ledger chỉ đọc và phải đối chiếu với toàn bộ statements.
 
-Generation, Product Review, Decision Review và repair giữ tiếng Việt; tên trường, ID, trạng thái và trích đoạn nguồn giữ nguyên. Wrapper JSON và template/instruction Qwen giữ ngôn ngữ của bản trước refactor.
+`proof_catalogue` chứa `{key, proof}` một lần cho mỗi graph; các claim/check dẫn
+`proof_key`, review dẫn `reason_proof_key`. Schema graph chỉ xuất hiện một lần trong
+wire. Graph dùng predicate/quan hệ/phạm vi/ngoại lệ lấy từ nguồn và lời người dùng,
+không có taxonomy theo tên sản phẩm hoặc đáp án bộ test. Backend gán N/G ID sau bind.
 
-Không có cấu hình riêng theo hãng/dòng sản phẩm hoặc enum thuộc tính theo danh mục. `user_context.statements` giữ lời người dùng và thứ tự lượt; `fact_ids` chỉ là ID nguồn gốc, không xác nhận mọi nội dung trong lời nói là đúng. Model đối chiếu ngữ nghĩa toàn ngữ cảnh, gồm nhận diện loại hàng đủ rõ, giả định, phủ định, mâu thuẫn và đính chính. Product Review còn nhận `proposed_answer` để kiểm tra dữ kiện có bị thêm hoặc đổi nghĩa hay không. `user_quotes` trích nguyên văn lời người dùng được tham chiếu; backend kiểm tra nguồn gốc rồi dựng các trích dẫn. Các điều kiện quyết định và tên thuộc tính cần hỏi xuất phát từ nguồn đang xét.
+Wire proof-v2 có `root_node` không cần chép target và nodes phụ; backend gán root/target
+từ đúng consumer. Mỗi graph chỉ được tham chiếu một lần. Canonical/replay vẫn có
+root/target chỉ đọc và xác nhận phân rã/ledger. ALL/ANY/NOT/SCOPE/
+EXCEPT/COMPARE được code tổng hợp; node nguyên tử còn cần model xác nhận hỗ trợ
+ngữ nghĩa. Đúng ID/quote không đủ chứng minh entailment hay tính đầy đủ của phân rã.
+Các trạng thái UNKNOWN giữ nguyên nhân riêng, không tự chuyển thành thiếu luật/fact.
+
+`task_review_prompt` và repair chỉ ghép loại job đang có. `reviews`/`analysis_reviews`
+giữ khóa backend cấp. `candidate_group_assessments` phủ mỗi mã đúng một lần, có thể
+dùng chung assessment/proof khi cùng điều kiện quyết định. Chứng cứ quyết định loại
+phải thuộc miền bắt buộc của mọi mã thành viên; trường hợp khác tách nhóm một mã.
+Backend mở về slot từng mã và chạy lại kiểm tra nguồn, scope và độ phủ.
+
+Lỗi từng job/group/claim được giữ đúng owner. Binding/coverage còn lỗi được withhold;
+không gọi model để điền assessment giả. Nhận định thiếu chứng minh chỉ được hạ cấp
+khi graph hợp lệ xác định trạng thái; proof hỏng không đủ để tự hỏi người dùng.
+Câu hỏi thuộc tính có nguồn cần proof UNKNOWN cùng thuộc tính/ledger/span. Câu hỏi
+nhận diện/phạm vi không có nguồn vẫn theo contract giới hạn riêng.
+
+Provider ghi effective schema/hash/mode trong request_contract. Native và JSON wrapper
+đều dùng wire mới. Không thêm call verifier, không đổi model/fallback, retrieval hoặc
+ngân sách năm request goals sau planner. Trong nhiều trường hợp schema/output mới
+lớn hơn; hiệu quả và gateway compatibility được ghi theo từng run trong
+`artifacts/obligation-flow-20261022/report.md`; chưa nghiệm thu đủ 17 lượt HS.
+
+`tests/test_generic_proof_engine.py` kiểm tra thuần backend; không phải đánh giá
+phân loại HS. Fixture response giả/trace cũ không có ledger/proof cần chuyển sang
+wire proof-v2 nếu dùng giả lập cả generation; decoder replay canonical vẫn giữ.
+Xem [báo cáo triển khai](../../artifacts/general-proof-implementation-20261021/report.md).
+
+Review semantic dùng mảng condition_checks với số lượng cố định; backend kiểm tra đúng tập
+evidence_id, không thiếu/lặp/thay nguồn. Tránh schema lặp object cho từng nguồn vì native Gemini
+đã từ chối 23 object với HTTP400; thử cùng 23 nghĩa vụ ở dạng mảng được chấp nhận.
+SOURCE_SNAPSHOT không nâng UNVERIFIED thành CURRENT; CURRENT_APPLICABILITY/as_of cần
+metadata hiệu lực đầy đủ. Các job tổ tiên cùng đợt được batch nhưng giữ scope riêng từng result.

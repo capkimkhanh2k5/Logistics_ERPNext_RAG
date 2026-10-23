@@ -128,6 +128,15 @@ def audit() -> dict:
             "short_ids": [r[id_field] for r in rows if len(r[text_field]) < 40],
         }
     gold = [r for path in sorted((GOLD / "hs").glob("*.jsonl")) for r in read(path)]
+    from rag.ingestion.legal_documents import legal_document_bundle
+
+    for spec in registered.get("legal_documents", []):
+        records, _, _ = legal_document_bundle(ROOT, spec)
+        quality[spec["dataset"]] = {
+            "count": len(records),
+            "raw_sha256": spec["sha256"],
+            "legal_status": spec["legal_status"],
+        }
     for relative, expected in data["pdf_provenance"]["pdf_hashes"].items():
         if hashlib.sha256(source_path(ROOT, relative).read_bytes()).hexdigest() != expected:
             raise ValueError(f"Authoritative PDF source hash mismatch: {relative}")
@@ -141,12 +150,19 @@ def audit() -> dict:
         "unique_gold_codes": len({g["expected_hs_8"] for g in gold}),
         "gold_missing": [r["record_id"] for r in gold if r["expected_hs_8"] not in codes],
         "tt85_source_hash_matches": True,
-        "legal_verification": "PDF_HASH_BOUND_WITH_TEXT_COMPARISON_AND_OCR_REVIEW_LIMITATIONS",
+        "legal_verification": "MIXED_PDF_REVIEW_AND_HASH_BOUND_LOCAL_DOCX"
+        if registered.get("legal_documents")
+        else "PDF_HASH_BOUND_WITH_TEXT_COMPARISON_AND_OCR_REVIEW_LIMITATIONS",
+        "pdf_verification": "PDF_HASH_BOUND_WITH_TEXT_COMPARISON_AND_OCR_REVIEW_LIMITATIONS",
+        "docx_verification": "RAW_DOCX_HASH_BOUND_NOT_PDF_VERIFIED",
         "verified_pdf_text_repairs": len(verified_repairs),
         "verified_pdf_wording_reviews": len(verified_reviews),
         "reviewed_canonical_text_changes": sum(r["source_text_changed"] for r in reviews.values()),
         "source_hashes": {
-            path: hashlib.sha256(source_path(NORMALIZED, path).read_bytes()).hexdigest()
-            for path in registered["files"].values()
+            **{spec["file"]: spec["sha256"] for spec in registered.get("legal_documents", [])},
+            **{
+                path: hashlib.sha256(source_path(NORMALIZED, path).read_bytes()).hexdigest()
+                for path in registered["files"].values()
+            },
         },
     }

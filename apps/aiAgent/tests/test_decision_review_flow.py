@@ -6,8 +6,8 @@ from types import SimpleNamespace
 import pytest
 
 from config.settings import GroqConfig
-from rag.llm.answering import generate_answer
-from rag.llm.errors import LLMError
+from rag.llm.contracts.errors import LLMError
+from rag.llm.generation.answering import generate_answer
 from tests.support.legacy_generation import prepare_legacy_context as prepare_context
 
 

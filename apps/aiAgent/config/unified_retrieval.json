@@ -16,7 +16,7 @@
   "rank_weight": 0.85,
   "cascade_pool": 40,
   "cascade_weight": 0.5,
-  "snapshot": "75765b73f095c8aa80cd588d",
+  "snapshot": "18bb51f94f63a6e2d17561dd",
   "profile": "3a2ce6e6d726a0f053748717",
   "intent_artifact": "config/semantic_intent.json",
   "intent_hash": "c895b8458aec664cea8f5fbe2d656c425378408516ea9a5513a60c850cf10e8a",
@@ -75,5 +75,13 @@
     "reranker_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
     "rerank_pool": 30,
     "retrieval_version": "shared-source-graph-v2"
+  },
+  "source_extension": {
+    "previous_snapshot": "75765b73f095c8aa80cd588d",
+    "records_added": 611,
+    "original_records_unchanged": true,
+    "retrieval_parameters_unchanged": true,
+    "validation_status": "SOURCE_EXTENSION_PENDING_FULL_QUALITY_EVAL",
+    "historical_metrics_snapshot": "75765b73f095c8aa80cd588d"
   }
 }

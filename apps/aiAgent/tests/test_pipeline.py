@@ -16,10 +16,13 @@ def test_corpus_integrity_and_provenance():
     assert report["graph_edges"] == 5813
     first, second = build_corpus(), build_corpus()
     assert first["snapshot"] == second["snapshot"]
-    assert len(first["records"]) == 5356
+    added = sum(
+        report["quality"][name]["count"] for name in ("nd26_cp", "vbhn05_bgtvt", "tt02_btttt")
+    )
+    assert len(first["records"]) == 5356 + added
     assert all(r["locator"] for r in first["records"])
     assert not any("test/" in p for p in first["manifest"]["source_hashes"])
-    assert len({r["id"] for r in first["records"]}) == 5356
+    assert len({r["id"] for r in first["records"]}) == 5356 + added
     corrected = [r for r in first["records"] if r["metadata"].get("source_anomaly")]
     assert corrected
     rows = {r["id"]: r for r in first["records"]}
@@ -161,7 +164,11 @@ def test_multilevel_metadata_and_form_registry():
     for level in (2, 4, 6, 8):
         assert any(r.get("level") == level for r in rows)
     assert all(
-        r["chunk_type"] == "legal_clause" for r in rows if r["namespace"] == "legal_classification"
+        r["chunk_type"] in {"legal_clause", "technical_standard_item"}
+        and r["role"] == "evidence"
+        and not r.get("code")
+        for r in rows
+        if r["namespace"] == "legal_classification"
     )
     assert not any("FORM-" in r["id"] for r in rows)
     assert len(read(NORMALIZED / "TT85/tt85_forms_source.json")) == 5

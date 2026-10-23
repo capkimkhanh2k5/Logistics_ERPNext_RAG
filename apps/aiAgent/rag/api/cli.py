@@ -15,13 +15,13 @@ if __package__ in {None, ""}:
 
 from config.settings import DEFAULT_MODEL_PRESET, MODEL_PRESETS  # noqa: E402
 from rag.embedding.bge_m3 import Embedder  # noqa: E402
-from rag.llm.answering import generate_answer
-from rag.llm.budget import ContextBudgetError
-from rag.llm.client import RAGClient
-from rag.llm.context import compose_query, load_generation_graph, prepare_context
-from rag.llm.conversation import turn_context
-from rag.llm.errors import LLMError
-from rag.llm.recovery import recover_answer
+from rag.llm.context.builder import compose_query, load_generation_graph, prepare_context
+from rag.llm.context.conversation import turn_context
+from rag.llm.contracts.errors import LLMError, RequestPlanError
+from rag.llm.generation.answering import generate_answer
+from rag.llm.generation.recovery import recover_answer
+from rag.llm.providers.budget import ContextBudgetError
+from rag.llm.providers.client import RAGClient
 from rag.retrieval.query_planning import QueryPlanner
 from rag.retrieval.retriever import Retriever  # noqa: E402
 from rag.vectordb.postgres import connect  # noqa: E402
@@ -484,11 +484,18 @@ def show_answer(
         _write_text(
             "Ứng viên đang kiểm tra (chưa kết luận): " + diagnostics["candidate_hs_code"], write
         )
+    if diagnostics.get("code") == "SYSTEM_VALIDATION_ERROR":
+        _write_text(
+            "\nHệ thống chưa hoàn tất kiểm tra một phần câu trả lời. "
+            "Các kết luận chưa được xác nhận chưa được công bố; "
+            "dùng /retry để thử lại hoặc /details để xem lỗi.",
+            write,
+        )
     displayed_text = " ".join(
         [answer["answer"], *answer["missing_information"], *answer["missing_legal_evidence"]]
     )
     reasons = _additional_items(displayed_text, diagnostics.get("reasons", []))
-    if reasons:
+    if reasons and (debug or diagnostics.get("code") != "SYSTEM_VALIDATION_ERROR"):
         write("\nLý do cần kiểm tra:")
         for reason in reasons:
             _write_text(reason, write, prefix="  - ")
@@ -713,6 +720,9 @@ def run_console(retriever, client, graph, *, read=input, write=print, debug: boo
             write("Dùng /details để xem thông tin lỗi.")
             if debug:
                 show_details(context, generated, elapsed, write, show_timings=False)
+        except RequestPlanError:
+            write("Chưa lập được kế hoạch hợp lệ cho yêu cầu này; chưa thực hiện phân loại.")
+            write("Câu hỏi và dữ kiện được giữ lại để /retry.")
         except ValueError:
             write(
                 "Chưa xử lý được lượt này. Hãy rút gọn thông tin vừa nhập hoặc dùng /new; "

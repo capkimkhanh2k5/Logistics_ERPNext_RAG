@@ -1,10 +1,10 @@
 import copy
 
-from rag.llm.analysis_review import analysis_jobs, check_analyses
-from rag.llm.application_rules import assembly_hypothesis
-from rag.llm.grounding import indirect_drive_gap
-from rag.llm.task_generation import review_jobs
-from rag.llm.task_validation import decode_task_answer, item_context
+from rag.llm.generation.task_generation import review_jobs
+from rag.llm.review.analysis_review import analysis_jobs, check_analyses
+from rag.llm.validation.application_rules import assembly_hypothesis
+from rag.llm.validation.task_validation import decode_task_answer, item_context
+from tests.support.legacy_grounding import indirect_drive_gap
 from tests.test_conditional_candidates import conditional_fixture
 from tests.test_goal_workflow import context, model_answer, model_reviews, run
 
@@ -131,7 +131,7 @@ def test_assembly_hypothesis_uses_latest_presentation_and_does_not_infer_from_mo
 def test_review_requires_available_assembly_rule_in_addition_to_branch_wording():
     ctx, draft, _ = conditional_fixture()
     ctx["application_rule_labels"] = [ctx["sources"][0]["label"]]
-    from rag.llm.evidence import bind_user_context
+    from rag.llm.evidence.evidence import bind_user_context
 
     ctx["question"] = "Xe điện SUV 7 chỗ, bộ CKD đầy đủ."
     ctx["user_context"] = bind_user_context(ctx["question"])
@@ -156,11 +156,11 @@ def test_valid_independent_review_survives_other_jobs_repair_regression():
 
 
 def test_unavailable_peer_becomes_legal_gap_never_silent_exclusion():
-    from rag.llm.task_generation import _review_payload
+    from rag.llm.generation.task_generation import _review_payload
 
     ctx, draft, review = conditional_fixture()
     rows, _ = decode_task_answer(draft, ctx)
-    from rag.llm.shortlist import expand_rows
+    from rag.llm.generation.shortlist import expand_rows
 
     expanded, _ = expand_rows(rows, ctx)
     _, scopes = review_jobs(expanded, ctx)
@@ -193,13 +193,13 @@ def test_applied_classification_cannot_hide_under_reference_label():
     jobs = analysis_jobs(rows, ctx)
     review = model_reviews(ctx, main)["analysis_reviews"]
     checked, errors = check_analyses(review, jobs, rows, ctx)
-    assert not checked and any("không phải REFERENCE" in e for e in errors)
+    assert "R3" not in checked and any("ASSESSMENT_MISMATCH" in e for e in errors)
 
 
 def test_parent_review_finishes_before_child_jobs_are_created(monkeypatch):
     from types import SimpleNamespace
 
-    from rag.llm.task_generation import review_by_level
+    from rag.llm.generation.task_generation import review_by_level
 
     observed = []
 
@@ -211,7 +211,7 @@ def test_parent_review_finishes_before_child_jobs_are_created(monkeypatch):
             "checked_results": [r["result_id"] for r in rows],
         }
 
-    monkeypatch.setattr("rag.llm.task_generation.review_results", review)
+    monkeypatch.setattr("rag.llm.generation.task_generation.review_results", review)
     rows = [
         {
             "result_id": f"R{i}",
@@ -230,7 +230,7 @@ def test_parent_review_finishes_before_child_jobs_are_created(monkeypatch):
 
 
 def test_detail_application_gap_does_not_invalidate_independently_reviewed_heading():
-    from rag.llm.analysis_review import resolve_analysis_gaps
+    from rag.llm.review.analysis_review import resolve_analysis_gaps
 
     rows = [
         {
@@ -276,7 +276,7 @@ def test_rendered_analysis_citations_follow_the_proof_actually_reviewed():
     jobs = analysis_jobs(rows, ctx)
     review = model_reviews(ctx, main)["analysis_reviews"]
     evidence = ctx["sources"][0]
-    review[0]["checks"][0]["evidence_ids"] = [evidence["evidence_id"]]
+    next(r for r in review if r["result_id"] == "R3")["checks"][0]["evidence_ids"] = [evidence["evidence_id"]]
     checked, errors = check_analyses(review, jobs, rows, ctx)
     assert not errors
     assert [c["label"] for c in checked["R3"]["citations"]] == [evidence["label"]]

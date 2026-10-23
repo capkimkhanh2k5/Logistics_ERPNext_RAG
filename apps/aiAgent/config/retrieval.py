@@ -5,7 +5,7 @@ from typing import Any
 import yaml
 
 from config.settings import ROOT
-from rag.prompts.reranking import SOURCE_RELEVANCE_INSTRUCTION
+from rag.prompts.retrieval.reranking import SOURCE_RELEVANCE_INSTRUCTION
 
 
 def retrieval_config() -> dict:

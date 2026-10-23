@@ -8,9 +8,9 @@ import pytest
 
 from config.settings import GroqConfig
 from rag.graph.context import GraphContext
-from rag.llm.answering import generate_answer
-from rag.llm.context import prepare_context
-from rag.llm.recovery import recover_answer
+from rag.llm.context.builder import prepare_context
+from rag.llm.generation.answering import generate_answer
+from rag.llm.generation.recovery import recover_answer
 from rag.retrieval.evidence_recovery import MAX_RECOVERY_SOURCES, recover_evidence
 from rag.utils.files import digest
 
@@ -64,7 +64,10 @@ def fixture():
         "query_plan": {"request": request, "query_hash": digest(query)},
     }
     config = GroqConfig(keys=("fixture",))
+    # Simulate a previously packed context before detailed source records become available.
+    detail = {sid: graph.records.pop(sid) for sid in ("p", "l")}
     ctx = prepare_context(query, result, "auto", config, graph)
+    graph.records.update(detail)
     gap = {
         "anchor": "Drone",
         "codes": ["8806"],
@@ -120,7 +123,32 @@ def approved(ctx):
     source = next(s for s in ctx["sources"] if s.get("code") == "8806")
     fact = next(s for s in ctx["user_context"]["statements"] if "Drone" in s["text"])
     proof = {"fact_ids": [fact["id"]], "user_quotes": ["Drone"]}
+    detail = next((s for s in ctx["sources"] if s.get("code") == "880621"), None)
     return {
+        "analysis_reviews": [
+            {
+                "result_id": "R2",
+                "checks": [
+                    {
+                        "claim_index": 0,
+                        "assessment": "REFERENCE" if detail else "INSUFFICIENT_LEGAL_EVIDENCE",
+                        "evidence_ids": [(detail or source)["evidence_id"]],
+                        "fact_ids": [],
+                        "user_quotes": [],
+                        "reason": "Điều kiện phân nhóm theo nguồn."
+                        if detail
+                        else "Ngữ cảnh chưa có điều kiện phân nhóm.",
+                    }
+                ],
+                "coverage_checks": [
+                    {"evidence_id": eid, "claim_indices": [0], "assessment": "COVERED"}
+                    for scope in ctx.get("requirements_scopes", [])
+                    for eid in scope["evidence_ids"]
+                ]
+                if detail
+                else [],
+            }
+        ],
         "reviews": [
             {
                 "result_id": "R1",
@@ -144,7 +172,7 @@ def approved(ctx):
                     "branch_checks": [],
                 },
             }
-        ]
+        ],
     }
 
 
@@ -200,6 +228,23 @@ def test_application_recovery_searches_rules_instead_of_filling_budget_with_leaf
     assert searches and recovered
     assert metadata["application_search"] and metadata["llm_planner_calls"] == 0
     assert metadata["new_source_ids"] == [rule["id"]]
+
+
+def test_recovery_keeps_branch_wording_attached_to_a_navigation_only_node():
+    q, graph, result, _, ctx, gap = fixture()
+    graph.records["p"].pop("source_text")
+    graph.records["control"] = {
+        "id": "control",
+        "role": "context",
+        "source_text": "Chỉ điều khiển từ xa.",
+    }
+    graph.contexts["p"].add("control")
+    recovered, meta = recover_evidence(
+        q, result, ctx, [{**gap, "codes": ["8806"], "kind": "WORDING"}], SimpleNamespace(), graph
+    )
+    assert recovered and "control" in meta["new_source_ids"]
+    assert meta["new_source_ids"].index("control") < meta["new_source_ids"].index("l")
+    assert meta["llm_planner_calls"] == 0
 
 
 def test_single_recovery_round_finishes_remaining_requirement_without_changing_user_facts():
@@ -306,7 +351,7 @@ def test_product_fact_gap_does_not_trigger_retrieval_even_if_model_suggests_evid
     )
 
 
-def test_retained_result_after_recovery_clears_stale_diagnostic_for_that_result():
+def test_changed_evidence_requires_successful_review_instead_of_restoring_old_code():
     q, graph, result, config, ctx, gap = fixture()
     retrieved, _ = recover_evidence(q, result, ctx, [gap], SimpleNamespace(), graph)
     ctx2 = prepare_context(q, retrieved, "auto", config, graph)
@@ -317,6 +362,7 @@ def test_retained_result_after_recovery_clears_stale_diagnostic_for_that_result(
     )
     initial = generate_answer(ctx, provider)
     _, final = recover_answer(ctx, initial, result, provider, SimpleNamespace(), graph)
-    assert final["answer"]["results"][0].get("retained_after_recovery")
-    assert final["validation"]["task_completion"]
-    assert not final["diagnostics"]
+    assert not final["answer"]["results"][0].get("retained_after_recovery")
+    assert not final["answer"]["results"][0]["suggested_hs_code"]
+    assert not final["validation"]["task_completion"]
+    assert final["diagnostics"]

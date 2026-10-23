@@ -4,8 +4,8 @@ import json
 
 from config.settings import GroqConfig
 from rag.graph.context import GraphContext
-from rag.llm.context import prepare_context
-from rag.llm.validation import validate_answer
+from rag.llm.context.builder import prepare_context
+from rag.llm.validation.answer import validate_answer
 
 
 def fixture(*, broken=False, candidates=3):

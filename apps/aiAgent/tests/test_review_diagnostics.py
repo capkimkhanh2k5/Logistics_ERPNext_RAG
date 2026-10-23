@@ -6,11 +6,11 @@ import pytest
 
 from config.settings import CLIProxyConfig, GroqConfig
 from rag.graph.context import GraphContext
-from rag.llm.answering import generate_answer
-from rag.llm.client import RAGClient
-from rag.llm.cliproxy_client import CLIProxyClient
-from rag.llm.groq_client import GroqClient
-from rag.prompts.schemas import PRODUCT_REVIEW_SCHEMA
+from rag.llm.generation.answering import generate_answer
+from rag.llm.providers.client import RAGClient
+from rag.llm.providers.cliproxy_client import CLIProxyClient
+from rag.llm.providers.groq_client import GroqClient
+from rag.prompts.schemas.answer import PRODUCT_REVIEW_SCHEMA
 from tests.support.legacy_generation import prepare_legacy_context as prepare_context
 
 
@@ -159,7 +159,9 @@ def test_illegal_review_question_repairs_once_to_a_sourced_product_question(monk
 
     assert len(calls) == 3
     assert len(calls[-1]["messages"]) == 4
-    assert "Chú giải" in calls[-1]["messages"][-1]["content"]
+    feedback = json.loads(calls[-1]["messages"][-1]["content"])
+    assert feedback["phase"] == "product_review"
+    assert any(error["code"] == "LEGAL_INFO_REQUESTED" for error in feedback["repair_errors"])
     assert result["validation"]["valid"]
     assert result["answer"]["status"] == "MISSING_PRODUCT_INFO"
     assert result["answer"]["missing_information"] == [
@@ -182,7 +184,8 @@ def test_review_with_only_missing_facts_repairs_requires_review_status(monkeypat
     assert result["validation"]["valid"]
     assert result["answer"]["status"] == "MISSING_PRODUCT_INFO"
     assert result["generation"]["product_review"]["valid"]
-    assert "MISSING_PRODUCT_INFO" in calls[-1]["messages"][-1]["content"]
+    feedback = json.loads(calls[-1]["messages"][-1]["content"])
+    assert any(error["code"] == "REVIEW_BASIS_MISSING" for error in feedback["repair_errors"])
 
 
 def test_contradicted_condition_keeps_review_status_and_actual_source_citation(monkeypatch):

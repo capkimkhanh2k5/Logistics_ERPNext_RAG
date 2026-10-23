@@ -4,7 +4,7 @@ import copy
 
 import pytest
 
-from rag.llm.quantitative import quantitative_grounding_errors
+from rag.llm.validation.quantitative import quantitative_grounding_errors
 
 
 def supported(source="Khối lượng không quá 10 kg.", quote="Khối lượng 2 kg.", *, source_quote=None):
@@ -70,7 +70,8 @@ def test_missing_uncertain_incompatible_or_insufficient_measurement_does_not_pro
     errors = quantitative_grounding_errors(review, sources, {"S1"})
     assert errors
     assert "khối lượng" in errors[0]
-    assert "MISSING_PRODUCT_INFO" in errors[0]
+    assert "[MEASUREMENT_UNPROVEN]" in errors[0]
+    assert "[S1]" in errors[0]
 
 
 def test_model_fact_paraphrase_cannot_invent_a_measurement_absent_from_user_quote():
@@ -214,4 +215,3 @@ def test_consistent_measurement_subject_and_valid_non_negative_bounds_remain_acc
 ):
     review, sources = supported(source, quote)
     assert not quantitative_grounding_errors(review, sources, {"S1"})
-

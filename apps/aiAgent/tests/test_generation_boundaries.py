@@ -6,10 +6,10 @@ import pytest
 
 from config.settings import GroqConfig
 from rag.graph.context import GraphContext
-from rag.llm.answering import generate_answer
-from rag.llm.groq_client import GroqClient, GroqError
-from rag.llm.validation import validate_answer
-from rag.prompts.schemas import DECISION_REVIEW_SCHEMA, PRODUCT_REVIEW_SCHEMA
+from rag.llm.generation.answering import generate_answer
+from rag.llm.providers.groq_client import GroqClient, GroqError
+from rag.llm.validation.answer import validate_answer
+from rag.prompts.schemas.answer import DECISION_REVIEW_SCHEMA, PRODUCT_REVIEW_SCHEMA
 from tests.support.legacy_generation import prepare_legacy_context as prepare_context
 
 

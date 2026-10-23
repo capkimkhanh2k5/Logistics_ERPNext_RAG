@@ -8,12 +8,12 @@ import pytest
 
 from config.settings import GroqConfig
 from rag.graph.context import GraphContext
-from rag.llm.answering import generate_answer
-from rag.llm.context import prepare_context
-from rag.llm.recovery import _gaps
-from rag.llm.task_generation import _resolve_comparisons, _resolve_levels, review_jobs
-from rag.llm.task_validation import decode_task_answer, item_context, item_quote_errors
-from rag.llm.validation import _ownership_errors
+from rag.llm.context.builder import prepare_context
+from rag.llm.generation.answering import generate_answer
+from rag.llm.generation.recovery import _gaps
+from rag.llm.generation.task_generation import _resolve_comparisons, _resolve_levels, review_jobs
+from rag.llm.validation.answer import _ownership_errors
+from rag.llm.validation.task_validation import decode_task_answer, item_context, item_quote_errors
 from rag.retrieval.query_planning import QueryPlanner
 from rag.retrieval.request_plan import explicit_level, referenced_codes, validate_request
 from rag.utils.files import digest
@@ -184,7 +184,22 @@ def model_reviews(ctx, main):
                     "status": "SUPPORTED",
                     "reason": "Kim loại nền phù hợp điều kiện nguồn.",
                     "condition_checks": [
-                        {"evidence_id": source["evidence_id"], "assessment": "SATISFIED", **proof}
+                        {
+                            "evidence_id": eid,
+                            "assessment": "SATISFIED"
+                            if eid == source["evidence_id"]
+                            else "NOT_APPLICABLE",
+                            **proof,
+                        }
+                        for eid in sorted(
+                            {
+                                required
+                                for candidate in job["candidate_evidence"]
+                                if candidate["code"] in job["selection_codes"]
+                                for required in candidate["required_citation_evidence_ids"]
+                            }
+                            | set(job.get("note_scope_evidence_ids", []))
+                        )
                     ],
                     "clarifications": [],
                     "missing_legal_evidence": [],
@@ -193,7 +208,7 @@ def model_reviews(ctx, main):
                 },
             }
         )
-    from rag.llm.analysis_review import analysis_jobs
+    from rag.llm.review.analysis_review import analysis_jobs
 
     analyses = analysis_jobs(rows, ctx)
     return {
@@ -203,13 +218,38 @@ def model_reviews(ctx, main):
                 "analysis_reviews": [
                     {
                         "result_id": job["result_id"],
+                        "coverage_checks": [
+                            {"evidence_id": eid, "claim_indices": [0], "assessment": "COVERED"}
+                            for eid in job.get("coverage_evidence_ids", [])
+                        ],
                         "checks": [
                             {
                                 "claim_index": c["claim_index"],
-                                "assessment": "REFERENCE",
+                                "assessment": "APPLICATION"
+                                if job["objective"]["kind"] == "CLASSIFY"
+                                else "REFERENCE",
                                 "evidence_ids": c["evidence_ids"],
-                                "fact_ids": [],
-                                "user_quotes": [],
+                                "fact_ids": [
+                                    next(
+                                        s["id"]
+                                        for s in ctx["user_context"]["statements"]
+                                        if s["text"]
+                                        == (
+                                            "Dây A bằng bạc 925"
+                                            if job["item_ids"] == ["I1"]
+                                            else "Dây B bằng thép mạ vàng"
+                                        )
+                                    )
+                                ]
+                                if job["objective"]["kind"] == "CLASSIFY"
+                                else [],
+                                "user_quotes": [
+                                    "Dây A bằng bạc 925"
+                                    if job["item_ids"] == ["I1"]
+                                    else "Dây B bằng thép mạ vàng"
+                                ]
+                                if job["objective"]["kind"] == "CLASSIFY"
+                                else [],
                                 "reason": "Giải thích điều kiện nguồn, không tự áp mã cho hàng hóa.",
                             }
                             for c in job["claims"]
@@ -249,7 +289,7 @@ def test_two_hs4_results_and_explanation_use_one_draft_and_one_batched_review():
     assert [r["suggested_hs_code"] for r in out["answer"]["results"]] == ["7113", "7117", ""]
     assert all(r.get("review_valid") for r in out["answer"]["results"][:2])
     assert (
-        calls[1]["schema"]["properties"]["reviews"]["items"]["properties"]["review"]["properties"][
+        calls[1]["schema"]["properties"]["comparison_reviews"]["properties"]["C1"]["properties"][
             "branch_checks"
         ]["maxItems"]
         == 0
@@ -589,13 +629,19 @@ def test_explicit_smartphone_hs8_code_is_not_downgraded_by_a_heading_goal():
 
 def test_detail_requirements_cannot_complete_with_heading_wording_alone():
     ctx = context(requirements=True, detail_sources=False)
+    ctx["detail_evidence"] = []
+    ctx["requirements_scopes"] = [
+        {**scope, "complete": False} for scope in ctx["requirements_scopes"]
+    ]
     main = model_answer(ctx)
     out, calls = run(ctx, [main, model_reviews(ctx, main)])
     assert len(calls) == 2
     detail = out["answer"]["results"][-1]
     assert detail["status"] == "INSUFFICIENT_LEGAL_EVIDENCE"
     assert not out["diagnostics"] and not out["validation"]["task_completion"]
-    assert _gaps(ctx, out)[0]["codes"] == ["7113", "7117"]
+    gap_codes = set(_gaps(ctx, out)[0]["codes"])
+    assert {"7113", "7117"} <= gap_codes
+    assert gap_codes <= {s["code"] for s in ctx["sources"] if s.get("code")}
 
 
 def test_detail_requirements_use_packed_sources_with_verified_graph_paths():
@@ -608,7 +654,7 @@ def test_detail_requirements_use_packed_sources_with_verified_graph_paths():
     assert decode_task_answer(main, ctx)[0][-1]["status"] == "INSUFFICIENT_LEGAL_EVIDENCE"
 
 
-def test_unresolved_code_comparison_can_be_repaired_without_accepting_an_applied_code():
+def test_source_gap_reference_does_not_need_relabelling_and_still_gets_reviewed():
     ctx = context()
     main = model_answer(ctx)
     for row in main["results"]:
@@ -618,14 +664,12 @@ def test_unresolved_code_comparison_can_be_repaired_without_accepting_an_applied
             missing_legal_evidence=["Thiếu căn cứ áp dụng."],
         )
         row["claims"][0]["text"] = "Chưa đủ căn cứ để kết luận thuộc nhóm 7113 hay 7117."
-    repaired = copy.deepcopy(main)
-    for row in repaired["results"]:
-        row["claims"][0]["kind"] = "LEGAL_ANALYSIS"
-    out, calls = run(ctx, [main, repaired])
+    out, calls = run(ctx, [main, model_reviews(ctx, main)])
     assert len(calls) == 2 and not out["diagnostics"]
     assert out["answer"]["status"] == "INSUFFICIENT_LEGAL_EVIDENCE"
     assert not any(r["suggested_hs_code"] for r in out["answer"]["results"])
-    assert "LEGAL_ANALYSIS" in calls[1]["messages"][-1]["content"]
+    assert all(r["claims"][0]["kind"] == "CONCLUSION" for r in main["results"])
+    assert "analysis_jobs" in calls[1]["messages"][-1]["content"]
 
 
 def test_conceptual_nature_question_becomes_explain_alongside_classify():
@@ -656,7 +700,7 @@ def test_conceptual_nature_question_becomes_explain_alongside_classify():
 
 
 def test_sentence_and_decimal_splitting_keeps_clean_item_statements():
-    from rag.llm.evidence import bind_user_context
+    from rag.llm.evidence.evidence import bind_user_context
 
     q = (
         "Máy A có khối lượng chính xác 10,000 kg; Máy B có khối lượng 10,100 kg. "
@@ -669,7 +713,7 @@ def test_sentence_and_decimal_splitting_keeps_clean_item_statements():
 
 
 def test_legal_analysis_hs8_reference_and_negated_competitor_code_are_allowed():
-    from rag.llm.task_validation import code_claim_errors
+    from rag.llm.validation.task_validation import code_claim_errors
 
     ctx = context()
     ctx["question"] += " Có đủ điều kiện xem là 71131190 hay không?"
@@ -766,8 +810,8 @@ def test_required_detail_missing_product_info_is_preserved_when_heading_also_nee
 
 
 def test_threshold_violation_and_explain_exclusion_with_registered_codes_are_allowed():
-    from rag.llm.task_validation import code_claim_errors
-    from rag.llm.validation import validate_answer
+    from rag.llm.validation.answer import validate_answer
+    from rag.llm.validation.task_validation import code_claim_errors
 
     ctx = context(explain=True)
     ctx["question"] += (

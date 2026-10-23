@@ -1,5 +1,5 @@
 {
-  "snapshot": "75765b73f095c8aa80cd588d",
+  "snapshot": "18bb51f94f63a6e2d17561dd",
   "profile": "3a2ce6e6d726a0f053748717",
   "gold_hash": "da1b6d2577a55cd0e2cbf3bd5d91755a901ccbecce62532cd4a4a913c7da6542",
   "retrieval": {
@@ -95,7 +95,7 @@
   "selection_scope": "GROUPED_TRAIN_80_20; TEST_DIAGNOSTIC; HOLDOUT_REGRESSION_PREVIOUSLY_EXAMINED",
   "selection_objective": "Validation Hit@1, Recall@5, MRR; parent and reranker ablations",
   "product_policy_file": "config/hybrid_retrieval.json",
-  "qa_transfer_status": "TARGETED_QA_SOURCE_WORDING_REGRESSION_PASSED_NO_RETUNING",
+  "qa_transfer_status": "SOURCE_EXTENSION_PENDING_FULL_QUALITY_EVAL",
   "source_hashes": {
     "TT31/Section-XVI/SECTION_XVI_RAG_INGEST.jsonl": "1e0d4753e8d10e7036e81b7f7c2fef8baacdab2ce4b1325d84c750a929ba2f42",
     "TT31/Section-XVI/SECTION_XVI_MASTER_NORMALIZED.jsonl": "870368732b46023bf6319e7ca3118287b45942bcd38558bd056b02d1cd807aa0",
@@ -119,6 +119,9 @@
     "PDF_SOURCE_PROVENANCE.json": "6b83367b883584f997836ab133934eeb2933f919729436eaf1f56f1857cb1f39"
   },
   "active_source_hashes": {
+    "data/raw/docx/26_2023_ND-CP_548616.docx": "0568c12c02ac717412c6f95f4c071a4d7115168e53f30fd001daaf716ab2c91c",
+    "data/raw/docx/05_VBHN-BGTVT_m_640747.docx": "745d631b8c997c16138c839cc81bf89aabad10b536032c49cca447ba66e8be52",
+    "data/raw/docx/02_2024_TT-BTTTT_m_605048.docx": "0e74d64a5260fbf14808815c92047e0db2ea36963e09844536dc27807d7d6696",
     "TT31/Section-XVI/SECTION_XVI_RAG_INGEST.jsonl": "1e85f1fa0d391139a4acc527a8d55424a99e37c2ad4d9321a00038b0e9b17416",
     "TT31/Section-XVI/SECTION_XVI_MASTER_NORMALIZED.jsonl": "50fc99c8c08179e7d08d0d52d9a70ba754b72ebcb82243c6ed063940098916bf",
     "TT31/Section-XVI/SECTION_XVI_RAG_SCHEMA.json": "eab8de789dbab5f8e2b2d798c7c2daf78f742568021523449a3be7ea68f387fe",
@@ -140,9 +143,12 @@
     "TT31/PDF_SOURCE_GRAPH.json": "1e73f7de207d9a62d8510a66c54eb0e34c83734579e83fb2cd402c2cbba453a7",
     "PDF_SOURCE_PROVENANCE.json": "1857e2fee7109d61c8b822e46e3312861bfdf4f409da9c4df5679e47c214eb35",
     "TT31/PDF_SOURCE_TEXT_CORRECTIONS.json": "51e3f58ce516da924f9273495eab0fa05f55c0210ba26a61d264f7cecade3299",
-    "TT31/PDF_WORDING_REVIEWS.json": "94fe97a86a78dedc62218afc9e9f62fcb81ff74962c2f6cf0efacad613268312"
+    "TT31/PDF_WORDING_REVIEWS.json": "94fe97a86a78dedc62218afc9e9f62fcb81ff74962c2f6cf0efacad613268312",
+    "ND26_CP/nd26_cp_rag_chunks_source.jsonl": "414cba3386bd8f64aa03ed088993d6fd2393a02427d5220bc23a1e453943b317",
+    "VBHN05_BGTVT/vbhn05_bgtvt_rag_chunks_source.jsonl": "4ab6b3da9feecd662b1468803cbf6243e4175196a34a3f0cfc6cf74aff4f9aaf",
+    "TT02_BTTTT/tt02_btttt_rag_chunks_source.jsonl": "fc30f7f7c74e2b613c8adbc7632bdf84682b4b769f0a1f15741569bacbf43d17"
   },
-  "binding_note": "IMAGE_REVIEWED_PDF_WORDING; FROZEN_RETRIEVAL_PARAMETERS",
+  "binding_note": "SOURCE_EXTENSION_PENDING_FULL_QUALITY_EVAL",
   "hs_shared_policy": {
     "version": "pdf-source-graph-v4-dev-selected",
     "mode": "full_hybrid",
@@ -193,5 +199,13 @@
     "reused_embedding_inputs": 5352,
     "retrieval_parameters_unchanged": true,
     "retrieval_regression_report": "artifacts/experiments/run_pdf_wording_review_v1/retrieval_after.json"
+  },
+  "source_extension": {
+    "previous_snapshot": "75765b73f095c8aa80cd588d",
+    "records_added": 611,
+    "original_records_unchanged": true,
+    "retrieval_parameters_unchanged": true,
+    "validation_status": "SOURCE_EXTENSION_PENDING_FULL_QUALITY_EVAL",
+    "historical_metrics_snapshot": "75765b73f095c8aa80cd588d"
   }
 }

@@ -1,7 +1,7 @@
 from copy import deepcopy
 from itertools import permutations
 
-from rag.llm.candidate_ranking import rank_candidates
+from rag.llm.review.candidate_ranking import rank_candidates
 
 
 def candidate(code, checks, status="CONDITIONAL"):

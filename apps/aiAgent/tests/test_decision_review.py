@@ -6,11 +6,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from rag.llm.budget import ContextBudgetError
-from rag.llm.decision_review import review_decision
-from rag.llm.errors import LLMError
-from rag.llm.validation import validate_answer
-from rag.prompts.schemas import DECISION_REVIEW_SCHEMA
+from rag.llm.contracts.errors import LLMError
+from rag.llm.providers.budget import ContextBudgetError
+from rag.llm.review.decision_review import review_decision
+from rag.llm.validation.answer import validate_answer
+from rag.prompts.schemas.answer import DECISION_REVIEW_SCHEMA
 
 
 def context(question="Mặt hàng mang tên Alpha Pro.", *, sources=None):
@@ -297,7 +297,7 @@ def test_provider_or_budget_error_is_not_retried_and_does_not_turn_into_legal_cl
 
 
 def test_malformed_review_repairs_once_and_aggregates_usage_fallback_and_timings(monkeypatch):
-    import rag.llm.decision_review as module
+    import rag.llm.review.decision_review as module
 
     clock = SimpleNamespace(value=0.0)
     monkeypatch.setattr(module, "perf_counter", lambda: clock.value)

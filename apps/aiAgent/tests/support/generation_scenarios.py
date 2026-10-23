@@ -6,11 +6,11 @@ from unittest.mock import patch
 
 from config.model_limits import get_model_limits
 from config.settings import ROOT
-from rag.llm.answering import generate_answer
-from rag.llm.budget import ContextBudgetError
-from rag.llm.context import compose_query, load_generation_graph, prepare_context
-from rag.llm.errors import LLMError
-from rag.llm.groq_client import GroqError
+from rag.llm.context.builder import compose_query, load_generation_graph, prepare_context
+from rag.llm.contracts.errors import LLMError
+from rag.llm.generation.answering import generate_answer
+from rag.llm.providers.budget import ContextBudgetError
+from rag.llm.providers.groq_client import GroqError
 from rag.utils.files import digest, write_json
 from tests.support.generation_eval import load_cases, retrieval_for
 

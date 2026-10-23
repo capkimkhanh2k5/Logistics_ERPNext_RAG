@@ -4,15 +4,15 @@ import copy
 
 import pytest
 
-from rag.llm.evidence import (
+from rag.llm.evidence.evidence import (
     bind_evidence,
     bind_user_context,
     clarification_errors,
     unique_clarifications,
 )
-from rag.llm.grounding import discriminating_fact_errors, unsupported_qualifier_errors
-from rag.llm.task_generation import _resolve_comparisons
-from rag.llm.task_validation import code_claim_errors, item_context
+from rag.llm.generation.task_generation import _resolve_comparisons
+from rag.llm.validation.task_validation import code_claim_errors, item_context
+from tests.support.legacy_grounding import discriminating_fact_errors, unsupported_qualifier_errors
 from tests.test_conditional_candidates import conditional_fixture
 from tests.test_goal_workflow import context, run
 

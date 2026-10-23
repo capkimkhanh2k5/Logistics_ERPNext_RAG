@@ -50,6 +50,13 @@ def build_corpus() -> dict:
         rows.extend(source_rows)
         nodes.extend(source_nodes)
         edges.extend(source_edges)
+    from rag.ingestion.legal_documents import legal_document_bundle
+
+    for source in registered.get("legal_documents", []):
+        source_rows, source_nodes, source_edges = legal_document_bundle(ROOT, source)
+        rows.extend(source_rows)
+        nodes.extend(source_nodes)
+        edges.extend(source_edges)
 
     # Context joins reviewed against the ordered source text; atomic wording stays intact.
     gir_context = {
@@ -154,6 +161,7 @@ def build_corpus() -> dict:
         "tariff_entry",
         "tariff_footnote",
         "legal_clause",
+        "technical_standard_item",
     }
     for row in rows:
         pdf_proof = data["pdf_provenance"]["records"].get(row["id"])
@@ -167,7 +175,9 @@ def build_corpus() -> dict:
         row["input_hash"] = digest(row["embedding_text"])
         md = row["metadata"]
         dataset = row["dataset"]
-        row["namespace"] = "legal_classification" if dataset == "tt85" else "hs_classification"
+        row.setdefault(
+            "namespace", "legal_classification" if dataset == "tt85" else "hs_classification"
+        )
         row.setdefault("section", md.get("section", md.get("section_code")))
         row.setdefault("hs6", md.get("hs6"))
         row.setdefault("ahtn8", md.get("ahtn8"))

@@ -17,7 +17,7 @@ from rag.chunking.corpus import load_corpus
 from rag.embedding.bge_m3 import Embedder
 from rag.graph.context import GraphContext, fit_rerank_context
 from rag.ingestion.sources import QA_CHUNK_TYPES
-from rag.prompts.tasks import SOURCE_COMPARISON_CLARIFICATION
+from rag.prompts.generation.tasks import SOURCE_COMPARISON_CLARIFICATION
 from rag.retrieval.query_planning import QUERY_FLOW_VERSION, QueryPlanner, raw_query_plan
 from rag.retrieval.rerankers import CrossEncoder, colbert_scores
 from rag.utils.codes import normalize_code
@@ -520,6 +520,7 @@ class Retriever:
                     "chapter_note",
                     "subheading_note",
                     "legal_clause",
+                    "technical_standard_item",
                 ]
             )
         elif intent != "knowledge":

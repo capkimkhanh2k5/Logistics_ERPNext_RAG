@@ -8,10 +8,15 @@ from copy import deepcopy
 
 from jsonschema import ValidationError, validate
 
-from rag.llm.context import compose_query
-from rag.llm.conversation import MAX_ROUTING_CHARS, explicit_turn, turn_context, validate_turn
-from rag.llm.errors import LLMError
-from rag.prompts.query_planning import (
+from rag.llm.context.builder import compose_query
+from rag.llm.context.conversation import (
+    MAX_ROUTING_CHARS,
+    explicit_turn,
+    turn_context,
+    validate_turn,
+)
+from rag.llm.contracts.errors import LLMError
+from rag.prompts.planning.query_planning import (
     QUERY_PLAN_SCHEMA,
     QUERY_PLANNING_PROMPT,
     SEARCH_HINT_TEMPLATE,

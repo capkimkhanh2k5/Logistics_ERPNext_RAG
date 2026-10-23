@@ -5,7 +5,7 @@ from copy import deepcopy
 
 from jsonschema import validate
 
-from rag.prompts.query_planning import REQUEST_SCHEMA
+from rag.prompts.planning.query_planning import REQUEST_SCHEMA
 from rag.utils.files import digest
 
 
@@ -29,8 +29,29 @@ def explicit_level(text: str) -> int | None:
     return len(next(iter(codes))) if len(codes) == 1 else None
 
 
-def _resolve_goal_scope(goals: list[dict]) -> None:
+def _resolve_goal_scope(goals: list[dict], query: str = "") -> None:
     for goal in goals:
+        position = query.find(goal["anchor"])
+        prefix = re.split(r"[.!?;\n]", query[:position])[-1] if position >= 0 else ""
+        question_context = prefix[-100:] + goal["anchor"]
+        method_choice = bool(
+            re.search(
+                r"(?:có\s+(?:thể|được)\s+|được\s+(?:phép\s+)?)lựa\s+chọn", question_context, re.I
+            )
+        )
+        if (
+            goal["kind"] == "CLASSIFY"
+            and (goal["level"] == 0 or method_choice)
+            and not re.search(r"\b(?:mã|nhóm|hs)\b|\d", goal["anchor"], re.I)
+            and re.search(
+                r"phân\s*loại.+(?:riêng\s*(?:biệt|lẻ)|phân\s*loại\s+theo|phương\s*pháp)",
+                goal["anchor"],
+                re.I,
+            )
+        ):
+            goal["kind"] = "EXPLAIN"
+            goal["level"] = 0
+            continue
         if (
             goal["kind"] == "COMPARE"
             and goal["level"]
@@ -99,7 +120,9 @@ def validate_request(query: str, value: dict) -> dict:
         raise ValueError("duplicate_request_ids")
     for row in [*items.values(), *goals.values()]:
         row["anchor"] = canonical_anchor(query, row["anchor"])
-    _resolve_goal_scope(list(goals.values()))
+    _resolve_goal_scope(list(goals.values()), query)
+    _complete_classification_goals(value)
+    goals = {row["id"]: row for row in value["objectives"]}
     if not any(g["required"] for g in goals.values()):
         raise ValueError("request_needs_required_objective")
     if sum(len(g["item_ids"]) if g["kind"] == "CLASSIFY" else 1 for g in goals.values()) > 32:
@@ -113,6 +136,64 @@ def validate_request(query: str, value: dict) -> dict:
         if goal["kind"] == "CLASSIFY" and level and level != goal["level"]:
             raise ValueError("requested_level_changed")
     return deepcopy(value)
+
+
+def _complete_classification_goals(request: dict) -> None:
+    """Restore explicit classification requests inside nonclassification anchors.
+
+    This is intent coverage only. It neither chooses goods nor derives a legal code.
+    Historical text outside the planner's selected objectives cannot add a task.
+    """
+    goals = request["objectives"]
+    for goal in list(goals):
+        if goal["kind"] not in {"EXPLAIN", "COMPARE"} or not goal["item_ids"]:
+            continue
+        signal = re.search(
+            r"(?:đề\s+xuất\s+(?:hướng\s+)?phân\s*loại|(?:hãy|yêu\s+cầu)\s+phân\s*loại\s+từng\s+(?:mặt\s*hàng|sản\s*phẩm))",
+            goal["anchor"],
+            re.I,
+        )
+        if not signal or re.search(
+            r"(?:(?:không|chưa|đừng)\s+(?:cần\s+|yêu\s+cầu\s+)?|(?:để|nhằm)\s+)$",
+            goal["anchor"][: signal.start()],
+            re.I,
+        ):
+            continue
+        if re.search(
+            r"(?:không|chưa)\s+(?:cần|yêu\s+cầu)\s+(?:chốt|đề\s+xuất|xác\s+định)\s+mã",
+            goal["anchor"],
+            re.I,
+        ):
+            continue
+        covered = {
+            item for other in goals if other["kind"] == "CLASSIFY" for item in other["item_ids"]
+        }
+        missing = [item for item in goal["item_ids"] if item not in covered]
+        if not missing:
+            continue
+        levels = {
+            other["level"]
+            for other in goals
+            if other["kind"] == "COMPARE"
+            and other["level"]
+            and set(other["item_ids"]) & set(missing)
+        }
+        level = explicit_level(goal["anchor"]) or (next(iter(levels)) if len(levels) == 1 else 8)
+        available = next(
+            (f"G{i}" for i in range(1, 13) if all(g["id"] != f"G{i}" for g in goals)), None
+        )
+        if available is None:
+            raise ValueError("request_objective_budget_exceeded")
+        goals.append(
+            {
+                "id": available,
+                "kind": "CLASSIFY",
+                "level": level,
+                "item_ids": missing,
+                "anchor": goal["anchor"],
+                "required": goal["required"],
+            }
+        )
 
 
 def request_from_plan(query: str, plan: dict) -> dict | None:

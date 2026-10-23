@@ -9,10 +9,10 @@ import pytest
 
 from config.settings import GroqConfig, parse_keys
 from rag.graph.context import GraphContext
-from rag.llm.answering import generate_answer
-from rag.llm.context import prepare_context
-from rag.llm.groq_client import GroqClient, GroqError
-from rag.llm.validation import validate_answer
+from rag.llm.context.builder import prepare_context
+from rag.llm.generation.answering import generate_answer
+from rag.llm.providers.groq_client import GroqClient, GroqError
+from rag.llm.validation.answer import validate_answer
 from tests.support.generation_eval import run_evaluation, score_case
 from tests.support.legacy_generation import prepare_legacy_context
 from tests.support.protocol_fixtures import qa_response
@@ -378,7 +378,13 @@ def test_invalid_answers_are_repaired_once_with_same_actual_model(change, remove
     assert result["validation"]["valid"]
     assert len(calls) == 2
     assert calls[1] == {"model": "actual-fallback", "allow_fallback": False}
-    assert error_detail in repair[0]
+    feedback = json.loads(repair[0])
+    diagnostics = [
+        f"{error['path']}: {error['message']}" if error["path"] else error["message"]
+        for error in feedback["repair_errors"]
+    ]
+    assert any(error_detail in error for error in diagnostics)
+    assert feedback["phase"] == "answer"
     assert "tiếng Việt" in repair[0]
     assert "nguyên văn" in repair[0]
     assert result["generation"]["fallback_used"]
@@ -421,7 +427,7 @@ def test_requests_rotate_keys_and_disable_invalid_credentials(monkeypatch):
             raise HTTPError(request.full_url, 401, "Invalid", {}, None)
         return response({"data": []})
 
-    monkeypatch.setattr("rag.llm.groq_client.urlopen", send)
+    monkeypatch.setattr("rag.llm.providers.groq_client.urlopen", send)
     client = GroqClient(GroqConfig(keys=("bad", "good")))
     client.models()
     client.models()
@@ -435,7 +441,7 @@ def test_successful_requests_round_robin(monkeypatch):
         calls.append(request.get_header("Authorization"))
         return response({"data": []})
 
-    monkeypatch.setattr("rag.llm.groq_client.urlopen", send)
+    monkeypatch.setattr("rag.llm.providers.groq_client.urlopen", send)
     client = GroqClient(GroqConfig(keys=("one", "two")))
     for _ in range(3):
         client.models()
@@ -455,7 +461,7 @@ def test_provider_failure_records_only_an_allowlisted_code(monkeypatch):
         )
         raise HTTPError(request.full_url, 400, "Invalid", {}, body)
 
-    monkeypatch.setattr("rag.llm.groq_client.urlopen", failed)
+    monkeypatch.setattr("rag.llm.providers.groq_client.urlopen", failed)
     client = GroqClient(GroqConfig(keys=("secret-key",)))
     with pytest.raises(GroqError) as failure:
         client.models()
@@ -470,7 +476,7 @@ def test_organization_rate_limit_waits_instead_of_immediately_trying_other_keys(
         calls.append(request)
         raise HTTPError(request.full_url, 429, "Limited", {"retry-after": "120"}, None)
 
-    monkeypatch.setattr("rag.llm.groq_client.urlopen", limited)
+    monkeypatch.setattr("rag.llm.providers.groq_client.urlopen", limited)
     client = GroqClient(GroqConfig(keys=("one", "two"), max_wait_seconds=0))
     with pytest.raises(GroqError) as failure:
         client.models()

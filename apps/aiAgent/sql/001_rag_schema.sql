@@ -70,4 +70,4 @@ DO $$ BEGIN
   END IF;
 END $$;
 ALTER TABLE rag.chunks DROP CONSTRAINT IF EXISTS chunks_type_valid;
-ALTER TABLE rag.chunks ADD CONSTRAINT chunks_type_valid CHECK (chunk_type IN ('gir_rule','gir_explanation','section_note','chapter_note','subheading_note','tariff_entry','tariff_footnote','legal_clause'));
+ALTER TABLE rag.chunks ADD CONSTRAINT chunks_type_valid CHECK (chunk_type IN ('gir_rule','gir_explanation','section_note','chapter_note','subheading_note','tariff_entry','tariff_footnote','legal_clause','technical_standard_item'));

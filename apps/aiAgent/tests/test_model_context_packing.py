@@ -8,9 +8,9 @@ import pytest
 from config.model_limits import MODEL_LIMITS
 from config.settings import GroqConfig
 from rag.graph.context import GraphContext
-from rag.llm.budget import ContextBudgetError, request_budget
-from rag.llm.context import compose_query, prepare_context
-from rag.prompts.schemas import MODEL_ANSWER_SCHEMA as ANSWER_SCHEMA
+from rag.llm.context.builder import compose_query, prepare_context
+from rag.llm.providers.budget import ContextBudgetError, request_budget
+from rag.prompts.schemas.answer import MODEL_ANSWER_SCHEMA as ANSWER_SCHEMA
 
 
 def runtime_config(model="gemini-3.5-flash-lite"):

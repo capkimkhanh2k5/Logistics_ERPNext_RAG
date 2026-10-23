@@ -171,6 +171,22 @@ class GraphContext:
             "depth": md.get("depth"),
         }
 
+    def source_record(self, node_id: str) -> dict | None:
+        """Materialize only authentic wording, including provenance-backed context nodes."""
+        citation = self.citation(node_id)
+        if not citation:
+            return None
+        row = self.records.get(node_id, {})
+        metadata = self.nodes.get(node_id, {})
+        return {
+            **row,
+            "id": node_id,
+            "source_text": citation["text"],
+            "locator": citation["locator"],
+            "code": self.node_code(node_id),
+            "chunk_type": row.get("chunk_type") or metadata.get("chunk_type") or "branch_context",
+        }
+
     def source_view(self, row: dict) -> dict:
         ancestors = self.ancestors(row["id"])
         citations, seen, context_ids, note_ids = [], set(), [], set()

@@ -6,8 +6,8 @@ from types import SimpleNamespace
 import pytest
 
 from config.settings import GroqConfig, RAGGenerationConfig
-from rag.llm.context import compose_query
-from rag.llm.groq_client import GroqClient
+from rag.llm.context.builder import compose_query
+from rag.llm.providers.groq_client import GroqClient
 from tests.support.generation_scenarios import (
     _generate,
     check_expectations,

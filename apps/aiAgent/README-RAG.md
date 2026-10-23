@@ -1,13 +1,13 @@
 # RAG — Knowledge Base, HS và QA
 
-Luồng `goals-v1`: cùng lời gọi planner nhận diện hội thoại, mục tiêu và từng mặt hàng; kết quả ở đúng cấp HS4/HS6/HS8, Product Review gộp và một vòng evidence recovery có giới hạn trong corpus. [Contract, ngân sách và fallback](docs/GenerationFlow/Goals_And_Recovery.md). Các mô tả đơn mã/Decision Review bên dưới vẫn áp dụng cho `registry-v2` fallback/replay; peer đủ nguồn có thể vào catalogue của luồng goals và được kiểm tra độc lập trước khi chọn.
+Luồng `goals-v1`: cùng lời gọi planner nhận diện hội thoại, mục tiêu và từng mặt hàng; kết quả ở đúng cấp HS4/HS6/HS8, Product Review gộp và một vòng evidence recovery có giới hạn trong corpus. [Contract, ngân sách và fallback](docs/GenerationFlow/GenerationFlow.md). Các mô tả đơn mã/Decision Review bên dưới vẫn áp dụng cho `registry-v2` fallback/replay; peer đủ nguồn có thể vào catalogue của luồng goals và được kiểm tra độc lập trước khi chọn.
 
-Luồng goals hỗ trợ [tối đa 3 ứng viên HS có điều kiện](docs/GenerationFlow/Conditional_Candidates.md) cho mỗi mặt hàng/mục tiêu; dùng mức độ đủ căn cứ thay cho confidence phần trăm, kiểm tra từng ứng viên trong cùng batch Product Review.
+Luồng goals hỗ trợ [tối đa 3 ứng viên HS có điều kiện](docs/GenerationFlow/GenerationFlow.md) cho mỗi mặt hàng/mục tiêu; dùng mức độ đủ căn cứ thay cho confidence phần trăm, kiểm tra từng ứng viên trong cùng batch Product Review.
 | Notebook | Workflow |
 |---|---|
 | `notebooks/01_build_knowledge_base.ipynb` | Audit manifest nguồn → GIR/TT85/HS → BGE-M3 → nạp snapshot trong transaction |
 | `notebooks/02_test_retrieval.ipynb` | Đọc kết quả/policy đã khóa; chỉ chạy chọn lại trên Dev khi bật cờ rõ ràng → Test |
-| `notebooks/03_test_rag_generation.ipynb` | Kiểm thử HS/QA qua CLIProxyAPI/Gemini, fallback Groq: đủ/thiếu thông tin, bổ sung ngữ cảnh, thiếu chứng cứ, thông tin mâu thuẫn và lỗi API |
+| `notebooks/03_test_rag_generation.ipynb` | Kiểm thử HS/QA qua CLIProxyAPI/Gemini, mặc định chỉ model đã chọn: đủ/thiếu thông tin, bổ sung ngữ cảnh, thiếu chứng cứ, thông tin mâu thuẫn và lỗi API |
 
 Các lượt thực nghiệm lưu report và predictions trong `artifacts/experiments/<run-id>`; notebook đọc cùng runtime/runner. Các module `rag/` giữ logic dùng chung để notebook và runtime dùng cùng implementation.
 
@@ -47,7 +47,7 @@ Phản hồi HS/Auto hợp lệ báo thiếu chứng cứ hoặc cần thẩm đ
 
 Đóng gói ngữ cảnh giữ mã ứng viên cùng mô tả cấp cha và điều kiện nhánh thành một bộ. Với model đã đăng ký trong [config/model_limits.py](config/model_limits.py), runtime kiểm tra toàn bộ system + user + JSON schema theo giới hạn token của model, thay cap 8.000/6.000 ký tự. Payload model dùng JSON gọn và metadata cần cho suy luận; provenance, graph và danh sách ID đầy đủ được giữ phía ứng dụng. Văn bản pháp lý không bị cắt để nhét thêm mã. Nếu không đủ chỗ, cả ứng viên bị bỏ khỏi gói. LLM chỉ nhận số nguồn bị bỏ. Chính sách xếp hạng retrieval và các trọng số đã khóa không thay đổi.
 
-Mỗi request sinh, Product Review, repair và fallback đều được kiểm tra lại trước khi gửi, gồm cả wrapper schema của GPT-OSS. Fallback có context nhỏ hơn không tự cắt hay đóng gói lại nguồn; request quá giới hạn bị chặn hoặc bỏ qua theo chuỗi fallback. Câu hỏi/dữ kiện vẫn được giữ để đổi `/model` rồi `/retry`. `CLIPROXYAPI_MAX_OUTPUT_TOKENS=model` và `GROQ_MAX_OUTPUT_TOKENS=model` dùng output tối đa theo model; vẫn hỗ trợ cap số nguyên. GPT-OSS 120B dùng chung context input/output nên output được giảm theo chỗ còn lại. Alias chưa có trong registry giữ đường legacy/custom; xem [cấu hình](config/README.md).
+Mỗi request sinh, Product Review, repair và fallback đều được kiểm tra lại trước khi gửi, gồm cả wrapper schema của GPT-OSS. Nếu caller bật fallback rõ ràng, model dự phòng có context nhỏ hơn không tự cắt hay đóng gói lại nguồn; request quá giới hạn bị chặn hoặc bỏ qua theo chuỗi fallback. Câu hỏi/dữ kiện vẫn được giữ để đổi `/model` rồi `/retry`. `CLIPROXYAPI_MAX_OUTPUT_TOKENS=model` và `GROQ_MAX_OUTPUT_TOKENS=model` dùng output tối đa theo model; vẫn hỗ trợ cap số nguyên. GPT-OSS 120B dùng chung context input/output nên output được giảm theo chỗ còn lại. Alias chưa có trong registry giữ đường legacy/custom; xem [cấu hình](config/README.md).
 
 `/details` hiển thị budget toàn request với chế độ `CONSERVATIVE_UTF8_BOUND`, kích thước system/user/nguồn/schema và ứng viên đã/chưa được đưa vào gói. Số token này là ước lượng bảo thủ bằng byte UTF-8, không phải tokenizer chính xác; usage do provider trả về được hiển thị riêng. Budget của main, review, repair bị chặn và các fallback quá giới hạn giúp xác định bước thất bại.
 
@@ -57,7 +57,7 @@ Với nhóm không chia nhỏ được PDF in gộp tại dòng 8 số, graph gi
 
 Build PDF lưu hash/version của parser, hash các dòng trích xuất và danh sách mã độc lập với việc phân đoạn dòng. Audit từ chối cache cũ, thiếu mã hoặc trang chưa giải quyết được cấu trúc bảng. `wording_status` của từng dòng ghi riêng kết quả so khớp; sai khác OCR còn lại được lưu trong `full_pdf_audit.json` để thẩm định, không tự sửa văn bản nguồn hoặc coi kiểm tra phân cấp là chứng minh kết luận pháp lý. Hai lệnh cập nhật dữ liệu là `python scripts/build_pdf_graph.py --run-id <run-id>` và `python scripts/audit_pdf_sources.py --run-id <run-id>`; audit TT85 cần bản OCR đã kiểm chứng hash trong cùng thư mục run. Sau đó chạy lại build/embedding/ingest của notebook 01 và đồng bộ snapshot/profile trong hai file policy; tham số retrieval giữ nguyên khi source/embedding/rerank text không đổi.
 
-[Báo cáo triển khai ánh xạ chứng cứ HS](docs/RetrievalDocs/HS-Evidence-Bindings.md) ghi 10 dòng in gộp được kiểm chứng và kiểm thử DB/Groq. [Thẩm định 205 sai khác PDF](docs/RetrievalDocs/PDF-Wording-Review.md) ghi các sửa đổi wording đã áp dụng và snapshot cập nhật.
+[Mô tả nguồn và truy xuất](docs/RetrievalDocs/Explain.md) giải thích quan hệ giữa corpus, graph và bằng chứng dùng trong runtime. Kết quả thực nghiệm cần đối chiếu report của từng lần chạy.
 
 `TT31/PDF_WORDING_REVIEWS.json` lưu 205 bản chép lại sau đối chiếu ảnh PDF, gắn với mã, hash nguồn, ô bảng và phần nối trang. Builder giữ `native_text_vi`, áp dụng `reviewed_row_text` và kiểm tra hash riêng cho cả hai lớp. Audit trả `VISUALLY_VERIFIED_COMPLETE_MATCH` cho bản đã thẩm định, giữ `raw_pdf_text` cùng `reviewed_pdf_text`; nội dung corpus phải khớp chính xác bản thẩm định. Cơ chế này không bỏ qua các dòng sai khác hoặc nới điều kiện so khớp toàn cục. Với lỗi chính tả có sẵn trong bản in, `source_text` giữ nguyên cách viết của PDF. Khi wording phục vụ retrieval đổi, chỉ tái tạo embedding cho bản ghi đổi và kiểm chứng retrieval trước khi hoàn tất cập nhật policy.
 
@@ -65,15 +65,14 @@ Nếu LLM vẫn không qua validation sau một lần sửa, runtime trả phả
 
 Mỗi đề xuất vượt qua kiểm tra cấu trúc còn có một lượt LLM kiểm tra riêng dữ kiện hàng hóa với wording/điều kiện nhánh đã chọn, không đưa câu trả lời đề xuất vào làm chứng cứ. Dữ kiện phải có trích đoạn nguyên văn từ câu hỏi người dùng; nguồn pháp lý hoặc luật người dùng nhắc tới không được dùng để lấp thuộc tính còn thiếu. `condition_checks` đối chiếu từng điều kiện nguồn với chỉ số dữ kiện người dùng; `SUPPORTED` phải bao phủ nguồn của mã, cấp cha và nhánh, không bỏ qua điều kiện chưa đáp ứng. Runtime kiểm tra trích đoạn nguồn, trích đoạn người dùng và tham chiếu dữ kiện; việc model đã liệt kê đủ mọi điều kiện và diễn giải chúng đúng vẫn là giới hạn ngữ nghĩa. Product Review bắt buộc giải thích `reason`: chỉ thiếu thuộc tính dùng `MISSING_PRODUCT_INFO` kèm câu hỏi; thiếu nguồn dùng `INSUFFICIENT_LEGAL_EVIDENCE`; điều kiện mâu thuẫn/chưa đối chiếu được hoặc lỗi kỹ thuật dùng `REQUIRES_REVIEW`. Phản hồi review không hợp lệ được sửa tối đa một lần với cùng model. Chi tiết, các lần thử và prompt/schema hashes lưu trong `generation.product_review`. Schema review cũ không có `reason` hoặc `condition_checks` không dùng làm kết quả mới. Lượt này thêm tối đa hai request cho đề xuất HS, chưa phải chứng minh độc lập về tính đúng đắn pháp lý.
 
-[Điều tra lỗi iPhone và thời gian từng công đoạn](docs/RetrievalDocs/IPhone-RAG-Diagnostics-2026-10-15.md) ghi kết quả truy xuất, nguyên nhân mất ứng viên khi đóng gói, lỗi provider/trích dẫn, các sửa đổi và giới hạn kiểm chứng.
 
-Validator phân biệt phần yêu cầu dữ kiện với mệnh đề nêu mục đích phân loại, kể cả mục đích đặt trước hoặc sau câu hỏi; yêu cầu cung cấp luật vẫn bị chặn. [Điều tra và sửa luồng làm rõ sản phẩm](docs/RetrievalDocs/RAG-Clarification-Investigation-2026-10-15.md) ghi bằng chứng DB, retrieval, ngân sách ngữ cảnh và các lượt model thật của ca MacBook.
+Validator phân biệt phần yêu cầu dữ kiện với mệnh đề nêu mục đích phân loại, kể cả mục đích đặt trước hoặc sau câu hỏi; yêu cầu cung cấp luật vẫn bị chặn.
 
-Phân biệt mã ứng viên: từ mỗi đường HS6 đã xác minh, context lấy thêm các mã HS8 cùng nhánh qua cạnh `CONTAINS`, kèm wording và điều kiện nhánh từ corpus. Các mã đối chứng chỉ phục vụ so sánh; chúng không tự trở thành ứng viên đề xuất trong `candidate_hs_codes`. Không suy quan hệ từ tiền tố mã. `candidate_comparison` ghi phạm vi, các nhánh nguồn và `missing_codes`; mã thiếu nguồn hoặc bị bỏ do ngân sách không được coi là đã bị loại. Giới hạn thêm 128 mã đối chứng là giới hạn tài nguyên, không phải xác nhận đã bao phủ toàn biểu thuế.
+Phân biệt mã ứng viên: từ mỗi đường HS6 đã xác minh, context lấy thêm các mã HS8 cùng nhánh qua cạnh `CONTAINS`, kèm wording và điều kiện nhánh từ corpus. Các mã đối chứng chỉ phục vụ so sánh; chúng không tự trở thành ứng viên đề xuất trong `candidate_hs_codes`. Không suy quan hệ từ tiền tố mã. `candidate_comparison` ghi phạm vi, các nhánh nguồn và `missing_codes`; mã thiếu nguồn hoặc bị bỏ do ngân sách không được coi là đã bị loại. Giới hạn thêm 160 mã đối chứng là giới hạn tài nguyên, không phải xác nhận đã bao phủ toàn biểu thuế.
 
 Product Review hiện có dùng schema mở rộng khi có mã đối chứng: `candidate_assessments` đánh giá toàn bộ mã trong shortlist retrieval, kể cả khác phân nhóm, cùng các mã cùng cấp của nhánh đề xuất; `branch_checks` nêu thuộc tính phân biệt từ điều kiện nguồn và trạng thái đã biết/chưa biết. Loại nhánh hoặc xác nhận thuộc tính phải có ID nguồn, ID lời người dùng và trích đoạn thật. `SUPPORTED` bị chặn nếu còn nhiều mã chưa bị loại, bỏ sót mã/chiều phân nhánh, thuộc tính chưa biết hoặc nguồn so sánh chưa đủ. Thiếu dữ kiện trả `MISSING_PRODUCT_INFO` với câu hỏi cụ thể; thiếu nguồn vẫn là vấn đề của hệ thống. Ví dụ tên xe điện không đủ để xác nhận dạng nhập khẩu nguyên chiếc hay CKD. Không thêm catalogue thuộc tính theo hãng hoặc một request LLM riêng; repair giữ tối đa một lần như trước.
 
-Đối chiếu nhiều mã làm tăng lượng context/token; giữ số bước LLM không đồng nghĩa chi phí/token giữ nguyên. Kiểm tra schema/ID/trích đoạn và độ đầy đủ của bảng so sánh chưa chứng minh mọi diễn giải ngữ nghĩa đúng. [Ghi nhận triển khai](candidate-disambiguation.md) phân biệt kiểm thử tự động, smoke model thật và giới hạn đánh giá.
+Đối chiếu nhiều mã làm tăng lượng context/token; giữ số bước LLM không đồng nghĩa chi phí/token giữ nguyên. Kiểm tra schema/ID/trích đoạn và độ đầy đủ của bảng so sánh chưa chứng minh mọi diễn giải ngữ nghĩa đúng. [Ghi nhận triển khai](docs/GenerationFlow/GenerationFlow.md) phân biệt kiểm thử tự động, smoke model thật và giới hạn đánh giá.
 
 [Luồng Retrieval HS/Legal v5](docs/RetrievalDocs/retrievalWF_Docs.md) mô tả nguồn, NODE/EDGE, Notes, cấu hình 160/100/40, cascade và đầu ra. [Sơ đồ Retrieval](docs/RetrievalDocs/retrievalWF.png) và Mermaid trong tài liệu thể hiện luồng đang sử dụng.
 
@@ -165,7 +164,7 @@ Giữ `.env` hiện tại nếu đã có database volume. Lockfile đã được
 Stack cũng hỗ trợ [CLIProxyAPI và Web UI](config/cliproxyapi/README.md) để thử gateway LLM.
 Trước lần đầu chạy toàn stack, dùng `python3 scripts/init_cliproxyapi.py` để tạo cấu hình
 và key local. Nếu chỉ cần database, chạy `docker compose -f docker-compose.rag.yml up -d postgres`.
-Terminal mặc định dùng Gemini 3.5 Lite High → GPT-OSS 120B qua CLIProxyAPI. Khi chọn 3.8 High, dùng Gemini 3.8 High → GPT-OSS 120B; khi chọn 120B, dùng GPT-OSS 120B → Gemini 3.5 Lite High. Groq chỉ dùng khi cả hai bước CLI không khả dụng. Notebook 03 đọc model từ `.env`, mặc định mới là Lite High. Xem chính sách và biến môi trường trong [cấu hình RAG](config/README.md).
+Terminal mặc định chỉ dùng Gemini 3.5 Lite High qua CLIProxyAPI; đổi preset sẽ thay model chính, không bật chuyển model dự phòng. Lỗi model được trả về thay vì tự gọi model khác hoặc Groq. Chuỗi dự phòng chỉ khả dụng nếu caller chủ động bật ở constructor của `RAGClient`. Notebook 03 đọc model từ `.env`, mặc định mới là Lite High. Xem chính sách và biến môi trường trong [cấu hình RAG](config/README.md).
 
 Notebook 01 có cell hiển thị database trước ingestion; `APPLY=True` ghi vào database RAG riêng. `APPLY=True, FRESH_REBUILD=True` xóa các bảng thuộc schema `rag` và nạp lại trong cùng transaction; lỗi sẽ rollback. Nguồn và output notebook được giữ. Có thể đặt `APPLY=False` để dry-run. Model/tokenizer được pin commit; máy mới tải weights khoảng 2,2 GB. Ingestion tái chạy có checkpoint và không tạo duplicate.
 
@@ -246,3 +245,13 @@ XVII có `SECTION_XVII_GRAPH_EDGES_NORMALIZED.jsonl`; adapter chuyển các cạ
 Adapter dùng `record_mapping` hoặc `source_locations` để ánh xạ alias export về chunk nguồn thật; kiểm tra ID, câu hỏi, case family và nguồn. Gold Dev/Test chỉ phục vụ đánh giá, không được ingest hoặc dùng để fine-tune embedding/reranker.
 
 Auto yêu cầu policy chung đã kích hoạt và khớp snapshot/profile; thiếu policy sẽ báo lỗi. Khi thay nguồn, cần audit/build và kiểm chứng policy tương ứng trước khi phục vụ.
+
+## Contract proof-v1
+
+Generation/review dùng ledger có provenance và proof graph chung; không còn gọi các
+guard thuộc tính/cơ chế chuyên biệt trước đây. Model wire dùng proof catalogue dùng
+chung; backend kiểm tra binding, logic, scope, đối chứng và giữ kết quả độc lập.
+[Thiết kế và giới hạn](general-proof-contract.md),
+[bản đồ module LLM](rag/llm/README.md),
+[báo cáo triển khai](artifacts/general-proof-implementation-20261021/report.md).
+Bộ 15 câu do người dùng tự chạy; kiểm tra backend không thay cho đánh giá chất lượng.

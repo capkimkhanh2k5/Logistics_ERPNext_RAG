@@ -8,9 +8,9 @@ from types import SimpleNamespace
 import pytest
 
 from config.settings import RAGGenerationConfig
-from rag.llm.context import prepare_context
-from rag.llm.errors import LLMError
-from rag.prompts.query_planning import QUERY_PLAN_SCHEMA
+from rag.llm.context.builder import prepare_context
+from rag.llm.contracts.errors import LLMError
+from rag.prompts.planning.query_planning import QUERY_PLAN_SCHEMA
 from rag.retrieval.query_planning import QueryPlanner
 from rag.retrieval.retriever import Retriever, code_mention_plan
 from rag.retrieval.unified import UnifiedRetrieval

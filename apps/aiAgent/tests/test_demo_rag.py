@@ -13,9 +13,9 @@ import pytest
 from config.settings import DEFAULT_MODEL_PRESET, MODEL_PRESETS, GroqConfig, RAGGenerationConfig
 from rag.api import cli as demoRAG
 from rag.graph.context import GraphContext
-from rag.llm.groq_client import GroqError
-from rag.prompts.query_planning import QUERY_PLAN_SCHEMA, TURN_PLAN_SCHEMA
-from rag.prompts.schemas import ANSWER_SCHEMA, PRODUCT_REVIEW_SCHEMA
+from rag.llm.providers.groq_client import GroqError
+from rag.prompts.planning.query_planning import QUERY_PLAN_SCHEMA, TURN_PLAN_SCHEMA
+from rag.prompts.schemas.answer import ANSWER_SCHEMA, PRODUCT_REVIEW_SCHEMA
 from rag.retrieval.query_planning import QueryPlanner
 from rag.retrieval.retriever import Retriever
 from tests.support.legacy_generation import prepare_legacy_context
@@ -215,7 +215,7 @@ def conversation(
         retriever.unified_search = unified_search
 
     with (
-        patch("rag.llm.answering.review_decision", side_effect=keep_fixture_decision),
+        patch("rag.llm.generation.answering.review_decision", side_effect=keep_fixture_decision),
         patch.object(demoRAG, "prepare_context", side_effect=prepare_legacy_context),
     ):
         demoRAG.run_console(

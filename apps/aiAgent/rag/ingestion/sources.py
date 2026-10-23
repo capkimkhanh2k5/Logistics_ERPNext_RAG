@@ -20,6 +20,7 @@ SOURCE_TYPES = [
     "subheading_note",
     "tariff_footnote",
     "legal_clause",
+    "technical_standard_item",
 ]
 
 QA_CHUNK_TYPES = [
@@ -31,6 +32,7 @@ QA_CHUNK_TYPES = [
     "tariff_entry",
     "tariff_footnote",
     "legal_clause",
+    "technical_standard_item",
 ]
 
 
