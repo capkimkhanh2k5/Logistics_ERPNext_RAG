@@ -10,3 +10,4 @@ __pycache__/
 reports/20*.json
 # Local CLIProxyAPI configuration and credentials.
 config/cliproxyapi/local/
+experiments/
