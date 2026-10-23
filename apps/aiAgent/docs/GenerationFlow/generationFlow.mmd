@@ -1,0 +1,36 @@
+flowchart TD
+    classDef step fill:#E5F3FF,stroke:#D4E1EC,color:#005BAA;
+    classDef gate fill:#F4F9FF,stroke:#D4E1EC,color:#005BAA,stroke-dasharray:4 5;
+    U("Người dùng đặt câu hỏi<br/>Hoặc bổ sung cho câu hỏi đang xét"):::step
+    P("Xác định yêu cầu<br/>Mặt hàng, nội dung cần trả lời và từ khóa"):::step
+    L("Hỏi làm rõ yêu cầu<br/>Câu hỏi mới hay thông tin bổ sung?"):::step
+    R("Tìm và tập hợp nguồn liên quan<br/>Văn bản, chú giải và các mã HS liên quan"):::step
+    D("Soạn câu trả lời dự thảo<br/>Dựa trên lời người dùng và nguồn đã tìm"):::step
+    V("Kiểm tra và đối chiếu<br/>Dữ kiện, điều kiện áp dụng và căn cứ<br/>Sửa phần chưa đạt trong giới hạn cho phép"):::step
+    K("Kết quả kiểm tra?"):::gate
+    C("Có thể tìm nguồn bổ sung?<br/>Chưa thử lại và còn ngân sách"):::gate
+    Y("Truy xuất bổ sung<br/>Tối đa một vòng trên kho nguồn hiện có"):::step
+    A("Câu trả lời / mã HS đề xuất<br/>Chỉ công bố phần đủ căn cứ"):::step
+    B("Hỏi dữ kiện hàng hoá còn thiếu<br/>Không hỏi người dùng cung cấp luật"):::step
+    N("Thông báo chưa thể kết luận<br/>Nêu phần còn thiếu hoặc lỗi kiểm tra"):::step
+    O("Trả kết quả, nguồn và lý do<br/>Giữ phần độc lập đã đủ căn cứ nếu có"):::step
+    U --> P
+    P -->|"Chưa rõ"| L
+    L -->|"Người dùng làm rõ"| U
+    P -->|"Đã xác định yêu cầu"| R
+    R --> D
+    D --> V
+    V --> K
+    K -->|"Đủ căn cứ"| A
+    K -->|"Thiếu dữ kiện hàng hoá"| B
+    K -->|"Thiếu nguồn"| C
+    K -->|"Chưa đủ cơ sở / kiểm tra lỗi"| N
+    C -->|"Có"| Y
+    C -->|"Không"| N
+    Y -->|"Có nguồn mới → soạn và kiểm tra lại"| D
+    Y -->|"Không có nguồn mới"| N
+    A --> O
+    B --> O
+    N --> O
+    O -.->|"Người dùng bổ sung hoặc đặt câu hỏi mới"| U
+    linkStyle default stroke:#9B9FA3,stroke-width:1.5px;
