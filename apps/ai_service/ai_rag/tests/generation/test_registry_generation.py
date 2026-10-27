@@ -166,7 +166,7 @@ def test_turns_preserve_corrections_negation_and_unaffected_context_without_a_pa
 
 
 def test_removed_category_files_and_imports_cannot_become_runtime_dependencies():
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     for name in (
         "config/product_families.json",
         "config/product_references.json",

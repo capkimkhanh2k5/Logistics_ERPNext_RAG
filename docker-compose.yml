@@ -254,7 +254,7 @@ services:
     networks:
       - frappe_network
     env_file:
-      - ./apps/aiAgent/.env
+      - ./apps/ai_service/ai_rag/.env
     ports:
       - "127.0.0.1:${RAG_DB_PORT:-55432}:5432"
     volumes:
@@ -271,10 +271,10 @@ services:
   cliproxyapi:
     image: aiagent-cliproxyapi:8.0.29
     build:
-      context: ./apps/aiAgent/config/cliproxyapi
+      context: ./apps/ai_service/ai_rag/config/cliproxyapi
     command: ["./CLIProxyAPI", "-config", "/CLIProxyAPI/config/config.yaml"]
     env_file:
-      - ./apps/aiAgent/config/cliproxyapi/local/credentials.env
+      - ./apps/ai_service/ai_rag/config/cliproxyapi/local/credentials.env
     environment:
       TZ: Asia/Ho_Chi_Minh
       MANAGEMENT_STATIC_PATH: /CLIProxyAPI/static
@@ -285,7 +285,7 @@ services:
       - frappe_network
     volumes:
       - type: bind
-        source: ./apps/aiAgent/config/cliproxyapi/local
+        source: ./apps/ai_service/ai_rag/config/cliproxyapi/local
         target: /CLIProxyAPI/config
         bind:
           create_host_path: false

@@ -22,7 +22,7 @@ from rag.prompts.generation.task_answering import (
 from rag.prompts.review.product_review import PRODUCT_REVIEW_PROMPT, REVIEW_POLICY
 from tests.test_goal_workflow import context, model_answer, model_reviews, run
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 RUNTIME = ROOT / "rag"
 
 
