@@ -1239,3 +1239,55 @@
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* RAG Standalone Page Full-Width Adjustments (No redundant inner sidebar) */
+#rag-sidebar-nav,
+.logistics-tabs-nav {
+    display: none !important;
+}
+
+.logistics-main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.page-container[data-page-route="rag-knowledge-base"],
+.page-container[data-page-route="rag_knowledge_base"],
+.page-container[data-page-route="ragKnowledgeBase"] {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.page-container[data-page-route="rag-knowledge-base"] .page-head,
+.page-container[data-page-route="rag_knowledge_base"] .page-head,
+.page-container[data-page-route="ragKnowledgeBase"] .page-head {
+    display: none !important;
+}
+
+.page-container[data-page-route="rag-knowledge-base"] .page-body,
+.page-container[data-page-route="rag_knowledge_base"] .page-body,
+.page-container[data-page-route="rag-knowledge-base"] .page-content,
+.page-container[data-page-route="rag_knowledge_base"] .page-content,
+.page-container[data-page-route="rag-knowledge-base"] .container,
+.page-container[data-page-route="rag_knowledge_base"] .container,
+.page-container[data-page-route="rag-knowledge-base"] .container-fluid,
+.page-container[data-page-route="rag_knowledge_base"] .container-fluid,
+.page-container[data-page-route="rag-knowledge-base"] .layout-main-section-wrapper,
+.page-container[data-page-route="rag_knowledge_base"] .layout-main-section-wrapper,
+.page-container[data-page-route="rag-knowledge-base"] .layout-main-section,
+.page-container[data-page-route="rag_knowledge_base"] .layout-main-section,
+.page-container[data-page-route="rag-knowledge-base"] .layout-main,
+.page-container[data-page-route="rag_knowledge_base"] .layout-main {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}

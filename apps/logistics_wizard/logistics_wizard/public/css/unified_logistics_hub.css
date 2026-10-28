@@ -681,7 +681,7 @@
 
 /* 1b. Modern Horizontal Top Tab Bar */
 .logistics-horizontal-tab-bar {
-    display: flex;
+    display: none !important;
     align-items: center;
     gap: 8px;
     padding: 10px 24px;
