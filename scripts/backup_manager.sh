@@ -15,9 +15,13 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BENCH_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$BENCH_DIR"
+
 SITE_NAME="logistics.local"
 DB_ROOT_PASSWORD="admin"
-BACKUP_DIR="$(pwd)/backups"
+BACKUP_DIR="$BENCH_DIR/backups"
 LATEST_DIR="$BACKUP_DIR/latest"
 
 mkdir -p "$BACKUP_DIR" "$LATEST_DIR"

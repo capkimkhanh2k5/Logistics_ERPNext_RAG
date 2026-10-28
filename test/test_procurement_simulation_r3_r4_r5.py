@@ -57,6 +57,9 @@ if BENCH_DIR not in sys.path:
     sys.path.insert(0, BENCH_DIR)
 if TEST_DIR not in sys.path:
     sys.path.insert(0, TEST_DIR)
+SCRIPTS_DIR = os.path.join(BENCH_DIR, "scripts")
+if SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, SCRIPTS_DIR)
 
 from logistics_wizard.routing import (
     calculate_multimodal_route,
@@ -67,12 +70,21 @@ from logistics_wizard.routing import (
     great_circle_distance,
     EARTH_RADIUS_KM
 )
-from generate_procurement_data import (
-    SIMULATION_SUPPLIERS,
-    SIMULATION_ITEMS,
-    SIMULATION_WAREHOUSES,
-    get_simulation_shipments_specs
-)
+
+try:
+    from generate_procurement_data import (
+        SIMULATION_SUPPLIERS,
+        SIMULATION_ITEMS,
+        SIMULATION_WAREHOUSES,
+        get_simulation_shipments_specs
+    )
+except ImportError:
+    from scripts.generate_procurement_data import (
+        SIMULATION_SUPPLIERS,
+        SIMULATION_ITEMS,
+        SIMULATION_WAREHOUSES,
+        get_simulation_shipments_specs
+    )
 
 
 def haversine_distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

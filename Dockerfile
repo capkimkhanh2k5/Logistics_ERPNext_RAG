@@ -3,8 +3,8 @@ FROM frappe/erpnext:v15
 USER root
 
 # Copy the site-creation script and demo data generator
-COPY create-site.sh /home/frappe/frappe-bench/create-site.sh
-COPY generate_procurement_data.py /home/frappe/frappe-bench/generate_procurement_data.py
+COPY scripts/create-site.sh /home/frappe/frappe-bench/create-site.sh
+COPY scripts/generate_procurement_data.py /home/frappe/frappe-bench/generate_procurement_data.py
 RUN chmod +x /home/frappe/frappe-bench/create-site.sh && \
     chown frappe:frappe /home/frappe/frappe-bench/create-site.sh /home/frappe/frappe-bench/generate_procurement_data.py
 

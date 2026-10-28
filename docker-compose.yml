@@ -85,7 +85,7 @@ services:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
       - ./backups:/home/frappe/frappe-bench/backups:ro
-      - ./create-site.sh:/home/frappe/frappe-bench/create-site.sh
+      - ./scripts/create-site.sh:/home/frappe/frappe-bench/create-site.sh
     depends_on:
       configurator:
         condition: service_completed_successfully

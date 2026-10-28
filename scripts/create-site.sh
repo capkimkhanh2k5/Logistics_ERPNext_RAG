@@ -81,7 +81,9 @@ else
         bench --site "$SITE_NAME" migrate
     else
         echo ">>> Seeding initial procurement data (Apple Inc. Air/Ocean, Landed Cost)..."
-        $BENCH_DIR/env/bin/python3 "$BENCH_DIR/generate_procurement_data.py" || true
+        PROCUREMENT_SCRIPT="$BENCH_DIR/scripts/generate_procurement_data.py"
+        [ ! -f "$PROCUREMENT_SCRIPT" ] && PROCUREMENT_SCRIPT="$BENCH_DIR/generate_procurement_data.py"
+        $BENCH_DIR/env/bin/python3 "$PROCUREMENT_SCRIPT" || true
     fi
 fi
 
@@ -106,7 +108,9 @@ except Exception as e:
 PO_STATUS=$(cat /tmp/po_status.txt 2>/dev/null || echo "ERROR")
 if [ "$PO_STATUS" = "EMPTY" ]; then
     echo ">>> No purchase orders found. Seeding initial procurement data..."
-    $BENCH_DIR/env/bin/python3 "$BENCH_DIR/generate_procurement_data.py" || true
+    PROCUREMENT_SCRIPT="$BENCH_DIR/scripts/generate_procurement_data.py"
+    [ ! -f "$PROCUREMENT_SCRIPT" ] && PROCUREMENT_SCRIPT="$BENCH_DIR/generate_procurement_data.py"
+    $BENCH_DIR/env/bin/python3 "$PROCUREMENT_SCRIPT" || true
 else
     echo ">>> Purchase orders status: $PO_STATUS."
 fi
