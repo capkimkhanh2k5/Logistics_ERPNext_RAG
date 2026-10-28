@@ -5,6 +5,19 @@ app_description = "Import-Export Workflow Widget and Shipment Tracking Managemen
 app_email = "khanh@logistics.local"
 app_license = "mit"
 
+app_logo_url = "/assets/logistics_wizard/images/box_icon.png"
+app_home = "/desk/logistics-wizard/managementLogistic"
+
+add_to_apps_screen = [
+    {
+        "name": app_name,
+        "logo": app_logo_url,
+        "title": app_title,
+        "route": app_home,
+        "sequence_id": 2,
+    }
+]
+
 app_include_js = [
     "leaflet.bundle.js",
     "smart_workflow_widget.bundle.js",
