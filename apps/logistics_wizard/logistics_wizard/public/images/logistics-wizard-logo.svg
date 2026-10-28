@@ -1,0 +1,12 @@
+<svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rounded squircle background matching Frappe/ERPNext squircle geometry -->
+  <path d="M35.7143 0H14.2857C6.39593 0 0 6.39593 0 14.2857V35.7143C0 43.6041 6.39593 50 14.2857 50H35.7143C43.6041 50 50 43.6041 50 35.7143V14.2857C50 6.39593 43.6041 0 35.7143 0Z" fill="#0D9488"/>
+  <!-- Crisp, clean monochrome white Logistics Container / Cargo Vessel vector -->
+  <g fill="white">
+    <!-- Isometric Cargo Container / Shipping Cube -->
+    <path d="M25 11L12.5 17.5V32.5L25 39L37.5 32.5V17.5L25 11Z" fill-opacity="0.15"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M25 12.2L36 17.8V31.8L25 37.8L14 31.8V17.8L25 12.2ZM25 14.5L16.2 19L25 23.5L33.8 19L25 14.5ZM15.5 21.2V30.5L23.8 35V25.5L15.5 21.2ZM26.2 35L34.5 30.5V21.2L26.2 25.5V35Z" fill="white"/>
+    <!-- Center Logistics Compass Star / Trade Core Accent -->
+    <path d="M25 21.5L26 23.5L28 24.5L26 25.5L25 27.5L24 25.5L22 24.5L24 23.5L25 21.5Z" fill="white"/>
+  </g>
+</svg>

@@ -6,7 +6,7 @@ function initSmartWorkflowWidget() {
         { doctype: "Material Request", id: "wiz-Material-Request", slug: "material-request", label: "1. Yêu cầu mua hàng (Material Request)" },
         { doctype: "Purchase Order", id: "wiz-Purchase-Order", slug: "purchase-order", label: "2. Đơn đặt hàng (Purchase Order)" },
         { doctype: "Payment Entry", id: "wiz-Payment-Entry", slug: "payment-entry", label: "3. Đặt cọc / Tạm ứng (Payment Entry)" },
-        { doctype: "Shipment Tracking", id: "wiz-Shipment-Tracking", slug: "managementLogistic", label: "4. Theo dõi hành trình (Shipment Tracking)" },
+        { doctype: "Shipment Tracking", id: "wiz-Shipment-Tracking", slug: "shipment-tracking-hub", label: "4. Theo dõi hành trình (Shipment Tracking)" },
         { doctype: "Purchase Receipt", id: "wiz-Purchase-Receipt", slug: "purchase-receipt", label: "5. Nhận hàng (Purchase Receipt)" },
         { doctype: "Landed Cost Voucher", id: "wiz-Landed-Cost-Voucher", slug: "landed-cost-voucher", label: "6. Phân bổ giá vốn (Landed Cost)" },
         { doctype: "Stock Entry", id: "wiz-Stock-Entry", slug: "stock-entry", label: "7. Nhập kho (Stock Entry)" }
@@ -17,7 +17,7 @@ function initSmartWorkflowWidget() {
         { doctype: "Payment Entry", id: "wiz-exp-Payment-Entry-Deposit", slug: "payment-entry", label: "2. Thu tiền cọc (Payment Entry)" },
         { doctype: "Stock Entry", id: "wiz-exp-Stock-Entry", slug: "stock-entry", label: "3. Chuyển kho cảng (Stock Entry)" },
         { doctype: "Delivery Note", id: "wiz-exp-Delivery-Note", slug: "delivery-note", label: "4. Xuất kho giao hàng (Delivery Note)" },
-        { doctype: "Shipment Tracking", id: "wiz-exp-Shipment-Tracking", slug: "managementLogistic", label: "5. Theo dõi hành trình (Shipment Tracking)" },
+        { doctype: "Shipment Tracking", id: "wiz-exp-Shipment-Tracking", slug: "shipment-tracking-hub", label: "5. Theo dõi hành trình (Shipment Tracking)" },
         { doctype: "Sales Invoice", id: "wiz-exp-Sales-Invoice", slug: "sales-invoice", label: "6. Hóa đơn thương mại (Sales Invoice)" },
         { doctype: "Payment Entry", id: "wiz-exp-Payment-Entry-Final", slug: "payment-entry", label: "7. Tất toán ngoại tệ (Payment Entry)" }
     ];
@@ -306,8 +306,9 @@ function initSmartWorkflowWidget() {
 
     // Inject FAB and Modals
     function inject_fab() {
-        ensure_widget_styles();
-        if ($('#lw-fab-container').length === 0) {
+        $('#lw-fab-container').remove();
+        return;
+        if (false) {
             let fab_html = `
                 <div id="lw-fab-container" style="position: fixed !important; bottom: 32px !important; left: 32px !important; z-index: 9999 !important;">
                     <button class="lw-fab" id="lw-fab-main" title="Trợ lý Logistics & Hỗ trợ">
@@ -1620,16 +1621,6 @@ function initSmartWorkflowWidget() {
     // Bind route change event
     if (typeof frappe !== 'undefined' && frappe.router) {
         frappe.router.on("change", function () {
-            let r = (typeof frappe.get_route === 'function') ? frappe.get_route() : [];
-            if (r && r[0] === 'shipment-tracking-hub') {
-                frappe.route_options = Object.assign({}, frappe.route_options, { tab: 'tracking' });
-                frappe.set_route('managementLogistic');
-                return;
-            } else if (r && r[0] === 'trade-case-overview') {
-                frappe.route_options = Object.assign({}, frappe.route_options, { tab: 'overview' });
-                frappe.set_route('managementLogistic');
-                return;
-            }
             inject_fab();
             update_widget_state();
         });

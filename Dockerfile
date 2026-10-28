@@ -1,4 +1,4 @@
-FROM frappe/erpnext:v15
+FROM frappe/erpnext:v16
 
 USER root
 
@@ -6,12 +6,12 @@ USER root
 COPY scripts/create-site.sh /home/frappe/frappe-bench/create-site.sh
 COPY scripts/generate_procurement_data.py /home/frappe/frappe-bench/generate_procurement_data.py
 RUN chmod +x /home/frappe/frappe-bench/create-site.sh && \
-    chown frappe:frappe /home/frappe/frappe-bench/create-site.sh /home/frappe/frappe-bench/generate_procurement_data.py
+    chown 1000:0 /home/frappe/frappe-bench/create-site.sh /home/frappe/frappe-bench/generate_procurement_data.py
 
 USER frappe
 
 # Copy the custom app source code into the image
-COPY --chown=frappe:frappe apps/logistics_wizard /home/frappe/frappe-bench/apps/logistics_wizard
+COPY --chown=1000:0 apps/logistics_wizard /home/frappe/frappe-bench/apps/logistics_wizard
 
 # Install the app into the Python virtual environment
 RUN cd /home/frappe/frappe-bench && \

@@ -1,0 +1,614 @@
+<div class="logistics-page-container" id="rag-admin-root">
+    
+    <!-- LEFT VERTICAL SIDEBAR TAB NAVIGATION (CHUẨN MODULE LOGISTICS WIZARD) -->
+    <aside class="logistics-tabs-nav" id="rag-sidebar-nav">
+        <div class="logistics-sidebar-brand">
+            <div class="sidebar-brand-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+            </div>
+            <div class="sidebar-brand-info">
+                <span class="sidebar-brand-title">RAG Admin Hub</span>
+                <span class="sidebar-brand-sub">Quản Trị & Tri Thức HS/Legal</span>
+            </div>
+        </div>
+
+        <nav class="logistics-nav-list">
+            <!-- TAB 1: DASHBOARD -->
+            <button class="logistics-nav-tab active" data-tab="dashboard" id="btn-tab-dashboard" title="Dashboard Tổng Quan">
+                <span class="tab-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="9"></rect>
+                        <rect x="14" y="3" width="7" height="5"></rect>
+                        <rect x="14" y="12" width="7" height="9"></rect>
+                        <rect x="3" y="16" width="7" height="5"></rect>
+                    </svg>
+                </span>
+                <span class="tab-text">Dashboard</span>
+            </button>
+
+            <!-- TAB 2: QUẢN TRỊ TRI THỨC -->
+            <button class="logistics-nav-tab" data-tab="knowledge" id="btn-tab-knowledge" title="Quản Trị Tri Thức">
+                <span class="tab-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                    </svg>
+                </span>
+                <span class="tab-text">Quản Trị Tri Thức</span>
+            </button>
+        </nav>
+    </aside>
+
+    <!-- RIGHT MAIN CONTENT AREA -->
+    <main class="logistics-main-content">
+        
+        <!-- ========================================== -->
+        <!-- TAB PANE 1: DASHBOARD                      -->
+        <!-- ========================================== -->
+        <div class="logistics-tab-pane" id="tab-pane-dashboard" style="display: none;">
+            <!-- Header Bar -->
+            <div class="rag-pane-header">
+                <div class="rag-pane-title-block">
+                    <h2>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="9"></rect>
+                            <rect x="14" y="3" width="7" height="5"></rect>
+                            <rect x="14" y="12" width="7" height="9"></rect>
+                            <rect x="3" y="16" width="7" height="5"></rect>
+                        </svg>
+                        Dashboard — Tổng Quan Hệ Thống RAG
+                    </h2>
+                    <p>Giám sát lưu lượng truy vấn HS & Legal, độ trễ và tỷ lệ phản hồi trong thời gian thực</p>
+                </div>
+                <div class="rag-pane-header-actions">
+                    <select class="rag-select-input" id="rag-filter-time-range">
+                        <option value="24h">Hôm nay (24 giờ qua)</option>
+                        <option value="7d" selected>7 ngày vừa qua</option>
+                        <option value="30d">30 ngày vừa qua</option>
+                    </select>
+
+                    <select class="rag-select-input" id="rag-filter-domain">
+                        <option value="all" selected>Tất cả nghiệp vụ (HS & Legal)</option>
+                        <option value="hs">Chuyên mục Mã HS</option>
+                        <option value="legal">Chuyên mục Pháp lý</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Lưới 6 Thẻ KPI -->
+            <div class="rag-kpi-grid">
+                <div class="rag-kpi-card kpi-total">
+                    <div class="rag-kpi-label">
+                        <span>Tổng truy vấn</span>
+                        <i class="fa fa-search text-muted"></i>
+                    </div>
+                    <div class="rag-kpi-value" id="kpi-total-queries">12.450</div>
+                    <div class="rag-kpi-sub text-success">
+                        <i class="fa fa-arrow-up"></i> +14.2% so với 7 ngày trước
+                    </div>
+                </div>
+
+                <div class="rag-kpi-card kpi-success">
+                    <div class="rag-kpi-label">
+                        <span>Truy vấn hoàn tất</span>
+                        <i class="fa fa-check-circle text-success"></i>
+                    </div>
+                    <div class="rag-kpi-value" id="kpi-completed-queries">11.820</div>
+                    <div class="rag-kpi-sub text-success">
+                        <span>94.9%</span> tỷ lệ hoàn thành
+                    </div>
+                </div>
+
+                <div class="rag-kpi-card kpi-missing">
+                    <div class="rag-kpi-label">
+                        <span>Thiếu thông tin / nguồn</span>
+                        <i class="fa fa-exclamation-triangle text-warning"></i>
+                    </div>
+                    <div class="rag-kpi-value" id="kpi-missing-queries">420</div>
+                    <div class="rag-kpi-sub text-warning">
+                        <span>3.4%</span> cần bổ sung tri thức
+                    </div>
+                </div>
+
+                <div class="rag-kpi-card kpi-error">
+                    <div class="rag-kpi-label">
+                        <span>Lỗi kỹ thuật</span>
+                        <i class="fa fa-times-circle text-danger"></i>
+                    </div>
+                    <div class="rag-kpi-value" id="kpi-error-queries">210</div>
+                    <div class="rag-kpi-sub text-danger">
+                        <span>1.7%</span> timeout / lỗi vector DB
+                    </div>
+                </div>
+
+                <div class="rag-kpi-card kpi-latency">
+                    <div class="rag-kpi-label">
+                        <span>Thời gian phản hồi TB</span>
+                        <i class="fa fa-clock-o text-muted"></i>
+                    </div>
+                    <div class="rag-kpi-value" id="kpi-avg-latency">2,4s</div>
+                    <div class="rag-kpi-sub">
+                        <span>Dense 0.8s + Rerank 1.2s</span>
+                    </div>
+                </div>
+
+                <div class="rag-kpi-card kpi-knowledge">
+                    <div class="rag-kpi-label">
+                        <span>Tài liệu sẵn sàng</span>
+                        <i class="fa fa-book text-muted"></i>
+                    </div>
+                    <div class="rag-kpi-value" id="kpi-ready-docs">328</div>
+                    <div class="rag-kpi-sub">
+                        <span>45.200</span> Chunks đã Index
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khu vực 2 Biểu đồ: Lượt truy vấn theo thời gian & Phân bổ kết quả -->
+            <div class="rag-charts-row">
+                <!-- Biểu đồ 1: Area / Line Chart -->
+                <div class="rag-card">
+                    <div class="rag-card-header">
+                        <h3 class="rag-card-title">
+                            <i class="fa fa-line-chart text-primary"></i> Lượt Truy Vấn Theo Thời Gian
+                        </h3>
+                        <div class="rag-chart-controls">
+                            <button class="rag-chart-btn active" data-period="day">Ngày</button>
+                            <button class="rag-chart-btn" data-period="week">Tuần</button>
+                            <button class="rag-chart-btn" data-period="month">Tháng</button>
+                        </div>
+                    </div>
+                    <div class="rag-chart-container" id="rag-chart-timeseries-container">
+                        <!-- SVG Chart Rendered dynamically via JS -->
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 24px; margin-top: 10px; font-size: 12px;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="display: inline-block; width: 14px; height: 4px; background: #2563eb; border-radius: 2px;"></span>
+                            <span style="color: #334155; font-weight: 600;">Mã HS (Phần XIV, XVI, XVII)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="display: inline-block; width: 14px; height: 4px; background: #0d9488; border-radius: 2px;"></span>
+                            <span style="color: #334155; font-weight: 600;">Pháp Luật (Thông tư, Nghị định, GIR)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Biểu đồ 2: Donut Chart -->
+                <div class="rag-card">
+                    <div class="rag-card-header">
+                        <h3 class="rag-card-title">
+                            <i class="fa fa-pie-chart text-primary"></i> Phân Bổ Kết Quả Xử Lý
+                        </h3>
+                        <span class="rag-text-muted" style="font-size: 11px;">Mô hình RAG Pipeline</span>
+                    </div>
+                    <div class="rag-donut-wrapper">
+                        <div class="rag-donut-svg-box" id="rag-chart-donut-container">
+                            <!-- SVG Donut Rendered dynamically via JS -->
+                            <div class="rag-donut-center-text">
+                                <div class="rag-donut-center-value" id="donut-center-total">12.450</div>
+                                <div class="rag-donut-center-label">Truy Vấn</div>
+                            </div>
+                        </div>
+                        <div class="rag-donut-legends">
+                            <div class="rag-legend-item">
+                                <span class="rag-legend-box" style="background: #10b981;"></span>
+                                <span>Hoàn tất bình thường</span>
+                                <span class="count">11.820 (94.9%)</span>
+                            </div>
+                            <div class="rag-legend-item">
+                                <span class="rag-legend-box" style="background: #f59e0b;"></span>
+                                <span>Thiếu thông tin / nguồn</span>
+                                <span class="count">420 (3.4%)</span>
+                            </div>
+                            <div class="rag-legend-item">
+                                <span class="rag-legend-box" style="background: #ef4444;"></span>
+                                <span>Lỗi kỹ thuật / Timeout</span>
+                                <span class="count">210 (1.7%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sức Khỏe Kho Tri Thức -->
+            <div class="rag-card" style="margin-top: 16px;">
+                <div class="rag-card-header">
+                    <h3 class="rag-card-title">
+                        <i class="fa fa-heartbeat text-primary"></i> Tình Trạng Sức Khỏe Kho Tri Thức
+                    </h3>
+                    <span class="rag-text-muted" style="font-size: 12px;">Tổng hợp dung lượng bóc tách & khả năng phục vụ truy xuất</span>
+                </div>
+                <div class="rag-health-bar-container">
+                    <div class="rag-health-segmented-bar">
+                        <div class="rag-health-seg-ready" style="width: 95.3%;" title="328 Sẵn sàng"></div>
+                        <div class="rag-health-seg-processing" style="width: 3.5%;" title="12 Đang xử lý"></div>
+                        <div class="rag-health-seg-error" style="width: 1.2%;" title="4 Lỗi"></div>
+                    </div>
+                    <div class="rag-health-stats" style="grid-template-columns: repeat(4, 1fr);">
+                        <div class="rag-health-stat-card">
+                            <div class="rag-text-muted">Sẵn sàng phục vụ</div>
+                            <div class="rag-health-stat-num text-success" id="health-stat-ready">328 tài liệu</div>
+                        </div>
+                        <div class="rag-health-stat-card">
+                            <div class="rag-text-muted">Đang bóc tách</div>
+                            <div class="rag-health-stat-num text-warning" id="health-stat-processing">12 tài liệu</div>
+                        </div>
+                        <div class="rag-health-stat-card">
+                            <div class="rag-text-muted">Lỗi Indexing</div>
+                            <div class="rag-health-stat-num text-danger" id="health-stat-error">4 tài liệu</div>
+                        </div>
+                        <div class="rag-health-stat-card">
+                            <div class="rag-text-muted">Đã tắt truy xuất</div>
+                            <div class="rag-health-stat-num" style="color: #64748b;" id="health-stat-disabled">18 tài liệu</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB PANE 2: QUẢN TRỊ TRI THỨC              -->
+        <!-- ========================================== -->
+        <div class="logistics-tab-pane active" id="tab-pane-knowledge" style="display: block;">
+            <!-- Header Bar -->
+            <div class="rag-pane-header">
+                <div class="rag-pane-title-block">
+                    <h2>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                        </svg>
+                        Quản Trị Tri Thức — Knowledge Management
+                    </h2>
+                    <p>Quản lý toàn bộ nguồn dữ liệu HS/Legal, bóc tách chunks theo quy chuẩn Dify và quyền truy xuất RAG</p>
+                </div>
+                <div class="rag-pane-header-actions">
+                    <button class="rag-btn-primary" id="btn-open-add-modal">
+                        <i class="fa fa-plus"></i> <span>Thêm Tài Liệu Mới</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Toolbar & Filter Bar -->
+            <div class="rag-toolbar">
+                <div class="rag-tabs">
+                    <button class="rag-tab-btn active" data-tab-type="all">Tất cả (344)</button>
+                    <button class="rag-tab-btn" data-tab-type="hs">Mã HS (180)</button>
+                    <button class="rag-tab-btn" data-tab-type="legal">Văn bản Pháp luật (164)</button>
+                </div>
+
+                <div class="rag-toolbar-filters">
+                    <div class="rag-search-box">
+                        <i class="fa fa-search rag-search-icon"></i>
+                        <input type="text" class="rag-search-input" id="rag-doc-search" placeholder="Tìm theo tên, số hiệu văn bản, mã HS...">
+                    </div>
+
+                    <select class="rag-select-input" id="rag-filter-index-status">
+                        <option value="all">Tất cả trạng thái Index</option>
+                        <option value="ready">Sẵn sàng (Indexed)</option>
+                        <option value="processing">Đang bóc tách (Processing)</option>
+                        <option value="error">Lỗi Index (Failed)</option>
+                    </select>
+
+                    <select class="rag-select-input" id="rag-filter-retrieval">
+                        <option value="all">Quyền truy xuất (Tất cả)</option>
+                        <option value="active">Đang bật truy xuất</option>
+                        <option value="muted">Tạm tắt truy xuất</option>
+                    </select>
+
+                    <select class="rag-select-input" id="rag-filter-legal-validity">
+                        <option value="all">Hiệu lực pháp lý (Tất cả)</option>
+                        <option value="valid">Còn hiệu lực</option>
+                        <option value="partially_expired">Hết hiệu lực một phần</option>
+                        <option value="expired">Hết hiệu lực toàn bộ</option>
+                        <option value="draft">Dự thảo / Chưa hiệu lực</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Bảng Danh Sách Tri Thức (Knowledge DataGrid) -->
+            <div class="rag-datagrid-wrapper">
+                <table class="rag-datagrid">
+                    <thead>
+                        <tr>
+                            <th style="width: 32px;"><input type="checkbox" id="rag-check-all-docs"></th>
+                            <th style="min-width: 280px;">Tên Tri Thức & Cơ Quan Ban Hành</th>
+                            <th style="width: 100px;">Loại</th>
+                            <th style="width: 150px;">Hiệu Lực Pháp Lý</th>
+                            <th style="width: 130px;">Trạng Thái Index</th>
+                            <th style="width: 110px;">Số Chunks</th>
+                            <th style="width: 110px; text-align: center;">Truy Xuất RAG</th>
+                            <th style="width: 90px; text-align: right;">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rag-docs-tbody">
+                        <!-- Rendered dynamically via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer Pagination -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; font-size: 13px; color: #64748b;">
+                <div>
+                    Hiển thị <span id="pagination-start">1</span> - <span id="pagination-end">8</span> trên tổng số <span id="pagination-total">344</span> tài liệu
+                </div>
+                <div style="display: flex; gap: 6px;">
+                    <button class="rag-btn-secondary" disabled><i class="fa fa-chevron-left"></i> Trước</button>
+                    <button class="rag-btn-secondary active" style="font-weight: 700; background: #e2e8f0;">1</button>
+                    <button class="rag-btn-secondary">2</button>
+                    <button class="rag-btn-secondary">3</button>
+                    <button class="rag-btn-secondary">Sau <i class="fa fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- SLIDE-OVER DRAWER (DIFY STYLE)             -->
+    <!-- ========================================== -->
+    <div class="rag-drawer-backdrop" id="rag-drawer-backdrop"></div>
+    <div class="rag-drawer-panel" id="rag-drawer-panel">
+        <div class="rag-drawer-header">
+            <div class="rag-drawer-title">
+                <h3 id="drawer-doc-title">Thông tư 85/2026/TT-BTC</h3>
+                <div class="rag-drawer-subtitle">
+                    <span id="drawer-doc-type-badge" class="rag-badge rag-badge-legal">Legal</span>
+                    <span id="drawer-doc-agency">Bộ Tài chính</span>
+                    <span>·</span>
+                    <span id="drawer-doc-date">Ban hành: 15/08/2026</span>
+                </div>
+            </div>
+            <button class="rag-drawer-close-btn" id="btn-close-drawer">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        <div class="rag-drawer-tabs">
+            <button class="rag-drawer-tab-btn active" data-drawer-tab="chunks">
+                <i class="fa fa-cubes"></i> Trình Duyệt Chunks (<span id="drawer-chunks-count">142</span>)
+            </button>
+            <button class="rag-drawer-tab-btn" data-drawer-tab="metadata">
+                <i class="fa fa-info-circle"></i> Metadata Nghiệp Vụ
+            </button>
+            <button class="rag-drawer-tab-btn" data-drawer-tab="logs">
+                <i class="fa fa-file-text-o"></i> Nhật Ký & Lỗi Indexing
+            </button>
+        </div>
+
+        <div class="rag-drawer-body" id="drawer-body-content">
+            <!-- Dynamic Content based on selected drawer tab -->
+        </div>
+
+        <div style="padding: 16px 24px; border-top: 1px solid #e2e8f0; background: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+            <button class="rag-btn-secondary" id="btn-drawer-reindex">
+                <i class="fa fa-refresh"></i> Re-index Lại Toàn Bộ
+            </button>
+            <button class="rag-btn-primary" id="btn-drawer-close-bottom">
+                Đóng Panel
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL WIZARD: THÊM TRI THỨC 4 BƯỚC         -->
+    <!-- ========================================== -->
+    <div class="rag-modal-backdrop" id="rag-modal-wizard">
+        <div class="rag-modal-dialog">
+            <div class="rag-modal-header">
+                <h3>Thêm Tài Liệu Tri Thức Mới Vào Hệ Thống RAG</h3>
+                <button class="rag-drawer-close-btn" id="btn-close-modal-wizard">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+
+            <div class="rag-wizard-steps">
+                <div class="rag-wizard-step active" id="step-nav-1">
+                    <span class="rag-wizard-step-num">1</span>
+                    <span>Upload Tệp</span>
+                </div>
+                <div class="rag-wizard-step" id="step-nav-2">
+                    <span class="rag-wizard-step-num">2</span>
+                    <span>Metadata</span>
+                </div>
+                <div class="rag-wizard-step" id="step-nav-3">
+                    <span class="rag-wizard-step-num">3</span>
+                    <span>Cấu hình Chunks</span>
+                </div>
+                <div class="rag-wizard-step" id="step-nav-4">
+                    <span class="rag-wizard-step-num">4</span>
+                    <span>Indexing & Hoàn tất</span>
+                </div>
+            </div>
+
+            <div class="rag-modal-body" id="modal-wizard-body">
+                <!-- STEP 1: Upload -->
+                <div id="wizard-step-1" class="wizard-pane active">
+                    <div class="rag-upload-dropzone" id="rag-dropzone">
+                        <i class="fa fa-cloud-upload" style="font-size: 40px; color: #0284c7; margin-bottom: 12px;"></i>
+                        <h4 style="font-size: 15px; font-weight: 700; margin: 0 0 6px 0;">Kéo thả tệp văn bản vào đây, hoặc click để chọn</h4>
+                        <p style="font-size: 12px; color: #64748b; margin: 0 0 16px 0;">Hỗ trợ định dạng: .PDF, .DOCX, .XLSX (Danh mục HS), .JSON</p>
+                        <input type="file" id="wizard-file-input" style="display: none;" accept=".pdf,.docx,.xlsx,.json">
+                        <button type="button" class="rag-btn-secondary" id="btn-browse-file">Chọn tệp từ máy tính</button>
+                    </div>
+                    <div id="wizard-selected-file-info" style="margin-top: 16px; display: none;" class="rag-card">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fa fa-file-pdf-o text-danger" style="font-size: 24px;"></i>
+                                <div>
+                                    <strong id="wizard-filename">ThongTu_85_2026.pdf</strong>
+                                    <div style="font-size: 11px; color: #64748b;" id="wizard-filesize">2.4 MB · 48 trang</div>
+                                </div>
+                            </div>
+                            <span class="rag-badge rag-badge-success">Đã sẵn sàng tải lên</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Metadata -->
+                <div id="wizard-step-2" class="wizard-pane" style="display: none;">
+                    <div class="rag-form-group">
+                        <label class="rag-form-label">Loại tri thức nghiệp vụ:</label>
+                        <div style="display: flex; gap: 20px;">
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                <input type="radio" name="wizard_doc_type" value="legal" checked> 
+                                <strong>Văn bản Pháp quy (Legal)</strong>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                <input type="radio" name="wizard_doc_type" value="hs"> 
+                                <strong>Danh mục Phân loại HS (HS Code)</strong>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Legal Dynamic Form -->
+                    <div id="form-legal-fields">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="rag-form-group">
+                                <label class="rag-form-label">Số / Ký hiệu văn bản *</label>
+                                <input type="text" class="rag-form-input" id="wizard-legal-number" value="85/2026/TT-BTC">
+                            </div>
+                            <div class="rag-form-group">
+                                <label class="rag-form-label">Loại văn bản *</label>
+                                <select class="rag-form-input" id="wizard-legal-category">
+                                    <option value="Thông tư" selected>Thông tư</option>
+                                    <option value="Nghị định">Nghị định</option>
+                                    <option value="Quyết định">Quyết định</option>
+                                    <option value="Quy tắc GIR">Quy tắc tổng quát GIR</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="rag-form-group">
+                                <label class="rag-form-label">Cơ quan ban hành *</label>
+                                <input type="text" class="rag-form-input" id="wizard-legal-agency" value="Bộ Tài chính">
+                            </div>
+                            <div class="rag-form-group">
+                                <label class="rag-form-label">Hiệu lực pháp lý ban đầu *</label>
+                                <select class="rag-form-input" id="wizard-legal-validity">
+                                    <option value="valid" selected>Còn hiệu lực</option>
+                                    <option value="draft">Dự thảo / Chưa có hiệu lực</option>
+                                    <option value="partially_expired">Hết hiệu lực một phần</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HS Dynamic Form -->
+                    <div id="form-hs-fields" style="display: none;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="rag-form-group">
+                                <label class="rag-form-label">Phần (Section) *</label>
+                                <select class="rag-form-input" id="wizard-hs-section">
+                                    <option value="XVI" selected>Phần XVI: Máy móc & Thiết bị điện (Chương 84, 85)</option>
+                                    <option value="XVII">Phần XVII: Phương tiện vận tải (Chương 86, 87, 88, 89)</option>
+                                    <option value="XIV">Phần XIV: Kim loại quý, đá quý (Chương 71)</option>
+                                </select>
+                            </div>
+                            <div class="rag-form-group">
+                                <label class="rag-form-label">Phiên bản Danh mục HS *</label>
+                                <input type="text" class="rag-form-input" id="wizard-hs-version" value="AHTN 2022 / WCO 2022">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rag-form-group" style="margin-top: 12px; background: #f8fafc; padding: 12px; border-radius: 8px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600;">
+                            <input type="checkbox" id="wizard-initial-retrieval" checked>
+                            <span>Cho phép RAG truy xuất ngay sau khi Indexing thành công</span>
+                        </label>
+                        <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 24px;">Nếu bỏ chọn, tài liệu vẫn được vector hóa nhưng ở trạng thái Tạm ngắt (Muted) để kiểm thử nội bộ.</p>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Chunking Config -->
+                <div id="wizard-step-3" class="wizard-pane" style="display: none;">
+                    <div class="rag-form-group">
+                        <label class="rag-form-label">Chiến lược bóc tách cấu trúc (Chunking Strategy):</label>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="border: 1px solid #bae6fd; background: #f0f9ff; padding: 14px; border-radius: 8px;">
+                                <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+                                    <input type="radio" name="wizard_chunk_strategy" value="legal_natural" checked>
+                                    <div>
+                                        <strong style="color: #0284c7;">Bóc tách theo đơn vị pháp lý hoàn chỉnh (Khuyên dùng)</strong>
+                                        <div style="font-size: 12px; color: #334155; margin-top: 4px;">
+                                            Tự động chia tách theo ranh giới tự nhiên: Điều > Khoản > Điểm. Tuyệt đối không cắt vụn theo token cơ học làm mất tính liên kết của quy phạm pháp luật.
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                            <div style="border: 1px solid #e2e8f0; background: #ffffff; padding: 14px; border-radius: 8px;">
+                                <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+                                    <input type="radio" name="wizard_chunk_strategy" value="hs_hierarchy">
+                                    <div>
+                                        <strong style="color: #0f172a;">Phân cấp Danh mục HS & Chú giải (Hierarchy HS)</strong>
+                                        <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
+                                            Giữ nguyên cấu trúc cây Section → Chapter → Heading (4 số) → Subheading (6-8 số) và các Chú giải (Legal Notes).
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                        <div class="rag-form-group">
+                            <label class="rag-form-label">Mô hình nhúng (Embedding Model):</label>
+                            <input type="text" class="rag-form-input" value="BGE-M3 (Dense 1024-dim + Sparse Lexical)" disabled style="background: #f1f5f9;">
+                        </div>
+                        <div class="rag-form-group">
+                            <label class="rag-form-label">Cơ chế truy xuất kết hợp (Hybrid Search):</label>
+                            <input type="text" class="rag-form-input" value="Dense Vector + BM25 Lexical + Cross-Encoder" disabled style="background: #f1f5f9;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: Indexing Progress & Preview -->
+                <div id="wizard-step-4" class="wizard-pane" style="display: none;">
+                    <div style="text-align: center; padding: 20px 0;">
+                        <div id="wizard-indexing-spinner">
+                            <i class="fa fa-circle-o-notch fa-spin text-primary" style="font-size: 40px; margin-bottom: 16px; color: #0284c7;"></i>
+                            <h4 style="font-size: 16px; font-weight: 700; margin: 0 0 8px 0;" id="wizard-progress-title">Đang bóc tách & Tạo Vector Embeddings...</h4>
+                            <p style="font-size: 13px; color: #64748b;" id="wizard-progress-desc">Đã xử lý 84/142 Điều khoản (Tiến trình 60%)</p>
+                        </div>
+                        <div style="width: 100%; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; margin: 16px 0;">
+                            <div id="wizard-progressbar" style="width: 60%; height: 100%; background: #10b981; transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+
+                    <div id="wizard-preview-chunks" style="margin-top: 16px;">
+                        <h5 style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">Xem trước Chunks vừa tạo:</h5>
+                        <div class="rag-chunk-card" style="margin-bottom: 8px;">
+                            <div class="rag-chunk-header">
+                                <span class="rag-chunk-id">TT85-A8-1</span>
+                                <span class="rag-chunk-path">Điều 8 > Khoản 1 (Máy móc chưa lắp ráp)</span>
+                                <span class="rag-badge rag-badge-success">P0 - Cốt lõi</span>
+                            </div>
+                            <div class="rag-chunk-body" style="font-size: 12px;">
+                                "Hàng hóa là máy móc, thiết bị ở dạng chưa lắp ráp hoặc tháo rời được phân loại theo quy tắc GIR 2(a)..."
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rag-modal-footer">
+                <button type="button" class="rag-btn-secondary" id="btn-wizard-prev" style="visibility: hidden;">
+                    <i class="fa fa-arrow-left"></i> Quay lại
+                </button>
+                <button type="button" class="rag-btn-primary" id="btn-wizard-next">
+                    Tiếp tục <i class="fa fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div class="rag-toast-container" id="rag-toast-container"></div>
+</div>

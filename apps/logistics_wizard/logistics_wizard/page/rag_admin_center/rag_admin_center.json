@@ -1,5 +1,5 @@
 {
- "creation": "2026-10-18 12:00:00.000000",
+ "creation": "2026-10-01 00:00:06.000000",
  "docstatus": 0,
  "doctype": "Page",
  "icon": "octicon octicon-database",
@@ -25,5 +25,5 @@
   }
  ],
  "standard": "Yes",
- "title": "RAG Admin Center"
+ "title": "RAG Performance Dashboard"
 }
