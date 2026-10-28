@@ -304,60 +304,11 @@ function initSmartWorkflowWidget() {
         }
     }
 
-    // Inject FAB and Modals
+    // Inject FAB and Modals - DISABLED (User requested removing redundant bottom-left popup button)
     function inject_fab() {
-        ensure_widget_styles();
-        if ($('#lw-fab-container').length === 0) {
-            let fab_html = `
-                <div id="lw-fab-container" style="position: fixed !important; bottom: 32px !important; left: 32px !important; z-index: 9999 !important;">
-                    <button class="lw-fab" id="lw-fab-main" title="Trợ lý Logistics & Hỗ trợ">
-                        <span class="fab-icon">
-                            <svg class="lw-lifebuoy-svg" viewBox="0 0 24 24" width="30" height="30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <defs>
-                                    <linearGradient id="lw-apple-blue-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#0A84FF"/>
-                                        <stop offset="50%" stop-color="#0071E3"/>
-                                        <stop offset="100%" stop-color="#0055D4"/>
-                                    </linearGradient>
-                                    <filter id="lw-liquid-glow" x="-20%" y="-20%" width="140%" height="140%">
-                                        <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#0071E3" flood-opacity="0.3"/>
-                                    </filter>
-                                </defs>
-                                <g filter="url(#lw-liquid-glow)">
-                                    <circle cx="12" cy="12" r="9.2" stroke="url(#lw-apple-blue-grad)" stroke-width="2.3"/>
-                                    <circle cx="12" cy="12" r="3.8" stroke="url(#lw-apple-blue-grad)" stroke-width="2.3"/>
-                                    <line x1="5.5" y1="5.5" x2="9.3" y2="9.3" stroke="url(#lw-apple-blue-grad)" stroke-width="2.3" stroke-linecap="round"/>
-                                    <line x1="18.5" y1="5.5" x2="14.7" y2="9.3" stroke="url(#lw-apple-blue-grad)" stroke-width="2.3" stroke-linecap="round"/>
-                                    <line x1="18.5" y1="18.5" x2="14.7" y2="14.7" stroke="url(#lw-apple-blue-grad)" stroke-width="2.3" stroke-linecap="round"/>
-                                    <line x1="5.5" y1="18.5" x2="9.3" y2="14.7" stroke="url(#lw-apple-blue-grad)" stroke-width="2.3" stroke-linecap="round"/>
-                                </g>
-                            </svg>
-                        </span>
-                        <span class="fab-close-icon">✕</span>
-                    </button>
-                    <div id="lw-fab-menu">
-                        <button class="lw-fab lw-sub-fab" id="lw-fab-workflow" data-tooltip="Tiến trình (Workflow)">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-                                <path d="M9 12h6"/>
-                                <path d="M9 16h6"/>
-                            </svg>
-                        </button>
-                        <button class="lw-fab lw-sub-fab" id="lw-fab-shipment" data-tooltip="Hành trình (Shipment)">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="1" y="3" width="15" height="13" rx="2" ry="2"/>
-                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
-                                <circle cx="5.5" cy="18.5" r="2.5"/>
-                                <circle cx="18.5" cy="18.5" r="2.5"/>
-                            </svg>
-                        </button>
-                        <button class="lw-fab lw-sub-fab" id="lw-fab-ai" data-tooltip="AI Chat">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0071E3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="11" width="18" height="10" rx="2"/>
-                                <circle cx="12" cy="5" r="2"/>
-                                <path d="M12 7v4"/>
-                                <line x1="8" y1="16" x2="8" y2="16"/>
+        $('#lw-fab-container').remove();
+        return;
+    }
                                 <line x1="16" y1="16" x2="16" y2="16"/>
                             </svg>
                         </button>

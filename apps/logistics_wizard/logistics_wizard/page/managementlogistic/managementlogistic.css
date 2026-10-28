@@ -674,24 +674,52 @@
     overflow: hidden;
 }
 
-/* 1. Left Vertical Navigation Sidebar */
+/* 1. Left Vertical Navigation Sidebar - Hidden to remove redundancy with Frappe System Sidebar */
 .logistics-tabs-nav {
+    display: none !important;
+}
+
+/* 1b. Modern Horizontal Top Tab Bar */
+.logistics-horizontal-tab-bar {
     display: flex;
-    flex-direction: column;
-    width: 260px;
-    min-width: 260px;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
     background: #ffffff;
-    border-right: 1px solid #e2e8f0;
-    padding: 18px 14px 24px;
-    gap: 6px;
-    flex-shrink: 0;
+    border-bottom: 1px solid #e2e8f0;
     position: sticky;
     top: 0;
-    height: calc(100vh - 55px);
-    overflow-y: auto;
-    box-shadow: 1px 0 3px rgba(0, 0, 0, 0.03);
     z-index: 50;
-    user-select: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    overflow-x: auto;
+}
+
+.logistics-horizontal-tab-bar .logistics-nav-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+}
+
+.logistics-horizontal-tab-bar .logistics-nav-tab:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.logistics-horizontal-tab-bar .logistics-nav-tab.active {
+    background: #f0fdfa;
+    color: #0d9488;
+    border-color: #ccfbf1;
+    font-weight: 600;
 }
 
 .logistics-tabs-nav::-webkit-scrollbar {

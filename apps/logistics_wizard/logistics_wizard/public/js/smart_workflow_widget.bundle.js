@@ -306,8 +306,9 @@ function initSmartWorkflowWidget() {
 
     // Inject FAB and Modals
     function inject_fab() {
-        ensure_widget_styles();
-        if ($('#lw-fab-container').length === 0) {
+        $('#lw-fab-container').remove();
+        return;
+        if (false) {
             let fab_html = `
                 <div id="lw-fab-container" style="position: fixed !important; bottom: 32px !important; left: 32px !important; z-index: 9999 !important;">
                     <button class="lw-fab" id="lw-fab-main" title="Trợ lý Logistics & Hỗ trợ">

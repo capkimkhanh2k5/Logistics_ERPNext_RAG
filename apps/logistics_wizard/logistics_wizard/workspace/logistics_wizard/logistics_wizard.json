@@ -24,28 +24,6 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Logistics AI Copilot (ChatBot)",
-   "link_count": 0,
-   "link_to": "logistics-ai-chatbot",
-   "link_type": "Page",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Trade Cost & Landed Cost Dashboard",
-   "link_count": 0,
-   "link_to": "trade-cost-dashboard",
-   "link_type": "Page",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Management Logistic Hub",
    "link_count": 0,
    "link_to": "managementLogistic",
@@ -138,16 +116,6 @@
  "roles": [],
  "sequence_id": 20.0,
  "shortcuts": [
-  {
-   "label": "Logistics AI Copilot",
-   "link_to": "logistics-ai-chatbot",
-   "type": "Page"
-  },
-  {
-   "label": "Trade Cost & Landed Cost Dashboard",
-   "link_to": "trade-cost-dashboard",
-   "type": "Page"
-  },
   {
    "label": "Management Logistic Hub",
    "link_to": "managementLogistic",

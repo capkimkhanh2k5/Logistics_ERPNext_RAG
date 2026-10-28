@@ -5,7 +5,7 @@ app_description = "Import-Export Workflow Widget and Shipment Tracking Managemen
 app_email = "khanh@logistics.local"
 app_license = "mit"
 
-app_logo_url = "/assets/logistics_wizard/images/box_icon.png"
+app_logo_url = "/assets/logistics_wizard/images/logistics-wizard-logo.svg"
 app_home = "/desk/logistics-wizard/managementLogistic"
 
 add_to_apps_screen = [

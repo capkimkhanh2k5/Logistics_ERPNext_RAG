@@ -1,3 +1,11 @@
+/* Disable floating popup widget as requested by user */
+#lw-fab-container, #lw-fab-menu, .lw-popup, .lw-fab {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+}
+
 /* required styles */
 
 .leaflet-pane,
