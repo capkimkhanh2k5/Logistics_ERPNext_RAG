@@ -25,9 +25,7 @@ class UnifiedLogisticsHub {
     switch_tab(tabName, options) {
         options = options || {};
         this.currentTab = tabName;
-        const $page = (this.wrapper && this.wrapper.shipment_tracking_hub && this.wrapper.shipment_tracking_hub.page)
-            ? $(this.wrapper.shipment_tracking_hub.page.body)
-            : $(document);
+        const $page = this.wrapper ? $(this.wrapper) : $(document);
 
         let targetKey = 'executive';
         if (tabName === 'overview' || tabName === 'trade-case' || tabName === 'dossier') {
@@ -1053,6 +1051,7 @@ class ShipmentTrackingHub {
         this.render_skeleton(this.pageName);
         this.bind_events();
         this.init_map();
+        this.refresh();
     }
 
     render_skeleton(pageName) {
@@ -1147,12 +1146,25 @@ class ShipmentTrackingHub {
             return;
         }
 
-        const mapEl = document.getElementById('lw-hub-map');
-        if (!mapEl) return;
+        const $mapEl = this.wrapper ? $(this.wrapper).find('#lw-hub-map') : $('#lw-hub-map');
+        if (!$mapEl.length) return;
+        const mapEl = $mapEl[0];
+
+        if (mapEl._leaflet_id) {
+            try {
+                if (this.map) {
+                    this.map.invalidateSize();
+                    return;
+                }
+            } catch (e) {}
+            try {
+                mapEl._leaflet_id = null;
+            } catch (e) {}
+        }
 
         // Initialize Map
         try {
-            this.map = L.map('lw-hub-map', {
+            this.map = L.map(mapEl, {
                 center: [22.0, 150.0],
                 zoom: 3,
                 minZoom: 2,

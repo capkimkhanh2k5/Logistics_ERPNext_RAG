@@ -10,7 +10,7 @@
  "icon": "shipment",
  "idx": 1,
  "is_hidden": 0,
- "label": "Logistics Wizard",
+ "label": "Logistics",
  "links": [
   {
    "hidden": 0,
@@ -185,5 +185,5 @@
    "type": "Page"
   }
  ],
- "title": "Logistics Wizard"
+ "title": "Logistics"
 }

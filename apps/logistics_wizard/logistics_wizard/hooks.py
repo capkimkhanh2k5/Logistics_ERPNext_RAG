@@ -1,5 +1,5 @@
 app_name = "logistics_wizard"
-app_title = "Logistics Wizard"
+app_title = "Logistics"
 app_publisher = "Khanh"
 app_description = "Import-Export Workflow Widget and Shipment Tracking Management Hub"
 app_email = "khanh@logistics.local"
@@ -12,7 +12,7 @@ add_to_apps_screen = [
     {
         "name": app_name,
         "logo": app_logo_url,
-        "title": app_title,
+        "title": "Logistics",
         "route": app_home,
         "sequence_id": 2,
     }
@@ -21,13 +21,11 @@ add_to_apps_screen = [
 app_include_js = [
     "leaflet.bundle.js",
     "smart_workflow_widget.bundle.js",
-    "logistics_chatbot_widget.js",
     "unified_logistics_hub.bundle.js"
 ]
 app_include_css = [
     "leaflet.bundle.css",
     "smart_workflow_widget.bundle.css",
-    "logistics_chatbot_widget.css",
     "unified_logistics_hub.bundle.css"
 ]
 
