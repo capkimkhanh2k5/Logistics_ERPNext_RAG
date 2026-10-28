@@ -34,6 +34,10 @@ experiments/
 **/experiments/
 **/config/cliproxyapi/local/
 
+# Upstream core apps
+apps/erpnext/
+apps/frappe/
+
 # Environment and secrets
 .env
 *.env
