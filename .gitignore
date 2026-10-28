@@ -9,6 +9,31 @@ __pycache__/
 .DS_Store
 .agents/
 
+# Virtual environments
+.venv/
+**/.venv/
+venv/
+**/venv/
+
+# Python test & caches
+.pytest_cache/
+**/.pytest_cache/
+.mypy_cache/
+**/.mypy_cache/
+.ruff_cache/
+**/.ruff_cache/
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+*.egg-info/
+**/*.egg-info/
+
+# Artifacts, test logs & local configs
+artifacts/
+**/artifacts/
+experiments/
+**/experiments/
+**/config/cliproxyapi/local/
+
 # Environment and secrets
 .env
 *.env
