@@ -6,7 +6,7 @@ app_email = "khanh@logistics.local"
 app_license = "mit"
 
 app_logo_url = "/assets/logistics_wizard/images/logistics-wizard-logo.svg"
-app_home = "/desk/logistics-wizard/managementLogistic"
+app_home = "/desk/logistics-wizard/trade-case-overview"
 
 add_to_apps_screen = [
     {
@@ -21,12 +21,14 @@ add_to_apps_screen = [
 app_include_js = [
     "leaflet.bundle.js",
     "smart_workflow_widget.bundle.js",
-    "logistics_chatbot_widget.js"
+    "logistics_chatbot_widget.js",
+    "unified_logistics_hub.bundle.js"
 ]
 app_include_css = [
     "leaflet.bundle.css",
     "smart_workflow_widget.bundle.css",
-    "logistics_chatbot_widget.css"
+    "logistics_chatbot_widget.css",
+    "unified_logistics_hub.bundle.css"
 ]
 
 

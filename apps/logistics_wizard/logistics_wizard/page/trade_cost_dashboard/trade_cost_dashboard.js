@@ -4,11 +4,13 @@
 frappe.pages['trade-cost-dashboard'] = frappe.pages['trade-cost-dashboard'] || {};
 
 frappe.pages['trade-cost-dashboard'].on_page_load = function (wrapper) {
-    frappe.route_options = Object.assign({}, frappe.route_options, { tab: 'cost' });
-    frappe.set_route('managementLogistic');
+    if (window.init_logistics_hub_page) {
+        window.init_logistics_hub_page('trade-cost-dashboard', 'cost', wrapper);
+    }
 };
 
 frappe.pages['trade-cost-dashboard'].on_page_show = function (wrapper) {
-    frappe.route_options = Object.assign({}, frappe.route_options, { tab: 'cost' });
-    frappe.set_route('managementLogistic');
+    if (window.show_logistics_hub_page) {
+        window.show_logistics_hub_page(wrapper, 'cost');
+    }
 };

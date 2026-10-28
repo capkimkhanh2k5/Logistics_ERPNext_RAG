@@ -4,11 +4,13 @@
 frappe.pages['executive-dashboard'] = frappe.pages['executive-dashboard'] || {};
 
 frappe.pages['executive-dashboard'].on_page_load = function (wrapper) {
-    frappe.route_options = Object.assign({}, frappe.route_options, { tab: 'executive' });
-    frappe.set_route('managementLogistic');
+    if (window.init_logistics_hub_page) {
+        window.init_logistics_hub_page('executive-dashboard', 'executive', wrapper);
+    }
 };
 
 frappe.pages['executive-dashboard'].on_page_show = function (wrapper) {
-    frappe.route_options = Object.assign({}, frappe.route_options, { tab: 'executive' });
-    frappe.set_route('managementLogistic');
+    if (window.show_logistics_hub_page) {
+        window.show_logistics_hub_page(wrapper, 'executive');
+    }
 };

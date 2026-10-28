@@ -1571,16 +1571,6 @@ function initSmartWorkflowWidget() {
     // Bind route change event
     if (typeof frappe !== 'undefined' && frappe.router) {
         frappe.router.on("change", function () {
-            let r = (typeof frappe.get_route === 'function') ? frappe.get_route() : [];
-            if (r && r[0] === 'shipment-tracking-hub') {
-                frappe.route_options = Object.assign({}, frappe.route_options, { tab: 'tracking' });
-                frappe.set_route('managementLogistic');
-                return;
-            } else if (r && r[0] === 'trade-case-overview') {
-                frappe.route_options = Object.assign({}, frappe.route_options, { tab: 'overview' });
-                frappe.set_route('managementLogistic');
-                return;
-            }
             inject_fab();
             update_widget_state();
         });
