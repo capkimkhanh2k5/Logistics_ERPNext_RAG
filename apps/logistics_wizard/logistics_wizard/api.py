@@ -2872,5 +2872,133 @@ def get_knowledge_graph(section=None, chapter=None, root_id=None, query=None, de
         }
 
 
+# =============================================================================
+# STAGING & DOCX INGESTION RPC ENDPOINTS (PLAN 3.0)
+# =============================================================================
+
+def _ensure_rag_path():
+    ai_rag_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "../../ai_service/ai_rag")
+    )
+    if ai_rag_path not in sys.path:
+        sys.path.insert(0, ai_rag_path)
+
+
+@frappe.whitelist(allow_guest=True)
+def rag_staging_list_documents(status=None, limit=50, offset=0):
+    """List documents in the Staging Area."""
+    try:
+        _ensure_rag_path()
+        from rag.api.staging_api import list_documents
+        docs = list_documents(status=status, limit=int(limit or 50), offset=int(offset or 0))
+        return {"success": True, "data": docs}
+    except Exception as exc:
+        logger.exception("Failed to list staged documents: %s", exc)
+        return {"success": False, "error": str(exc)}
+
+
+@frappe.whitelist(allow_guest=True)
+def rag_staging_get_document(doc_id):
+    """Get single staged document details and chunk counts."""
+    try:
+        _ensure_rag_path()
+        from rag.api.staging_api import get_document
+        doc = get_document(str(doc_id))
+        if not doc:
+            return {"success": False, "error": "Document not found"}
+        return {"success": True, "data": doc}
+    except Exception as exc:
+        logger.exception("Failed to get staged document: %s", exc)
+        return {"success": False, "error": str(exc)}
+
+
+@frappe.whitelist(allow_guest=True)
+def rag_staging_get_chunks(doc_id, review_status=None, chunk_type=None, search_query=None, limit=100, offset=0):
+    """Get chunks for a staged document with filtering."""
+    try:
+        _ensure_rag_path()
+        from rag.api.staging_api import get_chunks
+        chunks = get_chunks(
+            doc_id=str(doc_id),
+            review_status=review_status,
+            chunk_type=chunk_type,
+            search_query=search_query,
+            limit=int(limit or 100),
+            offset=int(offset or 0),
+        )
+        return {"success": True, "data": chunks}
+    except Exception as exc:
+        logger.exception("Failed to get staged chunks: %s", exc)
+        return {"success": False, "error": str(exc)}
+
+
+@frappe.whitelist(allow_guest=True)
+def rag_staging_update_chunk(chunk_id, edited_text, reason=None, user=None):
+    """Update a chunk's text and audit history."""
+    try:
+        _ensure_rag_path()
+        from rag.api.staging_api import update_chunk
+        res = update_chunk(
+            chunk_id=str(chunk_id),
+            edited_text=str(edited_text),
+            reason=reason or "Web/RPC edit",
+            user=user or "rpc_user",
+        )
+        return {"success": True, "data": res}
+    except Exception as exc:
+        logger.exception("Failed to update staged chunk: %s", exc)
+        return {"success": False, "error": str(exc)}
+
+
+@frappe.whitelist(allow_guest=True)
+def rag_staging_review_chunk(chunk_id, action, user=None):
+    """Approve or Exclude a staged chunk."""
+    try:
+        _ensure_rag_path()
+        from rag.api.staging_api import review_chunk
+        res = review_chunk(
+            chunk_id=str(chunk_id),
+            action=str(action),
+            user=user or "rpc_user",
+        )
+        return {"success": True, "data": res}
+    except Exception as exc:
+        logger.exception("Failed to review staged chunk: %s", exc)
+        return {"success": False, "error": str(exc)}
+
+
+@frappe.whitelist(allow_guest=True)
+def rag_staging_approve_all(doc_id, user=None):
+    """Bulk approve all pending chunks in a staged document."""
+    try:
+        _ensure_rag_path()
+        from rag.api.staging_api import approve_all_chunks
+        res = approve_all_chunks(
+            doc_id=str(doc_id),
+            user=user or "rpc_user",
+        )
+        return {"success": True, "data": res}
+    except Exception as exc:
+        logger.exception("Failed to approve all staged chunks: %s", exc)
+        return {"success": False, "error": str(exc)}
+
+
+@frappe.whitelist(allow_guest=True)
+def rag_staging_create_snapshot(doc_id, user=None):
+    """Create an approved immutable snapshot ready for official ingestion."""
+    try:
+        _ensure_rag_path()
+        from rag.api.staging_api import create_approved_snapshot
+        res = create_approved_snapshot(
+            doc_id=str(doc_id),
+            user=user or "rpc_user",
+        )
+        return {"success": True, "data": res}
+    except Exception as exc:
+        logger.exception("Failed to create approved snapshot: %s", exc)
+        return {"success": False, "error": str(exc)}
+
+
+
 
 
