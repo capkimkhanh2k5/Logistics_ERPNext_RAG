@@ -17,7 +17,7 @@ class RagAdminCenterController {
         }
 
         this.state = {
-            currentNavTab: 'dashboard', // 'dashboard' | 'knowledge'
+            currentNavTab: 'knowledge', // 'knowledge' | 'graph'
             timeRange: '7d',
             domain: 'all',
             activeKnowledgeFilterTab: 'all',
@@ -33,7 +33,7 @@ class RagAdminCenterController {
 
         this.init_mock_data();
         this.bind_events();
-        this.switch_nav_tab('dashboard');
+        this.switch_nav_tab('knowledge');
         this.render_all();
     }
 
@@ -1532,7 +1532,7 @@ function register_rag_knowledge_base_page(pageName) {
             const isGraph = hash === '#graph' || (route && route[1] === 'graph') || (frappe.route_options && frappe.route_options.tab === 'graph');
             if (isGraph) {
                 wrapper.ragAdminController.switch_nav_tab('graph');
-            } else if (wrapper.ragAdminController.state && wrapper.ragAdminController.state.currentNavTab) {
+            } else if (wrapper.ragAdminController.state && wrapper.ragAdminController.state.currentNavTab && wrapper.ragAdminController.state.currentNavTab !== 'dashboard') {
                 wrapper.ragAdminController.switch_nav_tab(wrapper.ragAdminController.state.currentNavTab);
             } else {
                 wrapper.ragAdminController.switch_nav_tab('knowledge');
