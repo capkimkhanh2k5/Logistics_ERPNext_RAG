@@ -1040,6 +1040,94 @@
     color: var(--rag-text-muted);
 }
 
+/* Chunk Review Controls */
+.rag-chunk-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.rag-chunk-btn {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    border: 1px solid var(--rag-border);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    background: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.rag-chunk-btn-approve {
+    background: #ecfdf5;
+    color: #059669;
+    border-color: #a7f3d0;
+}
+.rag-chunk-btn-approve:hover {
+    background: #d1fae5;
+}
+
+.rag-chunk-btn-exclude {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+.rag-chunk-btn-exclude:hover {
+    background: #fee2e2;
+}
+
+.rag-chunk-btn-edit {
+    background: #f0f9ff;
+    color: #0284c7;
+    border-color: #bae6fd;
+}
+.rag-chunk-btn-edit:hover {
+    background: #e0f2fe;
+}
+
+.rag-chunk-edit-box {
+    margin-top: 8px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 10px;
+}
+
+.rag-chunk-edit-box textarea {
+    width: 100%;
+    border: 1px solid var(--rag-border);
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 70px;
+    box-sizing: border-box;
+}
+
+.rag-chunk-edit-box input {
+    width: 100%;
+    margin-top: 6px;
+    border: 1px solid var(--rag-border);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 12px;
+    box-sizing: border-box;
+}
+
+.rag-tree-node {
+    padding: 6px 10px;
+    border-left: 2px solid #cbd5e1;
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+.rag-tree-node:hover {
+    background: #f1f5f9;
+}
+
 /* ==============================================================================
    7. MODAL WIZARD (THÊM TRI THỨC)
    ============================================================================== */

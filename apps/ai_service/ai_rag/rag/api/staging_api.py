@@ -26,6 +26,10 @@ def get_document(doc_id: str) -> Optional[dict[str, Any]]:
     return StagingService.get_document(doc_id)
 
 
+def get_nodes(doc_id: str) -> list[dict[str, Any]]:
+    return StagingService.get_nodes(doc_id)
+
+
 def get_chunks(
     doc_id: str,
     review_status: Optional[str] = None,

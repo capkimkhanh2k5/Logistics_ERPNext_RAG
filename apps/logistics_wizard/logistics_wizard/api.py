@@ -2913,6 +2913,19 @@ def rag_staging_get_document(doc_id):
 
 
 @frappe.whitelist(allow_guest=True)
+def rag_staging_get_nodes(doc_id):
+    """Get AST nodes for a staged document."""
+    try:
+        _ensure_rag_path()
+        from rag.api.staging_api import get_nodes
+        nodes = get_nodes(str(doc_id))
+        return {"success": True, "data": nodes}
+    except Exception as exc:
+        logger.exception("Failed to get staged nodes: %s", exc)
+        return {"success": False, "error": str(exc)}
+
+
+@frappe.whitelist(allow_guest=True)
 def rag_staging_get_chunks(doc_id, review_status=None, chunk_type=None, search_query=None, limit=100, offset=0):
     """Get chunks for a staged document with filtering."""
     try:
@@ -2997,6 +3010,64 @@ def rag_staging_create_snapshot(doc_id, user=None):
     except Exception as exc:
         logger.exception("Failed to create approved snapshot: %s", exc)
         return {"success": False, "error": str(exc)}
+
+
+@frappe.whitelist(allow_guest=True)
+def rag_staging_upload_docx(file_name=None, file_base64=None, file_path=None, document_no=None, document_type=None, effective_from=None, effective_to=None, user=None):
+    """Upload and parse a DOCX document into the Staging Area."""
+    import base64
+    import os
+    import tempfile
+
+    try:
+        _ensure_rag_path()
+        file_bytes = None
+
+        # 1. Check multipart request file
+        if getattr(frappe, "request", None) and hasattr(frappe.request, "files") and "file" in frappe.request.files:
+            uploaded_file = frappe.request.files["file"]
+            file_name = file_name or uploaded_file.filename
+            file_bytes = uploaded_file.read()
+        elif file_base64:
+            if "," in file_base64:
+                file_base64 = file_base64.split(",", 1)[1]
+            file_bytes = base64.b64decode(file_base64)
+        elif file_path:
+            resolved_p = os.path.abspath(file_path)
+            if os.path.exists(resolved_p):
+                with open(resolved_p, "rb") as f:
+                    file_bytes = f.read()
+                if not file_name:
+                    file_name = os.path.basename(resolved_p)
+            else:
+                return {"success": False, "error": f"File path not found: {file_path}"}
+
+        if not file_bytes:
+            return {"success": False, "error": "No file data received. Provide file upload, file_base64, or file_path."}
+
+        # Write to temporary file for parser
+        suffix = ".docx" if (file_name and file_name.lower().endswith(".docx")) else ".docx"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp.write(file_bytes)
+            tmp_path = tmp.name
+
+        from rag.ingestion.staging.staging_service import StagingService
+        service = StagingService()
+        upload_result = service.upload_and_parse(
+            file_path=tmp_path,
+            document_no=document_no,
+            document_type=document_type,
+            effective_from=effective_from,
+            effective_to=effective_to,
+            user=user or (getattr(getattr(frappe, "session", None), "user", None) or "admin")
+        )
+        doc_id = upload_result.get("document_id")
+        doc_detail = service.get_document(doc_id)
+        return {"success": True, "document_id": doc_id, "upload_info": upload_result, "data": doc_detail}
+    except Exception as exc:
+        logger.exception("Failed to upload and parse DOCX to staging: %s", exc)
+        return {"success": False, "error": str(exc)}
+
 
 
 

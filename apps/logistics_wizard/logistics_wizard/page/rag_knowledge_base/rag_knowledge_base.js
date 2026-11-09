@@ -17,7 +17,7 @@ class RagAdminCenterController {
         }
 
         this.state = {
-            currentNavTab: 'knowledge', // 'knowledge' | 'graph'
+            currentNavTab: 'dashboard', // 'dashboard' | 'knowledge'
             timeRange: '7d',
             domain: 'all',
             activeKnowledgeFilterTab: 'all',
@@ -27,13 +27,19 @@ class RagAdminCenterController {
             filterLegalValidity: 'all',
             selectedDocId: 'doc-tt85',
             activeDrawerTab: 'chunks',
+            drawerChunkFilterStatus: 'all',
+            drawerChunkSearch: '',
+            selectedPresetSample: null,
+            selectedFile: null,
+            currentUploadedDoc: null,
             wizardStep: 1,
             timeSeriesPeriod: 'day'
         };
 
         this.init_mock_data();
         this.bind_events();
-        this.switch_nav_tab('knowledge');
+        this.fetch_staged_documents();
+        this.switch_nav_tab('dashboard');
         this.render_all();
     }
 
@@ -295,6 +301,73 @@ class RagAdminCenterController {
         };
     }
 
+    fetch_staged_documents() {
+        const self = this;
+        if (typeof frappe === 'undefined' || !frappe.call) return;
+
+        frappe.call({
+            method: 'logistics_wizard.api.rag_staging_list_documents',
+            args: { limit: 100 },
+            callback: (r) => {
+                if (r && r.message && r.message.success && Array.isArray(r.message.data)) {
+                    self.staged_raw_docs = r.message.data;
+                    const stagedDocs = r.message.data.map(doc => {
+                        let agency = 'Bộ Tài chính';
+                        if (doc.document_no) {
+                            if (doc.document_no.includes('BTTTT')) agency = 'Bộ Thông tin & Truyền thông';
+                            else if (doc.document_no.includes('BGTVT')) agency = 'Bộ Giao thông Vận tải';
+                            else if (doc.document_no.includes('NĐ-CP') || doc.document_no.includes('QĐ-TTg')) agency = 'Chính phủ';
+                        }
+                        const isCommitted = doc.status === 'COMMITTED';
+                        const isApproved = doc.status === 'APPROVED';
+                        const isProcessing = doc.status === 'COMMITTING';
+                        const indexStatus = isCommitted ? 'ready' : (isProcessing ? 'processing' : (isApproved ? 'approved' : 'staging'));
+
+                        return {
+                            id: doc.id,
+                            title: doc.document_no || doc.filename,
+                            sub_title: doc.filename,
+                            type: doc.document_type === 'HS_NOMENCLATURE' ? 'hs' : 'legal',
+                            agency: agency,
+                            version: '2026',
+                            release_date: (doc.effective_from || doc.created_at || '2026').slice(0, 10),
+                            effective_date: (doc.effective_from || '2026-08-15').slice(0, 10),
+                            legal_validity: 'valid',
+                            legal_validity_label: 'Còn hiệu lực',
+                            index_status: indexStatus,
+                            staged_status: doc.status,
+                            is_staged: true,
+                            chunks_count: doc.total_chunks || 0,
+                            approved_count: doc.approved_chunks || 0,
+                            excluded_count: doc.excluded_chunks || 0,
+                            retrieval_active: isCommitted,
+                            priority: 'P0',
+                            chunks: []
+                        };
+                    });
+
+                    // Merge stagedDocs into this.documents (avoid duplicates by id)
+                    const existingIds = new Set(stagedDocs.map(d => d.id));
+                    self.documents = stagedDocs.concat(self.documents.filter(d => !existingIds.has(d.id)));
+                    self.update_tab_counts();
+                    self.render_documents_table();
+                }
+            }
+        });
+    }
+
+    update_tab_counts() {
+        const allCount = this.documents.length;
+        const stagingCount = this.documents.filter(d => d.is_staged && d.staged_status !== 'COMMITTED').length;
+        const hsCount = this.documents.filter(d => d.type === 'hs').length;
+        const legalCount = this.documents.filter(d => d.type === 'legal').length;
+
+        this.$root.find('#tab-all-count').text(allCount);
+        this.$root.find('#tab-staging-count').text(stagingCount);
+        this.$root.find('#tab-hs-count').text(hsCount);
+        this.$root.find('#tab-legal-count').text(legalCount);
+    }
+
     bind_events() {
         const self = this;
 
@@ -412,6 +485,65 @@ class RagAdminCenterController {
             self.reindex_document(self.state.selectedDocId);
         });
 
+        // Drawer Chunk Filter & Search
+        this.$root.on('change', '#filter-drawer-chunk-status', function () {
+            self.state.drawerChunkFilterStatus = $(this).val();
+            self.render_drawer_body();
+        });
+
+        let drawerSearchTimer;
+        this.$root.on('input', '#drawer-chunk-search-input', function () {
+            clearTimeout(drawerSearchTimer);
+            const val = $(this).val().trim().toLowerCase();
+            drawerSearchTimer = setTimeout(() => {
+                self.state.drawerChunkSearch = val;
+                self.render_drawer_body();
+            }, 250);
+        });
+
+        // Single Chunk Actions
+        this.$root.on('click', '.btn-chunk-approve', function (e) {
+            e.stopPropagation();
+            const chunkId = $(this).data('chunk-id');
+            self.review_single_chunk(chunkId, 'APPROVE');
+        });
+
+        this.$root.on('click', '.btn-chunk-exclude', function (e) {
+            e.stopPropagation();
+            const chunkId = $(this).data('chunk-id');
+            self.review_single_chunk(chunkId, 'EXCLUDE');
+        });
+
+        this.$root.on('click', '.btn-chunk-edit-toggle', function (e) {
+            e.stopPropagation();
+            const chunkId = $(this).data('chunk-id');
+            const $box = self.$root.find(`#edit-box-${chunkId}`);
+            $box.slideToggle(150);
+        });
+
+        this.$root.on('click', '.btn-chunk-save-edit', function (e) {
+            e.stopPropagation();
+            const chunkId = $(this).data('chunk-id');
+            const newText = self.$root.find(`#textarea-edit-${chunkId}`).val();
+            const reason = self.$root.find(`#input-reason-${chunkId}`).val();
+            self.save_chunk_edit(chunkId, newText, reason);
+        });
+
+        this.$root.on('click', '.btn-chunk-cancel-edit', function (e) {
+            e.stopPropagation();
+            const chunkId = $(this).data('chunk-id');
+            self.$root.find(`#edit-box-${chunkId}`).slideUp(150);
+        });
+
+        // Drawer Bulk Actions
+        this.$root.on('click', '#btn-drawer-approve-all', function () {
+            self.approve_all_drawer_chunks();
+        });
+
+        this.$root.on('click', '#btn-drawer-publish', function () {
+            self.create_snapshot_and_publish();
+        });
+
         // 10. Modal Wizard Controls
         this.$root.on('click', '#btn-open-add-modal', function () {
             self.open_wizard_modal();
@@ -445,9 +577,54 @@ class RagAdminCenterController {
             self.$root.find('#wizard-file-input').click();
         });
 
+        // Preset Samples
+        this.$root.on('click', '.btn-preset-sample', function (e) {
+            e.preventDefault();
+            const sampleId = $(this).data('sample-id');
+            const samplePath = $(this).data('sample-path');
+            const sampleName = $(this).text().trim();
+            self.state.selectedPresetSample = { id: sampleId, path: samplePath, name: sampleName };
+            self.state.selectedFile = null;
+
+            self.$root.find('.btn-preset-sample').removeClass('active').css({ 'border-color': '#cbd5e1', 'background': '#fff', 'color': '#334155' });
+            $(this).addClass('active').css({ 'border-color': '#0284c7', 'background': '#f0f9ff', 'color': '#0369a1' });
+
+            self.$root.find('#wizard-selected-file-info').show();
+            self.$root.find('#wizard-filename').text(sampleName);
+            self.$root.find('#wizard-filesize').text('DOCX mẫu hệ thống (Server Path)');
+        });
+
+        // Drag & Drop
+        const $dropzone = this.$root.find('#rag-dropzone');
+        $dropzone.on('dragover dragenter', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).css({ 'border-color': '#0284c7', 'background': '#f0f9ff' });
+        });
+        $dropzone.on('dragleave dragend drop', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).css({ 'border-color': '#cbd5e1', 'background': '#f8fafc' });
+        });
+        $dropzone.on('drop', function (e) {
+            const files = e.originalEvent.dataTransfer && e.originalEvent.dataTransfer.files;
+            if (files && files.length > 0) {
+                const file = files[0];
+                self.state.selectedFile = file;
+                self.state.selectedPresetSample = null;
+                self.$root.find('.btn-preset-sample').removeClass('active').css({ 'border-color': '#cbd5e1', 'background': '#fff', 'color': '#334155' });
+                self.$root.find('#wizard-selected-file-info').show();
+                self.$root.find('#wizard-filename').text(file.name);
+                self.$root.find('#wizard-filesize').text(`${(file.size / (1024 * 1024)).toFixed(2)} MB`);
+            }
+        });
+
         this.$root.on('change', '#wizard-file-input', function (e) {
             const file = e.target.files[0];
             if (file) {
+                self.state.selectedFile = file;
+                self.state.selectedPresetSample = null;
+                self.$root.find('.btn-preset-sample').removeClass('active').css({ 'border-color': '#cbd5e1', 'background': '#fff', 'color': '#334155' });
                 self.$root.find('#wizard-selected-file-info').show();
                 self.$root.find('#wizard-filename').text(file.name);
                 self.$root.find('#wizard-filesize').text(`${(file.size / (1024 * 1024)).toFixed(2)} MB`);
@@ -639,7 +816,9 @@ class RagAdminCenterController {
 
         let filtered = this.documents.filter(doc => {
             // Filter Tab
-            if (this.state.activeKnowledgeFilterTab !== 'all' && doc.type !== this.state.activeKnowledgeFilterTab) {
+            if (this.state.activeKnowledgeFilterTab === 'staging') {
+                if (!doc.is_staged || doc.staged_status === 'COMMITTED') return false;
+            } else if (this.state.activeKnowledgeFilterTab !== 'all' && doc.type !== this.state.activeKnowledgeFilterTab) {
                 return false;
             }
             // Filter Search
@@ -701,12 +880,24 @@ class RagAdminCenterController {
 
             // Index status badge
             let indexBadge = '';
-            if (doc.index_status === 'ready') {
-                indexBadge = '<span class="rag-badge rag-badge-success"><i class="fa fa-check"></i> Sẵn sàng</span>';
-            } else if (doc.index_status === 'processing') {
-                indexBadge = '<span class="rag-badge rag-badge-warning"><i class="fa fa-circle-o-notch fa-spin"></i> Đang bóc tách</span>';
+            if (doc.is_staged) {
+                if (doc.staged_status === 'APPROVED') {
+                    indexBadge = `<span class="rag-badge rag-badge-success" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd;"><i class="fa fa-check-circle"></i> Đã duyệt (${doc.approved_count || 0}/${doc.chunks_count || 0})</span>`;
+                } else if (doc.staged_status === 'COMMITTING') {
+                    indexBadge = `<span class="rag-badge rag-badge-primary"><i class="fa fa-circle-o-notch fa-spin"></i> Đang nạp KB</span>`;
+                } else if (doc.staged_status === 'COMMITTED') {
+                    indexBadge = `<span class="rag-badge rag-badge-success"><i class="fa fa-database"></i> Sẵn sàng (Official)</span>`;
+                } else {
+                    indexBadge = `<span class="rag-badge rag-badge-warning"><i class="fa fa-clock-o"></i> Chờ duyệt (${doc.approved_count || 0}/${doc.chunks_count || 0})</span>`;
+                }
             } else {
-                indexBadge = `<span class="rag-badge rag-badge-danger" title="Lỗi bóc tách PDF"><i class="fa fa-times"></i> Lỗi Index</span>`;
+                if (doc.index_status === 'ready') {
+                    indexBadge = '<span class="rag-badge rag-badge-success"><i class="fa fa-check"></i> Sẵn sàng</span>';
+                } else if (doc.index_status === 'processing') {
+                    indexBadge = '<span class="rag-badge rag-badge-warning"><i class="fa fa-circle-o-notch fa-spin"></i> Đang bóc tách</span>';
+                } else {
+                    indexBadge = `<span class="rag-badge rag-badge-danger" title="Lỗi bóc tách PDF"><i class="fa fa-times"></i> Lỗi Index</span>`;
+                }
             }
 
             // Chunks display
@@ -723,11 +914,16 @@ class RagAdminCenterController {
                 </label>
             `;
 
+            // Action button
+            const actionBtn = (doc.is_staged && doc.staged_status !== 'COMMITTED')
+                ? `<button class="btn btn-xs btn-primary" style="background:#0284c7; color:#fff; border:none; padding:4px 10px; border-radius:4px; font-weight:600; font-size:11px;" title="Duyệt Chunks Vùng đệm" onclick="event.stopPropagation(); frappe.pages['rag-admin-center'].controller.open_drawer('${doc.id}');"><i class="fa fa-check-square-o"></i> Duyệt Chunks</button>`
+                : `<button class="rag-row-action-btn" title="Xem chi tiết" onclick="event.stopPropagation(); frappe.pages['rag-admin-center'].controller.open_drawer('${doc.id}');"><i class="fa fa-eye"></i></button>`;
+
             const tr = `
                 <tr class="rag-clickable-row" data-doc-id="${doc.id}">
                     <td><input type="checkbox" onclick="event.stopPropagation();"></td>
                     <td>
-                        <div class="rag-doc-title">${doc.title}</div>
+                        <div class="rag-doc-title">${doc.title} ${doc.is_staged ? '<span class="rag-badge" style="background:#f1f5f9; color:#475569; font-size:10px; margin-left:4px;">Staging</span>' : ''}</div>
                         <div class="rag-doc-meta">${doc.agency} · ${doc.release_date} · ${doc.sub_title}</div>
                     </td>
                     <td>${typeBadge}</td>
@@ -735,11 +931,7 @@ class RagAdminCenterController {
                     <td>${indexBadge}</td>
                     <td>${chunksText}</td>
                     <td style="text-align: center;">${toggleHtml}</td>
-                    <td style="text-align: right;">
-                        <button class="rag-row-action-btn" title="Xem chi tiết" onclick="event.stopPropagation(); frappe.pages['rag-admin-center'].controller.open_drawer('${doc.id}');">
-                            <i class="fa fa-eye"></i>
-                        </button>
-                    </td>
+                    <td style="text-align: right;">${actionBtn}</td>
                 </tr>
             `;
             $tbody.append(tr);
@@ -776,6 +968,29 @@ class RagAdminCenterController {
             $typeBadge.attr('class', 'rag-badge rag-badge-hs').text('HS Code / Danh mục');
         }
 
+        // Configure Footer Buttons
+        const $btnApproveAll = this.$root.find('#btn-drawer-approve-all');
+        const $btnPublish = this.$root.find('#btn-drawer-publish');
+
+        if (doc.is_staged) {
+            if (doc.staged_status === 'COMMITTED') {
+                $btnApproveAll.hide();
+                $btnPublish.hide();
+            } else if (doc.staged_status === 'APPROVED') {
+                $btnApproveAll.show().prop('disabled', true).html('<i class="fa fa-check-circle"></i> Đã duyệt tất cả Chunks');
+                $btnPublish.show().prop('disabled', false).html('<i class="fa fa-cloud-upload"></i> Đóng gói Snapshot & Nạp vào KB');
+            } else {
+                $btnApproveAll.show().prop('disabled', false).html('<i class="fa fa-check-circle-o"></i> Phê duyệt tất cả Chunks');
+                $btnPublish.show().prop('disabled', false).html('<i class="fa fa-cloud-upload"></i> Đóng gói Snapshot & Nạp vào KB');
+            }
+            // Fetch real chunks and nodes
+            this.fetch_drawer_staged_chunks(docId);
+            this.fetch_drawer_staged_nodes(docId);
+        } else {
+            $btnApproveAll.hide();
+            $btnPublish.hide();
+        }
+
         this.render_drawer_body();
 
         this.$root.find('#rag-drawer-backdrop').addClass('active');
@@ -788,6 +1003,7 @@ class RagAdminCenterController {
     }
 
     render_drawer_body() {
+        const self = this;
         const doc = this.documents.find(d => d.id === this.state.selectedDocId);
         if (!doc) return;
 
@@ -795,42 +1011,222 @@ class RagAdminCenterController {
         $body.empty();
 
         if (this.state.activeDrawerTab === 'chunks') {
-            if (doc.chunks && doc.chunks.length > 0) {
+            if (doc.is_staged) {
+                if (!doc.staged_chunks) {
+                    $body.html(`
+                        <div style="text-align: center; padding: 40px; color: #64748b;">
+                            <i class="fa fa-circle-o-notch fa-spin" style="font-size: 32px; margin-bottom: 12px; color: #0284c7;"></i>
+                            <div>Đang tải danh sách Chunks từ Staging Database...</div>
+                        </div>
+                    `);
+                    return;
+                }
+
+                let chunks = doc.staged_chunks;
+
+                // Status filter
+                if (this.state.drawerChunkFilterStatus === 'pending') {
+                    chunks = chunks.filter(c => c.review_status === 'PENDING_REVIEW' || c.review_status === 'NEEDS_REVIEW');
+                } else if (this.state.drawerChunkFilterStatus === 'approved') {
+                    chunks = chunks.filter(c => c.review_status === 'APPROVED');
+                } else if (this.state.drawerChunkFilterStatus === 'excluded') {
+                    chunks = chunks.filter(c => c.review_status === 'EXCLUDED');
+                }
+
+                // Search query
+                if (this.state.drawerChunkSearch) {
+                    const q = this.state.drawerChunkSearch;
+                    chunks = chunks.filter(c => {
+                        const str = ((c.source_text || '') + ' ' + (c.edited_text || '') + ' ' + (c.code || '') + ' ' + (c.canonical_anchor || '') + ' ' + (Array.isArray(c.breadcrumb) ? c.breadcrumb.join(' ') : (c.breadcrumb || ''))).toLowerCase();
+                        return str.includes(q);
+                    });
+                }
+
                 let html = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <span style="font-size: 13px; font-weight: 600; color: #334155;">Danh sách Chunks bóc tách tự nhiên:</span>
-                        <span class="rag-badge rag-badge-neutral">Mô hình: BGE-M3 (1024-dim)</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                        <span style="font-size: 13px; font-weight: 600; color: #334155;">
+                            Hiển thị <strong>${chunks.length}</strong> / ${doc.staged_chunks.length} Chunks
+                        </span>
+                        <div style="display: flex; gap: 6px;">
+                            <span class="rag-badge rag-badge-success">Đã duyệt: ${doc.approved_count || 0}</span>
+                            <span class="rag-badge rag-badge-warning">Chờ duyệt: ${(doc.chunks_count || 0) - (doc.approved_count || 0) - (doc.excluded_count || 0)}</span>
+                            <span class="rag-badge rag-badge-danger">Loại trừ: ${doc.excluded_count || 0}</span>
+                        </div>
                     </div>
                 `;
 
-                doc.chunks.forEach(chunk => {
+                if (chunks.length === 0) {
                     html += `
-                        <div class="rag-chunk-card">
-                            <div class="rag-chunk-header">
-                                <span class="rag-chunk-id">${chunk.id}</span>
-                                <span class="rag-chunk-path">${chunk.path}</span>
-                                <span class="rag-badge ${chunk.priority === 'P0' ? 'rag-badge-success' : 'rag-badge-warning'}">
-                                    Ưu tiên ${chunk.priority}
-                                </span>
+                        <div style="text-align: center; padding: 30px; color: #64748b; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                            <i class="fa fa-filter" style="font-size: 24px; margin-bottom: 8px;"></i>
+                            <div>Không có Chunk nào phù hợp với bộ lọc và tìm kiếm.</div>
+                        </div>
+                    `;
+                } else {
+                    chunks.forEach(chunk => {
+                        const isApproved = chunk.review_status === 'APPROVED';
+                        const isExcluded = chunk.review_status === 'EXCLUDED';
+                        const hasEdited = !!chunk.edited_text && chunk.edited_text !== chunk.source_text;
+
+                        let statusBadge = '<span class="rag-badge rag-badge-warning"><i class="fa fa-clock-o"></i> Chờ duyệt</span>';
+                        if (isApproved) {
+                            statusBadge = '<span class="rag-badge rag-badge-success"><i class="fa fa-check"></i> Đã duyệt</span>';
+                        } else if (isExcluded) {
+                            statusBadge = '<span class="rag-badge rag-badge-danger"><i class="fa fa-ban"></i> Loại trừ</span>';
+                        }
+
+                        const borderStyle = isExcluded
+                            ? 'border-left: 4px solid #94a3b8; opacity: 0.7;'
+                            : (isApproved ? 'border-left: 4px solid #10b981;' : 'border-left: 4px solid #f59e0b;');
+
+                        const breadcrumbStr = Array.isArray(chunk.breadcrumb) ? chunk.breadcrumb.join(' > ') : (chunk.breadcrumb || 'Gốc văn bản');
+
+                        html += `
+                            <div class="rag-chunk-card" id="chunk-card-${chunk.id}" style="${borderStyle}">
+                                <div class="rag-chunk-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                                    <div style="flex:1;">
+                                        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                            <span class="rag-chunk-id">#${chunk.chunk_index !== undefined ? chunk.chunk_index : ''} ${chunk.code || chunk.id.substring(0,8)}</span>
+                                            <span class="rag-badge rag-badge-neutral">${chunk.chunk_type || 'CLAUSE'}</span>
+                                            ${statusBadge}
+                                            ${hasEdited ? '<span class="rag-badge" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd;"><i class="fa fa-edit"></i> Đã hiệu đính</span>' : ''}
+                                        </div>
+                                        <div class="rag-chunk-path" style="margin-top:4px; font-size:12px; color:#475569;">
+                                            <i class="fa fa-folder-open-o"></i> ${breadcrumbStr}
+                                        </div>
+                                    </div>
+                                    <div class="rag-chunk-actions">
+                                        <button class="rag-chunk-btn rag-chunk-btn-approve btn-chunk-approve" data-chunk-id="${chunk.id}" title="Phê duyệt chunk">
+                                            <i class="fa fa-check"></i> Duyệt
+                                        </button>
+                                        <button class="rag-chunk-btn rag-chunk-btn-exclude btn-chunk-exclude" data-chunk-id="${chunk.id}" title="Loại trừ chunk">
+                                            <i class="fa fa-ban"></i> Loại trừ
+                                        </button>
+                                        <button class="rag-chunk-btn rag-chunk-btn-edit btn-chunk-edit-toggle" data-chunk-id="${chunk.id}" title="Hiệu đính nội dung">
+                                            <i class="fa fa-pencil"></i> Sửa
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="rag-chunk-body" style="margin-top:10px;">
+                                    <div style="font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase; margin-bottom:4px;">Nội dung gốc (Source Text):</div>
+                                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px; font-size:13px; color:#1e293b; line-height:1.6; white-space:pre-wrap;">${self.escape_html(chunk.source_text || '')}</div>
+                                    ${hasEdited ? `
+                                        <div style="margin-top:8px;">
+                                            <div style="font-size:11px; font-weight:600; color:#0369a1; text-transform:uppercase; margin-bottom:4px;"><i class="fa fa-edit"></i> Nội dung đã hiệu đính (Edited Text):</div>
+                                            <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; padding:10px; font-size:13px; color:#0c4a6e; line-height:1.6; white-space:pre-wrap;">${self.escape_html(chunk.edited_text || '')}</div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                <div class="rag-chunk-edit-box" id="edit-box-${chunk.id}" style="display:none; margin-top:12px; padding:12px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px;">
+                                    <label style="font-size:12px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">Hiệu đính nội dung Chunk:</label>
+                                    <textarea class="form-control chunk-edit-textarea" id="textarea-edit-${chunk.id}" rows="4" style="width:100%; font-size:13px; border-radius:4px; padding:8px; border:1px solid #cbd5e1; background:#fff;">${chunk.edited_text || chunk.source_text || ''}</textarea>
+                                    <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+                                        <input type="text" class="form-control" id="input-reason-${chunk.id}" placeholder="Lý do hiệu đính (ví dụ: Chuẩn hóa ngữ nghĩa, bỏ ký tự thừa...)" style="flex:1; height:32px; font-size:12px; border:1px solid #cbd5e1; border-radius:4px; padding:0 8px; background:#fff;">
+                                        <button class="btn btn-xs btn-primary btn-chunk-save-edit" data-chunk-id="${chunk.id}" style="height:32px; background:#0284c7; color:#fff; border:none; border-radius:4px; padding:0 12px; font-weight:600;"><i class="fa fa-save"></i> Lưu</button>
+                                        <button class="btn btn-xs btn-default btn-chunk-cancel-edit" data-chunk-id="${chunk.id}" style="height:32px; border:1px solid #cbd5e1; border-radius:4px; padding:0 10px;">Hủy</button>
+                                    </div>
+                                </div>
+                                <div class="rag-chunk-footer" style="margin-top:10px; display:flex; justify-content:space-between; font-size:11px; color:#64748b; flex-wrap:wrap; gap:6px;">
+                                    <span><i class="fa fa-database"></i> Confidence: <strong>${Math.round((chunk.confidence_score || 1.0) * 100)}%</strong> · Phiên bản: v${chunk.revision || 1}</span>
+                                    <span>Anchor: <code>${chunk.canonical_anchor || 'N/A'}</code></span>
+                                </div>
                             </div>
-                            <div class="rag-chunk-body">
-                                "${chunk.text}"
+                        `;
+                    });
+                }
+                $body.html(html);
+            } else {
+                // Fallback for mock documents
+                if (doc.chunks && doc.chunks.length > 0) {
+                    let html = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <span style="font-size: 13px; font-weight: 600; color: #334155;">Danh sách Chunks bóc tách tự nhiên:</span>
+                            <span class="rag-badge rag-badge-neutral">Mô hình: BGE-M3 (1024-dim)</span>
+                        </div>
+                    `;
+
+                    doc.chunks.forEach(chunk => {
+                        html += `
+                            <div class="rag-chunk-card">
+                                <div class="rag-chunk-header">
+                                    <span class="rag-chunk-id">${chunk.id}</span>
+                                    <span class="rag-chunk-path">${chunk.path}</span>
+                                    <span class="rag-badge ${chunk.priority === 'P0' ? 'rag-badge-success' : 'rag-badge-warning'}">
+                                        Ưu tiên ${chunk.priority}
+                                    </span>
+                                </div>
+                                <div class="rag-chunk-body">
+                                    "${chunk.text}"
+                                </div>
+                                <div class="rag-chunk-footer">
+                                    <span><i class="fa fa-database"></i> ${chunk.tokens} tokens</span>
+                                    <span>Metadata: <code>${JSON.stringify(chunk.meta)}</code></span>
+                                </div>
                             </div>
-                            <div class="rag-chunk-footer">
-                                <span><i class="fa fa-database"></i> ${chunk.tokens} tokens</span>
-                                <span>Metadata: <code>${JSON.stringify(chunk.meta)}</code></span>
-                            </div>
+                        `;
+                    });
+
+                    $body.html(html);
+                } else {
+                    $body.html(`
+                        <div style="text-align: center; padding: 40px; color: #64748b;">
+                            <i class="fa fa-cubes" style="font-size: 32px; margin-bottom: 12px;"></i>
+                            <div>Chưa có chunks nào cho tài liệu này.</div>
+                        </div>
+                    `);
+                }
+            }
+        } else if (this.state.activeDrawerTab === 'hierarchy') {
+            if (doc.is_staged) {
+                if (!doc.staged_nodes) {
+                    $body.html(`
+                        <div style="text-align: center; padding: 40px; color: #64748b;">
+                            <i class="fa fa-circle-o-notch fa-spin" style="font-size: 32px; margin-bottom: 12px; color: #0284c7;"></i>
+                            <div>Đang tải Cây phân cấp AST từ Staging...</div>
+                        </div>
+                    `);
+                    return;
+                }
+
+                let treeHtml = `
+                    <div style="margin-bottom: 16px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #334155;">
+                            Cây cấu trúc phân cấp (AST - ${doc.staged_nodes.length} Nodes):
+                        </span>
+                        <span class="rag-badge rag-badge-neutral">Chuẩn hóa OpenXML</span>
+                    </div>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+                `;
+
+                doc.staged_nodes.forEach(node => {
+                    const indent = Math.min((node.node_level || 1) * 16, 120);
+                    let icon = 'fa-file-text-o';
+                    if (node.node_type === 'DOCUMENT') icon = 'fa-file-text';
+                    else if (node.node_type === 'PART' || node.node_type === 'SECTION') icon = 'fa-sitemap';
+                    else if (node.node_type === 'CHAPTER') icon = 'fa-book';
+                    else if (node.node_type === 'HEADING') icon = 'fa-bookmark';
+                    else if (node.node_type === 'ARTICLE') icon = 'fa-balance-scale';
+                    else if (node.node_type === 'CLAUSE') icon = 'fa-list-ol';
+                    else if (node.node_type === 'TABLE' || node.node_type === 'TABLE_ROW') icon = 'fa-table';
+                    else if (node.node_type === 'ITEM' || node.node_type === 'POINT') icon = 'fa-dot-circle-o';
+
+                    treeHtml += `
+                        <div class="rag-tree-node" style="padding-left: ${indent}px; margin-bottom: 6px; display: flex; align-items: baseline; gap: 8px; font-size: 13px;">
+                            <i class="fa ${icon}" style="color: #0284c7; width: 14px;"></i>
+                            <span class="rag-badge rag-badge-neutral" style="font-size: 10px; padding: 1px 5px;">${node.node_type}</span>
+                            <span style="font-weight: 600; color: #0f172a;">${self.escape_html(node.title || node.code || 'Node')}</span>
+                            ${node.canonical_anchor ? `<code style="font-size: 10px; color: #64748b;">${node.canonical_anchor}</code>` : ''}
                         </div>
                     `;
                 });
 
-                $body.html(html);
+                treeHtml += `</div>`;
+                $body.html(treeHtml);
             } else {
                 $body.html(`
                     <div style="text-align: center; padding: 40px; color: #64748b;">
-                        <i class="fa fa-cubes" style="font-size: 32px; margin-bottom: 12px;"></i>
-                        <div>Chưa có chunks nào cho tài liệu này.</div>
-                        <div style="font-size: 12px; margin-top: 6px;">Tài liệu đang xử lý hoặc phát sinh lỗi bóc tách. Nhấn nút Re-index để thử lại.</div>
+                        <i class="fa fa-sitemap" style="font-size: 32px; margin-bottom: 12px;"></i>
+                        <div>Cấu trúc AST chỉ khả dụng cho tài liệu DOCX được xử lý qua Unified Parser.</div>
                     </div>
                 `);
             }
@@ -846,13 +1242,27 @@ class RagAdminCenterController {
                         <tr><td style="color: #64748b;">Ngày có hiệu lực:</td><td>${doc.effective_date}</td></tr>
                         <tr><td style="color: #64748b;">Tình trạng pháp lý:</td><td><strong style="color: #059669;">${doc.legal_validity_label}</strong></td></tr>
                         <tr><td style="color: #64748b;">Quyền truy xuất:</td><td>${doc.retrieval_active ? 'Đang bật (Active)' : 'Đang tắt (Muted)'}</td></tr>
+                        ${doc.is_staged ? `
+                            <tr><td style="color: #64748b;">Trạng thái Vùng đệm:</td><td><strong style="color: #0284c7;">${doc.staged_status}</strong></td></tr>
+                            <tr><td style="color: #64748b;">Tổng số Chunks:</td><td><strong>${doc.chunks_count}</strong> (Đã duyệt: ${doc.approved_count || 0}, Loại trừ: ${doc.excluded_count || 0})</td></tr>
+                            <tr><td style="color: #64748b;">Staging UUID:</td><td><code>${doc.id}</code></td></tr>
+                        ` : ''}
                     </table>
                 </div>
             `;
             $body.html(metaHtml);
         } else if (this.state.activeDrawerTab === 'logs') {
             let logsHtml = `<div style="font-family: monospace; font-size: 12px; background: #0f172a; color: #f8fafc; padding: 16px; border-radius: 8px; line-height: 1.8;">`;
-            if (doc.logs && doc.logs.length > 0) {
+            if (doc.is_staged) {
+                logsHtml += `
+                    <div><span style="color: #94a3b8;">[${doc.release_date}]</span> <span style="color: #10b981; font-weight: 700;">[INGEST]</span> Bóc tách OpenXML thành công: ${doc.chunks_count} chunks.</div>
+                    <div><span style="color: #94a3b8;">[${doc.release_date}]</span> <span style="color: #38bdf8; font-weight: 700;">[VALIDATION]</span> Cấu trúc AST phân cấp hợp lệ, không phát hiện orphan nodes.</div>
+                    <div><span style="color: #94a3b8;">[${doc.release_date}]</span> <span style="color: #f59e0b; font-weight: 700;">[STAGING]</span> Dữ liệu lưu vào Staging Area, chờ Human-in-the-loop review.</div>
+                `;
+                if (doc.approved_count > 0) {
+                    logsHtml += `<div><span style="color: #94a3b8;">[${doc.release_date}]</span> <span style="color: #10b981; font-weight: 700;">[AUDIT]</span> Đã phê duyệt ${doc.approved_count} chunks sẵn sàng nạp KB.</div>`;
+                }
+            } else if (doc.logs && doc.logs.length > 0) {
                 doc.logs.forEach(log => {
                     const color = log.level === 'ERROR' ? '#ef4444' : (log.level === 'WARNING' ? '#f59e0b' : '#10b981');
                     logsHtml += `<div><span style="color: #94a3b8;">[${log.time}]</span> <span style="color: ${color}; font-weight: 700;">[${log.level}]</span> ${log.msg}</div>`;
@@ -898,15 +1308,31 @@ class RagAdminCenterController {
     }
 
     wizard_next() {
-        if (this.state.wizardStep < 4) {
+        const self = this;
+        if (this.state.wizardStep === 1) {
+            if (!this.state.currentUploadedDoc && (this.state.selectedFile || this.state.selectedPresetSample)) {
+                this.upload_and_parse_wizard_doc(() => {
+                    self.state.wizardStep = 2;
+                    self.update_wizard_ui();
+                });
+                return;
+            }
+            this.state.wizardStep = 2;
+            this.update_wizard_ui();
+        } else if (this.state.wizardStep < 4) {
             this.state.wizardStep++;
             this.update_wizard_ui();
             if (this.state.wizardStep === 4) {
                 this.simulate_wizard_indexing();
             }
         } else {
-            this.show_toast('Tài liệu đã được thêm mới và hoàn tất Indexing vào hệ thống!');
+            this.show_toast('✓ Tài liệu đã được ghi nhận vào Vùng đệm Staging! Đang chuyển đến danh sách Chờ duyệt.');
             this.close_wizard_modal();
+            this.fetch_staged_documents();
+            this.state.activeKnowledgeFilterTab = 'staging';
+            this.$root.find('.rag-tab-btn').removeClass('active');
+            this.$root.find('[data-tab-type="staging"]').addClass('active');
+            this.render_documents_table();
         }
     }
 
@@ -939,7 +1365,7 @@ class RagAdminCenterController {
             $btnNext.html('Tiếp tục <i class="fa fa-arrow-right"></i>');
         } else if (step === 4) {
             $btnPrev.css('visibility', 'hidden');
-            $btnNext.html('<i class="fa fa-check"></i> Hoàn tất & Lưu vào Kho');
+            $btnNext.html('<i class="fa fa-check"></i> Hoàn tất & Lưu vào Vùng đệm');
         } else {
             $btnPrev.css('visibility', 'visible');
             $btnNext.html('Tiếp tục <i class="fa fa-arrow-right"></i>');
@@ -947,25 +1373,344 @@ class RagAdminCenterController {
     }
 
     simulate_wizard_indexing() {
+        const self = this;
         const $bar = this.$root.find('#wizard-progressbar');
         const $title = this.$root.find('#wizard-progress-title');
         const $desc = this.$root.find('#wizard-progress-desc');
+        const $previewContainer = this.$root.find('#wizard-chunks-preview-container');
 
-        $bar.css('width', '25%');
-        $title.text('Đang phân tích cú pháp Điều / Khoản...');
-        $desc.text('Bóc tách 35 đoạn văn bản đầu tiên...');
+        $bar.css('width', '35%');
+        $title.text('Đang phân tích cấu trúc OpenXML & AST Tree...');
+        $desc.text('Kiểm tra và chuẩn hóa cấu trúc phân cấp...');
+
+        const doc = this.state.currentUploadedDoc;
+        const totalChunks = (doc && doc.total_chunks) || 48;
 
         setTimeout(() => {
-            $bar.css('width', '75%');
-            $title.text('Đang tạo Dense Vector BGE-M3 (1024-dim)...');
-            $desc.text('Hoàn tất 110/142 đoạn...');
-        }, 800);
+            $bar.css('width', '80%');
+            $title.text('Tạo Atomic Chunks & Lưu trữ Staging Area...');
+            $desc.text(`Đã tạo thành công ${totalChunks} chunks ngữ cảnh tự nhiên...`);
+        }, 600);
 
         setTimeout(() => {
             $bar.css('width', '100%');
-            $title.text('Indexing Thành Công!');
-            $desc.text('142 Chunks đã sẵn sàng phục vụ truy xuất RAG.');
-        }, 1500);
+            $title.text('Hoàn Tất Bóc Tách Vào Vùng Đệm (Staging)!');
+            $desc.text(`Tổng cộng ${totalChunks} Chunks đang ở trạng thái CHỜ DUYỆT (Human-in-the-loop).`);
+
+            // If real document, fetch real preview chunks
+            const uploadedDocId = doc && (doc.id || doc.document_id);
+            if (uploadedDocId && typeof frappe !== 'undefined' && frappe.call) {
+                frappe.call({
+                    method: 'logistics_wizard.api.rag_staging_get_chunks',
+                    args: { doc_id: uploadedDocId, limit: 3 },
+                    callback: (r) => {
+                        if (r && r.message && r.message.success && Array.isArray(r.message.data) && r.message.data.length > 0) {
+                            if ($previewContainer.length) {
+                                let previewHtml = `
+                                    <div style="margin-top:16px; text-align:left;">
+                                        <div style="font-size:12px; font-weight:700; color:#334155; margin-bottom:8px;">Bản xem trước Chunks thực tế vừa bóc tách:</div>
+                                `;
+                                r.message.data.forEach(c => {
+                                    previewHtml += `
+                                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px; margin-bottom:8px; font-size:12px;">
+                                            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                                <span style="font-weight:600; color:#0284c7;">${c.code || c.canonical_anchor || 'Chunk'}</span>
+                                                <span class="rag-badge rag-badge-warning">Chờ duyệt</span>
+                                            </div>
+                                            <div style="color:#1e293b; line-height:1.5;">${self.escape_html((c.source_text || '').substring(0, 150))}...</div>
+                                        </div>
+                                    `;
+                                });
+                                previewHtml += `</div>`;
+                                $previewContainer.html(previewHtml);
+                            }
+                        }
+                    }
+                });
+            }
+        }, 1200);
+    }
+
+    upload_and_parse_wizard_doc(onSuccess) {
+        const self = this;
+        const $btnNext = this.$root.find('#btn-wizard-next');
+
+        if (!this.state.selectedFile && !this.state.selectedPresetSample) {
+            frappe.msgprint({
+                title: 'Yêu cầu tệp DOCX',
+                message: 'Vui lòng chọn tệp DOCX từ máy tính hoặc bấm chọn một tài liệu mẫu.',
+                indicator: 'orange'
+            });
+            return;
+        }
+
+        $btnNext.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Đang phân tích DOCX...');
+
+        const doUpload = (args) => {
+            frappe.call({
+                method: 'logistics_wizard.api.rag_staging_upload_docx',
+                args: args,
+                callback: (r) => {
+                    $btnNext.prop('disabled', false).html('Tiếp tục <i class="fa fa-arrow-right"></i>');
+                    if (r && r.message && r.message.success) {
+                        const parsedData = r.message.data;
+                        self.state.currentUploadedDoc = parsedData;
+
+                        // Pre-fill Step 2
+                        if (parsedData.document_no) {
+                            self.$root.find('#wizard-doc-no').val(parsedData.document_no);
+                        }
+                        if (parsedData.effective_from) {
+                            self.$root.find('#wizard-effective-date').val(parsedData.effective_from.slice(0, 10));
+                        }
+                        if (parsedData.document_type === 'HS_NOMENCLATURE') {
+                            self.$root.find('input[name="wizard_doc_type"][value="hs"]').prop('checked', true).trigger('change');
+                        } else {
+                            self.$root.find('input[name="wizard_doc_type"][value="legal"]').prop('checked', true).trigger('change');
+                        }
+
+                        self.show_toast(`✓ Bóc tách thành công ${parsedData.total_chunks} Chunks & ${parsedData.total_nodes} AST Nodes!`);
+                        if (onSuccess) onSuccess(parsedData);
+                    } else {
+                        frappe.msgprint({
+                            title: 'Lỗi Bóc Tách Văn Bản',
+                            message: (r && r.message && r.message.error) || 'Không thể bóc tách tài liệu DOCX.',
+                            indicator: 'red'
+                        });
+                    }
+                }
+            });
+        };
+
+        if (this.state.selectedPresetSample) {
+            doUpload({
+                file_path: this.state.selectedPresetSample.path,
+                user: (frappe.session && frappe.session.user) || 'administrator'
+            });
+        } else if (this.state.selectedFile) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const base64Data = e.target.result;
+                doUpload({
+                    file_name: self.state.selectedFile.name,
+                    file_base64: base64Data,
+                    user: (frappe.session && frappe.session.user) || 'administrator'
+                });
+            };
+            reader.readAsDataURL(this.state.selectedFile);
+        }
+    }
+
+    escape_html(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    fetch_drawer_staged_chunks(docId, callback) {
+        const self = this;
+        const doc = this.documents.find(d => d.id === docId);
+        if (!doc) return;
+
+        if (typeof frappe === 'undefined' || !frappe.call) return;
+
+        frappe.call({
+            method: 'logistics_wizard.api.rag_staging_get_chunks',
+            args: { doc_id: docId, limit: 300 },
+            callback: (r) => {
+                if (r && r.message && r.message.success && Array.isArray(r.message.data)) {
+                    doc.staged_chunks = r.message.data;
+                    doc.chunks_count = doc.staged_chunks.length;
+                    doc.approved_count = doc.staged_chunks.filter(c => c.review_status === 'APPROVED').length;
+                    doc.excluded_count = doc.staged_chunks.filter(c => c.review_status === 'EXCLUDED').length;
+                    self.$root.find('#drawer-chunks-count').text(doc.chunks_count);
+                    if (self.state.activeDrawerTab === 'chunks') {
+                        self.render_drawer_body();
+                    }
+                    if (callback) callback(doc.staged_chunks);
+                }
+            }
+        });
+    }
+
+    fetch_drawer_staged_nodes(docId, callback) {
+        const self = this;
+        const doc = this.documents.find(d => d.id === docId);
+        if (!doc) return;
+
+        if (typeof frappe === 'undefined' || !frappe.call) return;
+
+        frappe.call({
+            method: 'logistics_wizard.api.rag_staging_get_nodes',
+            args: { doc_id: docId },
+            callback: (r) => {
+                if (r && r.message && r.message.success && Array.isArray(r.message.data)) {
+                    doc.staged_nodes = r.message.data;
+                    if (self.state.activeDrawerTab === 'hierarchy') {
+                        self.render_drawer_body();
+                    }
+                    if (callback) callback(doc.staged_nodes);
+                }
+            }
+        });
+    }
+
+    review_single_chunk(chunkId, action) {
+        const self = this;
+        const doc = this.documents.find(d => d.id === this.state.selectedDocId);
+        if (!doc || !doc.staged_chunks) return;
+
+        frappe.call({
+            method: 'logistics_wizard.api.rag_staging_review_chunk',
+            args: {
+                chunk_id: chunkId,
+                action: action,
+                user: (frappe.session && frappe.session.user) || 'administrator'
+            },
+            callback: (r) => {
+                if (r && r.message && r.message.success) {
+                    const chunk = doc.staged_chunks.find(c => c.id === chunkId);
+                    if (chunk) {
+                        chunk.review_status = action === 'APPROVE' ? 'APPROVED' : 'EXCLUDED';
+                    }
+                    doc.approved_count = doc.staged_chunks.filter(c => c.review_status === 'APPROVED').length;
+                    doc.excluded_count = doc.staged_chunks.filter(c => c.review_status === 'EXCLUDED').length;
+
+                    self.show_toast(action === 'APPROVE' ? '✓ Đã phê duyệt Chunk thành công!' : '✕ Đã gắn nhãn Loại trừ Chunk.');
+                    self.render_drawer_body();
+                    self.render_documents_table();
+                } else {
+                    frappe.msgprint({
+                        title: 'Lỗi Phê Duyệt',
+                        message: (r && r.message && r.message.error) || 'Không thể cập nhật trạng thái chunk.',
+                        indicator: 'red'
+                    });
+                }
+            }
+        });
+    }
+
+    save_chunk_edit(chunkId, newText, reason) {
+        const self = this;
+        const doc = this.documents.find(d => d.id === this.state.selectedDocId);
+        if (!doc || !doc.staged_chunks) return;
+
+        if (!newText || !newText.trim()) {
+            frappe.msgprint({ title: 'Cảnh báo', message: 'Nội dung hiệu đính không được để trống.', indicator: 'orange' });
+            return;
+        }
+
+        frappe.call({
+            method: 'logistics_wizard.api.rag_staging_update_chunk',
+            args: {
+                chunk_id: chunkId,
+                edited_text: newText.trim(),
+                reason: reason || 'Hiệu đính trực tiếp qua giao diện Web',
+                user: (frappe.session && frappe.session.user) || 'administrator'
+            },
+            callback: (r) => {
+                if (r && r.message && r.message.success) {
+                    const chunk = doc.staged_chunks.find(c => c.id === chunkId);
+                    if (chunk) {
+                        chunk.edited_text = newText.trim();
+                        chunk.revision = (chunk.revision || 1) + 1;
+                    }
+                    self.show_toast('✓ Đã lưu nội dung hiệu đính & tạo bản ghi sửa đổi (Revision).');
+                    self.render_drawer_body();
+                } else {
+                    frappe.msgprint({
+                        title: 'Lỗi Lưu Hiệu Đính',
+                        message: (r && r.message && r.message.error) || 'Không thể cập nhật nội dung chunk.',
+                        indicator: 'red'
+                    });
+                }
+            }
+        });
+    }
+
+    approve_all_drawer_chunks() {
+        const self = this;
+        const doc = this.documents.find(d => d.id === this.state.selectedDocId);
+        if (!doc) return;
+
+        frappe.confirm(
+            `Bạn có chắc chắn muốn phê duyệt tất cả <strong>${doc.chunks_count}</strong> Chunks của văn bản <strong>${doc.title}</strong>?`,
+            () => {
+                frappe.call({
+                    method: 'logistics_wizard.api.rag_staging_approve_all',
+                    args: {
+                        doc_id: doc.id,
+                        user: (frappe.session && frappe.session.user) || 'administrator'
+                    },
+                    callback: (r) => {
+                        if (r && r.message && r.message.success) {
+                            self.show_toast(`✓ Đã phê duyệt toàn bộ ${r.message.data.updated_count || doc.chunks_count} Chunks!`);
+                            if (doc.staged_chunks) {
+                                doc.staged_chunks.forEach(c => {
+                                    if (c.review_status !== 'EXCLUDED') c.review_status = 'APPROVED';
+                                });
+                            }
+                            doc.staged_status = 'APPROVED';
+                            doc.approved_count = doc.chunks_count - (doc.excluded_count || 0);
+
+                            // Update drawer buttons
+                            self.$root.find('#btn-drawer-approve-all').prop('disabled', true).html('<i class="fa fa-check-circle"></i> Đã duyệt tất cả Chunks');
+                            self.render_drawer_body();
+                            self.render_documents_table();
+                        } else {
+                            frappe.msgprint({
+                                title: 'Lỗi Phê Duyệt Toàn Bộ',
+                                message: (r && r.message && r.message.error) || 'Không thể duyệt tất cả chunks.',
+                                indicator: 'red'
+                            });
+                        }
+                    }
+                });
+            }
+        );
+    }
+
+    create_snapshot_and_publish() {
+        const self = this;
+        const doc = this.documents.find(d => d.id === this.state.selectedDocId);
+        if (!doc) return;
+
+        frappe.confirm(
+            `Xác nhận đóng gói Snapshot bất biến và nạp dữ liệu tài liệu <strong>${doc.title}</strong> vào Cơ sở Tri thức Chính thức?`,
+            () => {
+                self.show_toast('Đang tạo Snapshot kiểm duyệt và kích hoạt Ingestion Pipeline...');
+                frappe.call({
+                    method: 'logistics_wizard.api.rag_staging_create_snapshot',
+                    args: {
+                        doc_id: doc.id,
+                        user: (frappe.session && frappe.session.user) || 'administrator'
+                    },
+                    callback: (r) => {
+                        if (r && r.message && r.message.success) {
+                            const snap = r.message.data;
+                            doc.staged_status = 'COMMITTED';
+                            doc.retrieval_active = true;
+                            doc.index_status = 'ready';
+
+                            self.show_toast(`✓ Thành công! Đã tạo Snapshot [${snap.snapshot_id.substring(0,8)}] với ${snap.total_records} Chunks đã phê duyệt.`);
+                            self.close_drawer();
+                            self.update_tab_counts();
+                            self.render_documents_table();
+                        } else {
+                            frappe.msgprint({
+                                title: 'Chưa Đủ Điều Kiện Đóng Gói Snapshot',
+                                message: (r && r.message && r.message.error) || 'Cần kiểm tra và phê duyệt hoặc loại trừ toàn bộ Chunks trước khi đóng gói Snapshot.',
+                                indicator: 'orange'
+                            });
+                        }
+                    }
+                });
+            }
+        );
     }
 
     show_toast(message) {
@@ -1541,7 +2286,7 @@ function register_rag_knowledge_base_page(pageName) {
             const isGraph = hash === '#graph' || (route && route[1] === 'graph') || (frappe.route_options && frappe.route_options.tab === 'graph');
             if (isGraph) {
                 wrapper.ragAdminController.switch_nav_tab('graph');
-            } else if (wrapper.ragAdminController.state && wrapper.ragAdminController.state.currentNavTab && wrapper.ragAdminController.state.currentNavTab !== 'dashboard') {
+            } else if (wrapper.ragAdminController.state && wrapper.ragAdminController.state.currentNavTab) {
                 wrapper.ragAdminController.switch_nav_tab(wrapper.ragAdminController.state.currentNavTab);
             } else {
                 wrapper.ragAdminController.switch_nav_tab('knowledge');

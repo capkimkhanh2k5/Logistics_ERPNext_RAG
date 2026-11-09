@@ -244,9 +244,12 @@
             <!-- Toolbar & Filter Bar -->
             <div class="rag-toolbar">
                 <div class="rag-tabs">
-                    <button class="rag-tab-btn active" data-tab-type="all">Tất cả (344)</button>
-                    <button class="rag-tab-btn" data-tab-type="hs">Mã HS (180)</button>
-                    <button class="rag-tab-btn" data-tab-type="legal">Văn bản Pháp luật (164)</button>
+                    <button class="rag-tab-btn active" data-tab-type="all">Tất cả (<span id="tab-all-count">0</span>)</button>
+                    <button class="rag-tab-btn" data-tab-type="staging" style="font-weight: 700;">
+                        <i class="fa fa-inbox text-warning"></i> Vùng đệm Staging (<span id="tab-staging-count">0</span>)
+                    </button>
+                    <button class="rag-tab-btn" data-tab-type="hs">Mã HS (<span id="tab-hs-count">0</span>)</button>
+                    <button class="rag-tab-btn" data-tab-type="legal">Văn bản Pháp luật (<span id="tab-legal-count">0</span>)</button>
                 </div>
 
                 <div class="rag-toolbar-filters">
@@ -257,7 +260,9 @@
 
                     <select class="rag-select-input" id="rag-filter-index-status">
                         <option value="all">Tất cả trạng thái Index</option>
-                        <option value="ready">Sẵn sàng (Indexed)</option>
+                        <option value="ready">Sẵn sàng (Official Indexed)</option>
+                        <option value="staging">Vùng đệm Staging (Chờ duyệt)</option>
+                        <option value="approved">Đã duyệt (Chờ nạp)</option>
                         <option value="processing">Đang bóc tách (Processing)</option>
                         <option value="error">Lỗi Index (Failed)</option>
                     </select>
@@ -492,13 +497,16 @@
 
         <div class="rag-drawer-tabs">
             <button class="rag-drawer-tab-btn active" data-drawer-tab="chunks">
-                <i class="fa fa-cubes"></i> Trình Duyệt Chunks (<span id="drawer-chunks-count">142</span>)
+                <i class="fa fa-cubes"></i> Trình Duyệt Chunks (<span id="drawer-chunks-count">0</span>)
+            </button>
+            <button class="rag-drawer-tab-btn" data-drawer-tab="hierarchy">
+                <i class="fa fa-sitemap"></i> Cây Phân Cấp AST (<span id="drawer-nodes-count">0</span>)
             </button>
             <button class="rag-drawer-tab-btn" data-drawer-tab="metadata">
                 <i class="fa fa-info-circle"></i> Metadata Nghiệp Vụ
             </button>
             <button class="rag-drawer-tab-btn" data-drawer-tab="logs">
-                <i class="fa fa-file-text-o"></i> Nhật Ký & Lỗi Indexing
+                <i class="fa fa-history"></i> Lịch Sử Revisions
             </button>
         </div>
 
@@ -506,11 +514,16 @@
             <!-- Dynamic Content based on selected drawer tab -->
         </div>
 
-        <div style="padding: 16px 24px; border-top: 1px solid #e2e8f0; background: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
-            <button class="rag-btn-secondary" id="btn-drawer-reindex">
-                <i class="fa fa-refresh"></i> Re-index Lại Toàn Bộ
-            </button>
-            <button class="rag-btn-primary" id="btn-drawer-close-bottom">
+        <div style="padding: 16px 24px; border-top: 1px solid #e2e8f0; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <div style="display: flex; gap: 8px;">
+                <button class="rag-btn-secondary" id="btn-drawer-approve-all" style="background: #ecfdf5; color: #059669; border-color: #a7f3d0; font-weight: 600;">
+                    <i class="fa fa-check-circle"></i> Duyệt tất cả Chunks
+                </button>
+                <button class="rag-btn-primary" id="btn-drawer-publish" style="background: #0284c7; font-weight: 600;">
+                    <i class="fa fa-database"></i> Đóng gói Snapshot & Nạp vào KB
+                </button>
+            </div>
+            <button class="rag-btn-secondary" id="btn-drawer-close-bottom">
                 Đóng Panel
             </button>
         </div>
@@ -553,17 +566,33 @@
                     <div class="rag-upload-dropzone" id="rag-dropzone">
                         <i class="fa fa-cloud-upload" style="font-size: 40px; color: #0284c7; margin-bottom: 12px;"></i>
                         <h4 style="font-size: 15px; font-weight: 700; margin: 0 0 6px 0;">Kéo thả tệp văn bản vào đây, hoặc click để chọn</h4>
-                        <p style="font-size: 12px; color: #64748b; margin: 0 0 16px 0;">Hỗ trợ định dạng: .PDF, .DOCX, .XLSX (Danh mục HS), .JSON</p>
-                        <input type="file" id="wizard-file-input" style="display: none;" accept=".pdf,.docx,.xlsx,.json">
-                        <button type="button" class="rag-btn-secondary" id="btn-browse-file">Chọn tệp từ máy tính</button>
+                        <p style="font-size: 12px; color: #64748b; margin: 0 0 16px 0;">Định dạng chuẩn tối ưu 100%: <strong>.DOCX</strong> (Biểu thuế TT31, Thông tư, Nghị định)</p>
+                        <input type="file" id="wizard-file-input" style="display: none;" accept=".docx,.pdf,.xlsx,.json">
+                        <button type="button" class="rag-btn-secondary" id="btn-browse-file">Chọn tệp DOCX từ máy tính</button>
                     </div>
+
+                    <div style="margin-top: 14px; padding: 12px 14px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; font-size: 12px; color: #475569;">
+                        <strong><i class="fa fa-lightbulb-o text-warning"></i> Thử nhanh với tài liệu mẫu thực tế:</strong>
+                        <div style="margin-top: 6px; display: flex; flex-wrap: wrap; gap: 8px;">
+                            <button type="button" class="btn-preset-sample rag-btn-secondary" data-sample="data/raw/ThongTu_85-2026_TT-BTC.docx" data-docno="85/2026/TT-BTC" style="font-size: 11px; padding: 4px 10px;">
+                                <i class="fa fa-file-word-o text-primary"></i> Thông tư 85/2026/TT-BTC
+                            </button>
+                            <button type="button" class="btn-preset-sample rag-btn-secondary" data-sample="data/raw/docx/TT31-Section-XVII.docx" data-docno="TT31-Phần-XVII" style="font-size: 11px; padding: 4px 10px;">
+                                <i class="fa fa-file-word-o text-primary"></i> Biểu thuế TT31 Phần XVII
+                            </button>
+                            <button type="button" class="btn-preset-sample rag-btn-secondary" data-sample="data/raw/docx/02_2024_TT-BTTTT_m_605048.docx" data-docno="02/2024/TT-BTTTT" style="font-size: 11px; padding: 4px 10px;">
+                                <i class="fa fa-file-word-o text-primary"></i> Thông tư 02/2024/TT-BTTTT
+                            </button>
+                        </div>
+                    </div>
+
                     <div id="wizard-selected-file-info" style="margin-top: 16px; display: none;" class="rag-card">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <i class="fa fa-file-pdf-o text-danger" style="font-size: 24px;"></i>
+                                <i class="fa fa-file-word-o text-primary" style="font-size: 24px;"></i>
                                 <div>
-                                    <strong id="wizard-filename">ThongTu_85_2026.pdf</strong>
-                                    <div style="font-size: 11px; color: #64748b;" id="wizard-filesize">2.4 MB · 48 trang</div>
+                                    <strong id="wizard-filename">ThongTu_85-2026_TT-BTC.docx</strong>
+                                    <div style="font-size: 11px; color: #64748b;" id="wizard-filesize">DOCX Package</div>
                                 </div>
                             </div>
                             <span class="rag-badge rag-badge-success">Đã sẵn sàng tải lên</span>

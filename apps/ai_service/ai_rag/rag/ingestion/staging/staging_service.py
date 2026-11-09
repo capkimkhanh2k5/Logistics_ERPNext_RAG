@@ -214,6 +214,23 @@ class StagingService:
             return doc
 
     @classmethod
+    def get_nodes(cls, doc_id: str) -> list[dict[str, Any]]:
+        """Fetch hierarchical AST nodes for a staged document."""
+        with connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT id, document_id, parent_node_id, node_type, node_level,
+                       node_order, canonical_anchor, code, title, source_text,
+                       breadcrumb, metadata
+                FROM rag.staged_nodes
+                WHERE document_id = %s
+                ORDER BY node_order ASC
+                """,
+                (doc_id,),
+            ).fetchall()
+            return [dict(r) for r in rows]
+
+    @classmethod
     def get_chunks(
         cls,
         doc_id: str,
