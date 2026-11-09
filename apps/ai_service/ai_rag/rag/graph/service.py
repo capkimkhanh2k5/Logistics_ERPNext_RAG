@@ -149,7 +149,61 @@ class UnifiedGraphService:
                         self._children_index[src].append(tgt)
                         self._parents_index[tgt].append(src)
 
-        # 5. Add Root Node for high-level visualization
+        # 5. Load Section XVII structural & edges
+        sec_xvii_edges = DATA_DIR / "Section-XVII" / "SECTION_XVII_GRAPH_EDGES_NORMALIZED.jsonl"
+        if sec_xvii_edges.exists():
+            with open(sec_xvii_edges, "r", encoding="utf-8") as f:
+                for line in f:
+                    if not line.strip():
+                        continue
+                    item = json.loads(line)
+                    src = item.get("from_id")
+                    tgt = item.get("to_id")
+                    rel = item.get("relation", "CONTAINS")
+                    if src and tgt:
+                        self._edges.append(
+                            {
+                                "id": item.get("id", f"e_{len(self._edges)}"),
+                                "source": src,
+                                "target": tgt,
+                                "relation": rel,
+                                "metadata": item,
+                            }
+                        )
+                        self._children_index[src].append(tgt)
+                        self._parents_index[tgt].append(src)
+
+        # 6. Enrich nodes with Vietnamese descriptions from Master files
+        for sec_code, path in [
+            ("XIV", DATA_DIR / "Section-XIV" / "SECTION_XIV_MASTER_NORMALIZED.jsonl"),
+            ("XVI", DATA_DIR / "Section-XVI" / "SECTION_XVI_MASTER_NORMALIZED.jsonl"),
+            ("XVII", DATA_DIR / "Section-XVII" / "SECTION_XVII_MASTER_NORMALIZED.jsonl"),
+        ]:
+            if path.exists():
+                with open(path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if not line.strip():
+                            continue
+                        d = json.loads(line)
+                        nid = d.get("record_id") or d.get("code")
+                        if not nid:
+                            continue
+                        code = d.get("code", "")
+                        level = d.get("level", 4)
+                        title = d.get("title_vi") or d.get("text_vi", "")[:60]
+                        desc = d.get("text_vi") or d.get("source_text_vi", "")
+
+                        self._nodes[nid] = {
+                            "id": nid,
+                            "type": "chapter" if level == 2 else ("heading" if level == 4 else "subheading"),
+                            "label": title or f"Mã {code}",
+                            "code": code,
+                            "section": sec_code,
+                            "chapter": d.get("chapter"),
+                            "description": desc,
+                        }
+
+        # 7. Add Root Node and connect all Section nodes
         root_id = "ROOT_CUSTOMS_TARIFF"
         if root_id not in self._nodes:
             self._nodes[root_id] = {
@@ -160,20 +214,33 @@ class UnifiedGraphService:
                 "chapter": None,
                 "description": "Danh mục biểu thuế và chú giải pháp lý hải quan (Thông tư 31/2022/TT-BTC)",
             }
-            # Connect Root to Sections
-            for sec_id in ["SXVI-S-XVI", "CH:71"]:
-                if sec_id in self._nodes:
-                    self._edges.append(
-                        {
-                            "id": f"e_root_{sec_id}",
-                            "source": root_id,
-                            "target": sec_id,
-                            "relation": "CONTAINS",
-                            "metadata": {},
-                        }
-                    )
-                    self._children_index[root_id].append(sec_id)
-                    self._parents_index[sec_id].append(root_id)
+            # Connect Root to all Sections (XIV, XVI, XVII)
+            for sec_id, sec_label in [
+                ("SXIV_SECTION", "Phần XIV (Đá quý, kim loại quý)"),
+                ("SXVI-S-XVI", "Phần XVI (Máy móc, thiết bị điện)"),
+                ("SXVII_SECTION", "Phần XVII (Phương tiện vận tải)"),
+            ]:
+                if sec_id not in self._nodes:
+                    self._nodes[sec_id] = {
+                        "id": sec_id,
+                        "type": "section",
+                        "label": sec_label,
+                        "section": sec_id.replace("S", "").replace("_SECTION", ""),
+                        "chapter": None,
+                        "description": sec_label,
+                    }
+                self._edges.append(
+                    {
+                        "id": f"e_root_{sec_id}",
+                        "source": root_id,
+                        "target": sec_id,
+                        "relation": "CONTAINS",
+                        "metadata": {},
+                    }
+                )
+                self._children_index[root_id].append(sec_id)
+                self._parents_index[sec_id].append(root_id)
+
 
         self._loaded = True
         logger.info(
