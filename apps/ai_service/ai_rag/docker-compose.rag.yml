@@ -4,7 +4,10 @@
 name: aiagent-rag
 services:
   postgres:
-    image: pgvector/pgvector:0.8.0-pg17
+    image: pgvector-apache-age:pg17
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres_age
     environment:
       POSTGRES_DB: ${RAG_DB_NAME:-hs_rag}
       POSTGRES_USER: ${RAG_DB_USER:-rag}

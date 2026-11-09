@@ -457,6 +457,8 @@ class RagAdminCenterController {
             setTimeout(() => this.render_charts(), 50);
         } else if (tabName === 'knowledge') {
             this.render_documents_table();
+        } else if (tabName === 'graph') {
+            setTimeout(() => this.init_or_refresh_graph(), 50);
         }
     }
 
@@ -960,6 +962,416 @@ class RagAdminCenterController {
                 $(this).remove();
             });
         }, 3500);
+    }
+
+    // =========================================================================
+    // CYTOSCAPE.JS KNOWLEDGE GRAPH EXPLORER (DUAL-RUN: IN-MEMORY / APACHE AGE)
+    // =========================================================================
+
+    ensure_cytoscape(callback) {
+        if (window.cytoscape) {
+            callback();
+            return;
+        }
+
+        const loadScript = (src, next) => {
+            const s = document.createElement('script');
+            s.src = src;
+            s.onload = next;
+            s.onerror = () => {
+                console.warn('Failed loading script:', src);
+                if (next) next();
+            };
+            document.head.appendChild(s);
+        };
+
+        // Try local assets first, with CDN fallbacks
+        loadScript('/assets/logistics_wizard/js/cytoscape.min.js', () => {
+            if (!window.cytoscape) {
+                loadScript('https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js', () => {
+                    loadScript('/assets/logistics_wizard/js/dagre.min.js', () => {
+                        loadScript('/assets/logistics_wizard/js/cytoscape-dagre.min.js', () => {
+                            callback();
+                        });
+                    });
+                });
+            } else {
+                loadScript('/assets/logistics_wizard/js/dagre.min.js', () => {
+                    loadScript('/assets/logistics_wizard/js/cytoscape-dagre.min.js', () => {
+                        callback();
+                    });
+                });
+            }
+        });
+    }
+
+    init_or_refresh_graph() {
+        const self = this;
+        this.ensure_cytoscape(() => {
+            if (!self.graphInitialized) {
+                self.bind_graph_controls();
+                self.fetch_and_render_graph();
+                self.graphInitialized = true;
+            } else if (self.cy) {
+                self.cy.resize();
+                self.cy.fit(undefined, 30);
+            }
+        });
+    }
+
+    bind_graph_controls() {
+        const self = this;
+        const $root = this.$root;
+
+        $root.on('click', '#btn-graph-zoom-in', () => {
+            if (self.cy) self.cy.zoom(self.cy.zoom() * 1.25);
+        });
+
+        $root.on('click', '#btn-graph-zoom-out', () => {
+            if (self.cy) self.cy.zoom(self.cy.zoom() * 0.8);
+        });
+
+        $root.on('click', '#btn-graph-fit', () => {
+            if (self.cy) self.cy.fit(undefined, 30);
+        });
+
+        $root.on('click', '#btn-graph-reset', () => {
+            $root.find('#rag-graph-filter-section').val('all');
+            $root.find('#rag-graph-filter-chapter').val('all');
+            $root.find('#rag-graph-search-input').val('');
+            self.fetch_and_render_graph();
+        });
+
+        $root.on('change', '#rag-graph-filter-section, #rag-graph-filter-chapter', () => {
+            const sec = $root.find('#rag-graph-filter-section').val();
+            const ch = $root.find('#rag-graph-filter-chapter').val();
+            self.fetch_and_render_graph({
+                section: sec === 'all' ? null : sec,
+                chapter: ch === 'all' ? null : ch
+            });
+        });
+
+        $root.on('click', '#btn-graph-search', () => {
+            const q = $root.find('#rag-graph-search-input').val().trim();
+            if (q) {
+                self.fetch_and_render_graph({ query: q });
+            }
+        });
+
+        $root.on('keypress', '#rag-graph-search-input', (e) => {
+            if (e.which === 13) {
+                $root.find('#btn-graph-search').trigger('click');
+            }
+        });
+
+        $root.on('click', '#btn-node-expand-children', () => {
+            self.expand_selected_node();
+        });
+    }
+
+    fetch_and_render_graph(params) {
+        const self = this;
+        const $indicator = this.$root.find('#rag-graph-loading-indicator');
+        $indicator.fadeIn(150);
+
+        const callParams = params || {
+            section: this.$root.find('#rag-graph-filter-section').val() === 'all' ? null : this.$root.find('#rag-graph-filter-section').val(),
+            chapter: this.$root.find('#rag-graph-filter-chapter').val() === 'all' ? null : this.$root.find('#rag-graph-filter-chapter').val(),
+            query: this.$root.find('#rag-graph-search-input').val().trim() || null,
+            limit: 120
+        };
+
+        if (typeof frappe !== 'undefined' && frappe.call) {
+            frappe.call({
+                method: 'logistics_wizard.api.get_knowledge_graph',
+                args: callParams,
+                callback: (r) => {
+                    $indicator.fadeOut(150);
+                    if (r && r.message && r.message.success) {
+                        self.render_cytoscape(r.message.elements, r.message.engine);
+                    } else {
+                        self.render_fallback_graph();
+                    }
+                },
+                error: () => {
+                    $indicator.fadeOut(150);
+                    self.render_fallback_graph();
+                }
+            });
+        } else {
+            $indicator.fadeOut(150);
+            self.render_fallback_graph();
+        }
+    }
+
+    render_cytoscape(elements, engine) {
+        const self = this;
+        const container = this.$root.find('#rag-cytoscape-canvas')[0];
+        if (!container || !window.cytoscape) return;
+
+        // Update engine badge
+        const engineLabel = engine === 'apache_age' ? 'Apache AGE (PG17)' : 'In-Memory JSON (Dual-Run)';
+        this.$root.find('#graph-active-engine').text(engineLabel);
+
+        const cyNodes = (elements && elements.nodes) || [];
+        const cyEdges = (elements && elements.edges) || [];
+
+        if (this.cy) {
+            this.cy.destroy();
+        }
+
+        const hasDagre = typeof window.cytoscape === 'function' && typeof cytoscape('core', 'dagre') === 'function';
+        const layoutConfig = hasDagre
+            ? { name: 'dagre', rankDir: 'TB', nodeSep: 45, rankSep: 65, animate: true, animationDuration: 400 }
+            : { name: 'breadthfirst', directed: true, padding: 35, spacingFactor: 1.25, animate: true };
+
+        this.cy = cytoscape({
+            container: container,
+            elements: [...cyNodes, ...cyEdges],
+            boxSelectionEnabled: false,
+            autounselectify: false,
+            style: [
+                {
+                    selector: 'node',
+                    style: {
+                        'label': 'data(label)',
+                        'color': '#1e293b',
+                        'font-size': '10px',
+                        'font-weight': '600',
+                        'text-valign': 'bottom',
+                        'text-margin-y': '6px',
+                        'background-color': '#0284c7',
+                        'width': '34px',
+                        'height': '34px',
+                        'border-width': '2px',
+                        'border-color': '#ffffff',
+                        'transition-property': 'background-color, border-color, width, height',
+                        'transition-duration': '0.2s'
+                    }
+                },
+                {
+                    selector: 'node[type = "root"]',
+                    style: {
+                        'background-color': '#0284c7',
+                        'shape': 'round-rectangle',
+                        'width': '55px',
+                        'height': '55px',
+                        'font-size': '12px',
+                        'font-weight': '700'
+                    }
+                },
+                {
+                    selector: 'node[type = "section"]',
+                    style: {
+                        'background-color': '#0369a1',
+                        'shape': 'round-rectangle',
+                        'width': '46px',
+                        'height': '46px'
+                    }
+                },
+                {
+                    selector: 'node[type = "chapter"]',
+                    style: {
+                        'background-color': '#2563eb',
+                        'shape': 'round-rectangle',
+                        'width': '40px',
+                        'height': '40px'
+                    }
+                },
+                {
+                    selector: 'node[type = "heading"]',
+                    style: {
+                        'background-color': '#0d9488',
+                        'shape': 'ellipse',
+                        'width': '34px',
+                        'height': '34px'
+                    }
+                },
+                {
+                    selector: 'node[type = "subheading"]',
+                    style: {
+                        'background-color': '#f59e0b',
+                        'shape': 'ellipse',
+                        'width': '26px',
+                        'height': '26px'
+                    }
+                },
+                {
+                    selector: 'node[type = "note"], node[type = "legal_rule"]',
+                    style: {
+                        'background-color': '#e11d48',
+                        'shape': 'diamond',
+                        'width': '28px',
+                        'height': '28px'
+                    }
+                },
+                {
+                    selector: 'node:selected, node.selected',
+                    style: {
+                        'border-width': '4px',
+                        'border-color': '#f59e0b',
+                        'shadow-blur': '12px',
+                        'shadow-color': 'rgba(2, 132, 199, 0.4)'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 1.6,
+                        'line-color': '#93c5fd',
+                        'target-arrow-color': '#60a5fa',
+                        'target-arrow-shape': 'triangle',
+                        'curve-style': 'bezier',
+                        'arrow-scale': 0.8,
+                        'opacity': 0.8
+                    }
+                },
+                {
+                    selector: 'edge[relation = "EXCLUDES"]',
+                    style: {
+                        'line-color': '#fca5a5',
+                        'target-arrow-color': '#ef4444',
+                        'line-style': 'dashed'
+                    }
+                },
+                {
+                    selector: 'edge[relation = "REFERENCES_CODE"], edge[relation = "REFERENCES"]',
+                    style: {
+                        'line-color': '#cbd5e1',
+                        'target-arrow-color': '#94a3b8'
+                    }
+                }
+            ],
+            layout: layoutConfig
+        });
+
+        // Click event on node
+        this.cy.on('tap', 'node', function (evt) {
+            const node = evt.target;
+            self.handle_graph_node_select(node.data());
+        });
+
+        // Click on background
+        this.cy.on('tap', function (evt) {
+            if (evt.target === self.cy) {
+                self.cy.nodes().removeClass('selected');
+            }
+        });
+
+        // Auto select first node
+        if (cyNodes.length > 0) {
+            this.handle_graph_node_select(cyNodes[0].data);
+        }
+    }
+
+    handle_graph_node_select(data) {
+        if (!data) return;
+        this.state.selectedGraphNodeId = data.id;
+
+        const $details = this.$root.find('#rag-graph-node-details');
+        $details.find('#node-detail-id').text(data.id || 'N/A');
+        $details.find('#node-detail-label').text(data.label || data.code || 'N/A');
+        $details.find('#node-detail-desc').text(data.description || 'Chưa có chú giải chi tiết.');
+        $details.find('#node-detail-type').text(data.type || 'item');
+        $details.find('#node-detail-chapter').text(data.chapter || data.section || 'N/A');
+        $details.find('#node-detail-children-count').text(data.children_count || 0);
+
+        const $expandBtn = $details.find('#btn-node-expand-children');
+        if (data.has_children || (data.children_count && data.children_count > 0)) {
+            $expandBtn.show().find('span').text(`Mở Rộng Nhánh Con (${data.children_count})`);
+        } else {
+            $expandBtn.hide();
+        }
+    }
+
+    expand_selected_node() {
+        const self = this;
+        const nid = this.state.selectedGraphNodeId;
+        if (!nid || !this.cy) return;
+
+        const $indicator = this.$root.find('#rag-graph-loading-indicator');
+        $indicator.fadeIn(150);
+
+        const handleSuccess = (elements) => {
+            $indicator.fadeOut(150);
+            const newNodes = (elements && elements.nodes) || [];
+            const newEdges = (elements && elements.edges) || [];
+
+            const existingNodeIds = new Set(self.cy.nodes().map(n => n.id()));
+            const toAdd = [];
+
+            newNodes.forEach(n => {
+                if (!existingNodeIds.has(n.data.id)) {
+                    toAdd.push(n);
+                }
+            });
+
+            const existingEdgeIds = new Set(self.cy.edges().map(e => e.id()));
+            newEdges.forEach(e => {
+                if (!existingEdgeIds.has(e.data.id)) {
+                    toAdd.push(e);
+                }
+            });
+
+            if (toAdd.length > 0) {
+                self.cy.add(toAdd);
+                const layout = self.cy.layout({
+                    name: 'breadthfirst',
+                    roots: `#${nid.replace(/(:|\.)/g, '\\$1')}`,
+                    directed: true,
+                    padding: 30,
+                    animate: true,
+                    animationDuration: 500
+                });
+                layout.run();
+                self.show_toast(`Đã mở rộng thêm ${toAdd.length} nhánh tri thức!`);
+            } else {
+                self.show_toast('Tất cả các nhánh con của nút này đã được hiển thị.');
+            }
+        };
+
+        if (typeof frappe !== 'undefined' && frappe.call) {
+            frappe.call({
+                method: 'logistics_wizard.api.get_knowledge_graph',
+                args: { root_id: nid, depth: 1, limit: 30 },
+                callback: (r) => {
+                    if (r && r.message && r.message.success && r.message.elements) {
+                        handleSuccess(r.message.elements);
+                    } else {
+                        $indicator.fadeOut(150);
+                        self.show_toast('Không tìm thấy nhánh con bổ sung.');
+                    }
+                },
+                error: () => {
+                    $indicator.fadeOut(150);
+                }
+            });
+        } else {
+            $indicator.fadeOut(150);
+        }
+    }
+
+    render_fallback_graph() {
+        const mockNodes = [
+            { data: { id: 'ROOT', label: 'Biểu Thuế Hải Quan', type: 'root', description: 'Cấu trúc biểu thuế phân cấp toàn quốc' } },
+            { data: { id: 'SEC_XVI', label: 'Phần XVI: Máy Móc', type: 'section', chapter: '84, 85', description: 'Máy và các thiết bị cơ khí, điện tử' } },
+            { data: { id: 'CH_84', label: 'Chương 84: Lò phản ứng & Nồi hơi', type: 'chapter', chapter: '84', description: 'Nồi hơi, máy cơ khí' } },
+            { data: { id: 'CH_85', label: 'Chương 85: Thiết Bị Điện', type: 'chapter', chapter: '85', description: 'Máy điện và thiết bị truyền hình, viễn thông' } },
+            { data: { id: 'HD_8471', label: 'Nhóm 84.71: Máy Xử Lý Dữ Liệu', type: 'heading', chapter: '84', code: '8471', description: 'Máy xử lý dữ liệu tự động, máy tính xách tay' } },
+            { data: { id: 'SUB_847130', label: 'Phân nhóm 8471.30: Laptop', type: 'subheading', chapter: '84', code: '8471.30', description: 'Máy tính xách tay trọng lượng <= 10kg' } },
+            { data: { id: 'EXCL_NOTE', label: 'Chú giải loại trừ Ch.84', type: 'note', chapter: '84', description: 'Không bao gồm máy móc thuộc Phần XVII' } }
+        ];
+
+        const mockEdges = [
+            { data: { id: 'e1', source: 'ROOT', target: 'SEC_XVI', label: 'CONTAINS', relation: 'CONTAINS' } },
+            { data: { id: 'e2', source: 'SEC_XVI', target: 'CH_84', label: 'CONTAINS', relation: 'CONTAINS' } },
+            { data: { id: 'e3', source: 'SEC_XVI', target: 'CH_85', label: 'CONTAINS', relation: 'CONTAINS' } },
+            { data: { id: 'e4', source: 'CH_84', target: 'HD_8471', label: 'CONTAINS', relation: 'CONTAINS' } },
+            { data: { id: 'e5', source: 'HD_8471', target: 'SUB_847130', label: 'CONTAINS', relation: 'CONTAINS' } },
+            { data: { id: 'e6', source: 'HD_8471', target: 'EXCL_NOTE', label: 'EXCLUDES', relation: 'EXCLUDES' } }
+        ];
+
+        this.render_cytoscape({ nodes: mockNodes, edges: mockEdges }, 'inmemory');
     }
 }
 

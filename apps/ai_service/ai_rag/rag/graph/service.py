@@ -1,30 +1,87 @@
-"""Unified Graph Service with Dual-Engine Architecture.
+"""Unified Graph Service with Dual-Engine Architecture (In-Memory Corpus & Apache AGE).
 
-Supports:
-- In-Memory JSON catalog (original baseline, zero dependencies)
-- Apache AGE (openCypher on PostgreSQL 17)
-- Dynamic fallback & Lazy loading for Cytoscape.js visualization.
+Uses the authoritative `load_corpus()` bundle (7,004 nodes, 21,752 edges across
+Sections XIV, XVI, XVII, PDF context branches, GIR rules, TT85, ND26, VBHN05, TT02)
+as Single Source of Truth, while bridging `GraphContext` for RAG Core and
+serving interactive subgraphs for Cytoscape.js.
 """
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 from collections import defaultdict
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
+from rag.chunking.corpus import load_corpus
 from rag.graph.age_adapter import ApacheAgeAdapter
+from rag.graph.context import GraphContext
+from rag.ingestion.sources import first
 
 logger = logging.getLogger("rag.graph.service")
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DATA_DIR = BASE_DIR / "data" / "normalized" / "TT31"
+SECTION_ROOT_IDS = [
+    ("tt31:SEC:XIV", "XIV", "Phần XIV — Ngọc trai, đá quý, kim loại quý (Chương 71)"),
+    ("tt31:SXVI-S-XVI", "XVI", "Phần XVI — Máy và thiết bị cơ khí, thiết bị điện (Chương 84, 85)"),
+    ("tt31:SXVII_SECTION", "XVII", "Phần XVII — Xe cộ, phương tiện bay, tàu thuyền (Chương 86–89)"),
+]
+
+
+def _classify_node_type(nid: str, rec: Dict[str, Any], md: Dict[str, Any]) -> str:
+    if nid == "ROOT_CUSTOMS_TARIFF":
+        return "root"
+    if nid in {s[0] for s in SECTION_ROOT_IDS} or md.get("node_type") == "section":
+        return "section"
+    chunk_type = rec.get("chunk_type") or md.get("chunk_type")
+    if chunk_type in {
+        "section_note",
+        "chapter_note",
+        "subheading_note",
+        "tariff_footnote",
+        "gir_rule",
+        "gir_explanation",
+        "legal_clause",
+        "technical_standard_item",
+    } or rec.get("role") == "evidence" or "NOTE" in nid:
+        return "note"
+    level = rec.get("level") or md.get("level")
+    if (
+        level == 2
+        or md.get("node_type") in {"chapter", "subchapter"}
+        or ":CH:" in nid
+        or "-CH-" in nid
+        or "_CH_" in nid
+        or ":SUBCH:" in nid
+    ):
+        return "chapter"
+    if level == 4 or "HEADING4" in nid:
+        return "heading"
+    if level in (6, 8):
+        return "subheading"
+    if (rec.get("role") or md.get("role")) == "context" or "PDF_CTX" in nid:
+        return "context"
+    return "item"
+
+
+def _build_node_label(nid: str, ntype: str, code: str, title_text: str) -> str:
+    clean_title = " ".join(str(title_text or "").split())
+    if clean_title.startswith("-"):
+        clean_title = clean_title.lstrip("- ").strip()
+    short_title = clean_title[:48] + ("..." if len(clean_title) > 48 else "")
+
+    if ntype in {"root", "section"}:
+        return clean_title or nid
+    if ntype == "chapter":
+        if code:
+            return f"Chương {code}" + (f": {short_title}" if short_title and not short_title.lower().startswith("chương") else "")
+        return short_title or nid
+    if code:
+        return f"Mã {code}" + (f" — {short_title}" if short_title else "")
+    return short_title or nid.replace("tt31:", "")
 
 
 class UnifiedGraphService:
-    """Manages graph querying across In-Memory (JSON) and Apache AGE (PostgreSQL)."""
+    """Manages graph querying across Authoritative In-Memory Corpus and Apache AGE."""
 
     def __init__(self, engine: Optional[str] = None) -> None:
         self.engine_mode = (
@@ -32,220 +89,202 @@ class UnifiedGraphService:
         ).lower()
         self.age_adapter = ApacheAgeAdapter()
 
-        # In-memory cached structures
         self._nodes: Dict[str, Dict[str, Any]] = {}
         self._edges: List[Dict[str, Any]] = []
+        self._alias_to_id: Dict[str, str] = {}
         self._children_index: Dict[str, List[str]] = defaultdict(list)
         self._parents_index: Dict[str, List[str]] = defaultdict(list)
+        self._notes_index: Dict[str, List[str]] = defaultdict(list)
+        self._graph_context: Optional[GraphContext] = None
         self._loaded: bool = False
 
+    def resolve_node_id(self, node_id: Optional[str]) -> Optional[str]:
+        """Resolve either canonical (`tt31:SXVI-CH-84`) or short (`SXVI-CH-84`) node IDs."""
+        if not node_id:
+            return None
+        self.load_inmemory_if_needed()
+        if node_id in self._nodes:
+            return node_id
+        prefixed = f"tt31:{node_id}"
+        if prefixed in self._nodes:
+            return prefixed
+        return self._alias_to_id.get(node_id)
+
     def load_inmemory_if_needed(self) -> None:
-        """Load JSON/JSONL graph data into memory on demand."""
+        """Load the authoritative `artifacts/corpus.json` graph bundle into memory."""
         if self._loaded:
             return
 
-        logger.info("Loading in-memory customs knowledge graph...")
+        logger.info("Loading authoritative customs knowledge graph from corpus.json...")
+        bundle = load_corpus()
+        records_by_id: Dict[str, Dict[str, Any]] = {
+            r["id"]: r for r in bundle["records"]
+        }
 
-        # 1. Load structural nodes from Section XVI
-        sec_xvi_nodes = DATA_DIR / "Section-XVI" / "SECTION_XVI_GRAPH_STRUCTURAL_NODES.jsonl"
-        if sec_xvi_nodes.exists():
-            with open(sec_xvi_nodes, "r", encoding="utf-8") as f:
-                for line in f:
-                    if not line.strip():
-                        continue
-                    item = json.loads(line)
-                    nid = item.get("node_id")
-                    if nid:
-                        self._nodes[nid] = {
-                            "id": nid,
-                            "type": item.get("node_type", "section"),
-                            "label": item.get("label_vi") or nid,
-                            "section": item.get("section"),
-                            "chapter": item.get("chapter"),
-                            "description": item.get("label_vi", ""),
-                        }
+        # 1. Register all 7,004 canonical nodes from bundle["nodes"]
+        for n in bundle["nodes"]:
+            nid = n["id"]
+            md = n.get("metadata", {})
+            rec = records_by_id.get(nid, {})
 
-        # 2. Load Section XIV nodes
-        sec_xiv_nodes = DATA_DIR / "Section-XIV" / "SECTION_XIV_GRAPH_NODES.jsonl"
-        if sec_xiv_nodes.exists():
-            with open(sec_xiv_nodes, "r", encoding="utf-8") as f:
-                for line in f:
-                    if not line.strip():
-                        continue
-                    item = json.loads(line)
-                    nid = item.get("node_id")
-                    if nid:
-                        self._nodes[nid] = {
-                            "id": nid,
-                            "type": item.get("node_type", "item"),
-                            "label": item.get("code") or item.get("label") or nid,
-                            "section": item.get("section", "XIV"),
-                            "chapter": item.get("chapter"),
-                            "code": item.get("code"),
-                            "description": item.get("description_vi") or item.get("policy", ""),
-                        }
-
-        # 3. Load Section XVI edges
-        sec_xvi_edges = DATA_DIR / "Section-XVI" / "SECTION_XVI_GRAPH_EDGES.jsonl"
-        if sec_xvi_edges.exists():
-            with open(sec_xvi_edges, "r", encoding="utf-8") as f:
-                for line in f:
-                    if not line.strip():
-                        continue
-                    item = json.loads(line)
-                    src = item.get("source_id")
-                    tgt = item.get("target_id")
-                    rel = item.get("relation", "CONTAINS")
-                    if src and tgt:
-                        self._edges.append(
-                            {
-                                "id": item.get("edge_id", f"e_{len(self._edges)}"),
-                                "source": src,
-                                "target": tgt,
-                                "relation": rel,
-                                "metadata": item.get("metadata", {}),
-                            }
-                        )
-                        self._children_index[src].append(tgt)
-                        self._parents_index[tgt].append(src)
-
-                        # Auto-register leaf target nodes if not yet in _nodes
-                        if tgt not in self._nodes:
-                            label = tgt
-                            code = tgt.split("-")[-1] if "-" in tgt else tgt
-                            if code.startswith("T"):
-                                code = code[1:]
-                            self._nodes[tgt] = {
-                                "id": tgt,
-                                "type": "subheading" if len(code) >= 6 else "heading",
-                                "label": f"Mã {code}" if code.isdigit() else label,
-                                "code": code,
-                                "section": "XVI",
-                                "chapter": code[:2] if len(code) >= 2 else None,
-                                "description": f"Dòng thuế / Nhánh {code}",
-                            }
-
-        # 4. Load Section XIV edges
-        sec_xiv_edges = DATA_DIR / "Section-XIV" / "SECTION_XIV_GRAPH_EDGES.jsonl"
-        if sec_xiv_edges.exists():
-            with open(sec_xiv_edges, "r", encoding="utf-8") as f:
-                for line in f:
-                    if not line.strip():
-                        continue
-                    item = json.loads(line)
-                    src = item.get("source") or item.get("source_id")
-                    tgt = item.get("target") or item.get("target_id")
-                    rel = item.get("relation", "CONTAINS")
-                    if src and tgt:
-                        self._edges.append(
-                            {
-                                "id": item.get("edge_id", f"e_{len(self._edges)}"),
-                                "source": src,
-                                "target": tgt,
-                                "relation": rel,
-                                "metadata": item.get("metadata", {}),
-                            }
-                        )
-                        self._children_index[src].append(tgt)
-                        self._parents_index[tgt].append(src)
-
-        # 5. Load Section XVII structural & edges
-        sec_xvii_edges = DATA_DIR / "Section-XVII" / "SECTION_XVII_GRAPH_EDGES_NORMALIZED.jsonl"
-        if sec_xvii_edges.exists():
-            with open(sec_xvii_edges, "r", encoding="utf-8") as f:
-                for line in f:
-                    if not line.strip():
-                        continue
-                    item = json.loads(line)
-                    src = item.get("from_id")
-                    tgt = item.get("to_id")
-                    rel = item.get("relation", "CONTAINS")
-                    if src and tgt:
-                        self._edges.append(
-                            {
-                                "id": item.get("id", f"e_{len(self._edges)}"),
-                                "source": src,
-                                "target": tgt,
-                                "relation": rel,
-                                "metadata": item,
-                            }
-                        )
-                        self._children_index[src].append(tgt)
-                        self._parents_index[tgt].append(src)
-
-        # 6. Enrich nodes with Vietnamese descriptions from Master files
-        for sec_code, path in [
-            ("XIV", DATA_DIR / "Section-XIV" / "SECTION_XIV_MASTER_NORMALIZED.jsonl"),
-            ("XVI", DATA_DIR / "Section-XVI" / "SECTION_XVI_MASTER_NORMALIZED.jsonl"),
-            ("XVII", DATA_DIR / "Section-XVII" / "SECTION_XVII_MASTER_NORMALIZED.jsonl"),
-        ]:
-            if path.exists():
-                with open(path, "r", encoding="utf-8") as f:
-                    for line in f:
-                        if not line.strip():
-                            continue
-                        d = json.loads(line)
-                        nid = d.get("record_id") or d.get("code")
-                        if not nid:
-                            continue
-                        code = d.get("code", "")
-                        level = d.get("level", 4)
-                        title = d.get("title_vi") or d.get("text_vi", "")[:60]
-                        desc = d.get("text_vi") or d.get("source_text_vi", "")
-
-                        self._nodes[nid] = {
-                            "id": nid,
-                            "type": "chapter" if level == 2 else ("heading" if level == 4 else "subheading"),
-                            "label": title or f"Mã {code}",
-                            "code": code,
-                            "section": sec_code,
-                            "chapter": d.get("chapter"),
-                            "description": desc,
-                        }
-
-        # 7. Add Root Node and connect all Section nodes
-        root_id = "ROOT_CUSTOMS_TARIFF"
-        if root_id not in self._nodes:
-            self._nodes[root_id] = {
-                "id": root_id,
-                "type": "root",
-                "label": "Biểu Thuế XNK Việt Nam",
-                "section": "ALL",
-                "chapter": None,
-                "description": "Danh mục biểu thuế và chú giải pháp lý hải quan (Thông tư 31/2022/TT-BTC)",
-            }
-            # Connect Root to all Sections (XIV, XVI, XVII)
-            for sec_id, sec_label in [
-                ("SXIV_SECTION", "Phần XIV (Đá quý, kim loại quý)"),
-                ("SXVI-S-XVI", "Phần XVI (Máy móc, thiết bị điện)"),
-                ("SXVII_SECTION", "Phần XVII (Phương tiện vận tải)"),
-            ]:
-                if sec_id not in self._nodes:
-                    self._nodes[sec_id] = {
-                        "id": sec_id,
-                        "type": "section",
-                        "label": sec_label,
-                        "section": sec_id.replace("S", "").replace("_SECTION", ""),
-                        "chapter": None,
-                        "description": sec_label,
-                    }
-                self._edges.append(
-                    {
-                        "id": f"e_root_{sec_id}",
-                        "source": root_id,
-                        "target": sec_id,
-                        "relation": "CONTAINS",
-                        "metadata": {},
-                    }
+            code = str(
+                rec.get("code")
+                or first(md, "code", "code_compact", "hs.code_compact")
+                or ""
+            )
+            section = (
+                rec.get("section")
+                or first(md, "section", "section_code")
+                or ""
+            )
+            chapter = str(
+                rec.get("chapter")
+                or first(md, "chapter", "chapter_code")
+                or (code[:2] if len(code) >= 2 and code[:2].isdigit() else "")
+            )
+            raw_desc = (
+                rec.get("source_text")
+                or first(
+                    md,
+                    "source_text",
+                    "description_vi",
+                    "label_vi",
+                    "title_vi",
+                    "text_vi",
+                    "content.description_vi_normalized",
+                    "content.legal_text_vi_normalized",
                 )
-                self._children_index[root_id].append(sec_id)
-                self._parents_index[sec_id].append(root_id)
+                or ""
+            )
+            ntype = _classify_node_type(nid, rec, md)
+            label = _build_node_label(nid, ntype, code, raw_desc)
 
+            self._nodes[nid] = {
+                "id": nid,
+                "type": ntype,
+                "label": label,
+                "code": code,
+                "section": section,
+                "chapter": chapter,
+                "level": rec.get("level") or md.get("level"),
+                "description": " ".join(str(raw_desc).split()) or label,
+            }
 
+            # Register short aliases (without 'tt31:') for backward compatibility
+            if nid.startswith("tt31:"):
+                short_id = nid.split("tt31:", 1)[1]
+                self._alias_to_id[short_id] = nid
+            if code and code not in self._alias_to_id:
+                self._alias_to_id[code] = nid
+
+        # 2. Ensure Section root labels are friendly
+        self._alias_to_id["SXIV_SECTION"] = "tt31:SEC:XIV"
+        for sec_id, sec_code, sec_title in SECTION_ROOT_IDS:
+            if sec_id in self._nodes:
+                self._nodes[sec_id]["type"] = "section"
+                self._nodes[sec_id]["label"] = sec_title
+                self._nodes[sec_id]["section"] = sec_code
+                self._nodes[sec_id]["description"] = sec_title
+            else:
+                self._nodes[sec_id] = {
+                    "id": sec_id,
+                    "type": "section",
+                    "label": sec_title,
+                    "code": sec_code,
+                    "section": sec_code,
+                    "chapter": "",
+                    "level": 1,
+                    "description": sec_title,
+                }
+
+        # 3. Register all 21,752 canonical edges from bundle["edges"]
+        for e in bundle["edges"]:
+            src = e["source"]
+            tgt = e["target"]
+            rel = e["relation"]
+            if src not in self._nodes or tgt not in self._nodes:
+                continue
+
+            self._edges.append(
+                {
+                    "id": e.get("id", f"e_{len(self._edges)}"),
+                    "source": src,
+                    "target": tgt,
+                    "relation": rel,
+                    "metadata": e.get("metadata", {}),
+                }
+            )
+            if rel == "CONTAINS":
+                self._children_index[src].append(tgt)
+                self._parents_index[tgt].append(src)
+            elif rel in {
+                "CONSTRAINED_BY",
+                "HAS_LEGAL_NOTE",
+                "GOVERNED_BY",
+                "EXCLUDES_TO",
+                "EXCLUDED_BY",
+                "EXCLUDES_FROM_SCOPE_TO",
+                "REFERENCES_CODE",
+            }:
+                self._notes_index[src].append(tgt)
+            elif rel in {"APPLIES_TO", "APPLIES_WITHIN", "GOVERNS", "DEFINES_FOR"}:
+                self._notes_index[tgt].append(src)
+
+        # 4. Add top-level Tariff Root connecting the 3 Section roots
+        root_id = "ROOT_CUSTOMS_TARIFF"
+        self._nodes[root_id] = {
+            "id": root_id,
+            "type": "root",
+            "label": "Biểu Thuế XNK Việt Nam (TT31/NĐ26)",
+            "code": "VN-AHTN",
+            "section": "ALL",
+            "chapter": "",
+            "level": 0,
+            "description": (
+                "Đồ thị tri thức Hải quan Việt Nam chuẩn hóa: 7.004 Đỉnh & 21.752 Cạnh "
+                "(Phần XIV, XVI, XVII, Chú giải Pháp lý, GIR 1–6, Thông tư 85, Nghị định 26)"
+            ),
+        }
+        for sec_id, _, _ in SECTION_ROOT_IDS:
+            self._edges.append(
+                {
+                    "id": f"e_root_{sec_id}",
+                    "source": root_id,
+                    "target": sec_id,
+                    "relation": "CONTAINS",
+                    "metadata": {},
+                }
+            )
+            self._children_index[root_id].append(sec_id)
+            self._parents_index[sec_id].append(root_id)
+
+        self._graph_context = GraphContext(
+            bundle["records"], bundle["nodes"], bundle["edges"]
+        )
         self._loaded = True
         logger.info(
-            "Graph loaded: %d nodes, %d edges.", len(self._nodes), len(self._edges)
+            "Authoritative Graph loaded: %d nodes, %d edges.",
+            len(self._nodes),
+            len(self._edges),
         )
+
+    def get_rag_graph_context(self, records: Optional[List[Dict[str, Any]]] = None) -> GraphContext:
+        """Return a `GraphContext` instance for RAG Core, using Apache AGE if active or In-Memory fallback."""
+        if self.engine_mode == "apache_age" and self.age_adapter.check_availability():
+            try:
+                if records is None:
+                    records = load_corpus()["records"]
+                nodes, edges = self.age_adapter.load_graph_nodes_and_edges()
+                if nodes and edges:
+                    return GraphContext(records, nodes, edges)
+            except Exception as exc:
+                logger.warning(
+                    "Failed loading GraphContext from Apache AGE; using in-memory corpus: %s",
+                    exc,
+                )
+        self.load_inmemory_if_needed()
+        assert self._graph_context is not None
+        return self._graph_context
 
     def get_knowledge_graph(
         self,
@@ -256,109 +295,135 @@ class UnifiedGraphService:
         depth: int = 2,
         limit: int = 150,
     ) -> Dict[str, Any]:
-        """Unified endpoint for Cytoscape.js rendering.
+        """Unified endpoint for Cytoscape.js visualization with Lazy-Loading & Dual-Run fallback."""
+        resolved_root = self.resolve_node_id(root_id) if root_id else None
 
-        Attempts Apache AGE if configured; gracefully falls back to In-Memory.
-        """
-        # 1. Try Apache AGE if requested
-        if self.engine_mode == "apache_age":
-            if self.age_adapter.check_availability():
-                try:
-                    return self.age_adapter.get_subgraph(
-                        root_id=root_id,
-                        chapter=chapter,
-                        section=section,
-                        depth=depth,
-                        limit=limit,
-                    )
-                except Exception as exc:
-                    logger.warning(
-                        "Apache AGE query failed; falling back to in-memory: %s", exc
-                    )
+        # 1. Try Apache AGE if requested and available
+        if self.engine_mode == "apache_age" and self.age_adapter.check_availability():
+            try:
+                return self.age_adapter.get_subgraph(
+                    root_id=resolved_root or root_id,
+                    chapter=chapter,
+                    section=section,
+                    query=query,
+                    depth=depth,
+                    limit=limit,
+                )
+            except Exception as exc:
+                logger.warning(
+                    "Apache AGE query failed; falling back to in-memory: %s", exc
+                )
 
-        # 2. In-memory baseline execution
+        # 2. Authoritative In-Memory Execution
         self.load_inmemory_if_needed()
-
         selected_node_ids: Set[str] = set()
+        safe_limit = max(10, min(int(limit or 150), 500))
+        safe_depth = max(1, min(int(depth or 2), 4))
 
-        # If user searches by keyword / code
+        # Case A: Search by keyword or HS code
         if query and query.strip():
-            q = query.strip().lower()
+            q = query.strip().lower().replace(".", "")
+            q_raw = query.strip().lower()
             for nid, n in self._nodes.items():
                 code = str(n.get("code") or "").lower()
                 label = str(n.get("label") or "").lower()
                 desc = str(n.get("description") or "").lower()
-                if q in code or q in label or q in desc:
+                if (q and q in code) or q_raw in label or q_raw in desc:
                     selected_node_ids.add(nid)
-                    # Include immediate parents and children for context
-                    selected_node_ids.update(self._parents_index.get(nid, []))
-                    selected_node_ids.update(self._children_index.get(nid, [])[:10])
-                    if len(selected_node_ids) >= limit:
+                    # Include ancestors up to section root for clear hierarchy tree
+                    curr = nid
+                    for _ in range(4):
+                        parents = self._parents_index.get(curr, [])
+                        if not parents:
+                            break
+                        selected_node_ids.update(parents)
+                        curr = parents[0]
+                    # Include immediate children and governing notes
+                    selected_node_ids.update(self._children_index.get(nid, [])[:8])
+                    selected_node_ids.update(self._notes_index.get(nid, [])[:3])
+                    if len(selected_node_ids) >= safe_limit:
                         break
 
-        # If user expands a specific node (Lazy Loading)
-        elif root_id and root_id in self._nodes:
-            selected_node_ids.add(root_id)
-            # Expand BFS up to requested depth
-            current_level = {root_id}
-            for _ in range(depth):
-                next_level = set()
+        # Case B: Lazy-loading expansion of a clicked node
+        elif resolved_root and resolved_root in self._nodes:
+            selected_node_ids.add(resolved_root)
+            current_level = {resolved_root}
+            for _ in range(safe_depth):
+                next_level: Set[str] = set()
                 for parent in current_level:
-                    children = self._children_index.get(parent, [])[:25]
+                    children = self._children_index.get(parent, [])[:30]
+                    notes = self._notes_index.get(parent, [])[:5]
                     next_level.update(children)
+                    selected_node_ids.update(notes)
                 selected_node_ids.update(next_level)
                 current_level = next_level
-                if len(selected_node_ids) >= limit:
+                if len(selected_node_ids) >= safe_limit:
                     break
 
-        # Default overview: Root -> Sections -> Chapters -> Top Headings
+        # Case C: Overview (Root -> Sections -> Chapters -> Headings)
         else:
-            # Start from ROOT
-            root_id = "ROOT_CUSTOMS_TARIFF"
-            selected_node_ids.add(root_id)
-            sections = self._children_index.get(root_id, [])
-            selected_node_ids.update(sections)
+            top_root = "ROOT_CUSTOMS_TARIFF"
+            selected_node_ids.add(top_root)
+            sec_filter = None if not section or section == "all" else section.strip().upper()
+            ch_filter = None if not chapter or chapter == "all" else str(chapter).strip()
 
-            for sec in sections:
-                if section and section not in sec:
+            for sec_id, sec_code, _ in SECTION_ROOT_IDS:
+                if sec_filter and sec_code != sec_filter:
                     continue
-                chapters = self._children_index.get(sec, [])
-                for ch in chapters:
-                    if chapter and chapter not in ch:
+                selected_node_ids.add(sec_id)
+                chapters = self._children_index.get(sec_id, [])
+                for ch_id in chapters:
+                    ch_node = self._nodes.get(ch_id, {})
+                    ch_code = str(ch_node.get("chapter") or ch_node.get("code") or "")
+                    if ch_filter and ch_filter != ch_code and ch_filter not in ch_id:
                         continue
-                    selected_node_ids.add(ch)
-                    # Add top headings of this chapter (depth=2)
-                    headings = self._children_index.get(ch, [])[:15]
-                    selected_node_ids.update(headings)
-                    if len(selected_node_ids) >= limit:
+                    selected_node_ids.add(ch_id)
+                    # Include subchapters/headings under chapter
+                    level1_children = self._children_index.get(ch_id, [])[:18]
+                    selected_node_ids.update(level1_children)
+                    # For Chapter 71 (which has Subchapters I, II, III), also include headings under subchapters
+                    for sub_id in level1_children:
+                        if ":SUBCH:" in sub_id:
+                            selected_node_ids.update(
+                                self._children_index.get(sub_id, [])[:10]
+                            )
+                    if len(selected_node_ids) >= safe_limit:
                         break
 
-        # Format nodes for Cytoscape.js
+        # Format selected nodes for Cytoscape.js
         cy_nodes = []
         for nid in selected_node_ids:
-            if nid in self._nodes:
-                n = self._nodes[nid]
-                has_children = len(self._children_index.get(nid, [])) > 0
-                cy_nodes.append(
-                    {
-                        "data": {
-                            "id": nid,
-                            "label": n.get("label", nid),
-                            "type": n.get("type", "item"),
-                            "code": n.get("code", ""),
-                            "section": n.get("section", ""),
-                            "chapter": n.get("chapter", ""),
-                            "description": n.get("description", ""),
-                            "has_children": has_children,
-                            "children_count": len(self._children_index.get(nid, [])),
-                        }
+            n = self._nodes.get(nid)
+            if not n:
+                continue
+            children_cnt = len(self._children_index.get(nid, []))
+            notes_cnt = len(self._notes_index.get(nid, []))
+            cy_nodes.append(
+                {
+                    "data": {
+                        "id": nid,
+                        "label": n.get("label", nid),
+                        "type": n.get("type", "item"),
+                        "code": n.get("code", ""),
+                        "section": n.get("section", ""),
+                        "chapter": n.get("chapter", ""),
+                        "description": n.get("description", ""),
+                        "has_children": (children_cnt + notes_cnt) > 0,
+                        "children_count": children_cnt,
+                        "notes_count": notes_cnt,
                     }
-                )
+                }
+            )
 
-        # Format edges connecting the selected nodes
+        # Format edges connecting selected nodes
         cy_edges = []
+        seen_edges: Set[tuple] = set()
         for e in self._edges:
             if e["source"] in selected_node_ids and e["target"] in selected_node_ids:
+                key = (e["source"], e["relation"], e["target"])
+                if key in seen_edges:
+                    continue
+                seen_edges.add(key)
                 cy_edges.append(
                     {
                         "data": {
@@ -371,7 +436,11 @@ class UnifiedGraphService:
                     }
                 )
 
-        active_engine = "apache_age" if self.engine_mode == "apache_age" and self.age_adapter.check_availability() else "inmemory"
+        active_engine = (
+            "apache_age"
+            if self.engine_mode == "apache_age" and self.age_adapter.check_availability()
+            else "inmemory"
+        )
 
         return {
             "success": True,
@@ -389,7 +458,6 @@ class UnifiedGraphService:
         }
 
 
-# Global singleton instance for high performance
 _graph_service_instance: Optional[UnifiedGraphService] = None
 
 
@@ -399,3 +467,8 @@ def get_graph_service() -> UnifiedGraphService:
     if _graph_service_instance is None:
         _graph_service_instance = UnifiedGraphService()
     return _graph_service_instance
+
+
+def get_rag_graph_context():
+    """Return GraphContext backed by Apache AGE (when available) or In-Memory corpus."""
+    return get_graph_service().get_rag_graph_context()

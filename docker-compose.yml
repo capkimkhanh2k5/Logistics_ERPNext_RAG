@@ -250,7 +250,10 @@ services:
 
   # ── AI RAG Services ────────────────────────────────────────────────────────
   postgres:
-    image: pgvector/pgvector:0.8.0-pg17
+    image: pgvector-apache-age:pg17
+    build:
+      context: ./apps/ai_service/ai_rag
+      dockerfile: Dockerfile.postgres_age
     networks:
       - frappe_network
     env_file:

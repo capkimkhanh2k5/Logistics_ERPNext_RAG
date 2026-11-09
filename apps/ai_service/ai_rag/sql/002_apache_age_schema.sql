@@ -19,14 +19,13 @@ EXCEPTION
         RAISE NOTICE 'Could not load Apache AGE extension: %', SQLERRM;
 END $$;
 
--- 2. Tải AGE vào session và thiết lập search_path
+-- 2. Tải AGE vào session và thiết lập search_path, khởi tạo đồ thị hải quan
 DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'age') THEN
-        PERFORM load('age');
-        SET search_path = ag_catalog, "$user", public;
-        
-        -- Khởi tạo đồ thị hải quan nếu chưa có
+        EXECUTE 'LOAD ''age''';
+        PERFORM set_config('search_path', 'ag_catalog, "$user", public', false);
+
         IF NOT EXISTS (
             SELECT 1 FROM ag_catalog.ag_graph WHERE name = 'customs_tariff_graph'
         ) THEN
