@@ -298,13 +298,24 @@ class RagAdminCenterController {
     bind_events() {
         const self = this;
 
-        // 1. Sidebar Nav Tab Switching (Dashboard vs Quản trị tri thức)
+        // 1. Sidebar Nav Tab Switching (Dashboard vs Quản trị tri thức vs Sơ đồ tri thức)
         this.$root.on('click', '.logistics-nav-tab', function (e) {
             e.preventDefault();
             const targetTab = $(this).data('tab');
             if (targetTab) {
                 self.switch_nav_tab(targetTab);
             }
+        });
+
+        // 1b. Direct Header Jump to Sơ Đồ Tri Thức / Quản Trị Tri Thức
+        this.$root.on('click', '#btn-header-goto-graph, #btn-header-goto-graph-dash', function (e) {
+            e.preventDefault();
+            self.switch_nav_tab('graph');
+        });
+
+        this.$root.on('click', '#btn-header-goto-knowledge', function (e) {
+            e.preventDefault();
+            self.switch_nav_tab('knowledge');
         });
 
         // 2. Topbar Filters
@@ -442,6 +453,12 @@ class RagAdminCenterController {
     switch_nav_tab(tabName) {
         tabName = tabName || 'dashboard';
         this.state.currentNavTab = tabName;
+
+        try {
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState(null, null, '#' + tabName);
+            }
+        } catch (e) {}
 
         // 1. Update active tab button in sidebar
         this.$root.find('.logistics-nav-tab').removeClass('active');
@@ -969,7 +986,10 @@ class RagAdminCenterController {
     // =========================================================================
 
     ensure_cytoscape(callback) {
-        if (window.cytoscape) {
+        if (window.cytoscape && typeof window.cytoscape === 'function') {
+            if (typeof window.cytoscapeDagre === 'function') {
+                try { window.cytoscape.use(window.cytoscapeDagre); } catch(e) {}
+            }
             callback();
             return;
         }
@@ -985,23 +1005,16 @@ class RagAdminCenterController {
             document.head.appendChild(s);
         };
 
-        // Try local assets first, with CDN fallbacks
-        loadScript('/assets/logistics_wizard/js/cytoscape.min.js', () => {
-            if (!window.cytoscape) {
-                loadScript('https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js', () => {
-                    loadScript('/assets/logistics_wizard/js/dagre.min.js', () => {
-                        loadScript('/assets/logistics_wizard/js/cytoscape-dagre.min.js', () => {
-                            callback();
-                        });
-                    });
+        // Try patched local assets first
+        loadScript('/assets/logistics_wizard/js/cytoscape.min.js?v=age1', () => {
+            loadScript('/assets/logistics_wizard/js/dagre.min.js?v=age1', () => {
+                loadScript('/assets/logistics_wizard/js/cytoscape-dagre.min.js?v=age1', () => {
+                    if (typeof window.cytoscape === 'function' && typeof window.cytoscapeDagre === 'function') {
+                        try { window.cytoscape.use(window.cytoscapeDagre); } catch (e) {}
+                    }
+                    callback();
                 });
-            } else {
-                loadScript('/assets/logistics_wizard/js/dagre.min.js', () => {
-                    loadScript('/assets/logistics_wizard/js/cytoscape-dagre.min.js', () => {
-                        callback();
-                    });
-                });
-            }
+            });
         });
     }
 
@@ -1439,7 +1452,10 @@ function register_rag_admin_center_page(pageName) {
         }
 
         const controller = new RagAdminCenterController(wrapper.page.body);
-        controller.switch_nav_tab('dashboard');
+        const hash = window.location.hash || '';
+        const route = frappe.get_route ? frappe.get_route() : [];
+        const isGraph = hash === '#graph' || (route && route[1] === 'graph') || (frappe.route_options && frappe.route_options.tab === 'graph');
+        controller.switch_nav_tab(isGraph ? 'graph' : 'dashboard');
         wrapper.ragAdminController = controller;
         frappe.pages[pageName].controller = controller;
         make_rag_page_full_bleed(wrapper);
@@ -1448,8 +1464,17 @@ function register_rag_admin_center_page(pageName) {
     frappe.pages[pageName].on_page_show = function (wrapper) {
         make_rag_page_full_bleed(wrapper);
         if (wrapper.ragAdminController) {
-            wrapper.ragAdminController.switch_nav_tab('dashboard');
-            wrapper.ragAdminController.render_all();
+            const hash = window.location.hash || '';
+            const route = frappe.get_route ? frappe.get_route() : [];
+            const isGraph = hash === '#graph' || (route && route[1] === 'graph') || (frappe.route_options && frappe.route_options.tab === 'graph');
+            if (isGraph) {
+                wrapper.ragAdminController.switch_nav_tab('graph');
+            } else if (wrapper.ragAdminController.state && wrapper.ragAdminController.state.currentNavTab) {
+                wrapper.ragAdminController.switch_nav_tab(wrapper.ragAdminController.state.currentNavTab);
+            } else {
+                wrapper.ragAdminController.switch_nav_tab('dashboard');
+                wrapper.ragAdminController.render_all();
+            }
         }
     };
 }

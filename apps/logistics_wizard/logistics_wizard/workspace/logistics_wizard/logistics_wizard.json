@@ -134,6 +134,17 @@
    "link_type": "Page",
    "onboard": 1,
    "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sơ Đồ Tri Thức (Graph Explorer)",
+   "link_count": 0,
+   "link_to": "rag-knowledge-base",
+   "link_type": "Page",
+   "onboard": 1,
+   "type": "Link"
   }
  ],
  "modified": "2026-10-16 00:00:00.000000",
@@ -181,6 +192,11 @@
   },
   {
    "label": "RAG Knowledge Base",
+   "link_to": "rag-knowledge-base",
+   "type": "Page"
+  },
+  {
+   "label": "Sơ Đồ Tri Thức (Graph Explorer)",
    "link_to": "rag-knowledge-base",
    "type": "Page"
   }

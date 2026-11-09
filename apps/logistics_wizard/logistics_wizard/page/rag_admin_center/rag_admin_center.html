@@ -282,6 +282,16 @@
                     <p>Quản lý toàn bộ nguồn dữ liệu HS/Legal, bóc tách chunks theo quy chuẩn Dify và quyền truy xuất RAG</p>
                 </div>
                 <div class="rag-pane-header-actions">
+                    <button class="rag-btn-secondary" id="btn-header-goto-graph" style="display: inline-flex; align-items: center; gap: 6px; background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; font-weight: 600; padding: 7px 14px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; margin-right: 8px;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        <span>Sơ Đồ Tri Thức (Graph Explorer)</span>
+                    </button>
                     <button class="rag-btn-primary" id="btn-open-add-modal">
                         <i class="fa fa-plus"></i> <span>Thêm Tài Liệu Mới</span>
                     </button>
@@ -381,6 +391,10 @@
                     <p>Trực quan hóa cấu trúc đồ thị phân cấp biểu thuế hải quan (Phần → Chương → Nhóm → Phân nhóm) và chú giải pháp lý</p>
                 </div>
                 <div class="rag-pane-header-actions" style="display: flex; gap: 8px; align-items: center;">
+                    <button class="rag-btn-secondary" id="btn-header-goto-knowledge" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 500; padding: 7px 12px; border-radius: 6px; cursor: pointer; border: 1px solid #cbd5e1; background: #ffffff;">
+                        <i class="fa fa-arrow-left"></i> <span>Quản Trị Tri Thức</span>
+                    </button>
+
                     <span class="rag-badge rag-badge-info" id="graph-engine-badge" style="padding: 6px 12px; font-weight: 600;">
                         <i class="fa fa-database"></i> Engine: <span id="graph-active-engine">In-Memory (Dual-Run)</span>
                     </span>
