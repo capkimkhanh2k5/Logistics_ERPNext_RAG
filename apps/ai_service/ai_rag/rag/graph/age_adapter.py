@@ -54,6 +54,13 @@ def escape_cypher(value: Any) -> str:
 def _default_dsn() -> str:
     if os.getenv("RAG_DATABASE_URL"):
         return os.environ["RAG_DATABASE_URL"]
+    if os.getenv("RAG_DB_USER") and os.getenv("RAG_DB_PASSWORD"):
+        user = os.environ["RAG_DB_USER"]
+        pw = os.environ["RAG_DB_PASSWORD"]
+        host = os.getenv("RAG_DB_HOST", "localhost")
+        port = os.getenv("RAG_DB_PORT", "55432")
+        dbname = os.getenv("RAG_DB_NAME", "hs_rag")
+        return f"postgresql://{user}:{pw}@{host}:{port}/{dbname}"
     try:
         from config.settings import DatabaseConfig
 
@@ -61,6 +68,31 @@ def _default_dsn() -> str:
         return f"postgresql://{cfg.user}:{cfg.password}@{cfg.host}:{cfg.port}/{cfg.dbname}"
     except Exception:
         return "postgresql://postgres:admin@localhost:55432/postgres"
+
+
+from contextlib import contextmanager
+
+
+@contextmanager
+def _pg_connect(dsn: str, connect_timeout: int = 2):
+    """Connect using either psycopg (v3) or psycopg2 (v2) and ensure cleanup."""
+    conn = None
+    try:
+        try:
+            import psycopg
+
+            conn = psycopg.connect(dsn, connect_timeout=connect_timeout)
+        except ImportError:
+            import psycopg2
+
+            conn = psycopg2.connect(dsn, connect_timeout=connect_timeout)
+        yield conn
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 class ApacheAgeAdapter:
@@ -81,9 +113,7 @@ class ApacheAgeAdapter:
             return self._is_available
 
         try:
-            import psycopg
-
-            with psycopg.connect(self.db_url, connect_timeout=2) as conn:
+            with _pg_connect(self.db_url, connect_timeout=2) as conn:
                 with conn.cursor() as cur:
                     cur.execute(
                         "SELECT 1 FROM pg_extension WHERE extname = 'age'"
@@ -95,6 +125,15 @@ class ApacheAgeAdapter:
                     cur.execute(
                         "SELECT 1 FROM ag_catalog.ag_graph WHERE name = %s",
                         (self.graph_name,),
+                    )
+                    if not cur.fetchone():
+                        self._is_available = False
+                        return False
+
+                    cur.execute("LOAD 'age';")
+                    cur.execute("SET search_path = ag_catalog, '$user', public;")
+                    cur.execute(
+                        f"SELECT * FROM cypher('{self.graph_name}', $$ MATCH (n) RETURN n LIMIT 1 $$) AS (n agtype);"
                     )
                     self._is_available = cur.fetchone() is not None
                     return bool(self._is_available)
@@ -110,9 +149,7 @@ class ApacheAgeAdapter:
                 f"Apache AGE is not available on database {self.db_url}"
             )
 
-        import psycopg
-
-        with psycopg.connect(self.db_url) as conn:
+        with _pg_connect(self.db_url, connect_timeout=5) as conn:
             with conn.cursor() as cur:
                 cur.execute("LOAD 'age';")
                 cur.execute("SET search_path = ag_catalog, '$user', public;")
@@ -206,10 +243,8 @@ class ApacheAgeAdapter:
         if root_id:
             safe_root = escape_cypher(root_id)
             cypher = f"""
-                MATCH (n {{id: '{safe_root}'}})-[r*1..{safe_depth}]->(m)
-                UNWIND r AS edge_rel
-                WITH startNode(edge_rel) AS s, edge_rel AS rel, endNode(edge_rel) AS t
-                RETURN s, rel, t
+                MATCH (n {{id: '{safe_root}'}})-[r]->(m)
+                RETURN n, r, m
                 LIMIT {safe_limit}
             """
         elif query and query.strip():
@@ -224,19 +259,35 @@ class ApacheAgeAdapter:
                 LIMIT {safe_limit}
             """
         else:
-            where_clauses = []
-            if section and section != "all":
-                where_clauses.append(f"n.section = '{escape_cypher(section)}'")
+            top_types = "['root', 'section', 'chapter', 'subchapter', 'heading']"
             if chapter and chapter != "all":
-                where_clauses.append(f"n.chapter = '{escape_cypher(chapter)}'")
-            where_str = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
-            cypher = f"""
-                MATCH (n)
-                {where_str}
-                OPTIONAL MATCH (n)-[r]->(m)
-                RETURN n, r, m
-                LIMIT {safe_limit}
-            """
+                safe_ch = escape_cypher(chapter)
+                cypher = f"""
+                    MATCH (n)-[r]->(m)
+                    WHERE (n.chapter = '{safe_ch}' OR m.chapter = '{safe_ch}')
+                      AND n.type IN {top_types}
+                      AND m.type IN {top_types}
+                    RETURN n, r, m
+                    LIMIT {safe_limit}
+                """
+            elif section and section != "all":
+                safe_sec = escape_cypher(section)
+                cypher = f"""
+                    MATCH (n)-[r]->(m)
+                    WHERE (n.section = '{safe_sec}' OR m.section = '{safe_sec}')
+                      AND n.type IN {top_types}
+                      AND m.type IN {top_types}
+                    RETURN n, r, m
+                    LIMIT {safe_limit}
+                """
+            else:
+                cypher = f"""
+                    MATCH (n)-[r]->(m)
+                    WHERE n.type IN {top_types}
+                      AND m.type IN {top_types}
+                    RETURN n, r, m
+                    LIMIT {safe_limit}
+                """
 
         rows = self.query_cypher(cypher, "n agtype, r agtype, m agtype")
         nodes_map: Dict[str, Dict[str, Any]] = {}

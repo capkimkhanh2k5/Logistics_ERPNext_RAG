@@ -1,6 +1,8 @@
 services:
   backend:
-    env_file: .env
+    env_file:
+      - .env
+      - ./apps/ai_service/ai_rag/.env
     image: logistics_wizard_frappe:latest
     build: .
     networks:
@@ -11,6 +13,8 @@ services:
     volumes:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
+      - ./apps/logistics_wizard:/home/frappe/frappe-bench/apps/logistics_wizard
+      - ./apps/ai_service:/home/frappe/frappe-bench/apps/ai_service
     environment:
       DB_HOST: db
       DB_PORT: "3306"
@@ -18,6 +22,7 @@ services:
       MARIADB_ROOT_PASSWORD: admin
       RAG_DB_HOST: postgres
       RAG_DB_PORT: "5432"
+      RAG_GRAPH_ENGINE: apache_age
       CLIPROXYAPI_BASE_URL: http://cliproxyapi:8317/v1
     depends_on:
       create-site:
@@ -86,6 +91,7 @@ services:
       - logs:/home/frappe/frappe-bench/logs
       - ./backups:/home/frappe/frappe-bench/backups:ro
       - ./scripts/create-site.sh:/home/frappe/frappe-bench/create-site.sh
+      - ./apps/logistics_wizard:/home/frappe/frappe-bench/apps/logistics_wizard
     depends_on:
       configurator:
         condition: service_completed_successfully

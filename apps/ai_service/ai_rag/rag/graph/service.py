@@ -8,15 +8,26 @@ serving interactive subgraphs for Cytoscape.js.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 from collections import defaultdict
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
-from rag.chunking.corpus import load_corpus
 from rag.graph.age_adapter import ApacheAgeAdapter
-from rag.graph.context import GraphContext
 from rag.ingestion.sources import first
+
+AI_RAG_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _load_corpus_bundle() -> Dict[str, Any]:
+    corpus_file = AI_RAG_ROOT / "artifacts" / "corpus.json"
+    if corpus_file.is_file():
+        return json.loads(corpus_file.read_text(encoding="utf-8"))
+    from rag.chunking.corpus import load_corpus
+
+    return load_corpus()
 
 logger = logging.getLogger("rag.graph.service")
 
@@ -85,7 +96,10 @@ class UnifiedGraphService:
 
     def __init__(self, engine: Optional[str] = None) -> None:
         self.engine_mode = (
-            engine or os.getenv("GRAPH_ENGINE", "inmemory")
+            engine
+            or os.getenv("RAG_GRAPH_ENGINE")
+            or os.getenv("GRAPH_ENGINE")
+            or "apache_age"
         ).lower()
         self.age_adapter = ApacheAgeAdapter()
 
@@ -95,7 +109,7 @@ class UnifiedGraphService:
         self._children_index: Dict[str, List[str]] = defaultdict(list)
         self._parents_index: Dict[str, List[str]] = defaultdict(list)
         self._notes_index: Dict[str, List[str]] = defaultdict(list)
-        self._graph_context: Optional[GraphContext] = None
+        self._graph_context: Optional[Any] = None
         self._loaded: bool = False
 
     def resolve_node_id(self, node_id: Optional[str]) -> Optional[str]:
@@ -116,7 +130,7 @@ class UnifiedGraphService:
             return
 
         logger.info("Loading authoritative customs knowledge graph from corpus.json...")
-        bundle = load_corpus()
+        bundle = _load_corpus_bundle()
         records_by_id: Dict[str, Dict[str, Any]] = {
             r["id"]: r for r in bundle["records"]
         }
@@ -258,9 +272,6 @@ class UnifiedGraphService:
             self._children_index[root_id].append(sec_id)
             self._parents_index[sec_id].append(root_id)
 
-        self._graph_context = GraphContext(
-            bundle["records"], bundle["nodes"], bundle["edges"]
-        )
         self._loaded = True
         logger.info(
             "Authoritative Graph loaded: %d nodes, %d edges.",
@@ -268,12 +279,15 @@ class UnifiedGraphService:
             len(self._edges),
         )
 
-    def get_rag_graph_context(self, records: Optional[List[Dict[str, Any]]] = None) -> GraphContext:
+    def get_rag_graph_context(self, records: Optional[List[Dict[str, Any]]] = None) -> Any:
         """Return a `GraphContext` instance for RAG Core, using Apache AGE if active or In-Memory fallback."""
+        from rag.graph.context import GraphContext
+
+        bundle = _load_corpus_bundle()
         if self.engine_mode == "apache_age" and self.age_adapter.check_availability():
             try:
                 if records is None:
-                    records = load_corpus()["records"]
+                    records = bundle["records"]
                 nodes, edges = self.age_adapter.load_graph_nodes_and_edges()
                 if nodes and edges:
                     return GraphContext(records, nodes, edges)
@@ -282,8 +296,10 @@ class UnifiedGraphService:
                     "Failed loading GraphContext from Apache AGE; using in-memory corpus: %s",
                     exc,
                 )
-        self.load_inmemory_if_needed()
-        assert self._graph_context is not None
+        if self._graph_context is None:
+            self._graph_context = GraphContext(
+                records or bundle["records"], bundle["nodes"], bundle["edges"]
+            )
         return self._graph_context
 
     def get_knowledge_graph(
