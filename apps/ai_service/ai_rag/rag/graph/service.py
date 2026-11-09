@@ -75,6 +75,8 @@ def _classify_node_type(nid: str, rec: Dict[str, Any], md: Dict[str, Any]) -> st
 
 
 def _build_node_label(nid: str, ntype: str, code: str, title_text: str) -> str:
+    if ntype == "note":
+        return "PL"
     clean_title = " ".join(str(title_text or "").split())
     if clean_title.startswith("-"):
         clean_title = clean_title.lstrip("- ").strip()
@@ -431,26 +433,31 @@ class UnifiedGraphService:
                 }
             )
 
-        # Format edges connecting selected nodes
+        # Format edges connecting selected nodes (consolidating parallel edges)
         cy_edges = []
-        seen_edges: Set[tuple] = set()
+        seen_edge_pairs: Dict[Tuple[str, str], Dict[str, Any]] = {}
         for e in self._edges:
-            if e["source"] in selected_node_ids and e["target"] in selected_node_ids:
-                key = (e["source"], e["relation"], e["target"])
-                if key in seen_edges:
-                    continue
-                seen_edges.add(key)
-                cy_edges.append(
-                    {
+            src = e["source"]
+            tgt = e["target"]
+            rel = e["relation"]
+            if src in selected_node_ids and tgt in selected_node_ids:
+                pair_key = (src, tgt)
+                if pair_key not in seen_edge_pairs:
+                    seen_edge_pairs[pair_key] = {
                         "data": {
                             "id": e["id"],
-                            "source": e["source"],
-                            "target": e["target"],
-                            "label": e["relation"],
-                            "relation": e["relation"],
+                            "source": src,
+                            "target": tgt,
+                            "label": rel,
+                            "relation": rel,
+                            "all_relations": [rel],
                         }
                     }
-                )
+                else:
+                    existing = seen_edge_pairs[pair_key]
+                    if rel not in existing["data"]["all_relations"]:
+                        existing["data"]["all_relations"].append(rel)
+        cy_edges = list(seen_edge_pairs.values())
 
         active_engine = (
             "apache_age"

@@ -1273,9 +1273,15 @@ class RagAdminCenterController {
                     style: {
                         'background-color': '#dc2626',
                         'shape': 'diamond',
-                        'width': '42px',
-                        'height': '42px',
-                        'border-color': '#fecaca'
+                        'width': '38px',
+                        'height': '38px',
+                        'font-size': '11px',
+                        'font-weight': 'bold',
+                        'text-valign': 'center',
+                        'text-halign': 'center',
+                        'color': '#ffffff',
+                        'border-color': '#fecaca',
+                        'border-width': '2.5px'
                     }
                 },
                 {
@@ -1389,9 +1395,12 @@ class RagAdminCenterController {
                 }
             });
 
+            const existingEdgeKeys = new Set(self.cy.edges().map(e => `${e.source().id()}->${e.target().id()}`));
             const existingEdgeIds = new Set(self.cy.edges().map(e => e.id()));
             newEdges.forEach(e => {
-                if (!existingEdgeIds.has(e.data.id)) {
+                const key = `${e.data.source}->${e.data.target}`;
+                if (!existingEdgeIds.has(e.data.id) && !existingEdgeKeys.has(key)) {
+                    existingEdgeKeys.add(key);
                     toAdd.push(e);
                 }
             });

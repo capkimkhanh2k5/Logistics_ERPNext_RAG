@@ -294,7 +294,7 @@ class ApacheAgeAdapter:
 
         rows = self.query_cypher(cypher, "n agtype, r agtype, m agtype")
         nodes_map: Dict[str, Dict[str, Any]] = {}
-        edges_list: List[Dict[str, Any]] = []
+        seen_edge_pairs: Dict[Tuple[str, str], Dict[str, Any]] = {}
 
         for n_raw, r_raw, m_raw in rows:
             n_props = n_raw.get("properties", n_raw) if isinstance(n_raw, dict) else None
@@ -312,21 +312,28 @@ class ApacheAgeAdapter:
 
             if isinstance(r_raw, dict) and isinstance(n_props, dict) and isinstance(m_props, dict):
                 r_props = r_raw.get("properties", {})
-                rel_label = r_raw.get("label") or r_props.get("relation") or "CONTAINS"
+                rel_label = str(r_raw.get("label") or r_props.get("relation") or "CONTAINS")
                 src_id = str(n_props.get("id") or n_props.get("node_id") or "")
                 tgt_id = str(m_props.get("id") or m_props.get("node_id") or "")
                 if src_id and tgt_id:
-                    edges_list.append(
-                        {
+                    edge_key = (src_id, tgt_id)
+                    if edge_key not in seen_edge_pairs:
+                        seen_edge_pairs[edge_key] = {
                             "data": {
-                                "id": r_props.get("id") or f"e_{len(edges_list)}",
+                                "id": r_props.get("id") or f"e_{len(seen_edge_pairs)}",
                                 "source": src_id,
                                 "target": tgt_id,
                                 "label": rel_label,
                                 "relation": rel_label,
+                                "all_relations": [rel_label],
                             }
                         }
-                    )
+                    else:
+                        existing = seen_edge_pairs[edge_key]
+                        if rel_label not in existing["data"]["all_relations"]:
+                            existing["data"]["all_relations"].append(rel_label)
+
+        edges_list = list(seen_edge_pairs.values())
 
         return {
             "success": True,
@@ -344,6 +351,14 @@ class ApacheAgeAdapter:
     def _format_cytoscape_node(self, node_data: Dict[str, Any]) -> Dict[str, Any]:
         node_id = str(node_data.get("id") or node_data.get("node_id") or "")
         node_type = str(node_data.get("type") or node_data.get("node_type") or node_data.get("role") or "item").lower()
+        if (
+            "NOTE" in node_id
+            or "FOOTNOTE" in node_id
+            or node_data.get("role") == "evidence"
+            or node_type in ("legal", "note", "legal_note")
+        ):
+            node_type = "note"
+
         raw_label = (
             node_data.get("label")
             or node_data.get("label_vi")
@@ -367,8 +382,8 @@ class ApacheAgeAdapter:
             short_label = f"Mã {code}" if code else raw_label[:14]
         elif node_type == "subheading":
             short_label = code if code else raw_label[:14]
-        elif node_type in ("legal", "note", "legal_note"):
-            short_label = f"Chú giải {code}" if code else "Chú giải PL"
+        elif node_type == "note":
+            short_label = "PL"
 
         return {
             "data": {
