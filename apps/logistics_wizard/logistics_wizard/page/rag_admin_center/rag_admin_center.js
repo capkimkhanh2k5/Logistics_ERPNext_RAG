@@ -307,13 +307,18 @@ class RagAdminCenterController {
             }
         });
 
-        // 1b. Direct Header Jump to Sơ Đồ Tri Thức / Quản Trị Tri Thức
+        // 1b. Direct Header Jump between Panes (Dashboard / Quản Trị Tri Thức / Sơ Đồ Tri Thức)
+        this.$root.on('click', '#btn-header-goto-dashboard, #btn-header-goto-dashboard-from-graph', function (e) {
+            e.preventDefault();
+            self.switch_nav_tab('dashboard');
+        });
+
         this.$root.on('click', '#btn-header-goto-graph, #btn-header-goto-graph-dash', function (e) {
             e.preventDefault();
             self.switch_nav_tab('graph');
         });
 
-        this.$root.on('click', '#btn-header-goto-knowledge', function (e) {
+        this.$root.on('click', '#btn-header-goto-knowledge, #btn-header-goto-knowledge-dash', function (e) {
             e.preventDefault();
             self.switch_nav_tab('knowledge');
         });
@@ -1036,14 +1041,6 @@ class RagAdminCenterController {
         const self = this;
         const $root = this.$root;
 
-        $root.on('click', '#btn-graph-zoom-in', () => {
-            if (self.cy) self.cy.zoom(self.cy.zoom() * 1.25);
-        });
-
-        $root.on('click', '#btn-graph-zoom-out', () => {
-            if (self.cy) self.cy.zoom(self.cy.zoom() * 0.8);
-        });
-
         $root.on('click', '#btn-graph-fit', () => {
             if (self.cy) self.cy.fit(undefined, 40);
         });
@@ -1154,17 +1151,6 @@ class RagAdminCenterController {
                 edgeElasticity: function(edge) { return 100; },
                 gravity: 35,
                 padding: 40
-            };
-        } else if (layoutName === 'concentric') {
-            layoutConfig = {
-                name: 'concentric',
-                concentric: function(node) {
-                    const t = node.data('type');
-                    return t === 'root' ? 4 : (t === 'section' ? 3 : (t === 'chapter' ? 2 : 1));
-                },
-                levelWidth: function() { return 1; },
-                padding: 40,
-                animate: true
             };
         } else {
             layoutConfig = {

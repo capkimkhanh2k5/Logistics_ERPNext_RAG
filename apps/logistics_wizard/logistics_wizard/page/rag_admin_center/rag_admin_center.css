@@ -222,45 +222,6 @@
     transform: translateY(-50%) scaleY(1);
 }
 
-/* Horizontal Top Tabs Styling */
-.rag-top-tabs .logistics-nav-tab {
-    width: auto !important;
-    padding: 8px 16px !important;
-    border-radius: 6px !important;
-    border: 1px solid #cbd5e1 !important;
-    background: #f8fafc !important;
-    font-weight: 600 !important;
-    font-size: 13px !important;
-    cursor: pointer !important;
-    color: #475569 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    transition: all 0.2s ease !important;
-}
-
-.rag-top-tabs .logistics-nav-tab:hover {
-    background: #f1f5f9 !important;
-    color: #0284c7 !important;
-    border-color: #93c5fd !important;
-    transform: translateY(-1px) !important;
-}
-
-.rag-top-tabs .logistics-nav-tab.active {
-    background: #0284c7 !important;
-    color: #ffffff !important;
-    border-color: #0284c7 !important;
-    box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25) !important;
-}
-
-.rag-top-tabs .logistics-nav-tab.active svg {
-    stroke: #ffffff !important;
-}
-
-.rag-top-tabs .logistics-nav-tab::before {
-    display: none !important;
-}
-
 .tab-icon {
     display: flex;
     align-items: center;
@@ -1376,10 +1337,4 @@
 
 .rag-graph-legend {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-}
-
-#graph-engine-badge {
-    background-color: #f0fdf4;
-    color: #166534;
-    border: 1px solid #bbf7d0;
 }
