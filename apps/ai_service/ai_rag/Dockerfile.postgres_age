@@ -1,0 +1,33 @@
+# ==============================================================================
+# Dockerfile.postgres_age
+# Multi-extension image: PostgreSQL 17 + pgvector + Apache AGE
+# ==============================================================================
+
+FROM pgvector/pgvector:0.8.0-pg17 AS builder
+
+USER root
+
+# Install build dependencies for Apache AGE
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    bison \
+    flex \
+    postgresql-server-dev-17 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone and compile Apache AGE (PG17 support)
+WORKDIR /tmp
+RUN (git clone --depth 1 --branch PG17 https://github.com/apache/age.git || git clone --depth 1 https://github.com/apache/age.git) && \
+    cd age && \
+    make PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config install
+
+# Final production stage
+FROM pgvector/pgvector:0.8.0-pg17
+
+# Copy compiled extension libraries from builder
+COPY --from=builder /usr/lib/postgresql/17/lib/age.so /usr/lib/postgresql/17/lib/
+COPY --from=builder /usr/share/postgresql/17/extension/age* /usr/share/postgresql/17/extension/
+
+USER postgres

@@ -2837,4 +2837,40 @@ def get_executive_dashboard_summary():
     }
 
 
+@frappe.whitelist(allow_guest=True)
+def get_knowledge_graph(section=None, chapter=None, root_id=None, query=None, depth=2, limit=150):
+    """
+    Whitelisted API endpoint serving the Customs Knowledge Graph for Cytoscape.js.
+    Uses UnifiedGraphService with automatic fallback between Apache AGE and In-Memory JSON.
+    """
+    try:
+        ai_rag_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "../../ai_service/ai_rag")
+        )
+        if ai_rag_path not in sys.path:
+            sys.path.insert(0, ai_rag_path)
+
+        from rag.graph.service import get_graph_service
+
+        svc = get_graph_service()
+        depth_int = int(depth) if depth else 2
+        limit_int = int(limit) if limit else 150
+        return svc.get_knowledge_graph(
+            section=section,
+            chapter=chapter,
+            root_id=root_id,
+            query=query,
+            depth=depth_int,
+            limit=limit_int,
+        )
+    except Exception as exc:
+        logger.exception("Failed to get knowledge graph: %s", exc)
+        return {
+            "success": False,
+            "error": str(exc),
+            "elements": {"nodes": [], "edges": []},
+        }
+
+
+
 

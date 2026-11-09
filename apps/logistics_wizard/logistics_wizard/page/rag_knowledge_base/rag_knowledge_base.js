@@ -17,7 +17,7 @@ class RagAdminCenterController {
         }
 
         this.state = {
-            currentNavTab: 'dashboard', // 'dashboard' | 'knowledge'
+            currentNavTab: 'knowledge', // 'knowledge' | 'graph'
             timeRange: '7d',
             domain: 'all',
             activeKnowledgeFilterTab: 'all',
@@ -33,7 +33,7 @@ class RagAdminCenterController {
 
         this.init_mock_data();
         this.bind_events();
-        this.switch_nav_tab('dashboard');
+        this.switch_nav_tab('knowledge');
         this.render_all();
     }
 
@@ -298,13 +298,29 @@ class RagAdminCenterController {
     bind_events() {
         const self = this;
 
-        // 1. Sidebar Nav Tab Switching (Dashboard vs Quản trị tri thức)
+        // 1. Sidebar Nav Tab Switching (Dashboard vs Quản trị tri thức vs Sơ đồ tri thức)
         this.$root.on('click', '.logistics-nav-tab', function (e) {
             e.preventDefault();
             const targetTab = $(this).data('tab');
             if (targetTab) {
                 self.switch_nav_tab(targetTab);
             }
+        });
+
+        // 1b. Direct Header Jump between Panes (Dashboard / Quản Trị Tri Thức / Sơ Đồ Tri Thức)
+        this.$root.on('click', '#btn-header-goto-dashboard, #btn-header-goto-dashboard-from-graph', function (e) {
+            e.preventDefault();
+            self.switch_nav_tab('dashboard');
+        });
+
+        this.$root.on('click', '#btn-header-goto-graph, #btn-header-goto-graph-dash', function (e) {
+            e.preventDefault();
+            self.switch_nav_tab('graph');
+        });
+
+        this.$root.on('click', '#btn-header-goto-knowledge, #btn-header-goto-knowledge-dash', function (e) {
+            e.preventDefault();
+            self.switch_nav_tab('knowledge');
         });
 
         // 2. Topbar Filters
@@ -443,6 +459,12 @@ class RagAdminCenterController {
         tabName = tabName || 'dashboard';
         this.state.currentNavTab = tabName;
 
+        try {
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState(null, null, '#' + tabName);
+            }
+        } catch (e) {}
+
         // 1. Update active tab button in sidebar
         this.$root.find('.logistics-nav-tab').removeClass('active');
         this.$root.find(`#btn-tab-${tabName}`).addClass('active');
@@ -457,6 +479,8 @@ class RagAdminCenterController {
             setTimeout(() => this.render_charts(), 50);
         } else if (tabName === 'knowledge') {
             this.render_documents_table();
+        } else if (tabName === 'graph') {
+            setTimeout(() => this.init_or_refresh_graph(), 50);
         }
     }
 
@@ -961,6 +985,478 @@ class RagAdminCenterController {
             });
         }, 3500);
     }
+
+    // =========================================================================
+    // CYTOSCAPE.JS KNOWLEDGE GRAPH EXPLORER (DUAL-RUN: IN-MEMORY / APACHE AGE)
+    // =========================================================================
+
+    ensure_cytoscape(callback) {
+        if (window.cytoscape && typeof window.cytoscape === 'function') {
+            if (typeof window.cytoscapeDagre === 'function') {
+                try { window.cytoscape.use(window.cytoscapeDagre); } catch(e) {}
+            }
+            callback();
+            return;
+        }
+
+        const loadScript = (src, next) => {
+            const s = document.createElement('script');
+            s.src = src;
+            s.onload = next;
+            s.onerror = () => {
+                console.warn('Failed loading script:', src);
+                if (next) next();
+            };
+            document.head.appendChild(s);
+        };
+
+        // Try patched local assets first
+        loadScript('/assets/logistics_wizard/js/cytoscape.min.js?v=age1', () => {
+            loadScript('/assets/logistics_wizard/js/dagre.min.js?v=age1', () => {
+                loadScript('/assets/logistics_wizard/js/cytoscape-dagre.min.js?v=age1', () => {
+                    if (typeof window.cytoscape === 'function' && typeof window.cytoscapeDagre === 'function') {
+                        try { window.cytoscape.use(window.cytoscapeDagre); } catch (e) {}
+                    }
+                    callback();
+                });
+            });
+        });
+    }
+
+    init_or_refresh_graph() {
+        const self = this;
+        this.ensure_cytoscape(() => {
+            if (!self.graphInitialized) {
+                self.bind_graph_controls();
+                self.fetch_and_render_graph();
+                self.graphInitialized = true;
+            } else if (self.cy) {
+                self.cy.resize();
+                self.cy.fit(undefined, 30);
+            }
+        });
+    }
+
+    bind_graph_controls() {
+        const self = this;
+        const $root = this.$root;
+
+        $root.on('click', '#btn-graph-fit', () => {
+            if (self.cy) self.cy.fit(undefined, 40);
+        });
+
+        $root.on('click', '#btn-graph-focus', () => {
+            if (self.cy && self.state.selectedGraphNodeId) {
+                const node = self.cy.getElementById(self.state.selectedGraphNodeId);
+                if (node && node.length) {
+                    self.cy.animate({
+                        center: { eles: node },
+                        zoom: 1.4,
+                        duration: 400
+                    });
+                }
+            }
+        });
+
+        $root.on('click', '.rag-btn-layout', function (e) {
+            e.preventDefault();
+            $root.find('.rag-btn-layout').removeClass('active').css({ background: 'transparent', color: '#64748b', 'font-weight': '500' });
+            $(this).addClass('active').css({ background: '#ffffff', color: '#0284c7', 'font-weight': '600' });
+            self.state.graphLayout = $(this).data('layout') || 'dagre';
+            if (self.cy) {
+                self.apply_cy_layout();
+            }
+        });
+
+        $root.on('click', '#btn-graph-reset', () => {
+            $root.find('#rag-graph-filter-section').val('all');
+            $root.find('#rag-graph-filter-chapter').val('all');
+            $root.find('#rag-graph-search-input').val('');
+            self.fetch_and_render_graph();
+        });
+
+        $root.on('change', '#rag-graph-filter-section, #rag-graph-filter-chapter', () => {
+            const sec = $root.find('#rag-graph-filter-section').val();
+            const ch = $root.find('#rag-graph-filter-chapter').val();
+            self.fetch_and_render_graph({
+                section: sec === 'all' ? null : sec,
+                chapter: ch === 'all' ? null : ch
+            });
+        });
+
+        $root.on('click', '#btn-graph-search', () => {
+            const q = $root.find('#rag-graph-search-input').val().trim();
+            if (q) {
+                self.fetch_and_render_graph({ query: q });
+            }
+        });
+
+        $root.on('keypress', '#rag-graph-search-input', (e) => {
+            if (e.which === 13) {
+                $root.find('#btn-graph-search').trigger('click');
+            }
+        });
+
+        $root.on('click', '#btn-node-expand-children', () => {
+            self.expand_selected_node();
+        });
+    }
+
+    fetch_and_render_graph(params) {
+        const self = this;
+        const $indicator = this.$root.find('#rag-graph-loading-indicator');
+        $indicator.fadeIn(150);
+
+        const callParams = params || {
+            section: this.$root.find('#rag-graph-filter-section').val() === 'all' ? null : this.$root.find('#rag-graph-filter-section').val(),
+            chapter: this.$root.find('#rag-graph-filter-chapter').val() === 'all' ? null : this.$root.find('#rag-graph-filter-chapter').val(),
+            query: this.$root.find('#rag-graph-search-input').val().trim() || null,
+            limit: 120
+        };
+
+        if (typeof frappe !== 'undefined' && frappe.call) {
+            frappe.call({
+                method: 'logistics_wizard.api.get_knowledge_graph',
+                args: callParams,
+                callback: (r) => {
+                    $indicator.fadeOut(150);
+                    if (r && r.message && r.message.success) {
+                        self.render_cytoscape(r.message.elements, r.message.engine);
+                    } else {
+                        self.render_fallback_graph();
+                    }
+                },
+                error: () => {
+                    $indicator.fadeOut(150);
+                    self.render_fallback_graph();
+                }
+            });
+        } else {
+            $indicator.fadeOut(150);
+            self.render_fallback_graph();
+        }
+    }
+
+    apply_cy_layout() {
+        if (!this.cy) return;
+        const layoutName = this.state.graphLayout || 'dagre';
+        let layoutConfig;
+        if (layoutName === 'cose') {
+            layoutConfig = {
+                name: 'cose',
+                animate: true,
+                animationDuration: 500,
+                nodeRepulsion: function(node) { return 450000; },
+                idealEdgeLength: function(edge) { return 100; },
+                edgeElasticity: function(edge) { return 100; },
+                gravity: 35,
+                padding: 40
+            };
+        } else {
+            layoutConfig = {
+                name: 'dagre',
+                rankDir: 'TB',
+                nodeSep: 65,
+                rankSep: 85,
+                padding: 40,
+                animate: true,
+                animationDuration: 400
+            };
+        }
+        const layout = this.cy.layout(layoutConfig);
+        layout.run();
+    }
+
+    render_cytoscape(elements, engine) {
+        const self = this;
+        const container = this.$root.find('#rag-cytoscape-canvas')[0];
+        if (!container || !window.cytoscape) return;
+
+        // Ensure cytoscape-dagre is registered
+        if (typeof window.cytoscapeDagre === 'function') {
+            try { window.cytoscape.use(window.cytoscapeDagre); } catch (e) {}
+        }
+
+        // Update engine badge
+        const engineLabel = engine === 'apache_age' ? 'Apache AGE (PG17)' : 'In-Memory JSON (Dual-Run)';
+        this.$root.find('#graph-active-engine').text(engineLabel);
+
+        const cyNodes = (elements && elements.nodes) || [];
+        const cyEdges = (elements && elements.edges) || [];
+
+        if (this.cy) {
+            this.cy.destroy();
+        }
+
+        this.cy = cytoscape({
+            container: container,
+            elements: [...cyNodes, ...cyEdges],
+            boxSelectionEnabled: false,
+            autounselectify: false,
+            style: [
+                {
+                    selector: 'node',
+                    style: {
+                        'label': 'data(label)',
+                        'color': '#ffffff',
+                        'font-size': '11px',
+                        'font-weight': 'bold',
+                        'text-valign': 'center',
+                        'text-halign': 'center',
+                        'text-wrap': 'wrap',
+                        'text-max-width': '65px',
+                        'background-color': '#0284c7',
+                        'width': '52px',
+                        'height': '52px',
+                        'border-width': '3px',
+                        'border-color': '#ffffff',
+                        'transition-property': 'background-color, border-color, width, height, border-width',
+                        'transition-duration': '0.25s'
+                    }
+                },
+                {
+                    selector: 'node[type = "root"]',
+                    style: {
+                        'background-color': '#0f172a',
+                        'shape': 'round-rectangle',
+                        'width': '74px',
+                        'height': '74px',
+                        'font-size': '12px',
+                        'border-color': '#38bdf8',
+                        'border-width': '4px'
+                    }
+                },
+                {
+                    selector: 'node[type = "section"]',
+                    style: {
+                        'background-color': '#0369a1',
+                        'shape': 'round-rectangle',
+                        'width': '60px',
+                        'height': '60px',
+                        'border-color': '#bae6fd',
+                        'border-width': '3px'
+                    }
+                },
+                {
+                    selector: 'node[type = "chapter"]',
+                    style: {
+                        'background-color': '#2563eb',
+                        'shape': 'ellipse',
+                        'width': '52px',
+                        'height': '52px',
+                        'border-color': '#bfdbfe'
+                    }
+                },
+                {
+                    selector: 'node[type = "heading"]',
+                    style: {
+                        'background-color': '#0d9488',
+                        'shape': 'ellipse',
+                        'width': '46px',
+                        'height': '46px',
+                        'border-color': '#99f6e4'
+                    }
+                },
+                {
+                    selector: 'node[type = "subheading"]',
+                    style: {
+                        'background-color': '#d97706',
+                        'shape': 'ellipse',
+                        'width': '40px',
+                        'height': '40px',
+                        'font-size': '10px',
+                        'border-color': '#fde68a'
+                    }
+                },
+                {
+                    selector: 'node[type = "note"], node[type = "legal_rule"], node[type = "legal"]',
+                    style: {
+                        'background-color': '#dc2626',
+                        'shape': 'diamond',
+                        'width': '38px',
+                        'height': '38px',
+                        'font-size': '11px',
+                        'font-weight': 'bold',
+                        'text-valign': 'center',
+                        'text-halign': 'center',
+                        'color': '#ffffff',
+                        'border-color': '#fecaca',
+                        'border-width': '2.5px'
+                    }
+                },
+                {
+                    selector: 'node:selected, node.selected',
+                    style: {
+                        'border-width': '5px',
+                        'border-color': '#f59e0b',
+                        'width': '64px',
+                        'height': '64px'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 2.5,
+                        'line-color': '#cbd5e1',
+                        'target-arrow-color': '#94a3b8',
+                        'target-arrow-shape': 'triangle',
+                        'curve-style': 'bezier',
+                        'arrow-scale': 0.9,
+                        'transition-property': 'line-color, width, target-arrow-color',
+                        'transition-duration': '0.2s'
+                    }
+                },
+                {
+                    selector: 'edge[relation = "EXCLUDES"]',
+                    style: {
+                        'line-color': '#fca5a5',
+                        'target-arrow-color': '#ef4444',
+                        'line-style': 'dashed'
+                    }
+                },
+                {
+                    selector: 'edge:selected, edge.selected',
+                    style: {
+                        'width': 4,
+                        'line-color': '#0284c7',
+                        'target-arrow-color': '#0284c7'
+                    }
+                }
+            ]
+        });
+
+        this.apply_cy_layout();
+
+        // Click event on node
+        this.cy.on('tap', 'node', function (evt) {
+            const node = evt.target;
+            self.handle_graph_node_select(node.data());
+            try {
+                self.cy.animate({
+                    center: { eles: node },
+                    zoom: Math.min(Math.max(self.cy.zoom(), 1.0), 1.5),
+                    duration: 400
+                });
+            } catch (e) {}
+        });
+
+        // Click on background
+        this.cy.on('tap', function (evt) {
+            if (evt.target === self.cy) {
+                self.cy.nodes().removeClass('selected');
+            }
+        });
+
+        // Auto select first node
+        if (cyNodes.length > 0) {
+            this.handle_graph_node_select(cyNodes[0].data);
+        }
+    }
+
+    handle_graph_node_select(data) {
+        if (!data) return;
+        this.state.selectedGraphNodeId = data.id;
+
+        const $details = this.$root.find('#rag-graph-node-details');
+        $details.find('#node-detail-id').text(data.id || 'N/A');
+        $details.find('#node-detail-label').text(data.full_title || data.label || data.code || 'N/A');
+        $details.find('#node-detail-desc').text(data.description || 'Chưa có chú giải chi tiết.');
+        $details.find('#node-detail-type').text(data.type || 'item');
+        $details.find('#node-detail-chapter').text(data.chapter || data.section || 'N/A');
+        $details.find('#node-detail-children-count').text(data.children_count || 0);
+
+        const $expandBtn = $details.find('#btn-node-expand-children');
+        if (data.has_children || (data.children_count && data.children_count > 0)) {
+            $expandBtn.show().find('span').text(`Mở Rộng Nhánh Con (${data.children_count})`);
+        } else {
+            $expandBtn.hide();
+        }
+    }
+
+    expand_selected_node() {
+        const self = this;
+        const nid = this.state.selectedGraphNodeId;
+        if (!nid || !this.cy) return;
+
+        const $indicator = this.$root.find('#rag-graph-loading-indicator');
+        $indicator.fadeIn(150);
+
+        const handleSuccess = (elements) => {
+            $indicator.fadeOut(150);
+            const newNodes = (elements && elements.nodes) || [];
+            const newEdges = (elements && elements.edges) || [];
+
+            const existingNodeIds = new Set(self.cy.nodes().map(n => n.id()));
+            const toAdd = [];
+
+            newNodes.forEach(n => {
+                if (!existingNodeIds.has(n.data.id)) {
+                    toAdd.push(n);
+                }
+            });
+
+            const existingEdgeKeys = new Set(self.cy.edges().map(e => `${e.source().id()}->${e.target().id()}`));
+            const existingEdgeIds = new Set(self.cy.edges().map(e => e.id()));
+            newEdges.forEach(e => {
+                const key = `${e.data.source}->${e.data.target}`;
+                if (!existingEdgeIds.has(e.data.id) && !existingEdgeKeys.has(key)) {
+                    existingEdgeKeys.add(key);
+                    toAdd.push(e);
+                }
+            });
+
+            if (toAdd.length > 0) {
+                self.cy.add(toAdd);
+                self.apply_cy_layout();
+                self.show_toast(`Đã mở rộng thêm ${toAdd.length} nhánh tri thức!`);
+            } else {
+                self.show_toast('Tất cả các nhánh con của nút này đã được hiển thị.');
+            }
+        };
+
+        if (typeof frappe !== 'undefined' && frappe.call) {
+            frappe.call({
+                method: 'logistics_wizard.api.get_knowledge_graph',
+                args: { root_id: nid, depth: 1, limit: 30 },
+                callback: (r) => {
+                    if (r && r.message && r.message.success && r.message.elements) {
+                        handleSuccess(r.message.elements);
+                    } else {
+                        $indicator.fadeOut(150);
+                        self.show_toast('Không tìm thấy nhánh con bổ sung.');
+                    }
+                },
+                error: () => {
+                    $indicator.fadeOut(150);
+                }
+            });
+        } else {
+            $indicator.fadeOut(150);
+        }
+    }
+
+    render_fallback_graph() {
+        const mockNodes = [
+            { data: { id: 'ROOT', label: 'Biểu Thuế Hải Quan', type: 'root', description: 'Cấu trúc biểu thuế phân cấp toàn quốc' } },
+            { data: { id: 'SEC_XVI', label: 'Phần XVI: Máy Móc', type: 'section', chapter: '84, 85', description: 'Máy và các thiết bị cơ khí, điện tử' } },
+            { data: { id: 'CH_84', label: 'Chương 84: Lò phản ứng & Nồi hơi', type: 'chapter', chapter: '84', description: 'Nồi hơi, máy cơ khí' } },
+            { data: { id: 'CH_85', label: 'Chương 85: Thiết Bị Điện', type: 'chapter', chapter: '85', description: 'Máy điện và thiết bị truyền hình, viễn thông' } },
+            { data: { id: 'HD_8471', label: 'Nhóm 84.71: Máy Xử Lý Dữ Liệu', type: 'heading', chapter: '84', code: '8471', description: 'Máy xử lý dữ liệu tự động, máy tính xách tay' } },
+            { data: { id: 'SUB_847130', label: 'Phân nhóm 8471.30: Laptop', type: 'subheading', chapter: '84', code: '8471.30', description: 'Máy tính xách tay trọng lượng <= 10kg' } },
+            { data: { id: 'EXCL_NOTE', label: 'Chú giải loại trừ Ch.84', type: 'note', chapter: '84', description: 'Không bao gồm máy móc thuộc Phần XVII' } }
+        ];
+
+        const mockEdges = [
+            { data: { id: 'e1', source: 'ROOT', target: 'SEC_XVI', label: 'CONTAINS', relation: 'CONTAINS' } },
+            { data: { id: 'e2', source: 'SEC_XVI', target: 'CH_84', label: 'CONTAINS', relation: 'CONTAINS' } },
+            { data: { id: 'e3', source: 'SEC_XVI', target: 'CH_85', label: 'CONTAINS', relation: 'CONTAINS' } },
+            { data: { id: 'e4', source: 'CH_84', target: 'HD_8471', label: 'CONTAINS', relation: 'CONTAINS' } },
+            { data: { id: 'e5', source: 'HD_8471', target: 'SUB_847130', label: 'CONTAINS', relation: 'CONTAINS' } },
+            { data: { id: 'e6', source: 'HD_8471', target: 'EXCL_NOTE', label: 'EXCLUDES', relation: 'EXCLUDES' } }
+        ];
+
+        this.render_cytoscape({ nodes: mockNodes, edges: mockEdges }, 'inmemory');
+    }
 }
 
 function make_rag_page_full_bleed(wrapper) {
@@ -1028,7 +1524,10 @@ function register_rag_knowledge_base_page(pageName) {
         }
 
         const controller = new RagAdminCenterController(wrapper.page.body);
-        controller.switch_nav_tab('knowledge');
+        const hash = window.location.hash || '';
+        const route = frappe.get_route ? frappe.get_route() : [];
+        const isGraph = hash === '#graph' || (route && route[1] === 'graph') || (frappe.route_options && frappe.route_options.tab === 'graph');
+        controller.switch_nav_tab(isGraph ? 'graph' : 'knowledge');
         wrapper.ragAdminController = controller;
         frappe.pages[pageName].controller = controller;
         make_rag_page_full_bleed(wrapper);
@@ -1037,8 +1536,17 @@ function register_rag_knowledge_base_page(pageName) {
     frappe.pages[pageName].on_page_show = function (wrapper) {
         make_rag_page_full_bleed(wrapper);
         if (wrapper.ragAdminController) {
-            wrapper.ragAdminController.switch_nav_tab('knowledge');
-            wrapper.ragAdminController.render_all();
+            const hash = window.location.hash || '';
+            const route = frappe.get_route ? frappe.get_route() : [];
+            const isGraph = hash === '#graph' || (route && route[1] === 'graph') || (frappe.route_options && frappe.route_options.tab === 'graph');
+            if (isGraph) {
+                wrapper.ragAdminController.switch_nav_tab('graph');
+            } else if (wrapper.ragAdminController.state && wrapper.ragAdminController.state.currentNavTab && wrapper.ragAdminController.state.currentNavTab !== 'dashboard') {
+                wrapper.ragAdminController.switch_nav_tab(wrapper.ragAdminController.state.currentNavTab);
+            } else {
+                wrapper.ragAdminController.switch_nav_tab('knowledge');
+                wrapper.ragAdminController.render_all();
+            }
         }
     };
 }

@@ -44,6 +44,7 @@ try:
         ('page', 'logistics_ai_chatbot', 'logistics_ai_chatbot.json'),
         ('page', 'trade_cost_dashboard', 'trade_cost_dashboard.json'),
         ('page', 'rag_admin_center', 'rag_admin_center.json'),
+        ('page', 'rag_knowledge_base', 'rag_knowledge_base.json'),
         ('workspace', 'logistics_wizard', 'logistics_wizard.json')
     ]
     for sub in items_to_sync:
@@ -113,6 +114,13 @@ if [ "$PO_STATUS" = "EMPTY" ]; then
     $BENCH_DIR/env/bin/python3 "$PROCUREMENT_SCRIPT" || true
 else
     echo ">>> Purchase orders status: $PO_STATUS."
+fi
+
+# Ensure Trade Cases and Trade Cost Sheets exist
+echo ">>> Ensuring Trade Cases and Trade Cost Sheets are seeded..."
+TRADE_CASE_SCRIPT="$BENCH_DIR/scripts/seed_trade_cases_and_costing.py"
+if [ -f "$TRADE_CASE_SCRIPT" ]; then
+    $BENCH_DIR/env/bin/python3 "$TRADE_CASE_SCRIPT" || true
 fi
 
 echo ">>> Building JS/CSS assets for logistics_wizard..."

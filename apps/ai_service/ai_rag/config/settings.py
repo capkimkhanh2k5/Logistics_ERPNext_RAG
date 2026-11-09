@@ -9,7 +9,25 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
-from dotenv import dotenv_values, load_dotenv
+try:
+    from dotenv import dotenv_values, load_dotenv
+except ImportError:  # pragma: no cover - fallback when running inside Frappe virtualenv
+    def dotenv_values(dotenv_path=None) -> dict[str, str]:
+        data: dict[str, str] = {}
+        if dotenv_path and Path(dotenv_path).is_file():
+            for line in Path(dotenv_path).read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                data[k.strip()] = v.strip().strip("'").strip('"')
+        return data
+
+    def load_dotenv(dotenv_path=None, override: bool = False) -> bool:
+        for k, v in dotenv_values(dotenv_path).items():
+            if override or k not in os.environ:
+                os.environ[k] = v
+        return True
 
 ROOT = Path(__file__).resolve().parents[1]
 
