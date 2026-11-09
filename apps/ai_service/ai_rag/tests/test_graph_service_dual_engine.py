@@ -1,6 +1,5 @@
 """Unit tests for Unified Graph Service & Dual-Engine Architecture."""
 
-import pytest
 from rag.graph.service import UnifiedGraphService, get_graph_service
 
 
