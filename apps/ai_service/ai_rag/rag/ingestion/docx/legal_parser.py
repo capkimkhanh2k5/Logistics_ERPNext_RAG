@@ -108,13 +108,16 @@ class LegalParser:
                     current_clause = None
                     continue
 
-                # 3. Check for Article (Điều)
+                # 3. Check for Article or Rule (Điều, Qui tắc, Quy tắc)
                 art_match = re.match(
-                    r"^Điều\s+(\d+[\w\d]*)\s*[\.:–—]\s*(.*)$", text, re.IGNORECASE
+                    r"^(Điều|Qui tắc|Quy tắc|Rule)\s+(\d+[\w\d]*)(?:[\.:–—\s]+(.*))?$",
+                    text,
+                    re.IGNORECASE,
                 )
                 if art_match:
-                    art_num = art_match.group(1)
-                    art_title = art_match.group(2).strip()
+                    prefix_label = art_match.group(1).title()
+                    art_num = art_match.group(2)
+                    art_title = (art_match.group(3) or "").strip()
                     node_order += 1
                     parent_id = (
                         current_chapter.id
@@ -126,21 +129,21 @@ class LegalParser:
                         if current_chapter
                         else (current_annex.breadcrumb if current_annex else (doc_no or "Văn bản"))
                     )
-                    breadcrumb = f"{parent_bc} > Điều {art_num}"
+                    breadcrumb = f"{parent_bc} > {prefix_label} {art_num}"
 
                     current_article = ASTNode(
                         id=f"art_{art_num}_{node_order}",
                         node_type=NodeType.ARTICLE,
                         node_level=3,
                         node_order=node_order,
-                        canonical_anchor=f"dieu-{art_num.lower()}",
+                        canonical_anchor=f"{prefix_label.lower().replace(' ', '-')}-{art_num.lower()}",
                         code=art_num,
-                        title=f"Điều {art_num}. {art_title}" if art_title else f"Điều {art_num}",
+                        title=f"{prefix_label} {art_num}. {art_title}" if art_title else f"{prefix_label} {art_num}",
                         source_text=text,
                         source_location=SourceLocation(block_index=block.block_index),
                         breadcrumb=breadcrumb,
                         parent_id=parent_id,
-                        metadata={"article": art_num},
+                        metadata={"article": art_num, "provision_type": prefix_label},
                     )
                     nodes.append(current_article)
                     current_clause = None

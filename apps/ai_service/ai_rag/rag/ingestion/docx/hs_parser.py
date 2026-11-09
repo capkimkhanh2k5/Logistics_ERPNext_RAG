@@ -126,13 +126,17 @@ class HSParser:
                         nodes.append(note_node)
                         continue
 
-                # Check for explicit Heading in paragraph: e.g. "84.01 — Lò phản ứng..."
+                # Check for explicit Heading in paragraph: e.g. "84.01 — Lò phản ứng..." or "86.06\tToa xe..."
                 heading_match = re.match(
-                    r"^(\d{2}\.\d{2}|\d{4})\s*[-–—:]\s*(.+)$", text
+                    r"^(\d{2}\.\d{2}|\d{4})(?:[\s\t]*[-–—:]|\t+)\s*(.+)$", text
                 )
                 if heading_match:
                     h_code = heading_match.group(1).replace(".", "").strip()
-                    h_title = heading_match.group(2).strip()
+                    if current_heading and current_heading.code == h_code:
+                        continue
+                    raw_title = heading_match.group(2).strip()
+                    # If bilingual tab-separated, prioritize first part (Vietnamese)
+                    h_title = raw_title.split("\t")[0].strip()
                     node_order += 1
                     parent_id = current_chapter.id if current_chapter else None
                     breadcrumb = (
@@ -213,16 +217,53 @@ class HSParser:
 
                     # If cell 0 has 8-digit code (AHTN 8)
                     if len(cleaned_code) == 8 and cleaned_code.isdigit():
+                        h_code = cleaned_code[:4]
+                        if current_heading is None or current_heading.code != h_code:
+                            existing_h = next(
+                                (n for n in nodes if n.node_type == NodeType.HEADING and n.code == h_code),
+                                None,
+                            )
+                            if existing_h:
+                                current_heading = existing_h
+                            else:
+                                node_order += 1
+                                parent_chap_id = current_chapter.id if current_chapter else None
+                                chap_bc = (
+                                    current_chapter.breadcrumb
+                                    if current_chapter
+                                    else f"Chương {h_code[:2]}"
+                                )
+                                current_heading = ASTNode(
+                                    id=f"heading_{h_code}",
+                                    node_type=NodeType.HEADING,
+                                    node_level=4,
+                                    node_order=node_order,
+                                    canonical_anchor=f"Heading-{h_code}",
+                                    code=h_code,
+                                    title=f"Nhóm {h_code}",
+                                    source_text=f"Nhóm {h_code}",
+                                    source_location=SourceLocation(block_index=block.block_index),
+                                    breadcrumb=f"{chap_bc} > Nhóm {h_code}",
+                                    parent_id=parent_chap_id,
+                                    metadata={"heading": h_code, "chapter": h_code[:2]},
+                                )
+                                nodes.append(current_heading)
+                            subheading_stack.clear()
+
                         node_order += 1
                         # Determine parent: nearest subheading with smaller dash count, or heading
                         parent_sub = None
                         if dash_count > 0:
                             for d in sorted(subheading_stack.keys(), reverse=True):
                                 if d < dash_count:
-                                    parent_sub = subheading_stack[d]
-                                    break
+                                    cand = subheading_stack[d]
+                                    if not cand.code or cleaned_code.startswith(cand.code):
+                                        parent_sub = cand
+                                        break
                         if parent_sub is None:
-                            parent_sub = subheading_stack.get(max(subheading_stack.keys(), default=-1))
+                            cand = subheading_stack.get(max(subheading_stack.keys(), default=-1))
+                            if cand and (not cand.code or cleaned_code.startswith(cand.code)):
+                                parent_sub = cand
 
                         parent_id = (
                             parent_sub.id
@@ -273,13 +314,49 @@ class HSParser:
                     if (len(cleaned_code) == 6 and cleaned_code.isdigit()) or (
                         not cleaned_code and dash_count > 0 and clean_desc
                     ):
+                        if len(cleaned_code) == 6 and cleaned_code.isdigit():
+                            h_code = cleaned_code[:4]
+                            if current_heading is None or current_heading.code != h_code:
+                                existing_h = next(
+                                    (n for n in nodes if n.node_type == NodeType.HEADING and n.code == h_code),
+                                    None,
+                                )
+                                if existing_h:
+                                    current_heading = existing_h
+                                else:
+                                    node_order += 1
+                                    parent_chap_id = current_chapter.id if current_chapter else None
+                                    chap_bc = (
+                                        current_chapter.breadcrumb
+                                        if current_chapter
+                                        else f"Chương {h_code[:2]}"
+                                    )
+                                    current_heading = ASTNode(
+                                        id=f"heading_{h_code}",
+                                        node_type=NodeType.HEADING,
+                                        node_level=4,
+                                        node_order=node_order,
+                                        canonical_anchor=f"Heading-{h_code}",
+                                        code=h_code,
+                                        title=f"Nhóm {h_code}",
+                                        source_text=f"Nhóm {h_code}",
+                                        source_location=SourceLocation(block_index=block.block_index),
+                                        breadcrumb=f"{chap_bc} > Nhóm {h_code}",
+                                        parent_id=parent_chap_id,
+                                        metadata={"heading": h_code, "chapter": h_code[:2]},
+                                    )
+                                    nodes.append(current_heading)
+                                subheading_stack.clear()
+
                         node_order += 1
                         # Find parent subheading with strictly smaller dash count
                         parent_sub = None
                         for d in sorted(subheading_stack.keys(), reverse=True):
                             if d < dash_count:
-                                parent_sub = subheading_stack[d]
-                                break
+                                cand = subheading_stack[d]
+                                if not cand.code or not cleaned_code or cleaned_code.startswith(cand.code):
+                                    parent_sub = cand
+                                    break
 
                         parent_id = (
                             parent_sub.id
