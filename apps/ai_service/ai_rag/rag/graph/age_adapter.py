@@ -259,8 +259,8 @@ class ApacheAgeAdapter:
                 LIMIT {safe_limit}
             """
         else:
-            top_types = "['root', 'section', 'chapter', 'subchapter', 'heading']"
             if chapter and chapter != "all":
+                top_types = "['root', 'section', 'chapter', 'subchapter', 'heading']"
                 safe_ch = escape_cypher(chapter)
                 cypher = f"""
                     MATCH (n)-[r]->(m)
@@ -271,6 +271,7 @@ class ApacheAgeAdapter:
                     LIMIT {safe_limit}
                 """
             elif section and section != "all":
+                top_types = "['root', 'section', 'chapter', 'subchapter', 'heading']"
                 safe_sec = escape_cypher(section)
                 cypher = f"""
                     MATCH (n)-[r]->(m)
@@ -281,12 +282,14 @@ class ApacheAgeAdapter:
                     LIMIT {safe_limit}
                 """
             else:
+                # Progressive Disclosure: High-level overview (Root -> Sections -> Chapters)
+                overview_types = "['root', 'section', 'chapter']"
                 cypher = f"""
                     MATCH (n)-[r]->(m)
-                    WHERE n.type IN {top_types}
-                      AND m.type IN {top_types}
+                    WHERE n.type IN {overview_types}
+                      AND m.type IN {overview_types}
                     RETURN n, r, m
-                    LIMIT {safe_limit}
+                    LIMIT 50
                 """
 
         rows = self.query_cypher(cypher, "n agtype, r agtype, m agtype")
@@ -340,25 +343,46 @@ class ApacheAgeAdapter:
 
     def _format_cytoscape_node(self, node_data: Dict[str, Any]) -> Dict[str, Any]:
         node_id = str(node_data.get("id") or node_data.get("node_id") or "")
-        node_type = node_data.get("type") or node_data.get("node_type") or node_data.get("role") or "item"
-        label = (
+        node_type = str(node_data.get("type") or node_data.get("node_type") or node_data.get("role") or "item").lower()
+        raw_label = (
             node_data.get("label")
             or node_data.get("label_vi")
             or node_data.get("code")
-            or str(node_data.get("source_text", ""))[:40]
+            or str(node_data.get("source_text", ""))[:60]
             or node_id
         )
+        code = str(node_data.get("code") or "")
+
+        # Format concise, legible label for the node badge
+        short_label = raw_label
+        if node_type == "root":
+            short_label = "Biểu Thuế XNK"
+        elif node_type == "section":
+            sec = str(node_data.get("section") or code or "").replace("SEC:", "").replace("tt31:SEC:", "").replace("S", "")
+            short_label = f"Phần {sec}" if sec else "Phần HS"
+        elif node_type == "chapter":
+            ch = str(node_data.get("chapter") or code or "").replace("CH:", "").replace("CH_", "").replace("tt31:CH:", "")
+            short_label = f"Chương {ch}" if ch else "Chương"
+        elif node_type == "heading":
+            short_label = f"Mã {code}" if code else raw_label[:14]
+        elif node_type == "subheading":
+            short_label = code if code else raw_label[:14]
+        elif node_type in ("legal", "note", "legal_note"):
+            short_label = f"Chú giải {code}" if code else "Chú giải PL"
+
         return {
             "data": {
                 "id": node_id,
-                "label": label,
+                "label": short_label,
+                "full_title": raw_label,
                 "type": node_type,
-                "code": node_data.get("code", ""),
+                "code": code,
                 "section": node_data.get("section", ""),
                 "chapter": node_data.get("chapter", ""),
                 "description": node_data.get("description")
                 or node_data.get("description_vi")
-                or node_data.get("source_text", ""),
+                or node_data.get("source_text", "")
+                or raw_label,
                 "has_children": bool(node_data.get("has_children", True)),
                 "children_count": int(node_data.get("children_count", 0)),
             }

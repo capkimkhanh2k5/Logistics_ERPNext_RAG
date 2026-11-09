@@ -116,6 +116,13 @@ else
     echo ">>> Purchase orders status: $PO_STATUS."
 fi
 
+# Ensure Trade Cases and Trade Cost Sheets exist
+echo ">>> Ensuring Trade Cases and Trade Cost Sheets are seeded..."
+TRADE_CASE_SCRIPT="$BENCH_DIR/scripts/seed_trade_cases_and_costing.py"
+if [ -f "$TRADE_CASE_SCRIPT" ]; then
+    $BENCH_DIR/env/bin/python3 "$TRADE_CASE_SCRIPT" || true
+fi
+
 echo ">>> Building JS/CSS assets for logistics_wizard..."
 bench build --app logistics_wizard
 

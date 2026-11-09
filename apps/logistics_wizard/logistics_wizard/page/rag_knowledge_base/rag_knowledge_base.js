@@ -1045,7 +1045,30 @@ class RagAdminCenterController {
         });
 
         $root.on('click', '#btn-graph-fit', () => {
-            if (self.cy) self.cy.fit(undefined, 30);
+            if (self.cy) self.cy.fit(undefined, 40);
+        });
+
+        $root.on('click', '#btn-graph-focus', () => {
+            if (self.cy && self.state.selectedGraphNodeId) {
+                const node = self.cy.getElementById(self.state.selectedGraphNodeId);
+                if (node && node.length) {
+                    self.cy.animate({
+                        center: { eles: node },
+                        zoom: 1.4,
+                        duration: 400
+                    });
+                }
+            }
+        });
+
+        $root.on('click', '.rag-btn-layout', function (e) {
+            e.preventDefault();
+            $root.find('.rag-btn-layout').removeClass('active').css({ background: 'transparent', color: '#64748b', 'font-weight': '500' });
+            $(this).addClass('active').css({ background: '#ffffff', color: '#0284c7', 'font-weight': '600' });
+            self.state.graphLayout = $(this).data('layout') || 'dagre';
+            if (self.cy) {
+                self.apply_cy_layout();
+            }
         });
 
         $root.on('click', '#btn-graph-reset', () => {
@@ -1117,10 +1140,56 @@ class RagAdminCenterController {
         }
     }
 
+    apply_cy_layout() {
+        if (!this.cy) return;
+        const layoutName = this.state.graphLayout || 'dagre';
+        let layoutConfig;
+        if (layoutName === 'cose') {
+            layoutConfig = {
+                name: 'cose',
+                animate: true,
+                animationDuration: 500,
+                nodeRepulsion: function(node) { return 450000; },
+                idealEdgeLength: function(edge) { return 100; },
+                edgeElasticity: function(edge) { return 100; },
+                gravity: 35,
+                padding: 40
+            };
+        } else if (layoutName === 'concentric') {
+            layoutConfig = {
+                name: 'concentric',
+                concentric: function(node) {
+                    const t = node.data('type');
+                    return t === 'root' ? 4 : (t === 'section' ? 3 : (t === 'chapter' ? 2 : 1));
+                },
+                levelWidth: function() { return 1; },
+                padding: 40,
+                animate: true
+            };
+        } else {
+            layoutConfig = {
+                name: 'dagre',
+                rankDir: 'TB',
+                nodeSep: 65,
+                rankSep: 85,
+                padding: 40,
+                animate: true,
+                animationDuration: 400
+            };
+        }
+        const layout = this.cy.layout(layoutConfig);
+        layout.run();
+    }
+
     render_cytoscape(elements, engine) {
         const self = this;
         const container = this.$root.find('#rag-cytoscape-canvas')[0];
         if (!container || !window.cytoscape) return;
+
+        // Ensure cytoscape-dagre is registered
+        if (typeof window.cytoscapeDagre === 'function') {
+            try { window.cytoscape.use(window.cytoscapeDagre); } catch (e) {}
+        }
 
         // Update engine badge
         const engineLabel = engine === 'apache_age' ? 'Apache AGE (PG17)' : 'In-Memory JSON (Dual-Run)';
@@ -1133,11 +1202,6 @@ class RagAdminCenterController {
             this.cy.destroy();
         }
 
-        const hasDagre = typeof window.cytoscape === 'function' && typeof cytoscape('core', 'dagre') === 'function';
-        const layoutConfig = hasDagre
-            ? { name: 'dagre', rankDir: 'TB', nodeSep: 45, rankSep: 65, animate: true, animationDuration: 400 }
-            : { name: 'breadthfirst', directed: true, padding: 35, spacingFactor: 1.25, animate: true };
-
         this.cy = cytoscape({
             container: container,
             elements: [...cyNodes, ...cyEdges],
@@ -1148,29 +1212,32 @@ class RagAdminCenterController {
                     selector: 'node',
                     style: {
                         'label': 'data(label)',
-                        'color': '#1e293b',
-                        'font-size': '10px',
-                        'font-weight': '600',
-                        'text-valign': 'bottom',
-                        'text-margin-y': '6px',
+                        'color': '#ffffff',
+                        'font-size': '11px',
+                        'font-weight': 'bold',
+                        'text-valign': 'center',
+                        'text-halign': 'center',
+                        'text-wrap': 'wrap',
+                        'text-max-width': '65px',
                         'background-color': '#0284c7',
-                        'width': '34px',
-                        'height': '34px',
-                        'border-width': '2px',
+                        'width': '52px',
+                        'height': '52px',
+                        'border-width': '3px',
                         'border-color': '#ffffff',
-                        'transition-property': 'background-color, border-color, width, height',
-                        'transition-duration': '0.2s'
+                        'transition-property': 'background-color, border-color, width, height, border-width',
+                        'transition-duration': '0.25s'
                     }
                 },
                 {
                     selector: 'node[type = "root"]',
                     style: {
-                        'background-color': '#0284c7',
+                        'background-color': '#0f172a',
                         'shape': 'round-rectangle',
-                        'width': '55px',
-                        'height': '55px',
+                        'width': '74px',
+                        'height': '74px',
                         'font-size': '12px',
-                        'font-weight': '700'
+                        'border-color': '#38bdf8',
+                        'border-width': '4px'
                     }
                 },
                 {
@@ -1178,17 +1245,20 @@ class RagAdminCenterController {
                     style: {
                         'background-color': '#0369a1',
                         'shape': 'round-rectangle',
-                        'width': '46px',
-                        'height': '46px'
+                        'width': '60px',
+                        'height': '60px',
+                        'border-color': '#bae6fd',
+                        'border-width': '3px'
                     }
                 },
                 {
                     selector: 'node[type = "chapter"]',
                     style: {
                         'background-color': '#2563eb',
-                        'shape': 'round-rectangle',
-                        'width': '40px',
-                        'height': '40px'
+                        'shape': 'ellipse',
+                        'width': '52px',
+                        'height': '52px',
+                        'border-color': '#bfdbfe'
                     }
                 },
                 {
@@ -1196,47 +1266,52 @@ class RagAdminCenterController {
                     style: {
                         'background-color': '#0d9488',
                         'shape': 'ellipse',
-                        'width': '34px',
-                        'height': '34px'
+                        'width': '46px',
+                        'height': '46px',
+                        'border-color': '#99f6e4'
                     }
                 },
                 {
                     selector: 'node[type = "subheading"]',
                     style: {
-                        'background-color': '#f59e0b',
+                        'background-color': '#d97706',
                         'shape': 'ellipse',
-                        'width': '26px',
-                        'height': '26px'
+                        'width': '40px',
+                        'height': '40px',
+                        'font-size': '10px',
+                        'border-color': '#fde68a'
                     }
                 },
                 {
-                    selector: 'node[type = "note"], node[type = "legal_rule"]',
+                    selector: 'node[type = "note"], node[type = "legal_rule"], node[type = "legal"]',
                     style: {
-                        'background-color': '#e11d48',
+                        'background-color': '#dc2626',
                         'shape': 'diamond',
-                        'width': '28px',
-                        'height': '28px'
+                        'width': '42px',
+                        'height': '42px',
+                        'border-color': '#fecaca'
                     }
                 },
                 {
                     selector: 'node:selected, node.selected',
                     style: {
-                        'border-width': '4px',
+                        'border-width': '5px',
                         'border-color': '#f59e0b',
-                        'shadow-blur': '12px',
-                        'shadow-color': 'rgba(2, 132, 199, 0.4)'
+                        'width': '64px',
+                        'height': '64px'
                     }
                 },
                 {
                     selector: 'edge',
                     style: {
-                        'width': 1.6,
-                        'line-color': '#93c5fd',
-                        'target-arrow-color': '#60a5fa',
+                        'width': 2.5,
+                        'line-color': '#cbd5e1',
+                        'target-arrow-color': '#94a3b8',
                         'target-arrow-shape': 'triangle',
                         'curve-style': 'bezier',
-                        'arrow-scale': 0.8,
-                        'opacity': 0.8
+                        'arrow-scale': 0.9,
+                        'transition-property': 'line-color, width, target-arrow-color',
+                        'transition-duration': '0.2s'
                     }
                 },
                 {
@@ -1248,20 +1323,29 @@ class RagAdminCenterController {
                     }
                 },
                 {
-                    selector: 'edge[relation = "REFERENCES_CODE"], edge[relation = "REFERENCES"]',
+                    selector: 'edge:selected, edge.selected',
                     style: {
-                        'line-color': '#cbd5e1',
-                        'target-arrow-color': '#94a3b8'
+                        'width': 4,
+                        'line-color': '#0284c7',
+                        'target-arrow-color': '#0284c7'
                     }
                 }
-            ],
-            layout: layoutConfig
+            ]
         });
+
+        this.apply_cy_layout();
 
         // Click event on node
         this.cy.on('tap', 'node', function (evt) {
             const node = evt.target;
             self.handle_graph_node_select(node.data());
+            try {
+                self.cy.animate({
+                    center: { eles: node },
+                    zoom: Math.min(Math.max(self.cy.zoom(), 1.0), 1.5),
+                    duration: 400
+                });
+            } catch (e) {}
         });
 
         // Click on background
@@ -1283,7 +1367,7 @@ class RagAdminCenterController {
 
         const $details = this.$root.find('#rag-graph-node-details');
         $details.find('#node-detail-id').text(data.id || 'N/A');
-        $details.find('#node-detail-label').text(data.label || data.code || 'N/A');
+        $details.find('#node-detail-label').text(data.full_title || data.label || data.code || 'N/A');
         $details.find('#node-detail-desc').text(data.description || 'Chưa có chú giải chi tiết.');
         $details.find('#node-detail-type').text(data.type || 'item');
         $details.find('#node-detail-chapter').text(data.chapter || data.section || 'N/A');
@@ -1328,15 +1412,7 @@ class RagAdminCenterController {
 
             if (toAdd.length > 0) {
                 self.cy.add(toAdd);
-                const layout = self.cy.layout({
-                    name: 'breadthfirst',
-                    roots: `#${nid.replace(/(:|\.)/g, '\\$1')}`,
-                    directed: true,
-                    padding: 30,
-                    animate: true,
-                    animationDuration: 500
-                });
-                layout.run();
+                self.apply_cy_layout();
                 self.show_toast(`Đã mở rộng thêm ${toAdd.length} nhánh tri thức!`);
             } else {
                 self.show_toast('Tất cả các nhánh con của nút này đã được hiển thị.');
