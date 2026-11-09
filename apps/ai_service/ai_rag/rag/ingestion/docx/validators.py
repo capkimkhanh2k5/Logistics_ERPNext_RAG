@@ -4,6 +4,7 @@ from typing import Optional
 
 from rag.ingestion.docx.ast_models import (
     ASTNode,
+    NodeType,
     ParsedChunk,
     ValidationIssue,
     ValidationSeverity,
@@ -50,36 +51,37 @@ class StructuralValidator:
                         visited.add(curr)
                         curr = node_map[curr].parent_id
 
-            # 2. Check HS Code validity if present
-            if node.code and node.code.isdigit():
-                code_len = len(node.code)
-                if code_len not in (2, 4, 6, 8):
-                    issues.append(
-                        ValidationIssue(
-                            severity=ValidationSeverity.WARNING,
-                            code="INVALID_HS_CODE_LENGTH",
-                            message=f"Code {node.code} has unexpected length {code_len} (expected 2, 4, 6, 8)",
-                            target_id=node.id,
-                        )
-                    )
-
-                # Prefix check if parent has code
-                if node.parent_id and node.parent_id in node_map:
-                    parent = node_map[node.parent_id]
-                    if parent.code and parent.code.isdigit():
-                        if not node.code.startswith(parent.code):
-                            issues.append(
-                                ValidationIssue(
-                                    severity=ValidationSeverity.WARNING,
-                                    code="HS_PREFIX_MISMATCH",
-                                    message=f"Child code {node.code} does not start with parent code {parent.code}",
-                                    target_id=node.id,
-                                    context={
-                                        "parent_id": parent.id,
-                                        "parent_code": parent.code,
-                                    },
-                                )
+            # 2. Check HS Code validity if present on tariff/nomenclature nodes
+            if node.node_type in (NodeType.CHAPTER, NodeType.HEADING, NodeType.SUBHEADING, NodeType.AHTN_ENTRY):
+                if node.code and node.code.isdigit():
+                    code_len = len(node.code)
+                    if code_len not in (2, 4, 6, 8):
+                        issues.append(
+                            ValidationIssue(
+                                severity=ValidationSeverity.WARNING,
+                                code="INVALID_HS_CODE_LENGTH",
+                                message=f"Code {node.code} has unexpected length {code_len} (expected 2, 4, 6, 8)",
+                                target_id=node.id,
                             )
+                        )
+
+                    # Prefix check if parent has code
+                    if node.parent_id and node.parent_id in node_map:
+                        parent = node_map[node.parent_id]
+                        if parent.code and parent.code.isdigit():
+                            if not node.code.startswith(parent.code):
+                                issues.append(
+                                    ValidationIssue(
+                                        severity=ValidationSeverity.WARNING,
+                                        code="HS_PREFIX_MISMATCH",
+                                        message=f"Child code {node.code} does not start with parent code {parent.code}",
+                                        target_id=node.id,
+                                        context={
+                                            "parent_id": parent.id,
+                                            "parent_code": parent.code,
+                                        },
+                                    )
+                                )
 
         # 3. Check chunks integrity
         seen_chunk_ids = set()

@@ -61,24 +61,27 @@ class DocumentDetector:
                     if re.search(r"\b\d{4}\.\d{2}\.\d{2}\b", row_txt):
                         hs_table_vote += 1
 
+        has_legal_articles = bool(re.search(r"\bđiều\s+\d+[\.:]", joined_sample))
+
         hints = {
             "has_decree_or_circular": has_decree_or_circular,
+            "has_legal_articles": has_legal_articles,
             "has_hs_title": has_hs_title,
             "catalog_table_vote": catalog_table_vote,
             "hs_table_vote": hs_table_vote,
         }
 
         # If it's a circular/decree with product standard tables -> PRODUCT_CATALOG
-        if catalog_table_vote >= 1 and has_decree_or_circular:
+        if catalog_table_vote >= 1 and (has_decree_or_circular or has_legal_articles):
             return DocType.PRODUCT_CATALOG, 0.9, hints
 
-        # If it's a pure HS Nomenclature schedule (like TT31 section appendices)
-        if has_hs_title or (hs_table_vote >= 5 and not has_decree_or_circular):
-            return DocType.HS_NOMENCLATURE, 0.9, hints
-
-        # If it is a normative document (Decree, Circular, Decision)
-        if has_decree_or_circular or "điều 1." in joined_sample or "điều 1:" in joined_sample:
+        # If it has legal articles/circular structure and not a pure HS table schedule -> LEGAL_DOCUMENT
+        if (has_decree_or_circular or has_legal_articles) and hs_table_vote < 5:
             return DocType.LEGAL_DOCUMENT, 0.9, hints
+
+        # If it's a pure HS Nomenclature schedule (like TT31 section appendices)
+        if has_hs_title or hs_table_vote >= 5:
+            return DocType.HS_NOMENCLATURE, 0.9, hints
 
         if catalog_table_vote >= 1:
             return DocType.PRODUCT_CATALOG, 0.8, hints

@@ -90,13 +90,22 @@ class OpenXMLReader:
         )
 
     @classmethod
+    def _find_entry(cls, archive: ZipFile, rel_path: str) -> Optional[str]:
+        target = rel_path.replace("\\", "/").lower()
+        for name in archive.namelist():
+            if name.replace("\\", "/").lower() == target:
+                return name
+        return None
+
+    @classmethod
     def _parse_styles(cls, archive: ZipFile) -> dict[str, dict[str, Any]]:
         styles = {}
-        if "word/styles.xml" not in archive.namelist():
+        entry_name = cls._find_entry(archive, "word/styles.xml")
+        if not entry_name:
             return styles
 
         try:
-            xml_data = archive.read("word/styles.xml")
+            xml_data = archive.read(entry_name)
             root = ElementTree.fromstring(xml_data)
             for style in root.findall("w:style", NS):
                 style_id = style.get(f"{{{W_NS}}}styleId")
@@ -114,10 +123,11 @@ class OpenXMLReader:
     def _parse_document(
         cls, archive: ZipFile, styles: dict[str, dict[str, Any]]
     ) -> list[Union[RawParagraph, RawTable]]:
-        if "word/document.xml" not in archive.namelist():
+        entry_name = cls._find_entry(archive, "word/document.xml")
+        if not entry_name:
             raise ValueError("Invalid DOCX package: missing word/document.xml")
 
-        xml_data = archive.read("word/document.xml")
+        xml_data = archive.read(entry_name)
         root = ElementTree.fromstring(xml_data)
         body = root.find("w:body", NS)
         if body is None:
