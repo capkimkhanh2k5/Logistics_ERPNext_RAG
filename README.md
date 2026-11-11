@@ -1,13 +1,17 @@
+<div align="center">
+
 # TradeRAG: Hierarchical Hybrid RAG & Knowledge Graph for Customs Classification
 
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://python.org)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17%20%2B%20pgvector%20%2B%20Apache%20AGE-336791.svg)](https://www.postgresql.org/)
 [![Embedding](https://img.shields.io/badge/Embedding-BGE--M3%20(Dense%20%2B%20Sparse)-red.svg)](https://huggingface.co/BAAI/bge-m3)
 [![Reranker](https://img.shields.io/badge/Reranker-BGE--v2--M3%20%E2%86%92%20Qwen3--0.6B-purple.svg)](https://huggingface.co/BAAI/bge-reranker-v2-m3)
-[![Benchmark](https://img.shields.io/badge/HS%20Recall%4010-97.3%25-success.svg)](#-empirical-benchmarks)
-[![License](https://img.shields.io/badge/License-Proprietary%20%2F%20GPLv3-green.svg)](#-license)
 
-> **TradeRAG** is a domain-specialized, enterprise-grade Retrieval-Augmented Generation (RAG) system engineered for **statutory customs law and 8-digit Harmonized System (HS) Code classification**. It couples 5-channel hybrid search, a graph-modeled legal hierarchy (Apache AGE), two-stage cascade reranking, and an epistemic product-review protocol to eliminate hallucinations in mission-critical trade compliance.
+<p align="center">
+  A domain-specialized, enterprise-grade Retrieval-Augmented Generation (RAG) system engineered for <b>statutory customs law and 8-digit Harmonized System (HS) Code classification</b>. It couples 5-channel hybrid search, a graph-modeled legal hierarchy (Apache AGE), two-stage cascade reranking, and an epistemic product-review protocol to eliminate hallucinations in mission-critical trade compliance.
+</p>
+
+</div>
 
 ---
 
@@ -15,7 +19,7 @@
 
 Zero-shot LLMs and flat vector search fail catastrophically in statutory classification:
 
-- **Strict Hierarchical Constraints**: HS codes are non-flat taxonomies: $\text{Section} \to \text{Chapter (2)} \to \text{Heading (4)} \to \text{Subheading (6)} \to \text{Tariff Line (8)}$. A valid code requires satisfying every parent level's legal scope.
+- **Strict Hierarchical Constraints**: HS codes are non-flat taxonomies (`Section ➔ Chapter (2) ➔ Heading (4) ➔ Subheading (6) ➔ Tariff Line (8)`). A valid code requires satisfying every parent level's legal scope.
 - **Statutory Exclusion Precedence**: Legal notes (Section/Chapter Notes) enforce strict exclusions (e.g., *"Automobile seats are excluded from Ch.94 and governed by Ch.87"*). Flat cosine similarity misses these governing conditions.
 - **Rule Hierarchy (GIR 1–6)**: Classification must legally adhere to 6 General Interpretative Rules (GIR) in strict sequence.
 - **Premature Assumptions vs. Abstention**: When technical specifications are missing (e.g., voltage, cylinder capacity, vehicle weight), standard LLMs hallucinate digits rather than clarifying.
@@ -72,7 +76,7 @@ TradeRAG combines dense/sparse lexical retrieval, multi-level graph traversal, c
 
 ### 1. Deterministic Ingestion & Content-Hash Embedding Cache
 - **Canonical ID Schema**: Every segment receives a deterministic legal address (e.g., `tariff:tt31:hs8:85171300`, `legal:tt85_2026:art_3_clause_1`, `legal:gir:rule_3b`).
-- **Zero-Waste Re-Ingestion**: Ingestion computes $\text{SHA-256}(\text{source\_text} + \text{embedding\_text})$. Re-uploaded or amended legal DOCX files achieve **100% vector reuse** on unchanged sections via `embedding_cache`, eliminating redundant embedding inference and preventing chunk duplication.
+- **Zero-Waste Re-Ingestion**: Ingestion computes a SHA-256 content hash of the combined source and embedding texts. Re-uploaded or amended legal DOCX files achieve **100% vector reuse** on unchanged sections via `embedding_cache`, eliminating redundant embedding inference and preventing chunk duplication.
 
 ### 2. Hierarchical Hybrid Retrieval Pipeline (v5)
 
@@ -118,9 +122,7 @@ TradeRAG combines dense/sparse lexical retrieval, multi-level graph traversal, c
        └──────────────────────────────────────────────────────────┘
 ```
 
-- Five channels fused via Reciprocal Rank Fusion ($RRF, k=60$):
-  $$\text{RRF Score}(d) = \sum_{c \in \text{Channels}} w_c \cdot \frac{1}{60 + \text{Rank}_c(d)}$$
-- Combines semantic understanding (`Dense`), technical term matching (`BM25Okapi`), domain vocabulary (`Learned Sparse`), regex code identifiers (`Exact`), and full-text database indexing (`FTS`).
+- **Multi-Channel Fusion**: Five channels are combined using **Reciprocal Rank Fusion (RRF, k=60)**, balancing semantic understanding (`Dense`), technical term matching (`BM25Okapi`), domain vocabulary (`Learned Sparse`), regex code identifiers (`Exact`), and full-text database indexing (`FTS`).
 
 ### 3. Knowledge Graph Engine (PostgreSQL 17 + Apache AGE)
 - **Hierarchy Representation**: Nodes represent Sections, Chapters, Headings, Subheadings, Tariff Lines, and Legal Notes.
@@ -221,9 +223,9 @@ Evaluated on **1,272 Dev queries** and **318 independent Test queries** spanning
 
 | Metric | Score | Target |
 |---|:---:|:---:|
-| **Top-10 Primary Statutory Coverage** | **93.1%** (121 / 130) | $\ge 90.0\%$ |
-| **Legal MRR@10** | **0.7675** | $\ge 0.7500$ |
-| **Extended Package Evidence Coverage** | **94.6%** (123 / 130) | $\ge 92.0\%$ |
+| **Top-10 Primary Statutory Coverage** | **93.1%** (121 / 130) | >= 90.0% |
+| **Legal MRR@10** | **0.7675** | >= 0.7500 |
+| **Extended Package Evidence Coverage** | **94.6%** (123 / 130) | >= 92.0% |
 
 ---
 
@@ -234,8 +236,9 @@ Evaluated on **1,272 Dev queries** and **318 independent Test queries** spanning
 | **Vector DB & Graph** | PostgreSQL 17 + `pgvector` + `Apache AGE` | Dense/Sparse vector index & Cypher property graph |
 | **Embeddings** | `BAAI/bge-m3` | 1024-dim dense vectors & learned sparse token weights |
 | **Lexical Index** | `BM25Okapi` + PostgreSQL `tsvector` | Hierarchical context BM25 & unaccented full-text search |
-| **Rerankers** | `BGE-reranker-v2-m3` $\to$ `Qwen3-Reranker-0.6B` | Two-stage cascade cross-encoder |
+| **Rerankers** | `BGE-reranker-v2-m3` ➔ `Qwen3-Reranker-0.6B` | Two-stage cascade cross-encoder |
 | **LLM Gateway** | `CLIProxyAPI` | Model pooling, token budgeting, and fallback |
 | **Host ERP** | `Frappe Framework` / `ERPNext v15` | Business logic, customs documents, and desk copilot |
 
 ---
+*Maintained on branch `main`.*
