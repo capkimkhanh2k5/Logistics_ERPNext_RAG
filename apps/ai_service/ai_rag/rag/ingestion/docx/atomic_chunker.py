@@ -14,6 +14,11 @@ from rag.ingestion.docx.ast_models import (
     ParsedChunk,
     ReviewStatus,
 )
+from rag.utils.canonical_id import (
+    generate_canonical_chunk_id,
+    is_boilerplate_content,
+    normalize_document_key,
+)
 
 
 class AtomicChunker:
@@ -29,6 +34,7 @@ class AtomicChunker:
     ) -> list[ParsedChunk]:
         chunks: list[ParsedChunk] = []
         chunk_idx = 0
+        seen_chunk_ids: set[str] = set()
 
         # Quick lookup for parent breadcrumbs
         node_map = {n.id: n for n in nodes}
@@ -43,7 +49,22 @@ class AtomicChunker:
                 continue
 
             chunk_idx += 1
-            chunk_id = f"{document_id}:{node.id}"
+            doc_slug = normalize_document_key(document_no, default_fallback="doc")
+            chunk_id = generate_canonical_chunk_id(
+                namespace=namespace,
+                document_no=document_no,
+                node_type=node.node_type,
+                code=node.code,
+                canonical_anchor=node.canonical_anchor,
+                node_order=chunk_idx,
+            )
+            if chunk_id in seen_chunk_ids:
+                chunk_id = f"{chunk_id}_{chunk_idx}"
+            seen_chunk_ids.add(chunk_id)
+
+            # Auto-detect administrative boilerplate provisions vs substantive rules
+            if is_boilerplate_content(node.title, node.source_text):
+                role = "boilerplate"
 
             # Compose rich embedding text containing complete ancestral breadcrumbs
             doc_prefix = document_no or "Tài liệu"
@@ -78,8 +99,10 @@ class AtomicChunker:
                 metadata={
                     **node.metadata,
                     "document_no": document_no,
+                    "document_key": doc_slug,
                     "node_type": node.node_type.value,
                     "canonical_anchor": node.canonical_anchor,
+                    "is_boilerplate": (role == "boilerplate"),
                 },
             )
             chunks.append(chunk)

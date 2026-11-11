@@ -3,10 +3,12 @@ Supports as-of-date filtering, legal validity checks, and amendment effect enric
 """
 
 import datetime
+import re
 from typing import Any, Optional, Union
 
 from config.settings import ROOT
 from rag.embedding.bge_m3 import Embedder
+from rag.utils.canonical_id import remove_vietnamese_accents
 from rag.vectordb.postgres import connect
 
 
@@ -24,6 +26,8 @@ class TemporalRetriever:
         namespace: Optional[str] = None,
         chunk_type: Optional[str] = None,
         top_k: int = 10,
+        suppress_boilerplate: bool = True,
+        diversity_threshold: float = 0.92,
     ) -> list[dict[str, Any]]:
         # Format as_of_date
         query_date: Optional[datetime.date] = None
@@ -32,6 +36,23 @@ class TemporalRetriever:
                 query_date = datetime.date.fromisoformat(as_of_date)
             else:
                 query_date = as_of_date
+
+        # Detect if query explicitly asks about administrative boilerplate topics
+        clean_q = remove_vietnamese_accents(query.lower())
+        is_boilerplate_query = any(
+            kw in clean_q
+            for kw in [
+                "hieu luc",
+                "ngay ap dung",
+                "khi nao co hieu luc",
+                "het hieu luc",
+                "ai thi hanh",
+                "trach nhiem thi hanh",
+                "chuyen tiep",
+                "bai bo",
+                "thay the thong tu",
+            ]
+        )
 
         # Compute query vector
         encoded = self.embedder.encode([query])
@@ -67,7 +88,9 @@ class TemporalRetriever:
 
             where_str = " AND ".join(clauses)
 
-            # Cosine distance ranking via pgvector
+            # Retrieve candidate pool (3x top_k to enable diversity re-ranking & MMR)
+            candidate_limit = min(max(top_k * 3, 20), 100)
+
             sql = f"""
             SELECT
                 c.id, c.dataset, c.role, c.code, c.level, c.chapter, c.heading,
@@ -82,10 +105,10 @@ class TemporalRetriever:
             LIMIT %s
             """
             params.insert(0, query_vector)
-            params.append(top_k)
+            params.append(candidate_limit)
 
             rows = conn.execute(sql, params).fetchall()
-            results = []
+            candidates = []
             for r in rows:
                 item = dict(r)
                 item["score"] = float(1.0 - item["distance"])
@@ -105,6 +128,48 @@ class TemporalRetriever:
                     if effects:
                         item["amendment_effects"] = [dict(e) for e in effects]
 
-                results.append(item)
+                candidates.append(item)
 
-            return results
+            # Diversity and Boilerplate Filtering (MMR-style Deduplication)
+            selected: list[dict[str, Any]] = []
+
+            def _token_set(text: str) -> set[str]:
+                return set(re.findall(r"\w+", (text or "").lower()))
+
+            for cand in candidates:
+                is_bp = (cand.get("role") == "boilerplate") or bool(
+                    cand.get("metadata", {}).get("is_boilerplate")
+                )
+
+                # Suppress boilerplate if query is not asking for administrative metadata
+                if suppress_boilerplate and not is_boilerplate_query and is_bp:
+                    continue
+
+                # Check lexical/semantic near-duplicates against already selected chunks
+                cand_tokens = _token_set(cand.get("embedding_text") or cand.get("source_text", ""))
+                is_near_dup = False
+                for sel in selected:
+                    sel_tokens = _token_set(sel.get("embedding_text") or sel.get("source_text", ""))
+                    if cand_tokens and sel_tokens:
+                        intersection = len(cand_tokens & sel_tokens)
+                        union = len(cand_tokens | sel_tokens)
+                        jaccard = intersection / union if union > 0 else 0.0
+                        if jaccard >= diversity_threshold:
+                            is_near_dup = True
+                            break
+
+                if not is_near_dup:
+                    selected.append(cand)
+                    if len(selected) >= top_k:
+                        break
+
+            # If diversity filtering pruned too many, backfill remaining best candidates
+            if len(selected) < top_k:
+                selected_ids = {s["id"] for s in selected}
+                for cand in candidates:
+                    if cand["id"] not in selected_ids:
+                        selected.append(cand)
+                        if len(selected) >= top_k:
+                            break
+
+            return selected
