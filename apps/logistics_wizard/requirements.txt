@@ -1,2 +1,7 @@
 requests
 searoute>=1.4.0
+psycopg[binary]>=3.2
+pgvector>=0.3
+numpy>=1.26
+python-dotenv>=1.0
+python-docx>=1.1
