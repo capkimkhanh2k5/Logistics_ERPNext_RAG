@@ -380,14 +380,14 @@ class RagAdminCenterController {
                     const data = r.message.data;
                     const kpi = data.kpi || {};
 
-                    self..find('#kpi-total-queries').text((kpi.total_queries || 12450).toLocaleString('vi-VN'));
-                    self..find('#kpi-completed-queries').text((kpi.completed_queries || 11820).toLocaleString('vi-VN'));
-                    self..find('#kpi-missing-queries').text((kpi.missing_queries || 420).toLocaleString('vi-VN'));
-                    self..find('#kpi-error-queries').text((kpi.error_queries || 210).toLocaleString('vi-VN'));
-                    self..find('#kpi-avg-latency').text(kpi.avg_latency || '142ms');
-                    self..find('#kpi-ready-docs').text((data.committed_docs_count || data.staged_docs_count || 21).toLocaleString('vi-VN'));
-                    self..find('.rag-kpi-card.kpi-knowledge .rag-kpi-sub span:first-child').text((data.live_chunks_count || 157354).toLocaleString('vi-VN'));
-                    self..find('#donut-center-total').text((kpi.total_queries || 12450).toLocaleString('vi-VN'));
+                    self.$root.find('#kpi-total-queries').text((kpi.total_queries || 12450).toLocaleString('vi-VN'));
+                    self.$root.find('#kpi-completed-queries').text((kpi.completed_queries || 11820).toLocaleString('vi-VN'));
+                    self.$root.find('#kpi-missing-queries').text((kpi.missing_queries || 420).toLocaleString('vi-VN'));
+                    self.$root.find('#kpi-error-queries').text((kpi.error_queries || 210).toLocaleString('vi-VN'));
+                    self.$root.find('#kpi-avg-latency').text(kpi.avg_latency || '142ms');
+                    self.$root.find('#kpi-ready-docs').text((data.committed_docs_count || data.staged_docs_count || 21).toLocaleString('vi-VN'));
+                    self.$root.find('.rag-kpi-card.kpi-knowledge .rag-kpi-sub span:first-child').text((data.live_chunks_count || 157354).toLocaleString('vi-VN'));
+                    self.$root.find('#donut-center-total').text((kpi.total_queries || 12450).toLocaleString('vi-VN'));
                 }
             }
         });
