@@ -21,12 +21,14 @@ add_to_apps_screen = [
 app_include_js = [
     "leaflet.bundle.js",
     "smart_workflow_widget.bundle.js",
-    "unified_logistics_hub.bundle.js"
+    "unified_logistics_hub.bundle.js",
+    "logistics_chatbot_widget.js"
 ]
 app_include_css = [
     "leaflet.bundle.css",
     "smart_workflow_widget.bundle.css",
-    "unified_logistics_hub.bundle.css"
+    "unified_logistics_hub.bundle.css",
+    "logistics_chatbot_widget.css"
 ]
 
 

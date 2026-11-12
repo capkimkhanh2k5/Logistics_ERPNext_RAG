@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 /**
- * Global Logistics AI Copilot - Floating Action Widget & Drawer
+ * Global Logistics AI Copilot - Floating Action Widget (FAB) & Popup Drawer
  * Automatically mounts on all Desk pages via app_include_js
  */
 
@@ -15,7 +15,7 @@
         // Prevent mounting multiple times
         if ($('#logistics-ai-fab-container').length) return;
 
-        // Skip if inside login or unauthenticated view
+        // Skip if unauthenticated
         if (typeof frappe !== 'undefined' && frappe.session && frappe.session.user === 'Guest') {
             return;
         }
@@ -23,9 +23,9 @@
         const widgetHtml = `
             <!-- FLOATING ACTION BUTTON (FAB) -->
             <div id="logistics-ai-fab-container">
-                <span class="fab-tooltip-pill">Logistics AI Copilot</span>
+                <span class="fab-tooltip-pill">Trợ lý Logistics AI</span>
                 <button id="btn-logistics-fab" class="logistics-fab-btn" title="Mở Trợ lý AI Logistics">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     </svg>
                     <span class="fab-badge-dot"></span>
@@ -33,12 +33,12 @@
             </div>
 
             <!-- POPUP CHAT DRAWER -->
-            <div id="logistics-ai-drawer">
+            <div id="logistics-ai-drawer" style="display: none;">
                 <div class="drawer-header">
                     <div class="drawer-header-brand">
                         <div class="drawer-avatar">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                             </svg>
                         </div>
                         <div class="drawer-header-info">
@@ -47,7 +47,7 @@
                         </div>
                     </div>
                     <div class="drawer-header-actions">
-                        <button id="btn-drawer-rag-admin" class="drawer-action-btn" title="Trung tâm Quản trị RAG Center">
+                        <button id="btn-drawer-rag-admin" class="drawer-action-btn" title="Kho tri thức RAG">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
                                 <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
@@ -62,8 +62,8 @@
                                 <line x1="3" y1="21" x2="10" y2="14"></line>
                             </svg>
                         </button>
-                        <button id="btn-drawer-close" class="drawer-action-btn" title="Thu nhỏ">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <button id="btn-drawer-close" class="drawer-action-btn" title="Thu nhỏ về chấm tròn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
@@ -75,20 +75,20 @@
                     <div id="drawer-welcome-state" class="drawer-welcome-box">
                         <div class="drawer-welcome-icon">🚢</div>
                         <div class="drawer-welcome-text">
-                            Xin chào! Tôi có thể giải đáp nhanh thông tin Trade Case, giá vốn Landed Cost và hành trình tàu.
+                            <strong>Xin chào!</strong> Tôi là Trợ lý AI chuyên trách về Biểu thuế XNK, Thông tư 85, Landed Cost và hành trình tàu.
                         </div>
                         <div class="drawer-quick-prompts">
-                            <button class="drawer-prompt-btn btn-open-rag-admin-center" style="border-left: 3px solid #0284c7; background: #f0f9ff; font-weight: 600; color: #0369a1; text-align: left;">
-                                ⚙️ Quản trị RAG & Kho tri thức HS/Legal &rarr;
+                            <button class="drawer-prompt-btn" data-q="Theo Thông tư 85/2026/TT-BTC, máy móc thiết bị tháo rời được phân loại theo quy tắc nào?">
+                                📜 Thông tư 85 & Máy móc tháo rời
                             </button>
-                            <button class="drawer-prompt-btn" data-q="Tra cứu hồ sơ Trade Case IMP-2026-001">
-                                📦 Tra cứu hồ sơ IMP-2026-001
+                            <button class="drawer-prompt-btn" data-q="Phân tích chi tiết sai lệch chi phí thực tế so với dự toán hồ sơ IMP-2026-001">
+                                📊 Phân tích sai lệch chi phí IMP-2026-001
                             </button>
-                            <button class="drawer-prompt-btn" data-q="Phân tích Landed Cost và phương sai chi phí thực tế">
-                                📊 Phân tích Landed Cost & Variance
-                            </button>
-                            <button class="drawer-prompt-btn" data-q="Tọa độ và ngày cập cảng của tàu MAERSK MC-KINNEY MOLLER">
+                            <button class="drawer-prompt-btn" data-q="Cho biết vị trí tọa độ AIS và ngày cập cảng của tàu Maersk Mc-Kinney Moller">
                                 🚢 Theo dõi tàu Maersk về Đà Nẵng
+                            </button>
+                            <button class="drawer-prompt-btn btn-open-rag-admin-center" style="border-left: 3px solid #0284c7; background: #f0f9ff; font-weight: 600; color: #0369a1; text-align: left;">
+                                ⚙️ Quản trị RAG & Kho Tri Thức HS &rarr;
                             </button>
                         </div>
                     </div>
@@ -97,10 +97,10 @@
                 <div class="drawer-footer">
                     <div class="drawer-input-row">
                         <textarea id="drawer-textarea" class="drawer-textarea" placeholder="Hỏi nhanh AI Logistics... (Enter gửi)" rows="1"></textarea>
-                        <button id="btn-drawer-send" class="drawer-btn-send" disabled title="Gửi">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                <line x1="22" y1="2" x2="11" y2="13"></line>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        <button id="btn-drawer-send" class="drawer-btn-send" disabled title="Gửi câu hỏi">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <line x1="12" y1="19" x2="12" y2="5"></line>
+                                <polyline points="5 12 12 5 19 12"></polyline>
                             </svg>
                         </button>
                     </div>
@@ -131,7 +131,7 @@
             }
         });
 
-        // Close Drawer
+        // Close Drawer (shrink back to small circle)
         $('#btn-drawer-close').on('click', function () {
             $drawer.fadeOut(150);
         });
@@ -141,26 +141,26 @@
             e.preventDefault();
             $drawer.fadeOut(150);
             if (typeof frappe !== 'undefined' && frappe.set_route) {
-                frappe.set_route('rag-admin-center');
+                frappe.set_route('rag-knowledge-base');
             } else {
-                window.location.href = '/app/rag-admin-center';
+                window.location.href = '/app/rag-knowledge-base';
             }
         });
 
-        // Fullscreen action -> Navigate to Page
+        // Fullscreen action -> Navigate to Logistics AI Copilot Page
         $('#btn-drawer-fullscreen').on('click', function () {
+            $drawer.fadeOut(150);
             if (typeof frappe !== 'undefined' && frappe.set_route) {
-                frappe.set_route('logistics-ai-chatbot');
-                $drawer.fadeOut(150);
+                frappe.set_route('logistics-ai-copilot');
             } else {
-                window.location.href = '/app/logistics-ai-chatbot';
+                window.location.href = '/app/logistics-ai-copilot';
             }
         });
 
         // Auto-expand textarea
         $textarea.on('input', function () {
             this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
             $btnSend.prop('disabled', $(this).val().trim().length === 0);
         });
 
@@ -199,52 +199,46 @@
             appendMessage('user', text);
 
             // 2. Append Assistant Placeholder
-            const $assistantRow = appendMessage('assistant', '<span class="typing-dots">● ● ●</span>');
+            const $assistantRow = appendMessage('assistant', '<span class="typing-dots"><i class="fa fa-circle-o-notch fa-spin"></i> Đang suy luận...</span>');
 
-            // 3. Dispatch to Bridge or Default Mock
-            if (window.LogisticsChatbotBridge && typeof window.LogisticsChatbotBridge.onSendMessage === 'function') {
-                window.LogisticsChatbotBridge.onSendMessage(
-                    text,
-                    [],
-                    { drawer: true },
-                    {
-                        onThinking: (t) => {
-                            if (!$assistantRow.find('.drawer-thinking-mini').length) {
-                                $assistantRow.find('.drawer-msg-bubble').prepend(`<div class="drawer-thinking-mini">💡 ${frappe.utils.escape_html(t.slice(0, 75))}...</div>`);
+            // 3. Call backend API
+            if (typeof frappe !== 'undefined' && frappe.call) {
+                frappe.call({
+                    method: 'logistics_wizard.api.ask_ai_copilot',
+                    args: {
+                        query: text,
+                        case_id: 'IMP-2026-001',
+                        drawer: true
+                    },
+                    callback: function (r) {
+                        if (r && r.message && r.message.success) {
+                            const data = r.message;
+                            let html = '';
+                            if (data.thinking) {
+                                const stepOne = data.thinking.split('\n')[0] || 'Truy xuất RAG';
+                                html += `<div class="drawer-thinking-mini">💡 <em>${frappe.utils.escape_html(stepOne)}</em></div>`;
                             }
-                        },
-                        onToolCall: (name) => {
-                            $assistantRow.find('.drawer-msg-bubble').prepend(`<div class="drawer-thinking-mini">⚡ Gọi Tool: <code>${frappe.utils.escape_html(name)}</code></div>`);
-                        },
-                        onStreamChunk: (chunk) => {
-                            $assistantRow.find('.drawer-msg-bubble').html(formatMiniMarkdown(chunk));
-                            scrollToBottom();
-                        },
-                        onComplete: (finalText) => {
-                            $assistantRow.find('.drawer-msg-bubble').html(formatMiniMarkdown(finalText));
-                            scrollToBottom();
-                        },
-                        onError: (err) => {
-                            $assistantRow.find('.drawer-msg-bubble').html(`<span style="color:#ef4444;">⚠️ Lỗi: ${frappe.utils.escape_html(err)}</span>`);
-                            scrollToBottom();
+                            html += `<div class="drawer-answer-content">${data.answer || ''}</div>`;
+                            if (Array.isArray(data.sources) && data.sources.length) {
+                                html += `<div class="drawer-sources-mini"><strong>Nguồn:</strong> ${data.sources.map(s => frappe.utils.escape_html(s.title)).join(', ')}</div>`;
+                            }
+                            $assistantRow.find('.drawer-msg-bubble').html(html);
+                        } else {
+                            const err = (r && r.message && r.message.error) || 'Lỗi xử lý câu hỏi';
+                            $assistantRow.find('.drawer-msg-bubble').html(`<span style="color:#ef4444;"><i class="fa fa-exclamation-triangle"></i> Lỗi: ${frappe.utils.escape_html(err)}</span>`);
                         }
+                        scrollToBottom();
+                    },
+                    error: function () {
+                        $assistantRow.find('.drawer-msg-bubble').html(`<span style="color:#ef4444;"><i class="fa fa-exclamation-triangle"></i> Lỗi kết nối API</span>`);
+                        scrollToBottom();
                     }
-                );
+                });
             } else {
-                // Default fast responder
                 setTimeout(() => {
-                    let reply = '';
-                    const lower = text.toLowerCase();
-                    if (lower.includes('cost') || lower.includes('giá vốn') || lower.includes('chi phí') || lower.includes('imp-2026-001')) {
-                        reply = `<strong>📊 Hồ sơ IMP-2026-001:</strong><br>- Chi phí thực tế: <strong>$18,350.00</strong> (Vượt $1,550 so với dự toán $16,800).<br>- Tỷ lệ phụ phí: <strong>14.68%</strong>.<br>- Trạng thái LCV: Đã đồng bộ sang <strong>LCV-2026-0004</strong>.<br>👉 Bấm nút ⤢ góc trên để xem chi tiết đầy đủ!`;
-                    } else if (lower.includes('tàu') || lower.includes('maersk') || lower.includes('vessel')) {
-                        reply = `<strong>🚢 Tàu MAERSK MC-KINNEY MOLLER:</strong><br>- Vị trí: Vịnh Đà Nẵng (16.1284° N, 108.2391° E).<br>- Vận tốc: 14.8 kts.<br>- ETA: <strong>14:00 ngày 18/10/2026</strong> tại Cảng Tiên Sa.`;
-                    } else {
-                        reply = `Tôi đã nhận câu hỏi: <em>"${frappe.utils.escape_html(text)}"</em>.<br>Hệ thống AI Copilot đã sẵn sàng nhận cấu hình API từ bạn.`;
-                    }
-                    $assistantRow.find('.drawer-msg-bubble').html(reply);
+                    $assistantRow.find('.drawer-msg-bubble').html('Hệ thống AI Copilot đang trực tuyến.');
                     scrollToBottom();
-                }, 600);
+                }, 400);
             }
         }
 
@@ -263,15 +257,6 @@
             return $row;
         }
 
-        function formatMiniMarkdown(text) {
-            if (!text) return '';
-            let formatted = frappe.utils.escape_html(text);
-            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
-            formatted = formatted.replace(/\n/g, '<br>');
-            return formatted;
-        }
-
         function scrollToBottom() {
             $messagesBody.stop().animate({ scrollTop: $messagesBody[0].scrollHeight }, 100);
         }
@@ -282,5 +267,10 @@
         frappe.ready(initLogisticsAIWidget);
     } else {
         $(document).ready(initLogisticsAIWidget);
+    }
+
+    // Export to window
+    if (typeof window !== 'undefined') {
+        window.initLogisticsAIWidget = initLogisticsAIWidget;
     }
 })();

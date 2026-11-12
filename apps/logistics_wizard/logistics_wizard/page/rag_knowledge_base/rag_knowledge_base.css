@@ -1426,3 +1426,6 @@
 .rag-graph-legend {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
+
+/* Hide subtitles and description lines across all pages */
+.rag-pane-title-block p, .exec-subtitle, .hub-subtitle, .cost-subtitle, .copilot-subtitle, .tc-subtitle-tag { display: none !important; }

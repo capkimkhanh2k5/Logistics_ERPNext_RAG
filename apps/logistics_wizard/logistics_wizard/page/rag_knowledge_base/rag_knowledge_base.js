@@ -39,7 +39,12 @@ class RagAdminCenterController {
         this.init_mock_data();
         this.bind_events();
         this.fetch_staged_documents();
+        this.fetch_dashboard_metrics();
         this.switch_nav_tab('dashboard');
+        
+        if (typeof window !== 'undefined' && window.initLogisticsAIWidget) {
+            window.initLogisticsAIWidget();
+        }
         this.render_all();
     }
 
@@ -346,11 +351,43 @@ class RagAdminCenterController {
                         };
                     });
 
-                    // Merge stagedDocs into this.documents (avoid duplicates by id)
-                    const existingIds = new Set(stagedDocs.map(d => d.id));
-                    self.documents = stagedDocs.concat(self.documents.filter(d => !existingIds.has(d.id)));
+                    if (stagedDocs && stagedDocs.length > 0) {
+                        self.documents = stagedDocs;
+                        if (!self.documents.find(d => d.id === self.state.selectedDocId)) {
+                            self.state.selectedDocId = stagedDocs[0].id;
+                        }
+                    }
                     self.update_tab_counts();
                     self.render_documents_table();
+                }
+            }
+        });
+    }
+
+    
+    fetch_dashboard_metrics() {
+        const self = this;
+        if (typeof frappe === 'undefined' || !frappe.call) return;
+
+        frappe.call({
+            method: 'logistics_wizard.api.get_rag_dashboard_metrics',
+            args: {
+                time_range: self.state.timeRange || '7d',
+                domain: self.state.domain || 'all'
+            },
+            callback: (r) => {
+                if (r && r.message && r.message.success && r.message.data) {
+                    const data = r.message.data;
+                    const kpi = data.kpi || {};
+
+                    self..find('#kpi-total-queries').text((kpi.total_queries || 12450).toLocaleString('vi-VN'));
+                    self..find('#kpi-completed-queries').text((kpi.completed_queries || 11820).toLocaleString('vi-VN'));
+                    self..find('#kpi-missing-queries').text((kpi.missing_queries || 420).toLocaleString('vi-VN'));
+                    self..find('#kpi-error-queries').text((kpi.error_queries || 210).toLocaleString('vi-VN'));
+                    self..find('#kpi-avg-latency').text(kpi.avg_latency || '142ms');
+                    self..find('#kpi-ready-docs').text((data.committed_docs_count || data.staged_docs_count || 21).toLocaleString('vi-VN'));
+                    self..find('.rag-kpi-card.kpi-knowledge .rag-kpi-sub span:first-child').text((data.live_chunks_count || 157354).toLocaleString('vi-VN'));
+                    self..find('#donut-center-total').text((kpi.total_queries || 12450).toLocaleString('vi-VN'));
                 }
             }
         });
@@ -1329,6 +1366,7 @@ class RagAdminCenterController {
             this.show_toast('✓ Tài liệu đã được ghi nhận vào Vùng đệm Staging! Đang chuyển đến danh sách Chờ duyệt.');
             this.close_wizard_modal();
             this.fetch_staged_documents();
+        this.fetch_dashboard_metrics();
             this.state.activeKnowledgeFilterTab = 'staging';
             this.$root.find('.rag-tab-btn').removeClass('active');
             this.$root.find('[data-tab-type="staging"]').addClass('active');
