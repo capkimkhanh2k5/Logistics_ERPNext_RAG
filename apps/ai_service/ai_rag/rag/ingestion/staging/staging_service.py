@@ -117,8 +117,9 @@ class StagingService:
                     ),
                 )
 
-            # Insert chunks with matching scoped node_id
+            # Insert chunks with matching scoped node_id and unique scoped chunk_id
             for chunk in parsed.chunks:
+                scoped_chunk_id = f"{doc_id}:{chunk.chunk_id}"
                 scoped_chunk_node_id = f"{doc_id}:{chunk.node_id}"
                 conn.execute(
                     """
@@ -137,7 +138,7 @@ class StagingService:
                     )
                     """,
                     (
-                        chunk.chunk_id,
+                        scoped_chunk_id,
                         doc_id,
                         scoped_chunk_node_id,
                         chunk.chunk_index,
@@ -162,6 +163,7 @@ class StagingService:
                 )
 
         return {
+            "id": doc_id,
             "document_id": doc_id,
             "filename": parsed.filename,
             "document_type": parsed.document_type.value,
@@ -432,13 +434,25 @@ class StagingService:
             if not approved_chunks:
                 raise ValueError("No approved chunks to snapshot (all chunks might be excluded).")
 
-            # Serialize snapshot data
+            # Serialize snapshot data with canonical identifiers
             snapshot_records = []
             for r in approved_chunks:
+                raw_chunk_id = str(r["id"])
+                if ":" in raw_chunk_id and len(raw_chunk_id.split(":", 1)[0]) == 36 and "-" in raw_chunk_id.split(":", 1)[0]:
+                    clean_chunk_id = raw_chunk_id.split(":", 1)[1]
+                else:
+                    clean_chunk_id = raw_chunk_id
+
+                raw_node_id = str(r["node_id"])
+                if ":" in raw_node_id and len(raw_node_id.split(":", 1)[0]) == 36 and "-" in raw_node_id.split(":", 1)[0]:
+                    clean_node_id = raw_node_id.split(":", 1)[1]
+                else:
+                    clean_node_id = raw_node_id
+
                 snapshot_records.append(
                     {
-                        "id": r["id"],
-                        "node_id": r["node_id"],
+                        "id": clean_chunk_id,
+                        "node_id": clean_node_id,
                         "chunk_type": r["chunk_type"],
                         "code": r["code"],
                         "level": r["level"],

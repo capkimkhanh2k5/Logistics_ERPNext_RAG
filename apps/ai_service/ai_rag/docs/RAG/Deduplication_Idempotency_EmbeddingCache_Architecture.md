@@ -1,22 +1,9 @@
 # KIẾN TRÚC XỬ LÝ TRÙNG LẶP, TÍNH TẤT ĐỊNH (IDEMPOTENCY) VÀ EMBEDDING CACHE TRONG HỆ THỐNG RAG
 
-**Tài liệu Kỹ thuật Phân hệ:** Ingestion Engine & Retrieval Architecture  
-**Dự án:** TradeRAG – Legal & Customs Tariff Intelligence  
-**Phiên bản:** 1.0  
-**Ngày cập nhật:** 11/11/2026  
+
 
 ---
 
-## MỤC LỤC
-1. [Bối cảnh và Đặt vấn đề](#1-bối-cảnh-và-đặt-vấn-đề)
-2. [Rà soát Hiện trạng Chuẩn hóa Dữ liệu (Corpus Audit)](#2-rà-soát-hiện-trạng-chuẩn-hóa-dữ-liệu-corpus-audit)
-3. [Vấn đề 1: Nạp lại cùng văn bản và Tính tất định (Re-ingestion & Idempotency)](#3-vấn-đề-1-nạp-lại-cùng-văn-bản-và-tính-tất-định-re-ingestion--idempotency)
-4. [Vấn đề 2: Trùng lặp Điều khoản Khung / Nội dung mẫu (Boilerplate Duplicate & Retrieval MMR)](#4-vấn-đề-2-trùng-lặp-điều-khoản-khung--nội-dung-mẫu-boilerplate-duplicate--retrieval-mmr)
-5. [Vấn đề 3: Lãng phí Tài nguyên Tính toán Embedding (Content-hash Embedding Cache)](#5-vấn-đề-3-lãng-phí-tài-nguyên-tính-toán-embedding-content-hash-embedding-cache)
-6. [Quy chuẩn Định danh Toàn cục (Unified Canonical Identifier Schema)](#6-quy-chuẩn-định-danh-toàn-cục-unified-canonical-identifier-schema)
-7. [Kiến trúc Dòng chảy Xử lý (Dataflow & Architectural Blueprint)](#7-kiến-trúc-dòng-chảy-xử-lý-dataflow--architectural-blueprint)
-
----
 
 ## 1. BỐI CẢNH VÀ ĐẶT VẤN ĐỀ
 
@@ -267,3 +254,54 @@ Việc áp dụng đồng bộ 3 giải pháp trên cùng Quy chuẩn Định da
 1. **Tuyệt đối không nhân đôi dữ liệu (Zero Duplication):** Nạp lại một văn bản bao nhiêu lần thì snapshot mới cũng chỉ giữ đúng một bộ chunk hợp lệ và cập nhật nhất.
 2. **Tăng tốc độ Ingestion 10x - 50x:** Nhờ cơ chế `rag.embedding_cache`, các nội dung đã từng tính toán embedding sẽ được tái sử dụng tức thì mà không cần gọi mô hình AI.
 3. **Nâng cao chất lượng câu trả lời RAG:** Bộ lọc đa dạng MMR loại bỏ triệt để tình trạng các điều khoản khung mẫu chiếm chỗ trong context, đảm bảo LLM nhận được thông tin nghiệp vụ chính xác, phong phú và sắc bén nhất.
+
+
+
+
+
+
+# NOTE RIÊNG CHƯA TUỲ CHỈNH
+
+### I. CÁC TRƯỜNG HỢP HỆ THỐNG ĐÃ XỬ LÝ HOÀN CHỈNH
+
+| Trường hợp | Thực tế xảy ra | Cơ chế hiện tại đã xử lý | Đánh giá |
+|---|---|---|---|
+| **1. Trùng Anchor / Tiêu đề giữa các văn bản khác nhau** | Nhiều văn bản cùng có `"Điều 1"`, `"Khoản 1"`, hoặc nhiều biểu thuế cùng có nhóm `"8471"`. | **Ngữ cảnh hóa Breadcrumb**: Trước khi sinh embedding, hệ thống gộp đường dẫn phân cấp: `Thông tư 85/2026/TT-BTC > Điều 1 > Khoản 1`. Do đó, vector của Điều 1 (TT85) khác hoàn toàn vector của Điều 1 (TT14). | ✅ **Đã xử lý 100%** |
+| **2. Xung đột sửa đổi / Bãi bỏ pháp lý (Temporal Superseding)** | TT85 ban hành năm 2026 sửa đổi Điều 8, 9 của TT14 ban hành năm 2015. | **Quản lý hiệu lực theo thời gian**: Chunk lưu trữ đầy đủ `effective_from`, `effective_to` và `legal_status` (`VALID`, `SUPERSEDED`, `EXPIRED`). Retriever có bộ lọc temporal filter để loại trừ điều khoản hết hiệu lực. | ✅ **Đã xử lý 100%** |
+| **3. Tính nguyên tử và chống lỗi khi Ingestion gặp sự cố (Atomicity)** | Đang sinh embedding hoặc ghi pgvector thì mất điện, đứt mạng hoặc tràn RAM. | **Kiến trúc Snapshot bất biến & Outbox Pattern**: Dữ liệu mới được nạp vào snapshot riêng. Chỉ khi kiểm tra toàn vẹn thành công (`counts["chunks"] == verified`), con trỏ `rag.active` mới chuyển trạng thái. Dữ liệu đang phục vụ truy vấn không bao giờ bị corrupt. | ✅ **Đã xử lý 100%** |
+| **4. Toàn vẹn băm nội dung (Content Hash Integrity)** | Mỗi chunk có nguy cơ bị biến dạng trong quá trình truyền nhận/sửa đổi. | Mỗi chunk đều tính `embedding_hash = digest(embedding_text)` (SHA-256) và `input_hash` để phục vụ đối soát và kiểm tra tính toàn vẹn. | ✅ **Đã xử lý 100%** |
+
+---
+
+### II. CÁC TRƯỜNG HỢP CẦN XỬ LÝ & TỐI ƯU THÊM (EDGE CASES)
+
+Hiện tại, nếu xét sâu hơn về các tình huống nạp dữ liệu thực tế, có **3 trường hợp rủi ro tiềm ẩn** mà hệ thống cần nâng cấp:
+
+#### 1. Nạp lại cùng một văn bản (Re-ingestion / Idempotency)
+- **Hiện tượng**: Bạn nạp file `Thông tư 85/2026/TT-BTC` lần 1. Sau đó, bạn phát hiện file DOCX bị thiếu 1 đoạn, bạn mở file sửa lại và tải lên nạp lần 2.
+- **Rủi ro hiện tại**:
+  - Tại Staging: Mỗi lần upload, hệ thống đang cấp một `doc_id = uuid.uuid4()` ngẫu nhiên.
+  - Mỗi chunk có ID định dạng: `chunk_id = f"{document_id}:{node.id}"`.
+  - Khi Ingestion Orchestrator gộp vào Snapshot chính thức, nó deduplicate theo `c["id"]`. Do `doc_id` của lần 2 khác lần 1, **toàn bộ các chunk của văn bản này sẽ bị nhân đôi (duplicate) trong cơ sở dữ liệu và vector index**, khiến khi tìm kiếm RAG sẽ trả về 2 kết quả y hệt nhau.
+- **Giải pháp**:
+  - Chuyển `chunk_id` sang dạng **Deterministic ID (Định danh tất định)**: Dựa trên `(document_no, canonical_anchor)` thay vì random UUID ngẫu nhiên.
+  - Bổ sung cơ chế **Document Version Replacement**: Khi nạp phiên bản mới của văn bản có cùng `document_no`, hệ thống sẽ tự động gỡ bỏ các chunk cũ của văn bản đó trong snapshot mới.
+
+#### 2. Trùng lặp nội dung mẫu / Điều khoản khung (Boilerplate Duplicate)
+- **Hiện tượng**: Trong hàng trăm văn bản pháp luật, có rất nhiều điều khoản khung có nội dung y hệt nhau:
+  - *"Thông tư này có hiệu lực thi hành kể từ ngày..."*
+  - *"Bộ trưởng, Thủ trưởng cơ quan ngang Bộ... chịu trách nhiệm thi hành..."*
+  - Hoặc trong biểu thuế: rất nhiều dòng có cùng mô tả: *"--- Loại khác"*, *"---- Chưa lắp ráp"*.
+- **Rủi ro hiện tại**:
+  - BGE-M3 sinh ra các vector gần như trùng khít (`cosine_similarity ≈ 1.0`).
+  - Khi người dùng hỏi một câu chung chung, các chunk mẫu này có thể chiếm hết Top-K của bộ tìm kiếm (Retrieval Cluttering), đẩy các điều khoản nghiệp vụ quan trọng ra ngoài.
+- **Giải pháp**:
+  - Bổ sung cờ phân loại vai trò chunk (`role: "boilerplate" | "substantive"`).
+  - Tích hợp giải thuật **MMR (Maximal Marginal Relevance)** hoặc **Deduplication Diversity Filter** trong Retriever để loại bỏ các kết quả có độ tương đồng văn bản quá cao trong cùng một kết quả trả về.
+
+#### 3. Lãng phí tài nguyên sinh Embedding khi nội dung trùng (Content-based Embedding Cache)
+- **Hiện tượng**: Khi nạp văn bản mới mà có một số điều khoản hoặc định nghĩa giống văn bản cũ, hoặc khi nạp lại văn bản đã sửa 1 điều khoản duy nhất.
+- **Rủi ro hiện tại**: Ingestion Worker đang kiểm tra cache vector theo `chunk_id`. Nếu `chunk_id` thay đổi, BGE-M3 vẫn phải chạy lại toàn bộ từ đầu, gây tốn CPU/GPU không cần thiết.
+- **Giải pháp**: Cache vector theo **`embedding_hash` (mã băm nội dung SHA-256)** thay vì theo `chunk_id`. Nếu nội dung văn bản đã từng được embed ở bất kỳ văn bản nào trước đó, hệ thống tái sử dụng ngay vector có sẵn mà không cần gọi model embed lại.
+
+---

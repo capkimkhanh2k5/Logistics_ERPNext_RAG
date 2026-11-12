@@ -17,6 +17,7 @@ from config.settings import ROOT
 from rag.embedding.bge_m3 import Embedder
 from rag.embedding.validation import validate_vectors
 from rag.graph.age_adapter import escape_cypher
+from rag.utils.canonical_id import normalize_document_key
 from rag.utils.files import digest
 from rag.vectordb.postgres import connect, counts, ingest
 
@@ -163,14 +164,23 @@ class IngestionOrchestrator:
             new_edges: list[dict] = []
 
             for r in staged_records:
-                record_id = r["id"]
+                raw_id = str(r["id"])
+                # Strip UUID prefix if present: e.g. "3b544f65-...:legal:tt85_2026:art_1" -> "legal:tt85_2026:art_1"
+                if ":" in raw_id:
+                    pfx, rest = raw_id.split(":", 1)
+                    record_id = rest if len(pfx) == 36 and "-" in pfx else raw_id
+                else:
+                    record_id = raw_id
+
                 node_id = r["node_id"]
                 loc = r.get("source_location") or {}
                 meta = r.get("metadata") or {}
+                raw_doc_no = meta.get("document_no") or r.get("metadata", {}).get("document_no")
+                dataset_slug = normalize_document_key(raw_doc_no, default_fallback="docx_staged")
 
                 rec = {
                     "id": record_id,
-                    "dataset": r.get("metadata", {}).get("document_no") or "docx_staged",
+                    "dataset": dataset_slug,
                     "role": r["role"],
                     "code": r.get("code"),
                     "level": r.get("level"),
@@ -179,7 +189,7 @@ class IngestionOrchestrator:
                     "source_text": r["source_text"],
                     "embedding_text": r["embedding_text"],
                     "lexical_text": r["embedding_text"],
-                    "metadata": meta,
+                    "metadata": {**meta, "document_key": dataset_slug},
                     "locator": loc,
                     "effective_from": meta.get("effective_from"),
                     "effective_to": meta.get("effective_to"),
@@ -203,13 +213,32 @@ class IngestionOrchestrator:
                             "code": r.get("code"),
                             "label": r.get("code") or r.get("breadcrumb", "")[-40:],
                             "description": r["source_text"][:200],
+                            "document_key": dataset_slug,
                             **meta,
                         },
                     }
                 )
 
-            # Deduplicate by record id against existing chunks
-            combined_by_id = {c["id"]: c for c in existing_chunks}
+            # Idempotency / Document Scope Replacement:
+            # Purge existing chunks and nodes that belong to the documents being replaced
+            target_datasets = {r["dataset"] for r in new_records if r.get("dataset")}
+            target_prefixes = {
+                ":".join(r["id"].split(":", 2)[:2]) + ":"
+                for r in new_records
+                if r.get("id") and r["id"].count(":") >= 2
+            }
+
+            purged_existing_chunks = []
+            for c in existing_chunks:
+                c_dataset = c.get("dataset")
+                c_id = c.get("id", "")
+                if c_dataset in target_datasets:
+                    continue
+                if any(c_id.startswith(pfx) for pfx in target_prefixes):
+                    continue
+                purged_existing_chunks.append(c)
+
+            combined_by_id = {c["id"]: c for c in purged_existing_chunks}
             for rec in new_records:
                 combined_by_id[rec["id"]] = rec
             combined_chunks = list(combined_by_id.values())
@@ -221,8 +250,15 @@ class IngestionOrchestrator:
                 if "lexical_text" not in c:
                     c["lexical_text"] = c.get("embedding_text") or c.get("source_text") or ""
 
-            # Combined graph nodes
-            nodes_by_id = {n["id"]: n for n in existing_nodes}
+            # Combined graph nodes with replacement
+            purged_existing_nodes = []
+            for n in existing_nodes:
+                n_id = n.get("id", "")
+                if any(n_id.startswith(pfx) for pfx in target_prefixes):
+                    continue
+                purged_existing_nodes.append(n)
+
+            nodes_by_id = {n["id"]: n for n in purged_existing_nodes}
             for n in new_nodes:
                 nodes_by_id[n["id"]] = n
             combined_nodes = list(nodes_by_id.values())
@@ -240,14 +276,14 @@ class IngestionOrchestrator:
             }
             new_snapshot_id = digest(snapshot_manifest)[:24]
 
-            # 4. Generate Embeddings using BGE-M3
+            # 4. Generate Embeddings using BGE-M3 (Cache-First Pipeline)
             embedder = Embedder()
             profile_id = embedder.profile_id
 
-            # Check existing embeddings in database if reusing active snapshot
             cached_vectors: dict[str, np.ndarray] = {}
             cached_sparse: dict[str, dict] = {}
 
+            # Step 4a: Fast lookup in active snapshot
             if active_snapshot_id and active_profile_id == profile_id:
                 with connect() as conn:
                     rows = conn.execute(
@@ -267,16 +303,67 @@ class IngestionOrchestrator:
                                 sr["weight"]
                             )
 
-            # Find chunks that need embedding calculation
+            # Step 4b: Check Global Content-Hash Embedding Cache for any unresolved chunks
+            unresolved_chunks = [c for c in combined_chunks if c["id"] not in cached_vectors]
+            if unresolved_chunks:
+                hash_to_chunks: dict[str, list[dict]] = {}
+                for c in unresolved_chunks:
+                    chash = c.get("input_hash") or digest(c["embedding_text"])
+                    hash_to_chunks.setdefault(chash, []).append(c)
+
+                query_hashes = list(hash_to_chunks.keys())
+                with connect() as conn:
+                    batch_size = 500
+                    for i in range(0, len(query_hashes), batch_size):
+                        sub_hashes = query_hashes[i : i + batch_size]
+                        cache_rows = conn.execute(
+                            """
+                            SELECT content_hash, dense_vector, sparse_weights
+                            FROM rag.embedding_cache
+                            WHERE profile_id = %s AND content_hash = ANY(%s)
+                            """,
+                            (profile_id, sub_hashes),
+                        ).fetchall()
+
+                        for cr in cache_rows:
+                            h = cr["content_hash"]
+                            vec = np.array(cr["dense_vector"], dtype=np.float32)
+                            sp = cr["sparse_weights"] or {}
+                            for target_c in hash_to_chunks.get(h, []):
+                                cached_vectors[target_c["id"]] = vec
+                                cached_sparse[target_c["id"]] = sp
+
+                cache_hit_count = len(unresolved_chunks) - len([c for c in combined_chunks if c["id"] not in cached_vectors])
+                if cache_hit_count > 0:
+                    logger.info("Global Embedding Cache: %d hits out of %d unresolved chunks!", cache_hit_count, len(unresolved_chunks))
+
+            # Step 4c: Only encode truly missing chunks
             missing_chunks = [c for c in combined_chunks if c["id"] not in cached_vectors]
             if missing_chunks:
                 logger.info(
                     "Encoding %d missing chunks via BGE-M3 Embedder...", len(missing_chunks)
                 )
                 encoded = embedder.encode([c["embedding_text"] for c in missing_chunks])
+                new_cache_rows = []
                 for c, v, w in zip(missing_chunks, encoded["dense"], encoded["sparse"], strict=True):
                     cached_vectors[c["id"]] = v
                     cached_sparse[c["id"]] = w
+                    chash = c.get("input_hash") or digest(c["embedding_text"])
+                    new_cache_rows.append((chash, profile_id, v.tolist(), json.dumps(w)))
+
+                # Persist newly computed vectors to global embedding cache
+                if new_cache_rows:
+                    with connect() as conn:
+                        with conn.cursor() as cur:
+                            cur.executemany(
+                                """
+                                INSERT INTO rag.embedding_cache (content_hash, profile_id, dense_vector, sparse_weights)
+                                VALUES (%s, %s, %s, %s::jsonb)
+                                ON CONFLICT (content_hash, profile_id) DO NOTHING
+                                """,
+                                new_cache_rows,
+                            )
+                            conn.commit()
 
             # Build ordered vectors array matching combined_chunks
             combined_dense = np.stack([cached_vectors[c["id"]] for c in combined_chunks])
