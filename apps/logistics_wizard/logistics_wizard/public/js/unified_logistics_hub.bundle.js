@@ -129,10 +129,22 @@ function make_page_full_bleed(wrapper) {
         const $pageContainer = $w.closest('.page-container');
         if ($pageContainer.length) {
             $pageContainer.addClass('logistics-full-width');
-            $pageContainer.css({ 'max-width': '100%', 'padding': '0', 'margin': '0', 'width': '100%' });
+            $pageContainer.css({ 'max-width': '100%', 'padding': '0', 'margin': '0', 'width': '100%', 'background-color': '#f8fafc' });
+            $pageContainer.find('.page-head').hide();
+            $pageContainer.find('.page-body, .page-content, .layout-main-section-wrapper, .layout-main-section, .layout-main, .container-fluid, .container').css({
+                'max-width': '100%',
+                'width': '100%',
+                'padding': '0',
+                'margin': '0',
+                'border': 'none',
+                'box-shadow': 'none',
+                'background': '#f8fafc',
+                'background-color': '#f8fafc'
+            });
         }
         $w.find('.page-content.container').removeClass('container').addClass('container-fluid');
         $w.find('.container').removeClass('container').addClass('container-fluid');
+        $w.find('.page-head').hide();
         $w.find('.page-body, .page-content, .container-fluid, .layout-main-section-wrapper, .layout-main-section, .layout-main').css({
             'max-width': '100%',
             'width': '100%',
@@ -140,7 +152,8 @@ function make_page_full_bleed(wrapper) {
             'margin': '0',
             'border': 'none',
             'box-shadow': 'none',
-            'background': 'transparent'
+            'background': '#f8fafc',
+            'background-color': '#f8fafc'
         });
     } catch (e) {
         console.warn('make_page_full_bleed warning:', e);

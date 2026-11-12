@@ -6,8 +6,8 @@
 
 .shipment-tracking-hub-container {
     padding: 16px 20px 40px;
-    background-color: #f8fafc;
-    min-height: calc(100vh - 90px);
+    background-color: #f8fafc !important;
+    min-height: 100vh !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     color: #1e293b;
 }
@@ -575,13 +575,28 @@
 .page-container[data-page-route="manage-logistic"],
 .page-container[data-page-route="managelogistic"],
 .page-container[data-page-route="trade-case-overview"],
+.page-container[data-page-route="trade_case_overview"],
 .page-container[data-page-route="shipment-tracking-hub"],
+.page-container[data-page-route="shipment_tracking_hub"],
+.page-container[data-page-route="executive-dashboard"],
+.page-container[data-page-route="executive_dashboard"],
+.page-container[data-page-route="trade-cost-dashboard"],
+.page-container[data-page-route="trade_cost_dashboard"],
+.page-container[data-page-route="logistics-ai-copilot"],
+.page-container[data-page-route="logistics_ai_copilot"],
+.page-container[data-page-route="logistics-ai-chatbot"],
+.page-container[data-page-route="logistics_ai_chatbot"],
+.page-container[data-page-route="rag-admin-center"],
+.page-container[data-page-route="rag_admin_center"],
+.page-container[data-page-route="rag-knowledge-base"],
+.page-container[data-page-route="rag_knowledge_base"],
 .page-container.logistics-full-width,
 .logistics-full-bleed-page {
     max-width: 100% !important;
     width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
+    background-color: #f8fafc !important;
 }
 
 /* 2. Hide Redundant Page Head on Unified Hub */
@@ -590,7 +605,21 @@
 .page-container[data-page-route="manage-logistic"] .page-head,
 .page-container[data-page-route="managelogistic"] .page-head,
 .page-container[data-page-route="trade-case-overview"] .page-head,
+.page-container[data-page-route="trade_case_overview"] .page-head,
 .page-container[data-page-route="shipment-tracking-hub"] .page-head,
+.page-container[data-page-route="shipment_tracking_hub"] .page-head,
+.page-container[data-page-route="executive-dashboard"] .page-head,
+.page-container[data-page-route="executive_dashboard"] .page-head,
+.page-container[data-page-route="trade-cost-dashboard"] .page-head,
+.page-container[data-page-route="trade_cost_dashboard"] .page-head,
+.page-container[data-page-route="logistics-ai-copilot"] .page-head,
+.page-container[data-page-route="logistics_ai_copilot"] .page-head,
+.page-container[data-page-route="logistics-ai-chatbot"] .page-head,
+.page-container[data-page-route="logistics_ai_chatbot"] .page-head,
+.page-container[data-page-route="rag-admin-center"] .page-head,
+.page-container[data-page-route="rag_admin_center"] .page-head,
+.page-container[data-page-route="rag-knowledge-base"] .page-head,
+.page-container[data-page-route="rag_knowledge_base"] .page-head,
 .page-container.logistics-full-width .page-head,
 .logistics-full-bleed-page .page-head {
     display: none !important;
@@ -602,7 +631,19 @@
 .page-container[data-page-route="manage-logistic"] .page-body,
 .page-container[data-page-route="managelogistic"] .page-body,
 .page-container[data-page-route="trade-case-overview"] .page-body,
+.page-container[data-page-route="trade_case_overview"] .page-body,
 .page-container[data-page-route="shipment-tracking-hub"] .page-body,
+.page-container[data-page-route="shipment_tracking_hub"] .page-body,
+.page-container[data-page-route="executive-dashboard"] .page-body,
+.page-container[data-page-route="executive_dashboard"] .page-body,
+.page-container[data-page-route="trade-cost-dashboard"] .page-body,
+.page-container[data-page-route="trade_cost_dashboard"] .page-body,
+.page-container[data-page-route="logistics-ai-copilot"] .page-body,
+.page-container[data-page-route="logistics_ai_copilot"] .page-body,
+.page-container[data-page-route="rag-admin-center"] .page-body,
+.page-container[data-page-route="rag_admin_center"] .page-body,
+.page-container[data-page-route="rag-knowledge-base"] .page-body,
+.page-container[data-page-route="rag_knowledge_base"] .page-body,
 .page-container.logistics-full-width .page-body,
 .logistics-full-bleed-page .page-body,
 .page-container[data-page-route="managementlogistic"] .page-content,
@@ -610,46 +651,37 @@
 .page-container[data-page-route="manage-logistic"] .page-content,
 .page-container[data-page-route="managelogistic"] .page-content,
 .page-container[data-page-route="trade-case-overview"] .page-content,
+.page-container[data-page-route="trade_case_overview"] .page-content,
 .page-container[data-page-route="shipment-tracking-hub"] .page-content,
+.page-container[data-page-route="shipment_tracking_hub"] .page-content,
+.page-container[data-page-route="executive-dashboard"] .page-content,
+.page-container[data-page-route="executive_dashboard"] .page-content,
+.page-container[data-page-route="trade-cost-dashboard"] .page-content,
+.page-container[data-page-route="trade_cost_dashboard"] .page-content,
+.page-container[data-page-route="logistics-ai-copilot"] .page-content,
+.page-container[data-page-route="logistics_ai_copilot"] .page-content,
+.page-container[data-page-route="rag-admin-center"] .page-content,
+.page-container[data-page-route="rag_admin_center"] .page-content,
+.page-container[data-page-route="rag-knowledge-base"] .page-content,
+.page-container[data-page-route="rag_knowledge_base"] .page-content,
 .page-container.logistics-full-width .page-content,
 .logistics-full-bleed-page .page-content,
-.page-container[data-page-route="managementlogistic"] .container,
-.page-container[data-page-route="managementLogistic"] .container,
-.page-container[data-page-route="manage-logistic"] .container,
-.page-container[data-page-route="managelogistic"] .container,
-.page-container[data-page-route="trade-case-overview"] .container,
-.page-container[data-page-route="shipment-tracking-hub"] .container,
 .page-container.logistics-full-width .container,
 .logistics-full-bleed-page .container,
-.page-container[data-page-route="managementlogistic"] .container-fluid,
-.page-container[data-page-route="managementLogistic"] .container-fluid,
 .page-container.logistics-full-width .container-fluid,
 .logistics-full-bleed-page .container-fluid {
     max-width: 100% !important;
     width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
+    background-color: #f8fafc !important;
 }
 
 /* 4. Strip Layout Section Wrappers & Frappe Card Styling */
-.page-container[data-page-route="managementlogistic"] .layout-main-section-wrapper,
-.page-container[data-page-route="managementLogistic"] .layout-main-section-wrapper,
-.page-container[data-page-route="manage-logistic"] .layout-main-section-wrapper,
-.page-container[data-page-route="managelogistic"] .layout-main-section-wrapper,
-.page-container[data-page-route="trade-case-overview"] .layout-main-section-wrapper,
-.page-container[data-page-route="shipment-tracking-hub"] .layout-main-section-wrapper,
 .page-container.logistics-full-width .layout-main-section-wrapper,
 .logistics-full-bleed-page .layout-main-section-wrapper,
-.page-container[data-page-route="managementlogistic"] .layout-main-section,
-.page-container[data-page-route="managementLogistic"] .layout-main-section,
-.page-container[data-page-route="manage-logistic"] .layout-main-section,
-.page-container[data-page-route="managelogistic"] .layout-main-section,
-.page-container[data-page-route="trade-case-overview"] .layout-main-section,
-.page-container[data-page-route="shipment-tracking-hub"] .layout-main-section,
 .page-container.logistics-full-width .layout-main-section,
 .logistics-full-bleed-page .layout-main-section,
-.page-container[data-page-route="managementlogistic"] .layout-main,
-.page-container[data-page-route="managementLogistic"] .layout-main,
 .page-container.logistics-full-width .layout-main,
 .logistics-full-bleed-page .layout-main {
     max-width: 100% !important;
@@ -659,15 +691,16 @@
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    background: transparent !important;
+    background: #f8fafc !important;
+    background-color: #f8fafc !important;
 }
 
 .logistics-page-container {
     display: flex;
     flex-direction: row;
-    min-height: calc(100vh - 55px);
+    min-height: 100vh !important;
     width: 100%;
-    background-color: #f8fafc;
+    background-color: #f8fafc !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     color: #0f172a;
     position: relative;
@@ -870,8 +903,10 @@
     flex: 1;
     min-width: 0;
     overflow-y: auto;
-    height: calc(100vh - 55px);
-    background-color: #f8fafc;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    background-color: #f8fafc !important;
+    box-sizing: border-box;
 }
 
 /* 3. Tab Panes with Silky Smooth Slide & Fade-in Entrance Transition */
