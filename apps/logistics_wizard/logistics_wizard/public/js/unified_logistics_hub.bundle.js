@@ -58,6 +58,14 @@ class UnifiedLogisticsHub {
         else if (targetKey === 'cost') targetSelector = '#tab-pane-trade-cost';
         else if (targetKey === 'copilot') targetSelector = '#tab-pane-ai-copilot';
 
+        // Toggle floating chatbot widget visibility (hidden on dedicated copilot page to prevent overlap)
+        if (targetKey === 'copilot' || (typeof frappe !== 'undefined' && frappe.get_route && (frappe.get_route()[1] === 'logistics-ai-copilot' || frappe.get_route()[1] === 'logistics_ai_copilot'))) {
+            $('#logistics-ai-fab-container').hide();
+            $('#logistics-ai-drawer').hide();
+        } else {
+            $('#logistics-ai-fab-container').show();
+        }
+
         const $target = $page.find(targetSelector);
         if ($target.length) {
             void $target[0].offsetWidth; // trigger reflow
@@ -3354,6 +3362,26 @@ if (typeof global !== 'undefined') {
 
         function scrollToBottom() {
             $messagesBody.stop().animate({ scrollTop: $messagesBody[0].scrollHeight }, 100);
+        }
+
+        // Auto hide on dedicated copilot page to prevent overlap
+        if (typeof frappe !== 'undefined') {
+            const currentRoute = frappe.get_route ? frappe.get_route() : [];
+            if (currentRoute[1] === 'logistics-ai-copilot' || currentRoute[1] === 'logistics_ai_copilot') {
+                $('#logistics-ai-fab-container').hide();
+                $('#logistics-ai-drawer').hide();
+            }
+            if (frappe.router && frappe.router.on) {
+                frappe.router.on('change', function () {
+                    const r = frappe.get_route ? frappe.get_route() : [];
+                    if (r[1] === 'logistics-ai-copilot' || r[1] === 'logistics_ai_copilot') {
+                        $('#logistics-ai-fab-container').hide();
+                        $('#logistics-ai-drawer').hide();
+                    } else {
+                        $('#logistics-ai-fab-container').show();
+                    }
+                });
+            }
         }
     }
 
